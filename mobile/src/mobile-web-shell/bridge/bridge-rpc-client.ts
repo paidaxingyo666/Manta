@@ -1,6 +1,6 @@
 import type { BrowserScreencastFrame } from '../../transport/browser-screencast-protocol'
 import type { RpcClient, SendRequestOptions } from '../../transport/rpc-client'
-import type { ConnectionState, RpcResponse } from '../../transport/types'
+import type { ConnectionState, RpcResponse, RpcSuccess } from '../../transport/types'
 import { BRIDGE_MAX_PENDING_REQUESTS, BRIDGE_MAX_SUBSCRIPTIONS } from './bridge-caps'
 import { BridgeConnectionCache } from './bridge-client-connection-cache'
 import type { BridgeRpcClientDiagnostic } from './bridge-client-diagnostics'
@@ -9,6 +9,7 @@ import { createBridgeInitHandshake } from './bridge-client-init-handshake'
 import {
   BridgeClientCapExceededError,
   BridgeClientClosedError,
+  BridgeClientNotNativeVerbError,
   BridgeClientNotReadyError,
   BridgeSendFailedError,
   BridgeShellReplacedError
@@ -17,6 +18,7 @@ import { createBridgeInboundFrameReader } from './bridge-client-inbound-frames'
 import { createBridgeClientNotifications } from './bridge-client-notifications'
 import { BridgeClientRequests } from './bridge-client-requests'
 import { BridgeClientSubscriptions } from './bridge-client-subscriptions'
+import { isBridgeNativeMethod, type BridgeNativeVerb } from './bridge-native-verbs'
 import {
   BRIDGE_PROTOCOL_VERSION,
   type BridgeClientMessage,
@@ -70,6 +72,14 @@ export type BridgeRpcClient = RpcClient & {
    * a throw inside a tap handler is not that.
    */
   notifyExternalLink: (url: string) => boolean
+  /**
+   * Calls one shell-answered verb. It rides the same `request` frame, id space and in-flight cap
+   * as a desktop method; the `native.` prefix is what makes the host answer it instead of
+   * forwarding. It lives here rather than in a screen because that is what keeps the raw request
+   * port inside the module that owns it — a native verb is bridge machinery, not an RPC to a
+   * runtime, so it has no `RpcOperation` and no entry in the desktop's method catalog.
+   */
+  callNativeVerb: (verb: BridgeNativeVerb, params: unknown) => Promise<RpcSuccess>
   /** Writes one allowlisted key into the app's store. False when the shell granted no `storage`. */
   notifyStorageWrite: (key: string, value: string | null) => boolean
   /**
@@ -316,6 +326,24 @@ export function createBridgeRpcClient(options: BridgeRpcClientOptions): BridgeRp
     notifyNavigate: notifications.notifyNavigate,
     notifyNavigateBack: notifications.notifyNavigateBack,
     notifyExternalLink: notifications.notifyExternalLink,
+    callNativeVerb: (verb, params) => {
+      // Typed to the table, and checked anyway: the type is the fence for every caller the
+      // compiler can see, and this is the one for a caller that reached the member through a
+      // widened one. Without it the member is a raw port the inventory cannot count, because a
+      // bare-identifier call is not a shape its scan looks for.
+      if (!isBridgeNativeMethod(verb)) {
+        return Promise.reject(new BridgeClientNotNativeVerbError(verb))
+      }
+      return sendRequest(verb, params).then((reply) => {
+        // A refusal crosses as an `error` frame and rejects above, and nothing forwards a native
+        // method, so no host `RpcFailure` can arrive on one. Narrowed here rather than at every
+        // caller, which is what lets this member promise a success or a rejection and nothing else.
+        if (!reply.ok) {
+          throw new Error(reply.error.message)
+        }
+        return reply
+      })
+    },
     notifyStorageWrite: notifications.notifyStorageWrite,
     notifyPageFault: notifications.notifyPageFault,
     close,

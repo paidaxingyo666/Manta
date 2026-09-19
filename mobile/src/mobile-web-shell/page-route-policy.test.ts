@@ -3,8 +3,14 @@ import {
   implementedPageRoutes,
   matchesRoutePattern,
   pageRendersRoute,
-  MOBILE_WEB_SHELL_GRANTS
+  MOBILE_WEB_SHELL_GRANTS,
+  grantsForRoute
 } from './page-route-policy'
+import {
+  BRIDGE_NATIVE_METHOD_PREFIX,
+  BRIDGE_NATIVE_VERB_NAMES,
+  BRIDGE_NATIVE_VERBS
+} from './bridge/bridge-native-verbs'
 
 describe('matching a concrete route against a pattern', () => {
   it('matches a dynamic segment against one segment and never against a path', () => {
@@ -69,6 +75,80 @@ describe('the grants this app implements', () => {
   it('names exactly what the shell honours over the bridge', () => {
     // The same list `init.grants.native` gives the page. A name here with nothing behind it is a
     // route the desktop will hand over and the page will find it cannot use.
-    expect([...MOBILE_WEB_SHELL_GRANTS]).toEqual(['navigate', 'storage', 'externalLink'])
+    expect([...MOBILE_WEB_SHELL_GRANTS]).toEqual([
+      'navigate',
+      'storage',
+      'externalLink',
+      'native.clipboard.write',
+      'native.clipboard.read'
+    ])
+  })
+})
+
+/**
+ * A verb cannot be advertised without a handler, or handled without being advertised.
+ *
+ * The table is keyed on the same tuple this list spreads, so a missing row does not compile. This
+ * is the other direction: a name reaching `init.grants.native` that the table has never heard of,
+ * which a page would then be told it may call.
+ */
+describe('the native verbs this app serves', () => {
+  it('advertises exactly the verbs the table holds', () => {
+    const advertised = MOBILE_WEB_SHELL_GRANTS.filter((grant) =>
+      grant.startsWith(BRIDGE_NATIVE_METHOD_PREFIX)
+    )
+    expect([...advertised].sort()).toEqual([...BRIDGE_NATIVE_VERB_NAMES].sort())
+    expect(Object.keys(BRIDGE_NATIVE_VERBS).sort()).toEqual([...BRIDGE_NATIVE_VERB_NAMES].sort())
+  })
+
+  it('names them so a route can declare one, which is what keeps that route native without it', () => {
+    // A bundle listing a route that needs the clipboard, against a shell too old to serve it.
+    expect(
+      implementedPageRoutes([
+        { pathname: '/h/[hostId]/tasks', grants: ['navigate', 'native.clipboard.write'] }
+      ])
+    ).toEqual(['/h/[hostId]/tasks'])
+    expect(
+      implementedPageRoutes([
+        { pathname: '/h/[hostId]/tasks', grants: ['navigate', 'native.dictation.start'] }
+      ])
+    ).toEqual([])
+  })
+})
+
+/**
+ * What an old phone does with a grant name it has never heard of.
+ *
+ * Widening what a manifest field may contain is a new optional value crossing to readers that
+ * shipped before it. The phone's manifest schema bounds a grant's length and nothing else, on
+ * purpose, so an unknown name is not a parse failure that would refuse the whole bundle — it is a
+ * grant this build does not implement, and the route carrying it stays native.
+ */
+describe('a grant name this build has never heard of', () => {
+  it('leaves that route native rather than refusing the bundle', () => {
+    expect(
+      implementedPageRoutes([
+        { pathname: '/h/[hostId]', grants: ['navigate'] },
+        { pathname: '/h/[hostId]/tasks', grants: ['navigate', 'native.dictation.start'] }
+      ])
+    ).toEqual(['/h/[hostId]'])
+  })
+
+  it('grants nothing from it either, so a route it names is served none of it', () => {
+    expect(
+      grantsForRoute(
+        [{ pathname: '/h/[hostId]', grants: ['navigate', 'native.dictation.start'] }],
+        '/h/host-1'
+      )
+    ).toEqual(['navigate'])
+  })
+
+  it('carries a verb the build does implement all the way to the session grants', () => {
+    expect(
+      grantsForRoute(
+        [{ pathname: '/h/[hostId]/tasks', grants: ['navigate', 'native.clipboard.write'] }],
+        '/h/host-1/tasks'
+      )
+    ).toEqual(['navigate', 'native.clipboard.write'])
   })
 })

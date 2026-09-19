@@ -15,6 +15,7 @@ import type {
 } from './mobile-web-shell-session-contract'
 import { useMobileWebShellBridge } from './use-mobile-web-shell-bridge'
 import type { MobileWebShellRuntime } from './mobile-web-shell-runtime'
+import { serveNativeClipboardVerb } from '../platform/native-clipboard'
 import { useShellStackPop } from './use-shell-stack-pop'
 import { useMobileWebShellSession } from './use-mobile-web-shell-session'
 import { usePageHostSnapshot } from './use-page-host-snapshot'
@@ -140,14 +141,22 @@ export function MobileWebShellScreen({
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const popShellStack = useShellStackPop()
-  const { state, pageRoutes, retry, reportShellFailure, reportDocumentLoaded, reportPageReady } =
-    useMobileWebShellSession({ hostId, routePathname: route.pathname, runtime })
+  const {
+    state,
+    pageRoutes,
+    routeGrants,
+    retry,
+    reportShellFailure,
+    reportDocumentLoaded,
+    reportPageReady
+  } = useMobileWebShellSession({ hostId, routePathname: route.pathname, runtime })
   const { snapshot, unreadable, readStorage, refreshStorage, writeStorage } =
     usePageHostSnapshot(hostId)
   const bridge = useMobileWebShellBridge({
     hostId,
     route,
     pageRoutes,
+    routeGrants,
     session: state,
     snapshot,
     readStorage,
@@ -182,6 +191,8 @@ export function MobileWebShellScreen({
     onNavigate: (href: string) => {
       router.push(href)
     },
+    // Answered on this device and never forwarded; the host holds it to the verb table first.
+    serveNativeVerb: serveNativeClipboardVerb,
     // Straight to the system handler. The envelope allowlisted the scheme before this ran, so the
     // only failure left is a device with nothing registered for it — a `mailto:` on a phone with no
     // mail account. Reported rather than swallowed: nothing crosses back for a notify, so this is

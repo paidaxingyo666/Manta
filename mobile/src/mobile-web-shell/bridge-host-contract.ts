@@ -2,6 +2,7 @@ import type { RpcClient } from '../transport/rpc-client'
 import type { BridgeRefusal } from './bridge/bridge-caps'
 import type { BridgeInitHost, BridgeInitRoute } from './bridge/bridge-envelope'
 import type { BridgeErrorCapture } from './bridge/bridge-error-capture'
+import type { BridgeNativeVerb } from './bridge/bridge-native-verbs'
 import type { BridgeNotifyRefusal } from './bridge/bridge-notify-grants'
 
 /**
@@ -57,6 +58,23 @@ export type BridgeHostOptions = {
   route: BridgeInitRoute
   /** Every route pattern the shell would render from the page, so the page knows what to keep. */
   pageRoutes: readonly string[]
+  /**
+   * What the route this session was opened for declared, narrowed to what this shell implements.
+   *
+   * This is the session's whole capability, not the app's: `init` grants exactly these plus the
+   * protocol's own `fault`, and every grant check reads the same list. A route asking for
+   * navigation does not get the clipboard because some other route needs it.
+   */
+  routeGrants: readonly string[]
+  /**
+   * Whether this session already completed a handshake before this host existed.
+   *
+   * A host is rebuilt when the client under it changes, and the page on the other side does not
+   * know: the session id is the same, so it neither re-handshakes nor hears `BridgeShellReplaced`.
+   * The pre-handshake refusal is about the session, not this object, so a rebuilt host inherits
+   * what the session already established and serves it.
+   */
+  sessionEstablished: boolean
   /** The host the page is showing, minus the credential the bridge already carries for it. */
   host: BridgeInitHost
   /**
@@ -73,6 +91,14 @@ export type BridgeHostOptions = {
    * nothing is a dead tap, which is exactly what the grant is supposed to rule out.
    */
   onNavigate: (href: string) => void
+  /**
+   * Serves one `native.` verb on this device. Required, because the grant list advertises the verbs
+   * and a page told it may call one that reaches nothing is the dead tap the grants rule out.
+   *
+   * Rejecting is the refusal: the host turns it into an error frame the page's request rejects
+   * with. Nothing here reaches the desktop.
+   */
+  serveNativeVerb: (verb: BridgeNativeVerb, params: unknown) => Promise<unknown>
   /**
    * Opens a URL outside the app, which is the whole of the `externalLink` grant. Required for the
    * reason `onNavigate` is: the grant is issued on the strength of this existing.

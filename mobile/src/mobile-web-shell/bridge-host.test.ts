@@ -20,7 +20,7 @@ import { BridgeReplyAssembler } from './bridge/bridge-reply-chunking'
 
 describe('requests', () => {
   it('replays the arity the page used', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     bridge.host.receive(
       clientFrame({ type: 'request', id: OTHER, method: 'status.get', params: undefined })
@@ -45,7 +45,7 @@ describe('requests', () => {
   })
 
   it('carries a host failure through as data, _meta and error.data included', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     const failure: RpcResponse = {
       id: 'wire-1',
@@ -59,7 +59,7 @@ describe('requests', () => {
   })
 
   it('turns a rejection into the five-field capture, delivery mark and cause included', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     const cause = new Error('socket closed')
     const error = new TypeError('send failed')
@@ -82,6 +82,7 @@ describe('requests', () => {
   it('answers a synchronous throw from the client and frees the slot', () => {
     const client = createFakeRpcClient()
     const bridge = harness({
+      ready: true,
       client: {
         ...client,
         sendRequest: () => {
@@ -99,7 +100,7 @@ describe('requests', () => {
   })
 
   it('refuses an id already in flight without settling the exchange it collided with', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'other.get' }))
     expect(bridge.client.requests).toHaveLength(1)
@@ -123,14 +124,15 @@ describe('requests', () => {
   })
 
   it('admits exactly the in-flight cap and refuses the next', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     for (let index = 0; index < BRIDGE_MAX_PENDING_REQUESTS; index += 1) {
       bridge.host.receive(
         clientFrame({ type: 'request', id: bridgeId(index), method: 'status.get' })
       )
     }
     expect(bridge.client.requests).toHaveLength(BRIDGE_MAX_PENDING_REQUESTS)
-    expect(bridge.posted).toHaveLength(0)
+    // The `init` this page's session opened with, and nothing else: none of these was refused.
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([])
     bridge.host.receive(
       clientFrame({ type: 'request', id: bridgeId(BRIDGE_MAX_PENDING_REQUESTS), method: 'x.get' })
     )
@@ -139,7 +141,7 @@ describe('requests', () => {
   })
 
   it('reopens a slot when a request settles', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     for (let index = 0; index < BRIDGE_MAX_PENDING_REQUESTS; index += 1) {
       bridge.host.receive(
         clientFrame({ type: 'request', id: bridgeId(index), method: 'status.get' })
@@ -181,18 +183,18 @@ describe('requests', () => {
   })
 
   it('stops answering a cancelled request without pretending the desktop stopped running it', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     bridge.host.receive(clientFrame({ type: 'cancel', id: ID, target: 'request' }))
     bridge.client.requests[0]?.resolve(rpcSuccess('wire-1', 'ok'))
     await flushBridge()
-    expect(bridge.posted).toHaveLength(0)
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([])
   })
 })
 
 describe('replies too big for one frame', () => {
   it('chunks and reassembles to the same payload', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'worktree.list' }))
     const payload = rpcSuccess('wire-1', 'y'.repeat(BRIDGE_MAX_MESSAGE_BYTES * 2))
     bridge.client.requests[0]?.resolve(payload)
@@ -207,7 +209,7 @@ describe('replies too big for one frame', () => {
   })
 
   it('aborts the request over the reply ceiling rather than truncating an answer', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'worktree.list' }))
     bridge.client.requests[0]?.resolve(rpcSuccess('wire-1', 'y'.repeat(BRIDGE_MAX_REPLY_BYTES + 1)))
     await flushBridge()
@@ -221,31 +223,31 @@ describe('replies too big for one frame', () => {
 
 describe('subscriptions', () => {
   it('forwards with the arity the recorder reads and streams events from seq 1', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     expect(bridge.client.streams[0]?.method).toBe('terminal.subscribe')
     bridge.client.streams[0]?.emit({ chunk: 'a' })
     bridge.client.streams[0]?.emit({ chunk: 'b' })
-    expect(bridge.frames()).toEqual([
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([
       { v: 1, type: 'event', id: ID, seq: 1, payload: { chunk: 'a' } },
       { v: 1, type: 'event', id: ID, seq: 2, payload: { chunk: 'b' } }
     ])
   })
 
   it('admits exactly the subscription cap and refuses the next', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     for (let index = 0; index < BRIDGE_MAX_SUBSCRIPTIONS; index += 1) {
       bridge.host.receive(subscribeFrame(bridgeId(index)))
     }
     expect(bridge.client.streams).toHaveLength(BRIDGE_MAX_SUBSCRIPTIONS)
-    expect(bridge.posted).toHaveLength(0)
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([])
     bridge.host.receive(subscribeFrame(bridgeId(BRIDGE_MAX_SUBSCRIPTIONS)))
     expect(bridge.client.streams).toHaveLength(BRIDGE_MAX_SUBSCRIPTIONS)
     expect(bridge.last().type).toBe('error')
   })
 
   it('reopens a slot when a stream is cancelled', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     for (let index = 0; index < BRIDGE_MAX_SUBSCRIPTIONS; index += 1) {
       bridge.host.receive(subscribeFrame(bridgeId(index)))
     }
@@ -255,7 +257,7 @@ describe('subscriptions', () => {
   })
 
   it('unsubscribes on cancel, says so, and delivers nothing after', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     bridge.client.streams[0]?.emit({ chunk: 'a' })
     bridge.host.receive(clientFrame({ type: 'cancel', id: ID, target: 'subscription' }))
@@ -285,6 +287,7 @@ describe('subscriptions', () => {
     const client = createFakeRpcClient()
     let unsubscribes = 0
     const bridge = harness({
+      ready: true,
       client: {
         ...client,
         subscribe: (_method, _params, onData) => {
@@ -296,7 +299,9 @@ describe('subscriptions', () => {
       }
     })
     bridge.host.receive(subscribeFrame(ID))
-    expect(bridge.frames()).toEqual([{ v: 1, type: 'end', id: ID, reason: 'overflow' }])
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([
+      { v: 1, type: 'end', id: ID, reason: 'overflow' }
+    ])
     // The stream was already retired when its unsubscribe arrived, so storing it on the record
     // would leak the client's stream with nothing left to read it.
     expect(unsubscribes).toBe(1)
@@ -311,7 +316,7 @@ describe('backpressure', () => {
   }
 
   it('sends exactly the unacked frame window and then ends with overflow', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     fill(bridge, BRIDGE_MAX_UNACKED_FRAMES)
     expect(bridge.frames().filter((frame) => frame.type === 'event')).toHaveLength(
@@ -323,7 +328,7 @@ describe('backpressure', () => {
   })
 
   it('reopens the window on ack', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     fill(bridge, BRIDGE_MAX_UNACKED_FRAMES)
     bridge.host.receive(clientFrame({ type: 'ack', id: ID, seq: BRIDGE_MAX_UNACKED_FRAMES }))
@@ -334,7 +339,7 @@ describe('backpressure', () => {
   })
 
   it('acks only up to the seq it was given', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     fill(bridge, BRIDGE_MAX_UNACKED_FRAMES)
     bridge.host.receive(clientFrame({ type: 'ack', id: ID, seq: 1 }))
@@ -347,7 +352,7 @@ describe('backpressure', () => {
   })
 
   it('ends on the unacked byte window well before the frame window is reached', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     const chunk = 'z'.repeat(BRIDGE_MAX_MESSAGE_BYTES - 1024)
     const ended = (): boolean => (bridge.posted.at(-1) ?? '').includes('"type":"end"')
@@ -366,7 +371,7 @@ describe('backpressure', () => {
   })
 
   it('reopens the byte window on ack, not just the frame window', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     const chunk = 'z'.repeat(BRIDGE_MAX_MESSAGE_BYTES - 1024)
     // What fits under the byte window, which leaves the next frame of this size to overflow it.
@@ -389,14 +394,14 @@ describe('backpressure', () => {
   })
 
   it('ends rather than posting an event the page would refuse as oversized', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     bridge.client.streams[0]?.emit('z'.repeat(BRIDGE_MAX_MESSAGE_BYTES))
     expect(bridge.last()).toEqual({ v: 1, type: 'end', id: ID, reason: 'overflow' })
   })
 
   it('keeps each stream on its own window', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     bridge.host.receive(subscribeFrame(OTHER))
     for (let index = 0; index <= BRIDGE_MAX_UNACKED_FRAMES; index += 1) {
@@ -409,17 +414,18 @@ describe('backpressure', () => {
 
 describe('teardown', () => {
   it('rejects every pending as delivery-unknown, ends every stream, and refuses later frames', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     bridge.host.receive(subscribeFrame(OTHER))
     bridge.host.dispose()
-    expect(bridge.frames()).toEqual([
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([
       {
         v: 1,
         type: 'error',
         id: ID,
         error: {
           category: 'BridgeHostDisposedError',
+          code: 'bridge_host_disposed',
           message: 'the page bridge was torn down before this request answered',
           isRpcDeliveryUnknown: true
         }
@@ -435,7 +441,8 @@ describe('teardown', () => {
     bridge.host.receive(clientFrame({ type: 'notify', name: 'foreground' }))
     bridge.host.receive(clientFrame({ type: 'ready' }))
     await flushBridge()
-    expect(bridge.frames()).toHaveLength(2)
+    // The `init` this session opened with, plus the two the disposal settled, and nothing since.
+    expect(bridge.frames()).toHaveLength(3)
     expect(bridge.client.requests).toHaveLength(1)
     expect(bridge.client.streams).toHaveLength(1)
     expect(bridge.client.foregroundCalls).toEqual([])
@@ -446,25 +453,25 @@ describe('teardown', () => {
   })
 
   it('is idempotent', () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(subscribeFrame(ID))
     bridge.host.dispose()
     bridge.host.dispose()
-    expect(bridge.frames()).toHaveLength(1)
+    expect(bridge.frames()).toHaveLength(2)
     expect(bridge.client.streams[0]?.unsubscribes).toBe(1)
   })
 
   it('settles what the page owned on close without answering a page that said goodbye', async () => {
-    const bridge = harness()
+    const bridge = harness({ ready: true })
     bridge.host.receive(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
     bridge.host.receive(subscribeFrame(OTHER))
     bridge.host.receive(clientFrame({ type: 'close' }))
-    expect(bridge.posted).toHaveLength(0)
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([])
     expect(bridge.client.streams[0]?.unsubscribes).toBe(1)
     bridge.client.requests[0]?.resolve(rpcSuccess('wire-1', 'ok'))
     bridge.client.streams[0]?.emit({ chunk: 'a' })
     await flushBridge()
-    expect(bridge.posted).toHaveLength(0)
+    expect(bridge.frames().filter((frame) => frame.type !== 'init')).toEqual([])
   })
 
   it('answers the document that loads in after a close, rather than latching shut', () => {

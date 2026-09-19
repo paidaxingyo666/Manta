@@ -1,4 +1,5 @@
 import type { MobileWebBundleManifestRead } from '../transport/mobile-web-bundle-reply-schemas'
+import { BRIDGE_NATIVE_VERB_NAMES } from './bridge/bridge-native-verbs'
 
 /** The manifest's route entries, as this shell reads them. */
 export type MobileWebPageRoute = NonNullable<MobileWebBundleManifestRead['routes']>[number]
@@ -11,7 +12,14 @@ export type MobileWebPageRoute = NonNullable<MobileWebBundleManifestRead['routes
  * here renders its native screen instead: an old app against a new bundle lands on a screen that
  * works rather than on a tap that does nothing.
  */
-export const MOBILE_WEB_SHELL_GRANTS = ['navigate', 'storage', 'externalLink'] as const
+export const MOBILE_WEB_SHELL_GRANTS = [
+  'navigate',
+  'storage',
+  'externalLink',
+  // Spread rather than restated: the verb table is keyed on this same tuple, so a verb cannot be
+  // advertised without a row and a row cannot exist without being advertised.
+  ...BRIDGE_NATIVE_VERB_NAMES
+] as const
 
 export type MobileWebShellGrant = (typeof MOBILE_WEB_SHELL_GRANTS)[number]
 
@@ -60,4 +68,24 @@ export function pageRendersRoute(
   pathname: string
 ): boolean {
   return implementedPageRoutes(routes).some((pattern) => matchesRoutePattern(pathname, pattern))
+}
+
+/**
+ * The grants one page session gets: what this shell implements, narrowed to what the route it was
+ * opened for declared.
+ *
+ * Narrowed, because `init.grants.native` is what the page is allowed to do, and handing every
+ * session the shell's whole capability set gives a route that asked for `navigate` and `storage`
+ * the clipboard as well. That was harmless while every grant was a navigation or a write the page
+ * could make anyway, and stopped being harmless the moment a verb reads something back.
+ *
+ * A route the bundle does not declare gets nothing, which is the same answer as a page the shell
+ * would not render at all.
+ */
+export function grantsForRoute(
+  routes: readonly MobileWebPageRoute[] | undefined,
+  pathname: string
+): string[] {
+  const declared = (routes ?? []).find((route) => matchesRoutePattern(pathname, route.pathname))
+  return declared === undefined ? [] : declared.grants.filter(implementsGrant)
 }
