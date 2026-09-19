@@ -264,6 +264,7 @@ export function MobileAgentSessionHistoryPanel({
             style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
             onPress={() => router.back()}
             hitSlop={8}
+            accessibilityRole="button"
             accessibilityLabel="Back"
           >
             <ChevronLeft size={22} color={colors.textSecondary} strokeWidth={2.2} />
