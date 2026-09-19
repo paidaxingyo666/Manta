@@ -1,3 +1,4 @@
+import { getPiPrefillHandlerSourceLines } from './prefill-extension-source'
 import type { PiAgentKind } from '../../shared/pi-agent-kind'
 import { getPiAgentStatusUiPromptHandlerSourceLines } from './agent-status-ui-prompt-source'
 
@@ -129,6 +130,7 @@ export function getPiAgentStatusHandlerSourceLines(kind: PiAgentKind): string[] 
         ]
       : []),
     ...sessionStartHandler,
+    ...(kind === 'omp' ? getPiPrefillHandlerSourceLines('omp') : []),
     `  pi.on('before_agent_start', (event${ctxParam}) => {`,
     ...captureSessionMetadata,
     "    post('before_agent_start', { prompt: event.prompt ?? '' })",
