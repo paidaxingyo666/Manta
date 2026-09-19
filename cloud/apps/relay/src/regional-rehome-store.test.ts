@@ -1760,7 +1760,7 @@ function hookAfterCandidateScan(
   const decorate = (delegate: RelayDatabase): RelayDatabase => ({
     query: async (sql, params) => {
       const rows = await delegate.query(sql, params)
-      if (!fired && sql.includes('SELECT a.user_id, a.relay_host_id')) {
+      if (!fired && sql.includes('SELECT d.user_id, d.relay_host_id')) {
         fired = true
         await hook(delegate)
       }

@@ -1,5 +1,13 @@
 import { createDrainMigrationRowLookup } from './drain-migration-row-lookup.js'
-import { IDLE_REHOME_PAGE_SIZE, selectIdleRegionalRehomes } from './idle-regional-rehome-selection.js'
+import {
+  selectIdleRegionalRehomes,
+  type IdleRegionalRehomeCandidate,
+  type IdleRehomeHostCursor
+} from './idle-regional-rehome-selection.js'
+import {
+  RegionalRehomePollTelemetry,
+  type RegionalRehomePollGate
+} from './regional-rehome-poll-telemetry.js'
 import { readRegionCorrectionOutcomes } from './region-correction-outcomes.js'
 import {
   previewRegionalRehomeEligibility,
@@ -3357,17 +3365,26 @@ export class RelayAssignmentStore {
     return previewRegionCorrection(this.database, this.now())
   }
 
-  private idleRegionalCandidateOffset = 0
+  private idleRegionalCandidateCursor: IdleRehomeHostCursor = null
+  private readonly regionalRehomePollTelemetry = new RegionalRehomePollTelemetry()
 
   async selectIdleRegionalRehomeCandidates(
     processSafety?: RegionalRehomeSafetySnapshot
-  ): Promise<Array<IdleRegionalRehomeRequest & { sourceCellUrl: string }>> {
+  ): Promise<IdleRegionalRehomeCandidate[]> {
     const now = this.now()
-    if (!processSafety || this.regionalRehomeCohortPercent === 0) return []
+    const gated = (gate: RegionalRehomePollGate): IdleRegionalRehomeCandidate[] => {
+      this.regionalRehomePollTelemetry.record({ now, gate, candidates: 0 })
+      return []
+    }
+    if (!processSafety) return gated('process-safety-unavailable')
+    if (this.regionalRehomeCohortPercent === 0) return gated('cohort-zero')
     const control = (await this.database.query(
-      "SELECT enabled, not_before FROM relay_region_rehome_control WHERE control_id = 'global'"
+      `SELECT enabled, not_before, preference_max_age_ms, host_cooldown_ms
+       FROM relay_region_rehome_control WHERE control_id = 'global'`
     ))[0]
-    if (!control || Number(control.enabled) !== 1 || Number(control.not_before) > now) return []
+    if (!control || Number(control.enabled) !== 1 || Number(control.not_before) > now) {
+      return gated('control-closed')
+    }
     // The dispatch budget is durable and global, but until now only
     // `commitIdleRegionalRehome` consulted it -- after the join had already run and
     // the worker had already POSTed every candidate to its source cell. An absent
@@ -3377,19 +3394,28 @@ export class RelayAssignmentStore {
        WHERE worker_id = 'global'`
     ))[0]
     if (worker && (Number(worker.paused_until) > now || Number(worker.next_dispatch_at) > now)) {
-      return []
+      return gated('budget-closed')
     }
     const fleetSafety = await this.readRegionalRehomeFleetSafety(this.database, now)
-    if (regionalRehomeFleetSafetyFailure(processSafety, fleetSafety, now)) return []
-    const candidates = await selectIdleRegionalRehomes({
+    if (regionalRehomeFleetSafetyFailure(processSafety, fleetSafety, now)) return gated('fleet-safety')
+    const startedAt = performance.now()
+    const selection = await selectIdleRegionalRehomes({
       database: this.database, now, heartbeatTtlMs: this.heartbeatTtlMs,
-      cohortPercent: this.regionalRehomeCohortPercent, offset: this.idleRegionalCandidateOffset,
+      cohortPercent: this.regionalRehomeCohortPercent,
+      preferenceMaxAgeMs: Number(control.preference_max_age_ms),
+      hostCooldownMs: Number(control.host_cooldown_ms),
+      cursor: this.idleRegionalCandidateCursor,
       connectionHeadroom: await this.connectionHeadroomByCell(this.database),
       cellIsClean: regionalRehomeCellSafetyIsClean
     })
-    this.idleRegionalCandidateOffset = candidates.length < IDLE_REHOME_PAGE_SIZE
-      ? 0 : this.idleRegionalCandidateOffset + candidates.length
-    return candidates
+    this.idleRegionalCandidateCursor = selection.cursor
+    this.regionalRehomePollTelemetry.record({
+      now,
+      gate: 'open',
+      candidates: selection.candidates.length,
+      selectionMs: performance.now() - startedAt
+    })
+    return selection.candidates
   }
 
   async commitIdleRegionalRehome(
