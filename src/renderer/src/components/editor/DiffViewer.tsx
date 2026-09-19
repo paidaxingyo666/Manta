@@ -25,6 +25,7 @@ import { getDiffViewerLargeDiffSaveAction } from './diff-viewer-large-diff-save-
 import type { DiffViewerProps } from './diff-viewer-props'
 import { buildDiffEditorWhitespaceOptions } from './diff-editor-whitespace-options'
 import { buildDiffEditorWordWrapOptions } from './diff-editor-word-wrap-options'
+import { buildDiffEditorHideUnchangedOptions } from './diff-editor-hide-unchanged-options'
 import { useDiffEditorRegistration } from './diff-navigation-context'
 import { preserveDiffViewStateAcrossModelSwaps } from './diff-model-swap-view-state'
 import { monacoFindOptions } from './monaco-find-options'
@@ -337,7 +338,6 @@ export default function DiffViewer({
         diffEditor.focus()
       }
 
-      // Why: clear modifiedEditor on dispose so decorator effects don't call into a disposed Monaco editor.
       diffEditor.onDidDispose(() => {
         lineNumberOptionsSubRef.current?.dispose()
         lineNumberOptionsSubRef.current = null
@@ -413,8 +413,7 @@ export default function DiffViewer({
             modified={modifiedContent}
             theme={isDark ? 'vs-dark' : 'vs'}
             onMount={handleMount}
-            // Why: a file can have multiple live diff tabs, so key models off tab identity (not file path) to avoid cross-tab reuse.
-            // Why: Changes mode rotates only the original-side model after HEAD moves, preserving the modified side's undo stack.
+            // Why: key models by tab identity and preserve the modified undo stack across Changes-mode HEAD rotations.
             originalModelPath={currentDiffModelPaths.originalModelPath}
             modifiedModelPath={currentDiffModelPaths.modifiedModelPath}
             keepCurrentOriginalModel
@@ -430,6 +429,7 @@ export default function DiffViewer({
               lineNumbers: 'on',
               ...buildDiffEditorWordWrapOptions(settings?.diffWordWrap),
               ...buildDiffEditorWhitespaceOptions(settings?.diffShowWhitespace),
+              ...buildDiffEditorHideUnchangedOptions(settings?.diffCollapseUnchangedRegions),
               automaticLayout: true,
               renderOverviewRuler: true,
               scrollbar: diffEditorScrollbarOptions,
