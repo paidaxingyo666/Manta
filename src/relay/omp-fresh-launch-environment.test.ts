@@ -90,7 +90,7 @@ it('prepares the execution host OMP config and status extension for a guarded la
 
     source.mockReturnValue(false)
     expect(
-      augment.mock.calls[1][0]({ id: 'other', shell: '/bin/bash', env: {}, command: 'codex' })
+      await augment.mock.calls[1][0]({ id: 'other', shell: '/bin/bash', env: {}, command: 'codex' })
     ).toEqual({})
   } finally {
     runtime.stop()

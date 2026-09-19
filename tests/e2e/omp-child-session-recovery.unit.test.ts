@@ -9,6 +9,7 @@ import { createTestStore, makeTab } from '../../src/renderer/src/store/slices/st
 
 const PANE = 'tab-1:11111111-1111-4111-8111-111111111111'
 const ROOT_SESSION = '22222222-2222-4222-8222-222222222222'
+const ROOT_TRANSCRIPT_PATH = '/sessions/root.jsonl'
 const CHILD_SESSION = '33333333-3333-4333-8333-333333333333'
 
 async function rootWithActiveChild(): Promise<ReturnType<typeof createTestStore>> {
@@ -59,7 +60,7 @@ async function rootWithActiveChild(): Promise<ReturnType<typeof createTestStore>
       await Promise.resolve()
     }
   }
-  const root = { getSessionId: () => ROOT_SESSION, getSessionFile: () => '/sessions/root.jsonl' }
+  const root = { getSessionId: () => ROOT_SESSION, getSessionFile: () => ROOT_TRANSCRIPT_PATH }
   await emit('session_start', {}, root)
   await emit('before_agent_start', { prompt: 'ROOT distinctive user request' }, root)
   await emit(
@@ -109,7 +110,7 @@ describe('OMP child lifecycle recovery boundaries', () => {
     expect(getAgentResumeArgv(record.agent, record.providerSession)).toEqual([
       'omp',
       '--resume',
-      ROOT_SESSION
+      ROOT_TRANSCRIPT_PATH
     ])
     const startup = buildAgentResumeStartupPlan({
       agent: record.agent,
@@ -118,7 +119,7 @@ describe('OMP child lifecycle recovery boundaries', () => {
       platform: 'linux',
       ...record.launchConfig
     })
-    expect(startup?.launchCommand).toBe(`omp '--resume' '${ROOT_SESSION}'`)
+    expect(startup?.launchCommand).toBe(`omp '--resume' '${ROOT_TRANSCRIPT_PATH}'`)
     expect(serialized).not.toContain(CHILD_SESSION)
   })
 })

@@ -26,7 +26,7 @@ describe.each([
   ['dedicated OMP', { kind: 'omp' as const }],
   ['Pi-routed OMP', { kind: 'pi' as const, title: 'omp' }]
 ])('%s transcript metadata', (_name, args) => {
-  it('resolves custom files without scanning and retains id-based resume across switches', async () => {
+  it('resolves custom files without scanning and retains path-based resume across switches', async () => {
     const harness = createAgentStatusExtensionHarness(args)
     let id = ''
     let file = ''
@@ -44,7 +44,7 @@ describe.each([
       const payload = JSON.parse(String(harness.fetchMock.mock.lastCall?.[1]?.body)).payload
       const session = extractAgentProviderSession('omp', payload)
       expect(session).toEqual({ key: 'session_id', id, transcriptPath: file })
-      expect(getAgentResumeArgv('omp', session!)).toEqual(['omp', '--resume', id])
+      expect(getAgentResumeArgv('omp', session!)).toEqual(['omp', '--resume', file])
       expect(getAgentResumeArgv('omp', session!, 'explicit.jsonl')).toEqual([
         'omp',
         '--resume',

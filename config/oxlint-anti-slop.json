@@ -82,7 +82,10 @@
       }
     },
     {
-      "files": ["**/browser-pane/annotate/**"],
+      "files": [
+        "**/browser-pane/annotate/**",
+        "**/browser-pane/ClientHostedBrowserPagePane.markup.test.tsx"
+      ],
       "rules": {
         "anti-slop/no-shape-in-symbol-names": "off"
       }
