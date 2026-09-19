@@ -18,10 +18,14 @@ export function getPiPrefillExtensionSource(kind: PrefillAgentKind): string {
   )
 }
 
-export function getPiPrefillHandlerSourceLines(kind: PrefillAgentKind): string[] {
+export function getPiPrefillHandlerSourceLines(
+  kind: PrefillAgentKind,
+  wrapInStatusOwner = false
+): string[] {
   const envVar = PREFILL_ENV_VAR_BY_KIND[kind]
+  const register = wrapInStatusOwner && kind === 'omp' ? 'onStatus' : 'pi.on'
   return [
-    "  pi.on('session_start', async (event, ctx) => {",
+    `  ${register}('session_start', async (event, ctx) => {`,
     '    if (!process.env.MANTA_PANE_KEY || ctx?.hasUI === false) return',
     ...(kind === 'pi' ? ["    if (event.reason !== 'startup') return"] : []),
     `    const prefill = process.env.${envVar}`,
