@@ -4,6 +4,7 @@ import type { ConnectionState, RpcResponse } from '../../transport/types'
 import { BRIDGE_MAX_PENDING_REQUESTS, BRIDGE_MAX_SUBSCRIPTIONS } from './bridge-caps'
 import { BridgeConnectionCache } from './bridge-client-connection-cache'
 import type { BridgeRpcClientDiagnostic } from './bridge-client-diagnostics'
+import { readShellSession, type BridgeShellSession } from './bridge-client-session'
 import { createBridgeInitHandshake } from './bridge-client-init-handshake'
 import {
   BridgeClientCapExceededError,
@@ -20,9 +21,10 @@ import {
   BRIDGE_PROTOCOL_VERSION,
   type BridgeClientMessage,
   type BridgeConnectionSnapshot,
-  type BridgeGrants,
   type BridgeHostMessage
 } from './bridge-envelope'
+
+export type { BridgeShellSession } from './bridge-client-session'
 
 export {
   BridgeClientCapExceededError,
@@ -37,13 +39,6 @@ export {
 const BRIDGE_ID_CHARS = 22
 
 export type { BridgeRpcClientDiagnostic } from './bridge-client-diagnostics'
-
-/** What `init` said this page is attached to. `grants` is what a call site checks before it posts. */
-export type BridgeShellSession = {
-  sessionId: string
-  buildId: string
-  grants: BridgeGrants
-}
 
 export type BridgeRpcClientOptions = {
   /** Posts one frame to the shell. May throw; nothing about returning proves delivery. */
@@ -155,7 +150,7 @@ export function createBridgeRpcClient(options: BridgeRpcClientOptions): BridgeRp
       requests.closeAll(replaced)
       subscriptions.failAll(replaced.message)
     }
-    session = { sessionId: message.sessionId, buildId: message.buildId, grants: message.grants }
+    session = readShellSession(message)
     cache.prime(message.connection)
     for (const listener of readyListeners) {
       listener()

@@ -102,9 +102,12 @@ function Harness(props: {
   const view = useMobileWebShellBridge({
     hostId: 'host-1',
     session: props.session,
+    // Built inline on every render, as a caller writes it: the host is not rebuilt for it.
+    route: { pathname: '/h/host-1' },
     // A fresh closure every render, which is the shape a screen passes and the one a ref must
     // absorb: rebuilding the host here would settle every pending request on each render.
     onPageFault: (error) => props.faults.push(error),
+    onRouteRefused: () => {},
     onPageReady: () => {
       props.readies.push(
         props.session.kind === 'ready' ? props.session.sessionId : props.session.kind
@@ -213,6 +216,23 @@ describe('the bridge channel', () => {
     expect(mounted.frames('session-one')).toEqual([
       expect.objectContaining({ type: 'init', sessionId: 'session-one', buildId: 'build-a' })
     ])
+  })
+
+  it('names the screen the page stands in for, so its document at `/` is not what it opens', async () => {
+    const mounted = await mount(readyState('session-one'))
+    await mounted.deliver(clientFrame({ type: 'ready' }))
+    expect(mounted.frames('session-one')).toEqual([
+      expect.objectContaining({ type: 'init', route: { pathname: '/h/host-1' } })
+    ])
+  })
+
+  it('does not rebuild the host for a route object the caller built again', async () => {
+    const mounted = await mount(readyState('session-one'))
+    await mounted.deliver(clientFrame({ type: 'request', id: ID, method: 'status.get' }))
+    // Same session, re-rendered: the harness passes a fresh `{ pathname }` every time. A rebuilt
+    // host would have settled that request delivery-unknown on its way out.
+    await mounted.update(readyState('session-one'))
+    expect(mounted.frames('session-one').filter((frame) => frame.type === 'error')).toEqual([])
   })
 
   it('hands a page fault to the screen and asks the client for nothing', async () => {

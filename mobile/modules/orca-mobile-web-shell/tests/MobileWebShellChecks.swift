@@ -232,8 +232,24 @@ import Foundation
     let progress = MobileWebShellLoadStateMachine()
     precondition(progress.started()?.state == "loading")
     precondition(progress.started() == nil)
+    progress.committed()
     precondition(progress.finished()?.state == "ready")
     precondition(progress.finished() == nil)
+
+    // The document's path is not an input here, and that is the point: the page rewrites its own
+    // with history.replaceState before its first render, so `didFinish` arrives at a URL no policy
+    // would allow. What is asked instead is whether this load committed.
+    let unseated = MobileWebShellLoadStateMachine()
+    _ = unseated.started()
+    precondition(unseated.finished() == nil)
+    unseated.committed()
+    precondition(unseated.finished()?.state == "ready")
+
+    // A document replaced mid-load: the finish belongs to the one that is already gone.
+    let replaced = MobileWebShellLoadStateMachine()
+    replaced.committed()
+    replaced.documentEnded()
+    precondition(replaced.finished() == nil)
 
     // A rule list compiles asynchronously, so it can fail after the generation was already refused.
     let refused = MobileWebShellLoadStateMachine()

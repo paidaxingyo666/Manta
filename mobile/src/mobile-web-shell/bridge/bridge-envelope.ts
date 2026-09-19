@@ -5,8 +5,12 @@ import { BridgeErrorCaptureSchema } from './bridge-error-capture'
 import {
   BRIDGE_MAX_METHOD_CHARS,
   BRIDGE_MAX_REPLY_PARTS,
+  BRIDGE_MAX_ROUTE_PARAM_CHARS,
+  BRIDGE_MAX_ROUTE_PARAMS,
+  BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
   BRIDGE_MAX_VIEWPORT_COLS,
   BRIDGE_MAX_VIEWPORT_ROWS,
+  BRIDGE_ROUTE_PATHNAME_PATTERN,
   parseBridgeMessage,
   type BridgeDirection,
   type BridgeRead
@@ -83,6 +87,34 @@ export const BridgeGrantsSchema = z.object({
 })
 
 export type BridgeGrants = z.infer<typeof BridgeGrantsSchema>
+
+/**
+ * Which screen the shell opened this page for.
+ *
+ * Additive, and optional for that reason: a shell built before C1.2 sends no `route`, and the page
+ * says so rather than painting expo-router's Unmatched screen. It has to cross, because the
+ * document is served at `/` and refuses every other path, so the page's own location matches no
+ * route in the tree it carries and there is nothing else to derive the screen from.
+ *
+ * `params` is the search half, kept out of `pathname` so neither side has to parse a URL: the page
+ * builds one, once, and writes it into its history before the first render.
+ */
+export const BridgeInitRouteSchema = z.object({
+  pathname: z
+    .string()
+    .min(1)
+    .max(BRIDGE_MAX_ROUTE_PATHNAME_CHARS)
+    .regex(BRIDGE_ROUTE_PATHNAME_PATTERN),
+  params: z
+    .record(
+      z.string().min(1).max(BRIDGE_MAX_ROUTE_PARAM_CHARS),
+      z.string().max(BRIDGE_MAX_ROUTE_PARAM_CHARS)
+    )
+    .refine((params) => Object.keys(params).length <= BRIDGE_MAX_ROUTE_PARAMS)
+    .optional()
+})
+
+export type BridgeInitRoute = z.infer<typeof BridgeInitRouteSchema>
 
 /**
  * The one grant negotiated for the protocol itself rather than for a screen: the shell saying it
@@ -261,7 +293,8 @@ const BridgeHostMessageSchema = z.union([
     sessionId: z.string().min(1),
     buildId: z.string().min(1),
     connection: BridgeConnectionSnapshotSchema,
-    grants: BridgeGrantsSchema
+    grants: BridgeGrantsSchema,
+    route: BridgeInitRouteSchema.optional()
   })
 ])
 

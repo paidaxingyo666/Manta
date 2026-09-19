@@ -122,8 +122,17 @@ describe('bridge client handshake', () => {
     expect(page.client.getShellSession()).toEqual({
       sessionId: 'session-a',
       buildId: 'build-a',
-      grants: INIT.grants
+      grants: INIT.grants,
+      // A shell too old to name a screen, which is a state the page has an answer for.
+      route: null
     })
+  })
+
+  it('carries the screen the shell opened this page for', () => {
+    const page = createPageClient()
+    const route = { pathname: '/h/host-a/session/wt-1', params: { name: 'a branch' } }
+    page.deliver({ ...INIT, route })
+    expect(page.client.getShellSession()?.route).toEqual(route)
   })
 
   it('answers a generation the shell does not keep with a constant epoch', () => {

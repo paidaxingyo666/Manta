@@ -373,9 +373,14 @@ internal class OrcaMobileWebShellView(
       emit(loadState.started())
     }
 
+    // No URL check: the page rewrites its own path with history.replaceState before its first
+    // render, so the document that committed at "/" finishes at the route it opened. What is left
+    // is whether this is the document the caller was told about, which is what committing means.
     override fun onPageFinished(view: WebView, url: String) {
-      if (documentFailed || !isDocumentUrl(Uri.parse(url))) return
+      if (documentFailed || !loadState.hasCommittedDocument) return
       view.visibility = View.VISIBLE
+      // After the rewrite as well as before it: the back-forward list is the page's, and the shell
+      // gives it no way back to a document it has already replaced.
       view.clearHistory()
       emit(loadState.finished())
     }

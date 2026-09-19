@@ -1,0 +1,64 @@
+import type { RpcClient } from '../transport/rpc-client'
+import type { BridgeRefusal } from './bridge/bridge-caps'
+import type { BridgeInitRoute } from './bridge/bridge-envelope'
+import type { BridgeErrorCapture } from './bridge/bridge-error-capture'
+import type { BridgeNotifyRefusal } from './bridge/bridge-notify-grants'
+
+/** What a caller owes one bridge host, and everything it will be told back.
+ *  Separate from the host itself so the shape of the contract reads without the machinery. */
+
+/** Nothing here is recoverable in place; each is worth a line in a log and none of them is retried. */
+export type BridgeHostDiagnostic =
+  | { kind: 'refused'; refusal: BridgeRefusal }
+  | { kind: 'post-failed'; error: unknown }
+  /** A page posting into a host that has already been disposed, which its own view is the only
+   *  thing that can do. Dropping it silently is what hides a leaked view. */
+  | { kind: 'frame-after-dispose' }
+  /** A listener that threw where the bridge only forwards. Nothing is owed to the page for a
+   *  notify, so the throw is reported rather than answered. */
+  | { kind: 'notify-failed'; error: unknown }
+  /** A frame that arrived between a page's `close` and the next document's `ready`. It belongs to
+   *  the closed document, and serving it would answer into whatever loads in next. */
+  | { kind: 'frame-after-close' }
+  /** A `notify` the host will not act on: a grant-gated name it never issued, or any name from a
+   *  page that has not asked for a session yet. Nothing is owed back, so it is logged and dropped. */
+  | { kind: 'notify-refused'; name: string; why: BridgeNotifyRefusal }
+  /** The shell asked this host to open a screen the protocol does not allow. The host serves no
+   *  session at all in that state: an `init` the page refuses is worse than no `init`. */
+  | { kind: 'route-refused'; issue: string }
+
+export type BridgeHostOptions = {
+  client: RpcClient
+  /**
+   * Rejects when there is nowhere to post. Resolving proves the message was handed over, never that
+   * the page received it, so nothing here treats a resolve as an acknowledgement.
+   */
+  post: (json: string) => Promise<void>
+  buildId: string
+  sessionId: string
+  /**
+   * Which screen the page should open. Required of a caller in this build and optional on the wire:
+   * an older shell sends no route at all, and the page has a state for that which nothing here can
+   * reach.
+   */
+  route: BridgeInitRoute
+  /**
+   * The page could not render the generation it was handed. Required, because the page has no
+   * recovery of its own: the generation is on disk and was hash-checked before the view loaded it,
+   * so the same bytes throw again, and the only thing left is for the shell to stop showing them.
+   */
+  onPageFault: (error: BridgeErrorCapture) => void
+  /**
+   * The page asked for a session, which is the only proof its bundle evaluated at all. Required for
+   * the same reason as the fault: the shell bounds the wait for it, and a host built without this
+   * would leave a document that never spoke looking exactly like one still starting up.
+   */
+  onPageReady: () => void
+  /**
+   * The route this shell was built with is not one the protocol allows, so no honest `init` can be
+   * sent and the page will never mount. Loud on purpose: the page's own refusal is a `console.warn`
+   * inside a WebView nobody is reading, and the alternative is a blank screen that retries forever.
+   */
+  onRouteRefused: (issue: string) => void
+  onDiagnostic?: (diagnostic: BridgeHostDiagnostic) => void
+}

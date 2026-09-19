@@ -1,4 +1,3 @@
-import type { RpcClient } from '../transport/rpc-client'
 import { markRpcDeliveryUnknown } from '../transport/rpc-delivery-ambiguity'
 import type { ConnectionState, RpcResponse } from '../transport/types'
 import {
@@ -7,23 +6,24 @@ import {
   BridgeReplyUndeliverableError
 } from './bridge-host-errors'
 import { BridgeHostSubscriptions } from './bridge-host-subscriptions'
-import {
-  BRIDGE_MAX_PENDING_REQUESTS,
-  BRIDGE_MAX_SUBSCRIPTIONS,
-  type BridgeRefusal
-} from './bridge/bridge-caps'
+import { BRIDGE_MAX_PENDING_REQUESTS, BRIDGE_MAX_SUBSCRIPTIONS } from './bridge/bridge-caps'
 import {
   BRIDGE_FAULT_GRANT,
   BRIDGE_PROTOCOL_VERSION,
+  BridgeInitRouteSchema,
   readBridgeClientMessage,
   type BridgeClientMessage,
   type BridgeConnectionSnapshot,
   type BridgeHostMessage
 } from './bridge/bridge-envelope'
-import { captureBridgeError, type BridgeErrorCapture } from './bridge/bridge-error-capture'
+import { captureBridgeError } from './bridge/bridge-error-capture'
 import { BRIDGE_NATIVE_GRANTS, createBridgeInitFrame } from './bridge/bridge-init-frame'
-import { bridgeNotifyRefusal, type BridgeNotifyRefusal } from './bridge/bridge-notify-grants'
+import { bridgeNotifyRefusal } from './bridge/bridge-notify-grants'
 import { splitBridgeReply } from './bridge/bridge-reply-chunking'
+import type { BridgeHostOptions } from './bridge-host-contract'
+
+// Re-exported so a caller reaches the host and what it reports through one module.
+export type { BridgeHostDiagnostic, BridgeHostOptions } from './bridge-host-contract'
 
 type RequestMessage = Extract<BridgeClientMessage, { type: 'request' }>
 type SubscribeMessage = Extract<BridgeClientMessage, { type: 'subscribe' }>
@@ -32,47 +32,6 @@ type NotifyMessage = Extract<BridgeClientMessage, { type: 'notify' }>
 /** Live until something settles it; the flag is what keeps a cancelled request's late answer from
  *  being posted under an id the page has moved on from. */
 type PendingRequest = { live: boolean }
-
-/** Nothing here is recoverable in place; each is worth a line in a log and none of them is retried. */
-export type BridgeHostDiagnostic =
-  | { kind: 'refused'; refusal: BridgeRefusal }
-  | { kind: 'post-failed'; error: unknown }
-  /** A page posting into a host that has already been disposed, which its own view is the only
-   *  thing that can do. Dropping it silently is what hides a leaked view. */
-  | { kind: 'frame-after-dispose' }
-  /** A listener that threw where the bridge only forwards. Nothing is owed to the page for a
-   *  notify, so the throw is reported rather than answered. */
-  | { kind: 'notify-failed'; error: unknown }
-  /** A frame that arrived between a page's `close` and the next document's `ready`. It belongs to
-   *  the closed document, and serving it would answer into whatever loads in next. */
-  | { kind: 'frame-after-close' }
-  /** A `notify` the host will not act on: a grant-gated name it never issued, or any name from a
-   *  page that has not asked for a session yet. Nothing is owed back, so it is logged and dropped. */
-  | { kind: 'notify-refused'; name: string; why: BridgeNotifyRefusal }
-
-export type BridgeHostOptions = {
-  client: RpcClient
-  /**
-   * Rejects when there is nowhere to post. Resolving proves the message was handed over, never that
-   * the page received it, so nothing here treats a resolve as an acknowledgement.
-   */
-  post: (json: string) => Promise<void>
-  buildId: string
-  sessionId: string
-  /**
-   * The page could not render the generation it was handed. Required, because the page has no
-   * recovery of its own: the generation is on disk and was hash-checked before the view loaded it,
-   * so the same bytes throw again, and the only thing left is for the shell to stop showing them.
-   */
-  onPageFault: (error: BridgeErrorCapture) => void
-  /**
-   * The page asked for a session, which is the only proof its bundle evaluated at all. Required for
-   * the same reason as the fault: the shell bounds the wait for it, and a host built without this
-   * would leave a document that never spoke looking exactly like one still starting up.
-   */
-  onPageReady: () => void
-  onDiagnostic?: (diagnostic: BridgeHostDiagnostic) => void
-}
 
 export type BridgeHost = {
   receive: (json: string) => void
@@ -89,6 +48,12 @@ export type BridgeHost = {
  */
 export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   const { client, buildId, sessionId } = options
+  // Parsed here, once, against the same schema the page reads it with. The producer interpolates a
+  // host id into a pathname, so a host id carrying `?`, `#`, whitespace or a dot segment reaches
+  // the wire as a route no page will accept; without this the page refuses the whole `init`, asks
+  // again on its backoff forever, and the shell un-hides a WebView that will never paint.
+  const parsedRoute = BridgeInitRouteSchema.safeParse(options.route)
+  const route = parsedRoute.success ? parsedRoute.data : null
   const pending = new Map<string, PendingRequest>()
   let closed = false
   // Requests the client is still running. `pending` is the page's view and empties on a cancel or a
@@ -162,8 +127,11 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   // Answered every time it is asked: a page that saw a `state` older than the one it holds recovers
   // by asking again rather than by living with a cache it knows is wrong.
   function sendInit(): void {
+    if (route === null) {
+      return
+    }
     initSent = true
-    send(createBridgeInitFrame({ sessionId, buildId, connection: snapshot() }))
+    send(createBridgeInitFrame({ sessionId, buildId, connection: snapshot(), route }))
   }
 
   function settle(id: string, record: PendingRequest): boolean {
@@ -378,6 +346,16 @@ export function createBridgeHost(options: BridgeHostOptions): BridgeHost {
   const unsubscribeState = client.onStateChange((state) => {
     send({ v: BRIDGE_PROTOCOL_VERSION, type: 'state', connection: snapshot(state) })
   })
+
+  if (route === null) {
+    // At construction rather than on the first `ready`: the verdict does not depend on the page
+    // behaving, and a shell that waited for a frame would hold a blank view until one arrived.
+    const issue = parsedRoute.success
+      ? 'unknown'
+      : (parsedRoute.error.issues[0]?.message ?? 'unknown')
+    options.onDiagnostic?.({ kind: 'route-refused', issue })
+    options.onRouteRefused(issue)
+  }
 
   return {
     receive(json: string): void {

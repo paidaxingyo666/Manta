@@ -13,6 +13,9 @@ import {
   BRIDGE_MAX_MESSAGE_BYTES,
   BRIDGE_MAX_METHOD_CHARS,
   BRIDGE_MAX_REPLY_PARTS,
+  BRIDGE_MAX_ROUTE_PARAM_CHARS,
+  BRIDGE_MAX_ROUTE_PARAMS,
+  BRIDGE_MAX_ROUTE_PATHNAME_CHARS,
   BRIDGE_MAX_VIEWPORT_COLS,
   BRIDGE_MAX_VIEWPORT_ROWS
 } from './bridge-caps'
@@ -212,10 +215,59 @@ describe('client messages', () => {
 })
 
 describe('host messages', () => {
+  /** An otherwise valid `init`, so a refusal below is the route's and not the frame's. */
+  function initRoute(route: unknown): Record<string, unknown> {
+    return client({
+      type: 'init',
+      sessionId: 's1',
+      buildId: 'b1',
+      connection: CONNECTION,
+      grants: GRANTS,
+      route
+    })
+  }
+
   const accepted = [
     [
       'init',
       { type: 'init', sessionId: 's1', buildId: 'b1', connection: CONNECTION, grants: GRANTS }
+    ],
+    [
+      'an init naming the screen the page should open',
+      {
+        type: 'init',
+        sessionId: 's1',
+        buildId: 'b1',
+        connection: CONNECTION,
+        grants: GRANTS,
+        route: { pathname: '/h/host-a/session/wt-1', params: { name: 'a branch' } }
+      }
+    ],
+    [
+      'an init whose segments merely contain dots, which are names and not navigation',
+      {
+        type: 'init',
+        sessionId: 's1',
+        buildId: 'b1',
+        connection: CONNECTION,
+        grants: GRANTS,
+        // Without this the refusals above would also pass a rule that banned the character.
+        route: { pathname: '/h/a..b/...' }
+      }
+    ],
+    [
+      'an init whose segments merely carry percent escapes, which are text and not navigation',
+      {
+        type: 'init',
+        sessionId: 's1',
+        buildId: 'b1',
+        connection: CONNECTION,
+        grants: GRANTS,
+        // An encoded space, a segment that starts with an encoded dot, and an encoded slash, which
+        // the router reads as one segment's text. Without these the refusals above would pass a
+        // rule that banned the escape rather than the dot segment it spells.
+        route: { pathname: '/h/a%20b/%2ex/a%2fb' }
+      }
     ],
     ['state', { type: 'state', connection: CONNECTION }],
     ['a whole reply', { type: 'reply', id: ID, payload: SUCCESS_PAYLOAD }],
@@ -324,7 +376,65 @@ describe('host messages', () => {
     [
       'an end for a reason that is not one of the three',
       client({ type: 'end', id: ID, reason: 'done' })
-    ]
+    ],
+    // Every one of these reaches `history.replaceState`. A protocol-relative path makes it throw a
+    // cross-origin SecurityError and takes the mount down; the other three are a URL the page
+    // would have to parse to separate again, which is what `params` exists to avoid.
+    ['an init route that is not rooted', initRoute({ pathname: 'h/host-a' })],
+    ['an init route that is protocol-relative', initRoute({ pathname: '//evil.example/h' })],
+    ['an init route that is backslash-relative', initRoute({ pathname: '/\\evil.example/h' })],
+    ['an init route carrying its own query', initRoute({ pathname: '/h/a?name=b' })],
+    ['an init route carrying a fragment', initRoute({ pathname: '/h/a#top' })],
+    // `replaceState` normalises each of these and the page then renders whatever came out:
+    // `/../../etc` resolves to `/etc`, `/h/a/../x` to `/h/x`, and `/h/a\\b` to `/h/a/b`. All three
+    // leave the `/h/<host>` prefix the page's tree starts at, which is the whole point of refusing
+    // shape rather than trusting the router to be handed one.
+    ['an init route that climbs out of its prefix', initRoute({ pathname: '/../../etc' })],
+    [
+      'an init route with an interior dot segment',
+      initRoute({ pathname: '/h/a/../render-check-host' })
+    ],
+    ['an init route ending in a dot segment', initRoute({ pathname: '/h/a/..' })],
+    ['an init route with a single dot segment', initRoute({ pathname: '/h/./a' })],
+    ['an init route with an interior backslash', initRoute({ pathname: '/h/a\\b' })],
+    // The same climb, spelled the way a URL parser still reads as a dot segment: it percent-decodes
+    // the path before it resolves it, so `%2e%2e` escapes the prefix exactly as `..` does.
+    [
+      'an init route that climbs out of its prefix percent-encoded',
+      initRoute({ pathname: '/h/%2e%2e/render-check-host' })
+    ],
+    [
+      'an init route that climbs out of its prefix in capitals',
+      initRoute({ pathname: '/h/%2E%2E/render-check-host' })
+    ],
+    ['an init route with a half-encoded dot segment', initRoute({ pathname: '/h/.%2e/a' })],
+    ['an init route with a single encoded dot segment', initRoute({ pathname: '/h/%2e/a' })],
+    ['an init route with an empty interior segment', initRoute({ pathname: '/h//a' })],
+    ['an init route with an empty pathname', initRoute({ pathname: '' })],
+    [
+      'an init route over the pathname cap',
+      initRoute({ pathname: `/${'h'.repeat(BRIDGE_MAX_ROUTE_PATHNAME_CHARS)}` })
+    ],
+    [
+      'an init route with more params than the cap',
+      initRoute({
+        pathname: '/h/a',
+        params: Object.fromEntries(
+          Array.from({ length: BRIDGE_MAX_ROUTE_PARAMS + 1 }, (_value, index) => [
+            `k${String(index)}`,
+            'v'
+          ])
+        )
+      })
+    ],
+    [
+      'an init route with a param value over the cap',
+      initRoute({
+        pathname: '/h/a',
+        params: { name: 'v'.repeat(BRIDGE_MAX_ROUTE_PARAM_CHARS + 1) }
+      })
+    ],
+    ['an init route whose param is not a string', initRoute({ pathname: '/h/a', params: { n: 1 } })]
   ] as const
 
   for (const [name, message] of refused) {

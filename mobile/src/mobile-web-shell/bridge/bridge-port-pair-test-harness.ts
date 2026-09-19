@@ -5,7 +5,8 @@ import {
   readBridgeClientMessage,
   readBridgeHostMessage,
   type BridgeClientMessage,
-  type BridgeHostMessage
+  type BridgeHostMessage,
+  type BridgeInitRoute
 } from './bridge-envelope'
 import type { BridgeErrorCapture } from './bridge-error-capture'
 import {
@@ -40,6 +41,8 @@ export type BridgePortPair<TRpc extends RpcClient = FakeRpcClient> = {
   pageFaults: BridgeErrorCapture[]
   /** How many times the page asked for a session; it re-asks on a backoff until one lands. */
   readonly pageReadyCount: () => number
+  /** Why the host refused to open a session at all, if it did. */
+  readonly routeRefusals: string[]
   /** Runs both lanes until a full round moves nothing. */
   flush: () => Promise<void>
   /**
@@ -59,6 +62,7 @@ export type BridgePortPairOptions<TRpc extends RpcClient> = {
   rpc: TRpc
   sessionId?: string
   buildId?: string
+  route?: BridgeInitRoute
   /**
    * Rewrites each frame on its way to the page, for asking the page a counterfactual it cannot be
    * asked any other way: would this run have gone differently had the shell sent one more field?
@@ -137,6 +141,7 @@ export function createBridgePortPair<TRpc extends RpcClient>(
   const hostDiagnostics: BridgeHostDiagnostic[] = []
   const pageFaults: BridgeErrorCapture[] = []
   let pageReadies = 0
+  const routeRefusals: string[] = []
   let receiveOnPage: ((json: string) => void) | null = null
 
   const rewrite = options.rewriteToPage ?? ((json: string) => json)
@@ -151,10 +156,12 @@ export function createBridgePortPair<TRpc extends RpcClient>(
     },
     buildId: options.buildId ?? 'build-a',
     sessionId: options.sessionId ?? 'session-a',
+    route: options.route ?? { pathname: '/h/host-a' },
     onPageFault: (error) => pageFaults.push(error),
     onPageReady: () => {
       pageReadies += 1
     },
+    onRouteRefused: (issue) => routeRefusals.push(issue),
     onDiagnostic: (diagnostic) => hostDiagnostics.push(diagnostic)
   })
   const toShell = createLane((json) => {
@@ -183,6 +190,7 @@ export function createBridgePortPair<TRpc extends RpcClient>(
     hostDiagnostics,
     pageFaults,
     pageReadyCount: () => pageReadies,
+    routeRefusals,
     async flush(): Promise<void> {
       for (let round = 0; round < 64; round += 1) {
         const moved = toShell.sent.length + toPage.sent.length

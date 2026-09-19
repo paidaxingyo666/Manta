@@ -29,6 +29,39 @@ export const BRIDGE_MAX_NODES = 20_000
 export const BRIDGE_MAX_METHOD_CHARS = 64
 
 /**
+ * The initial route bounds.
+ *
+ * The page writes this path into its own history before it renders, so it is held to what a path
+ * may be rather than to what a screen may want: rooted, carrying neither a query nor a fragment
+ * because the params are a field of their own, and made of segments that name something.
+ *
+ * Shape alone is not enough, because `replaceState` normalises what it is given and the page then
+ * renders whatever came out. A protocol-relative `//host` throws a cross-origin `SecurityError` and
+ * takes the mount down; `/../../etc` resolves to `/etc` and `/h/a\b` to `/h/a/b`, both of which
+ * escape the `/h/` prefix the page's route tree starts at and land on a screen nobody asked for.
+ * So: no empty segment, no dot segment, no backslash anywhere — none of which a route can produce.
+ * A dot segment counts however it is spelled: a URL parser percent-decodes the path before it
+ * resolves it, so `/h/%2e%2e/x` climbs out of the prefix exactly as `/h/../x` does. An escape
+ * inside a segment that names something (`/h/a%20b`, `/h/%2ex`) is text and stays allowed.
+ */
+export const BRIDGE_MAX_ROUTE_PATHNAME_CHARS = 1024
+export const BRIDGE_MAX_ROUTE_PARAMS = 32
+export const BRIDGE_MAX_ROUTE_PARAM_CHARS = 1024
+
+/**
+ * One segment of a route path, and the only place the rule is written.
+ *
+ * Exported as source rather than as a regex because it is embedded in more than one pattern: the
+ * `init` pathname below and the hrefs a page hands back to the shell are the same vocabulary, and
+ * two spellings of it would be two rules that drift.
+ */
+export const BRIDGE_ROUTE_SEGMENT_SOURCE = String.raw`(?!(?:\.|%2[eE]){1,2}(?:/|$))[^/\\?#\s]+`
+
+export const BRIDGE_ROUTE_PATHNAME_PATTERN = new RegExp(
+  `^/(?:${BRIDGE_ROUTE_SEGMENT_SOURCE}(?:/${BRIDGE_ROUTE_SEGMENT_SOURCE})*/?)?$`
+)
+
+/**
  * In-flight bounds. The RN host is authoritative for both; the page holds the same numbers only to
  * refuse at the call site instead of after a round trip.
  */

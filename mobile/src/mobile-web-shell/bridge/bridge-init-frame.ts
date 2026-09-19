@@ -3,7 +3,8 @@ import {
   BRIDGE_FAULT_GRANT,
   BRIDGE_PROTOCOL_VERSION,
   type BridgeConnectionSnapshot,
-  type BridgeHostMessage
+  type BridgeHostMessage,
+  type BridgeInitRoute
 } from './bridge-envelope'
 
 /**
@@ -20,6 +21,8 @@ export function createBridgeInitFrame(args: {
   sessionId: string
   buildId: string
   connection: BridgeConnectionSnapshot
+  /** The screen this page stands in for, which the document's own `/` cannot tell it. */
+  route: BridgeInitRoute
 }): Extract<BridgeHostMessage, { type: 'init' }> {
   return {
     v: BRIDGE_PROTOCOL_VERSION,
@@ -35,6 +38,7 @@ export function createBridgeInitFrame(args: {
       // Copied, not shared: the list the host enforces must not be reachable through a frame it
       // hands out.
       native: [...BRIDGE_NATIVE_GRANTS]
-    }
+    },
+    route: args.route
   }
 }

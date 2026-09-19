@@ -89,7 +89,9 @@ async function render(state: MobileWebShellSessionState): Promise<ReactTestRende
   dependencies.state = state
   const rendered: { tree: ReactTestRenderer | null } = { tree: null }
   await act(async () => {
-    rendered.tree = create(createElement(MobileWebShellScreen, { hostId: 'host-1' }))
+    rendered.tree = create(
+      createElement(MobileWebShellScreen, { hostId: 'host-1', route: { pathname: '/h/host-1' } })
+    )
   })
   if (rendered.tree === null) {
     throw new Error('screen did not render')
@@ -111,7 +113,9 @@ function readyState(sessionId: string): MobileWebShellSessionState {
 async function update(tree: ReactTestRenderer, state: MobileWebShellSessionState): Promise<void> {
   dependencies.state = state
   await act(async () => {
-    tree.update(createElement(MobileWebShellScreen, { hostId: 'host-1' }))
+    tree.update(
+      createElement(MobileWebShellScreen, { hostId: 'host-1', route: { pathname: '/h/host-1' } })
+    )
   })
 }
 

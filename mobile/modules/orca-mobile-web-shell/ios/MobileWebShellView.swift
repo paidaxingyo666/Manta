@@ -495,8 +495,9 @@ final class OrcaMobileWebShellView: ExpoView, WKNavigationDelegate, WKUIDelegate
     loadState.committed()
   }
 
+  /// No URL check: the page rewrites its own path before its first render, so the document that
+  /// committed at "/" finishes at the route it opened. `finished()` holds the rule that is left.
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    guard isDocumentUrl(webView.url) else { return }
     emit(loadState.finished())
   }
 

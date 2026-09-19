@@ -7,6 +7,7 @@ import {
 } from '../../modules/manta-mobile-web-shell/src'
 import { ProtocolBlockScreen } from '../components/ProtocolBlockScreen'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import type { BridgeInitRoute } from './bridge/bridge-envelope'
 import type {
   MobileWebShellFailureCause,
   MobileWebShellSessionState
@@ -109,6 +110,8 @@ function DevFacts({ state }: { state: Extract<MobileWebShellSessionState, { kind
 
 export type MobileWebShellScreenProps = {
   hostId: string
+  /** The screen this shell stands in for, which the page cannot derive from a document served at `/`. */
+  route: BridgeInitRoute
   runtime?: MobileWebShellRuntime
 }
 
@@ -119,12 +122,13 @@ export type MobileWebShellScreenProps = {
  * The native view is keyed on the session id, so a remount the reducer asks for is a new key and a
  * rebuilt WebView with every fence reinstalled — the view has no reload of its own by design.
  */
-export function MobileWebShellScreen({ hostId, runtime }: MobileWebShellScreenProps) {
+export function MobileWebShellScreen({ hostId, route, runtime }: MobileWebShellScreenProps) {
   const insets = useSafeAreaInsets()
   const { state, retry, reportShellFailure, reportDocumentLoaded, reportPageReady } =
     useMobileWebShellSession({ hostId, runtime })
   const bridge = useMobileWebShellBridge({
     hostId,
+    route,
     session: state,
     // Reported as the document failing to load, which is what it is: the document loaded and never
     // produced a tree. That reason drops this generation and downloads once, so a page broken by
@@ -136,7 +140,14 @@ export function MobileWebShellScreen({ hostId, runtime }: MobileWebShellScreenPr
       console.warn('[web-shell] the page faulted', error)
       reportShellFailure('document-load-failed')
     },
-    onPageReady: reportPageReady
+    onPageReady: reportPageReady,
+    // `document-load-failed` because that is what happens: the document loads and the page refuses
+    // the session, so no tree is ever built. The refetch it costs is wasted on a route this shell
+    // produced, and the second report is terminal, which is the failure screen this deserves.
+    onRouteRefused: (issue) => {
+      console.warn('[web-shell] refused to open this screen', issue)
+      reportShellFailure('document-load-failed')
+    }
   })
 
   if (state.kind === 'wall') {

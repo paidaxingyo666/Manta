@@ -35,6 +35,30 @@ function createRootProviders(client: BridgeRpcClient, target: PageMountTarget) {
   }
 }
 
+/**
+ * The whole page for a shell that opened it and then named no screen.
+ *
+ * Built as elements rather than markup, and outside React: the route tree is exactly what cannot
+ * be mounted here, and a panel that needed it would be a second way to fail. The copy names the
+ * one thing that fixes it, because nothing on this device will.
+ */
+function renderShellTooOldPanel(container: HTMLElement): void {
+  const panel = document.createElement('div')
+  panel.setAttribute('role', 'alert')
+  panel.style.cssText =
+    'font:16px/1.5 system-ui,-apple-system,sans-serif;color:#e6e6e6;background:#141414;' +
+    'min-height:100vh;display:flex;flex-direction:column;align-items:center;' +
+    'justify-content:center;gap:8px;padding:24px;text-align:center'
+  const title = document.createElement('div')
+  title.style.cssText = 'font-weight:600'
+  title.textContent = 'Update Manta to open this workspace'
+  const body = document.createElement('div')
+  body.style.cssText = 'color:#9a9a9a;font-size:14px'
+  body.textContent = 'This version of the app cannot open the workspace it downloaded.'
+  panel.append(title, body)
+  container.replaceChildren(panel)
+}
+
 const container = document.getElementById('root')
 if (!container) {
   throw new Error('[manta-mobile-web-app] #root missing')
@@ -45,6 +69,9 @@ stampPageMountState(target, 'started')
 bootstrapShellPage({
   target,
   client: createShellPageClient(),
+  replaceUrl: (href) => {
+    history.replaceState(null, '', href)
+  },
   mount: (client) => {
     createRoot(container).render(
       // Above `ExpoRoot`, not inside its wrapper: a route this bundle cannot resolve or import
@@ -54,8 +81,19 @@ bootstrapShellPage({
           client.notifyPageFault(error)
         }}
       >
-        <ExpoRoot context={routeContext} wrapper={createRootProviders(client, target)} />
+        <ExpoRoot
+          context={routeContext}
+          // The same URL the line above just wrote, handed over rather than left to be read:
+          // ExpoRoot snapshots `window.location.href` when its module is imported, which is before
+          // any frame has crossed the bridge, so what it captured on its own is the `/` the shell
+          // serves.
+          location={new URL(window.location.href)}
+          wrapper={createRootProviders(client, target)}
+        />
       </PageFaultBoundary>
     )
+  },
+  refuseUnroutedShell: () => {
+    renderShellTooOldPanel(container)
   }
 })

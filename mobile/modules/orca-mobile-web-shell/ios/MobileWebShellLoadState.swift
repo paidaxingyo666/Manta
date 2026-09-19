@@ -50,8 +50,14 @@ final class MobileWebShellLoadStateMachine {
     emit(MobileWebShellLoadEmission(state: "loading", reason: nil))
   }
 
+  /// A load that never committed did not finish.
+  ///
+  /// This is the whole guard, and it is deliberately not the document's URL: the page rewrites its
+  /// own path with `history.replaceState` before its first render, so the document that committed
+  /// at "/" reports finishing at "/h/<hostId>". Reading the path here withheld `ready` forever.
   func finished() -> MobileWebShellLoadEmission? {
-    emit(MobileWebShellLoadEmission(state: "ready", reason: nil))
+    guard hasCommittedDocument else { return nil }
+    return emit(MobileWebShellLoadEmission(state: "ready", reason: nil))
   }
 
   func failed(_ reason: MobileWebShellFailureReason) -> MobileWebShellLoadEmission? {

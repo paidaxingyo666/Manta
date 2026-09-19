@@ -41,6 +41,13 @@ export function createBridgeDiagnosticReporter(): (diagnostic: BridgeHostDiagnos
       })
       return
     }
+    if (diagnostic.kind === 'route-refused') {
+      // The shell's own bug, not the page's: this host serves no session at all until it is fixed.
+      console.warn('[web-shell-bridge] refused to open the screen this shell named', {
+        issue: diagnostic.issue
+      })
+      return
+    }
     if (diagnostic.kind === 'post-failed') {
       console.warn('[web-shell-bridge] the page could not be posted to', diagnostic.error)
       return

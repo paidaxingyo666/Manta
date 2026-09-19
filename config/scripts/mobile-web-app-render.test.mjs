@@ -103,7 +103,7 @@ async function readBridgeFaultGrant() {
  * place domain behaviour is decided, and every screen below already has a state for an RPC that
  * failed. The one message that matters here is the one that lets the tree mount.
  */
-function installShellDouble({ version, sessionId, buildId, faultGrant }) {
+function installShellDouble({ version, sessionId, buildId, route, faultGrant }) {
   // Where the page's own fault reports land. Read back after the render, so a route that threw
   // under the boundary names itself instead of timing out as a page that never mounted.
   globalThis.__orcaRenderCheckFaults = []
@@ -133,7 +133,9 @@ function installShellDouble({ version, sessionId, buildId, faultGrant }) {
           grants: {
             rpc: { maxPendingRequests: 64, maxSubscriptions: 32 },
             native: [faultGrant]
-          }
+          },
+          // Omitted for a shell too old to name one, which is the case the page has a panel for.
+          ...(route === null ? {} : { route })
         })
         return
       }
@@ -249,16 +251,20 @@ const UNMATCHED = 'Unmatched Route'
  * A page with every signal the checks below read: uncaught errors, console errors, and the script
  * paths the browser actually fetched. The last one is how a client-side navigation proves it
  * pulled the next route's chunk rather than painting out of what the entry already had.
+ *
+ * No `shellRoute` installs no double at all, which is the page that never mounts; a null one
+ * installs a shell that named no screen.
  */
-async function openPage({ shell = true } = {}) {
+async function openPage({ shellRoute } = {}) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
-  if (shell) {
+  if (shellRoute !== undefined) {
     // At document start, where the native shell installs the real channel: the entry reads it
     // while its own script runs, so a channel added after `load` would already be too late.
     await page.addInitScript(installShellDouble, {
       version: bridgeVersion,
       sessionId: SHELL_SESSION_ID,
       buildId: SHELL_BUILD_ID,
+      route: shellRoute,
       faultGrant
     })
   }
@@ -339,9 +345,14 @@ async function waitForRoute({ page, errors, uncaught }, route, awaitText) {
   }
 }
 
-async function render(route, awaitText) {
-  const opened = await openPage()
-  await opened.page.goto(`${origin}${route}`, { waitUntil: 'load' })
+/**
+ * Opens the document the way the shell does — at `/`, the one path it serves — and lets the page
+ * route itself from what the double names. Navigating straight to the route would hide exactly the
+ * step this check exists to prove.
+ */
+async function render(route, awaitText, { shellRoute = { pathname: route } } = {}) {
+  const opened = await openPage({ shellRoute })
+  await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
   await waitForRoute(opened, route, awaitText)
   const text = await opened.page.evaluate(() => document.body.innerText)
   // What the page believes it is: read off the document rather than off the double, so a tree that
@@ -350,6 +361,9 @@ async function render(route, awaitText) {
     sessionId: document.documentElement.dataset.orcaWebSessionId ?? null,
     buildId: document.documentElement.dataset.orcaWebBuildId ?? null
   }))
+  // The document is served at "/" and the page rewrites its own path before it renders; without
+  // that, every route below would be expo-router's Unmatched screen.
+  const url = await opened.page.evaluate(() => location.pathname + location.search)
   await opened.page.close()
   // A CSP refusal reaches the page as a console error, so the caller's empty-errors assertion is
   // also the policy assertion; name it here so a failure says which one broke.
@@ -357,20 +371,23 @@ async function render(route, awaitText) {
     errors: opened.errors,
     cspErrors: opened.errors.filter((entry) => entry.includes('Content Security Policy')),
     text,
-    session
+    session,
+    url
   }
 }
 
-/** The entry's state and what it painted, for a page that is never going to mount. */
-async function renderUnbridged(route) {
-  const { page, errors } = await openPage({ shell: false })
+/** The entry's state and what it painted, for a page that is never going to mount a route tree. */
+async function renderWithoutTree({ shellRoute } = {}) {
+  const { page, errors } = await openPage({ shellRoute })
   // Read straight after `load` and not polled: the entry decides this synchronously, inside the
   // script `load` waits for, so a state that is not settled by now is never going to settle.
-  await page.goto(`${origin}${route}`, { waitUntil: 'load' })
+  await page.goto(`${origin}/`, { waitUntil: 'load' })
   const entry = await page.evaluate(() => document.documentElement.dataset.orcaWebEntry ?? 'absent')
   const rootChildren = await page.evaluate(() => document.getElementById('root').childElementCount)
+  const text = await page.evaluate(() => document.body.innerText)
+  const url = await page.evaluate(() => location.pathname + location.search)
   await page.close()
-  return { entry, errors, rootChildren }
+  return { entry, errors, rootChildren, text, url }
 }
 
 describe('the shell policy this page is tested under', () => {
@@ -436,11 +453,13 @@ describeRender('the page server this check runs against', () => {
 
 describeRender('the Route A page in a real browser', () => {
   it('mounts the worktree list route, not the unmatched screen', async () => {
-    const { errors, cspErrors, text, session } = await render(HOST_ROUTE, 'Host not found')
+    const { errors, cspErrors, text, session, url } = await render(HOST_ROUTE, 'Host not found')
     expect(cspErrors).toEqual([])
     expect(errors).toEqual([])
     // The tree that mounted is the one the shell handed a session to, and it says which.
     expect(session).toEqual({ sessionId: SHELL_SESSION_ID, buildId: SHELL_BUILD_ID })
+    // The document was served at `/`; the page put itself on the route the shell named.
+    expect(url).toBe(HOST_ROUTE)
     // app/h/[hostId]/index.tsx: expo-secure-store is {} on web, so loadHosts() finds no profile
     // and the list paints its not-found state. Only that route's own component produces this
     // string, and C1.4's host-store.web.ts is what replaces it with a real row.
@@ -467,12 +486,30 @@ describeRender('the Route A page in a real browser', () => {
     expect(text).toContain(UNMATCHED)
   }, 60_000)
 
-  it('mounts nothing at all when no shell answered, which is what makes the three above real', async () => {
-    const { entry, errors, rootChildren } = await renderUnbridged(HOST_ROUTE)
+  it('carries the params the shell named into the url the screen reads', async () => {
+    const { errors, url } = await render(HOST_ROUTE, 'Host not found', {
+      shellRoute: { pathname: HOST_ROUTE, params: { from: 'render check' } }
+    })
+    expect(errors).toEqual([])
+    expect(url).toBe(`${HOST_ROUTE}?from=render+check`)
+  }, 60_000)
+
+  it('mounts nothing at all when no shell answered, which is what makes the rest real', async () => {
     // Without this the checks above would pass against a page that ignores `init` entirely.
+    const { entry, errors, rootChildren } = await renderWithoutTree()
     expect(entry).toBe('unbridged')
     expect(rootChildren).toBe(0)
     expect(errors).toEqual([])
+  }, 60_000)
+
+  it('says to update the app when the shell that opened it named no screen', async () => {
+    const { entry, errors, text, url } = await renderWithoutTree({ shellRoute: null })
+    expect(entry).toBe('shell-too-old')
+    expect(errors).toEqual([])
+    expect(text).toContain('Update Manta to open this workspace')
+    // Never the route tree at `/`: that is the Unmatched screen with a worse explanation.
+    expect(text).not.toContain(UNMATCHED)
+    expect(url).toBe('/')
   }, 60_000)
 
   it('tells the shell when a route chunk throws, rather than sitting on a blank page', async () => {
@@ -480,8 +517,8 @@ describeRender('the Route A page in a real browser', () => {
     expect(chunk, Object.keys(routeChunks).join(' ')).toBeTruthy()
     poisonedChunks.add(`/assets/${chunk}`)
     try {
-      const opened = await openPage()
-      await opened.page.goto(`${origin}${HOST_ROUTE}`, { waitUntil: 'load' })
+      const opened = await openPage({ shellRoute: { pathname: HOST_ROUTE } })
+      await opened.page.goto(`${origin}/`, { waitUntil: 'load' })
       const reported = await opened.page
         .waitForFunction(
           () => {
@@ -507,9 +544,9 @@ describeRender('the Route A page in a real browser', () => {
   }, 60_000)
 
   it("fetches the next route's chunks on a client-side navigation", async () => {
-    const opened = await openPage()
+    const opened = await openPage({ shellRoute: { pathname: HOST_ROUTE } })
     const { page, errors, scripts } = opened
-    await page.goto(`${origin}${HOST_ROUTE}`, { waitUntil: 'load' })
+    await page.goto(`${origin}/`, { waitUntil: 'load' })
     await waitForRoute(opened, HOST_ROUTE, 'Host not found')
     const loadedForFirstRoute = [...scripts]
     // What the shell will do in C1.2: the document is fetched once and every later route is a
