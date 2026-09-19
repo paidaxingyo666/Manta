@@ -16,8 +16,9 @@ const FLAG_HOOK = 'src/mobile-web-shell/use-mobile-web-shell-enabled.ts'
 const ROUTE = 'app/h/[hostId]/web.tsx'
 const HOST_ROUTE = 'app/h/[hostId]/index.tsx'
 const AGENT_HISTORY_ROUTE = 'app/h/[hostId]/agent-history/[worktreeId].tsx'
+const TASKS_ROUTE = 'app/h/[hostId]/tasks.tsx'
 /** One entry per screen the flag can switch to the page, which is what a review reads. */
-const SWITCHED_ROUTES = [HOST_ROUTE, AGENT_HISTORY_ROUTE]
+const SWITCHED_ROUTES = [HOST_ROUTE, AGENT_HISTORY_ROUTE, TASKS_ROUTE]
 const DEVELOPER_ROW = 'src/diagnostics/mobile-web-shell-dev-row.tsx'
 /** Every tree that ships in the app bundle, with the floor each must clear. `modules` is two files,
  *  but it is where the native view lives and so the easiest place for a second reader to hide. */
@@ -58,6 +59,7 @@ describe('who touches the hybrid shell flag', () => {
     expect(paths).toContain(ROUTE)
     expect(paths).toContain(HOST_ROUTE)
     expect(paths).toContain(AGENT_HISTORY_ROUTE)
+    expect(paths).toContain(TASKS_ROUTE)
     expect(paths).toContain(DEVELOPER_ROW)
     expect(paths).toContain(SHELL_VIEW)
     const trees = Object.keys(TREES)

@@ -338,6 +338,44 @@ export function routeChunkNames(metafile, routes, renamed) {
 const isScriptOutput = (path) => path.endsWith('.js')
 
 // appDir is a seam for the tests, which bundle a scratch route tree; production always uses mobile/app.
+/**
+ * Every source module one page route reaches, as the builder itself resolves them.
+ *
+ * One definition of "what a page contains", read from `metafile.inputs` — the modules the route
+ * pulls in — rather than from `entryStaticClosure`, which walks emitted chunks and answers what a
+ * browser must download. Both entry points are needed: `app/h/_layout.tsx` wraps every route under
+ * it, and its imports are part of the page as surely as the route module's.
+ *
+ * `splitting: false` and a per-name output are required for a two-entry build; with the defaults
+ * esbuild fails on two outputs claiming `dist/entry.js`.
+ *
+ * Note for anyone comparing this with a parity pin: `c1-page-closure.ts`, and the closures C2.6,
+ * C5.2 and C3.2 generate, derive theirs by the C1.6 method inside the mobile suite. The two are
+ * not the same computation, and a divergence between them is a finding rather than noise.
+ */
+export async function mobileWebAppRouteClosure(routeModule) {
+  const base = mobileWebAppBuildOptions(MOBILE_WEB_PAGE_ROUTES)
+  const result = await esbuild.build({
+    ...base,
+    // Extensionless, so `resolveExtensions` picks the same file the bundle ships: a route with a
+    // `.web.tsx` sibling resolves to that one, and naming the `.tsx` path explicitly would measure
+    // the native switch no browser ever loads.
+    entryPoints: ['app/h/_layout', routeModule.replace(/\.tsx?$/, '')],
+    splitting: false,
+    entryNames: '[name]',
+    plugins: base.plugins.filter((plugin) => plugin.name !== ROUTE_MANIFEST_PLUGIN_NAME),
+    write: false,
+    metafile: true,
+    logLevel: 'silent'
+  })
+  const inputs = Object.keys(result.metafile.inputs)
+  return {
+    modules: inputs,
+    /** Everything outside `node_modules`: this repository's own source, which a census reads. */
+    local: inputs.filter((input) => !input.includes('node_modules'))
+  }
+}
+
 export async function bundleMobileWebApp({ appDir = defaultAppDir } = {}) {
   const routes = await collectMobileWebAppRoutes(appDir)
   await assertRoutesCarryNoSynchronousExports(routes)

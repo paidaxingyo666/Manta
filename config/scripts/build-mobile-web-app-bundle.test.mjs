@@ -90,7 +90,11 @@ describe('the page routes the manifest declares', () => {
     const keys = await collectMobileWebAppRouteKeys(appDir)
     expect(resolveMobileWebPageRoutes(keys)).toEqual([
       { pathname: '/h/[hostId]', grants: ['navigate', 'storage'] },
-      { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] }
+      { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] },
+      {
+        pathname: '/h/[hostId]/tasks',
+        grants: ['navigate', 'storage', 'externalLink', 'native.clipboard.write']
+      }
     ])
   })
 
@@ -112,7 +116,11 @@ describe('the page routes the manifest declares', () => {
         const { manifest } = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
         expect(manifest.routes).toEqual([
           { pathname: '/h/[hostId]', grants: ['navigate', 'storage'] },
-          { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] }
+          { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] },
+          {
+            pathname: '/h/[hostId]/tasks',
+            grants: ['navigate', 'storage', 'externalLink', 'native.clipboard.write']
+          }
         ])
         // The routes are derived from the same tree the script is built from, so the assets
         // already decide them and the id has no reason to carry them as well.

@@ -20,5 +20,13 @@ export const MOBILE_WEB_PAGE_ROUTES = [
   // Agent session history. `navigate` because a resumed session opens the session screen, which is
   // native, and because the list above now reaches this one without leaving the page. `storage`
   // because the host layout above every page route reads the app's own sidebar width.
-  { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] }
+  { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] },
+  // Tasks. `navigate` for the session screens its rows open and for the Back that pops the native
+  // stack; `storage` for the shared components it renders; `externalLink` for the provider links
+  // in its items, checks and drawers; `native.clipboard.write` for the two copy actions in its
+  // comment review. Grants are scoped per route, so naming fewer here serves fewer.
+  {
+    pathname: '/h/[hostId]/tasks',
+    grants: ['navigate', 'storage', 'externalLink', 'native.clipboard.write']
+  }
 ]
