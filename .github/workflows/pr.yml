@@ -758,6 +758,7 @@ jobs:
       - name: Builder, override census and render checks
         env:
           ORCA_MOBILE_WEB_APP_DEPS_REQUIRED: '1'
+          MANTA_BACKGROUND_LAUNCH: '1'
         run: |
           pnpm exec vitest run --config config/vitest.config.ts \
             config/scripts/build-mobile-web-app-bundle.test.mjs \

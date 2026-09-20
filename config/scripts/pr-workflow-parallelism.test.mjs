@@ -512,6 +512,7 @@ describe('PR workflow parallelism', () => {
       entry.run?.includes('build-mobile-web-app-bundle.test.mjs')
     )
     expect(step.env[MOBILE_WEB_APP_DEPENDENCIES_REQUIRED_ENV]).toBe('1')
+    expect(step.env.MANTA_BACKGROUND_LAUNCH).toBe('1')
     expect(step.run).toContain('config/scripts/mobile-web-app-router-query-string.test.mjs')
   })
 })

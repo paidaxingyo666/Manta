@@ -107,6 +107,15 @@ describe.skipIf(!realClaudeAvailable)('Claude structured real CLI handshake', ()
         join(cwd, '.claude', 'commands', 'orca-init-catalog-proof.md'),
         '---\ndescription: Initialization catalog proof\n---\nReply with OK.\n'
       )
+      // A SessionStart proof must come from this fixture, not the user's installed hooks.
+      await writeFile(
+        join(cwd, '.claude', 'settings.json'),
+        JSON.stringify({
+          hooks: {
+            SessionStart: [{ hooks: [{ type: 'command', command: 'node -e "process.exit(0)"' }] }]
+          }
+        })
+      )
       const adapter = realAdapter(providerSessionId, claudeConfigDir, events, cwd)
 
       try {
@@ -127,11 +136,14 @@ describe.skipIf(!realClaudeAvailable)('Claude structured real CLI handshake', ()
           leafUuid: null
         })
         expect(observedSubtypes).toContain('hook_started')
-        expect(adapter.readCommands('real-cli-handshake')).toContainEqual({
-          name: 'orca-init-catalog-proof',
-          kind: 'command',
-          kindUnspecified: true
-        })
+        expect(adapter.readCommands('real-cli-handshake')).toContainEqual(
+          expect.objectContaining({
+            name: 'orca-init-catalog-proof',
+            kind: 'command',
+            kindUnspecified: true,
+            description: expect.stringContaining('Initialization catalog proof')
+          })
+        )
         expect(
           adapter.readCommands('real-cli-handshake')?.some(({ name }) => name === 'help')
         ).toBe(false)
