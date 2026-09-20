@@ -23,6 +23,8 @@ import {
   type SessionParseStats
 } from './session-scanner-parse-cache'
 import { recordSessionScanIssue } from './session-scan-issues'
+import { getSessionParseCacheEntry } from './session-parse-cache-store'
+import { describeSkippedTranscriptRecords } from './session-transcript-record-budget'
 import { canStopParsingSessions } from './session-scan-cutoff'
 import { discoverInScopeClaudeFiles } from './session-scanner-scope-discovery'
 import { discoverAiVaultSessionSources } from './session-scanner-source-discovery'
@@ -272,7 +274,7 @@ async function parseSessionCandidate(
     }
     return {
       session: session ? withSessionExecutionHost(session, executionHostId) : null,
-      issue: null
+      issue: skippedRecordIssue(candidate, executionHostId)
     }
   } catch (err) {
     return {
@@ -284,6 +286,26 @@ async function parseSessionCandidate(
         message: errorMessage(err)
       }
     }
+  }
+}
+
+// The session still listed, but part of it did not: report the loss as a notice
+// so the panel does not count it as a skipped transcript file.
+function skippedRecordIssue(
+  candidate: SessionFileCandidate,
+  executionHostId: ExecutionHostId
+): AiVaultScanIssue | null {
+  const skipped = getSessionParseCacheEntry(candidate.file.path)?.resume?.skippedRecords
+  const message = skipped ? describeSkippedTranscriptRecords(skipped) : null
+  if (message === null) {
+    return null
+  }
+  return {
+    executionHostId,
+    agent: candidate.agent,
+    kind: 'notice',
+    path: candidate.file.path,
+    message
   }
 }
 
