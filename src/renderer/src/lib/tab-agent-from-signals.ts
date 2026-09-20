@@ -1,4 +1,4 @@
-import { isShellProcess } from '../../../shared/agent-detection'
+import { titleShowsNoAgent } from '../../../shared/agent-detection'
 import {
   isClaudeIdentityFrameTitle,
   resolveExplicitTerminalTitleAgentType
@@ -10,12 +10,6 @@ import {
 import { isOpenCodeNativeTitle } from '../../../shared/opencode-terminal-title'
 import { resolvePaneAgentOwnerRecord } from '../../../shared/pane-agent-owner'
 import type { TuiAgent } from '../../../shared/tui-agent'
-
-// Shell/default titles prove no agent; blank titles prove nothing.
-function titleShowsNoAgent(title: string, defaultTitle?: string): boolean {
-  const trimmed = title.trim()
-  return trimmed.length > 0 && (isShellProcess(trimmed) || trimmed === defaultTitle?.trim())
-}
 
 /** Resolves wrapper-compatible signal identity against the pane owner. */
 function resolveSignalAgentForLaunchOwner(
@@ -145,14 +139,18 @@ export function resolveTabAgentFromSignals(args: {
     processShellForeground: args.processShellForeground
   })
   const activeLaunchAgent = launchedAgentExited ? null : launchAgent
-  // Re-own nested Pi foreground reads so OMP tabs do not flip identity.
+  // Exit evidence also retires hibernation occupancy; a stale sleeping record must not
+  // repopulate the tab icon after /exit has returned the pane to a local shell.
+  const activeSleepingSessionAgent =
+    launchedAgentExited || processProvesShell ? null : sleepingSessionAgent
+  // Why: re-own the foreground process within its title-identity group so OMP's nested pi (shell → omp → pi) can't flip an OMP-owned tab's icon.
   const processAgent = resolveSignalAgentForLaunchOwner(args.processAgent, owner, ownerIsLaunch)
   return (
     liveFocusedIdentity ??
     processAgent ??
     titleAgent ??
     idleFocusedIdentity ??
-    sleepingSessionAgent ??
+    activeSleepingSessionAgent ??
     activeLaunchAgent ??
     liveSiblingIdentity ??
     idleSiblingIdentity

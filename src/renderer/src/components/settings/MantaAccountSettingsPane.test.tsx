@@ -6,29 +6,45 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({
-  connect: vi.fn(),
-  fetchAuthStatus: vi.fn(),
-  signOut: vi.fn(),
-  fetchRelayHosts: vi.fn(),
-  forgetRelayHost: vi.fn(),
-  fetchSignInMethods: vi.fn(),
-  state: {
+type MockAuthStatus = {
+  configured: boolean
+  state: string
+  cloud?: { displayName: string; email: string }
+} | null
+
+type MockState = {
+  mantaProfileAuthStatus: MockAuthStatus
+  mantaRelayHosts: Record<string, unknown>[]
+  mantaRelayHostsLoading: boolean
+  mantaRelayHostsState: string | null
+  mantaRelaySignInMethods: {
+    accounts: string
+    enrollmentSecretRequired: boolean
+  } | null
+}
+
+const mocks = vi.hoisted(() => {
+  const state: MockState = {
     mantaProfileAuthStatus: {
       configured: true,
       state: 'connected',
       cloud: { displayName: 'Ada Lovelace', email: 'ada@example.com' }
-    } as Record<string, unknown> | null,
-    mantaProfileConnecting: false,
-    mantaRelayHosts: [] as Record<string, unknown>[],
+    },
+    mantaRelayHosts: [],
     mantaRelayHostsLoading: false,
-    mantaRelayHostsState: 'ok' as string | null,
-    mantaRelaySignInMethods: { accounts: 'per-user', enrollmentSecretRequired: true } as {
-      accounts: string
-      enrollmentSecretRequired: boolean
-    } | null
+    mantaRelayHostsState: 'ok',
+    mantaRelaySignInMethods: { accounts: 'per-user', enrollmentSecretRequired: true }
   }
-}))
+  return {
+    connect: vi.fn(),
+    fetchAuthStatus: vi.fn(),
+    signOut: vi.fn(),
+    fetchRelayHosts: vi.fn(),
+    forgetRelayHost: vi.fn(),
+    fetchSignInMethods: vi.fn(),
+    state
+  }
+})
 
 vi.mock('@/i18n/i18n', () => ({
   translate: (_key: string, fallback: string, options?: Record<string, unknown>) =>
@@ -82,7 +98,6 @@ describe('MantaAccountSettingsPane', () => {
       state: 'connected',
       cloud: { displayName: 'Ada Lovelace', email: 'ada@example.com' }
     }
-    mocks.state.mantaProfileConnecting = false
     mocks.state.mantaRelayHosts = []
     mocks.state.mantaRelayHostsState = 'ok'
     mocks.state.mantaRelaySignInMethods = { accounts: 'per-user', enrollmentSecretRequired: true }
@@ -124,6 +139,7 @@ describe('MantaAccountSettingsPane', () => {
   it('signs in with an email and password against the configured relay', async () => {
     const user = userEvent.setup()
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
+    mocks.connect.mockReturnValue(new Promise(() => {}))
     render(<MantaAccountSettingsPane />)
 
     expect(
@@ -141,6 +157,9 @@ describe('MantaAccountSettingsPane', () => {
     expect(mocks.connect).toHaveBeenCalledWith({
       credentials: { email: 'ada@example.com', password: 'correct-horse', mode: 'sign-in' }
     })
+    expect(screen.getByRole('button', { name: 'Signing in…' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Signing in…' }))
+    expect(mocks.connect).toHaveBeenCalledOnce()
   })
 
   it('offers a plain sign-in and no form on a shared relay', async () => {
@@ -148,12 +167,16 @@ describe('MantaAccountSettingsPane', () => {
     // password form would ask for something that does not exist.
     const user = userEvent.setup()
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'local' }
+    mocks.connect.mockReturnValue(new Promise(() => {}))
     mocks.state.mantaRelaySignInMethods = { accounts: 'shared', enrollmentSecretRequired: true }
     render(<MantaAccountSettingsPane />)
 
     expect(screen.queryByLabelText('Email')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
     expect(mocks.connect).toHaveBeenCalledWith()
+    expect(screen.getByRole('button', { name: 'Sign in to Manta' })).toBeEnabled()
+    await user.click(screen.getByRole('button', { name: 'Sign in to Manta' }))
+    expect(mocks.connect).toHaveBeenCalledTimes(2)
   })
 
   it('hides the machine list on a shared relay', () => {

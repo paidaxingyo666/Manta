@@ -6,6 +6,7 @@
  * find the app back in a language they cannot read.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { noteMirroredWrite } from '../storage/mirrored-storage-keys'
 import {
   UI_LANGUAGE_SYSTEM,
   normalizeUiLanguage,
@@ -26,4 +27,5 @@ export async function readUiLanguage(): Promise<UiLanguage> {
 
 export async function writeUiLanguage(language: UiLanguage): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, language)
+  noteMirroredWrite(STORAGE_KEY, language)
 }

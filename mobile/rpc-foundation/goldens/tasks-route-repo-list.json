@@ -1,0 +1,185 @@
+{
+  "operation": "tasks.route-repo-list",
+  "family": "tasks.route-repo-list",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "23f974df8b57c723069605de1db80c339ead286b18aae38e67fce03ea50c5180",
+  "scenarioSha256": "2963731c3b8075f7a136ff19e79fcf3d9e8820431bd021586d6bb135ad9035bd",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 5,
+  "values": {
+    "19b2979d7fc2": {
+      "name": "repo.list#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"repo.list\"}"
+    },
+    "35f85fe3b71c": {
+      "name": "repo.list#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "repo.list"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "9924e0d12305": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": [
+        {
+          "id": "repo-1",
+          "name": "manta"
+        },
+        {
+          "id": "repo-2",
+          "name": "relay"
+        }
+      ]
+    },
+    "afa949a66032": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "repoListError": "",
+      "repoListStatus": "idle",
+      "repos": []
+    },
+    "b15e86f79919": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "repoListError": "",
+      "repoListStatus": "loading",
+      "repos": []
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "f5484d90b3f7": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "repoListError": "",
+      "repoListStatus": "loaded",
+      "repos": ["repo-1", "repo-2"]
+    },
+    "fadf89db1f81": {
+      "name": "repo.list#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "repo.list"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "repos": [
+              {
+                "id": "repo-1",
+                "name": "manta"
+              },
+              {
+                "id": "repo-2",
+                "name": "relay"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "recording": {
+    "scenario": "tasks-route-repo-list",
+    "checkpoints": [
+      {
+        "id": "idle",
+        "observation": {
+          "sender": [],
+          "payloads": [],
+          "settlements": {
+            "mount": "eb79a9b3682a"
+          },
+          "state": "afa949a66032",
+          "effects": []
+        }
+      },
+      {
+        "id": "repos-pending",
+        "observation": {
+          "sender": ["35f85fe3b71c"],
+          "payloads": ["19b2979d7fc2"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "ensure": "9270aeb7d9c6"
+          },
+          "state": "b15e86f79919",
+          "effects": []
+        }
+      },
+      {
+        "id": "repos-loaded",
+        "observation": {
+          "sender": ["fadf89db1f81"],
+          "payloads": ["19b2979d7fc2"],
+          "settlements": {
+            "mount": "eb79a9b3682a",
+            "ensure": "9924e0d12305"
+          },
+          "state": "f5484d90b3f7",
+          "effects": []
+        }
+      }
+    ]
+  }
+}

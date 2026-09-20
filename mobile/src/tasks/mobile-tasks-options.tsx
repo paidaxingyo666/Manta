@@ -22,7 +22,7 @@ import type {
   TaskSort
 } from './mobile-tasks-view-state-types'
 import type { ActionableTaskItem } from './mobile-tasks-project-workspace-types'
-import type { DetailComment, LinearIssue } from './mobile-tasks-provider-detail-types'
+import type { LinearIssue } from './mobile-tasks-provider-detail-types'
 import { translate } from '../i18n/i18n'
 import { localizedConstant } from '../i18n/localized-constant'
 
@@ -135,10 +135,8 @@ export function taskWorkspaceSuggestedName(item: ActionableTaskItem): string {
   return getLinkedWorkItemSuggestedName(item) || taskWorkspaceFallback(item)
 }
 
-export const COMMENT_REACTION_EMOJI: Record<
-  NonNullable<DetailComment['reactions']>[number]['content'],
-  string
-> = {
+// Provider reaction content is forwarded unchanged; unknown values omit the glyph.
+export const COMMENT_REACTION_EMOJI: Record<string, string> = {
   thumbs_up: '+1',
   thumbs_down: '-1',
   laugh: 'laugh',

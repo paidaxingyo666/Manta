@@ -145,6 +145,7 @@ export type PtyTransportRecoveryState = {
 }
 
 export type PtyTransport = {
+  getPendingEscapeTailAnsi?: () => string
   connect: (options: {
     url: string
     cols?: number
@@ -232,13 +233,18 @@ export type PtyTransport = {
    *  it also drops the transport's output processor from the pty side-effect memory census,
    *  so a reattached one would run untracked. Create a new transport instead. */
   detach?: (options?: { preserveExitObserver?: boolean }) => void
-  destroy?: () => void | Promise<void>
+  destroy?: (options?: {
+    /** Explicit close can retain retirement intent until an unbound connect settles. */
+    onAbandonedConnect?: (ptyId: string) => boolean
+  }) => void | Promise<void>
 }
 
 export type IpcPtyTransportOptions = {
   cwd?: string
   /** Retain bounded user input while a visible split waits to start its PTY. */
   bufferInputUntilConnect?: boolean
+  /** A restored remote pane may replay retained input only to this PTY. */
+  preconnectPtyId?: string
   /** Seed a fresh transport with input handed off from a remounted deferred split. */
   preconnectInput?: readonly PtyPreconnectInputEntry[]
   /** Records newly retained input against a remount-safe deferred split handoff. */
@@ -265,6 +271,7 @@ export type IpcPtyTransportOptions = {
   activate?: boolean
   shellOverride?: string
   projectRuntime?: ProjectExecutionRuntimeResolution
+  terminalKittyKeyboardProtocol?: boolean
   terminalColorQueryReplies?: TerminalOscColorQueryReplyColors
   telemetry?: EventProps<'agent_started'>
   onPtyExit?: (ptyId: string, exitCode?: number) => void

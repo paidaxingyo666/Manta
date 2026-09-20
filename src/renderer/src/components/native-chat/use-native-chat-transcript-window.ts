@@ -41,6 +41,8 @@ export type NativeChatTranscriptWindow = {
    *  browser's real max scroll, so this lands where the document bottom is,
    *  trailing chrome included. */
   scrollToEnd: () => void
+  /** Restore a detached reader offset through the virtualizer's scroll owner. */
+  restoreScrollOffset: (offset: number) => void
   /** True when this scroll event is the echo of a registered application write. */
   consumeProgrammaticScroll: (event: Event) => boolean
   /** Rebase a pending end reconcile while the reader takes over this frame. */
@@ -84,10 +86,12 @@ function rectOffsetWithin(element: HTMLElement, container: HTMLElement): number 
 export function useNativeChatTranscriptWindow({
   scrollRef,
   slots,
+  isVisible,
   revealIndex
 }: {
   scrollRef: React.RefObject<HTMLDivElement | null>
   slots: readonly NativeChatTranscriptSlot[]
+  isVisible: boolean
   /** Slot the transcript was asked to reveal, or -1. */
   revealIndex: number
 }): NativeChatTranscriptWindow {
@@ -160,10 +164,11 @@ export function useNativeChatTranscriptWindow({
       }
     }
   })
-
-  // Growing a row that spans the viewport changes content below the reader's anchor.
+  // Preserve rows above the reader, never compensate growth within the visible
+  // row — including its first measurement, which may follow an exact estimate.
   virtualizer.shouldAdjustScrollPositionOnItemSizeChange = (item, _delta, instance) =>
-    item.end <= (instance.scrollOffset ?? 0)
+    item.end <= (instance.scrollOffset ?? 0) &&
+    (instance.scrollDirection !== 'backward' || !instance.itemSizeCache.has(item.key))
 
   const finishReaderTakeover = useCallback(() => {
     if (readerTakeoverFrameRef.current !== null) {
@@ -274,7 +279,7 @@ export function useNativeChatTranscriptWindow({
 
   const scrollToEnd = useCallback(() => {
     const container = scrollRef.current
-    if (!container) {
+    if (!isVisible || !container) {
       return
     }
     finishReaderTakeover()
@@ -289,7 +294,27 @@ export function useNativeChatTranscriptWindow({
     if (container.scrollTop !== previous) {
       programmaticScrollMarks.mark(container.scrollTop)
     }
-  }, [finishReaderTakeover, programmaticScrollMarks, scrollRef, virtualizer])
+  }, [finishReaderTakeover, isVisible, programmaticScrollMarks, scrollRef, virtualizer])
+
+  const restoreScrollOffset = useCallback(
+    (offset: number) => {
+      const container = scrollRef.current
+      if (!isVisible || !container) {
+        return
+      }
+      finishReaderTakeover()
+      if (virtualizer.scrollElement) {
+        virtualizer.scrollToOffset(offset, { behavior: 'auto' })
+        return
+      }
+      const previous = container.scrollTop
+      container.scrollTop = offset
+      if (container.scrollTop !== previous) {
+        programmaticScrollMarks.mark(container.scrollTop)
+      }
+    },
+    [finishReaderTakeover, isVisible, programmaticScrollMarks, scrollRef, virtualizer]
+  )
 
   const consumeProgrammaticScroll = useCallback(
     (event: Event): boolean => {
@@ -337,6 +362,7 @@ export function useNativeChatTranscriptWindow({
     measureRow: virtualizer.measureElement,
     alignToViewportTop,
     scrollToEnd,
+    restoreScrollOffset,
     consumeProgrammaticScroll,
     reconcileReaderScroll
   }

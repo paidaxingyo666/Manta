@@ -27,7 +27,7 @@ export function buildWorktreeNavigationActions(args: Args): ActionSheetAction[] 
       onPress: () => {
         const params = new URLSearchParams({ name: args.worktreeName, origin: 'host' })
         args.navigate(
-          `/h/${args.hostId}/source-control/${encodeURIComponent(args.worktreeId)}?${params.toString()}`
+          `/h/${encodeURIComponent(args.hostId)}/source-control/${encodeURIComponent(args.worktreeId)}?${params.toString()}`
         )
         args.onDone()
       }
@@ -41,7 +41,7 @@ export function buildWorktreeNavigationActions(args: Args): ActionSheetAction[] 
       onPress: () => {
         const params = new URLSearchParams({ name: args.worktreeName })
         args.navigate(
-          `/h/${args.hostId}/agent-history/${encodeURIComponent(args.worktreeId)}?${params.toString()}`
+          `/h/${encodeURIComponent(args.hostId)}/agent-history/${encodeURIComponent(args.worktreeId)}?${params.toString()}`
         )
         args.onDone()
       }

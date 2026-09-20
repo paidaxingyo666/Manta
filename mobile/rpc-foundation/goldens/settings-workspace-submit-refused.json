@@ -3,18 +3,38 @@
   "family": "settings.workspace-submit",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
-  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "f85c63428eccd9e0c45ba9f291dee074ba7b6da6052bfe3733977b024e31afee",
-  "adapterSha256": "ec04f434d3da733ea8eeb1c706fb1e51f86a11ce4422a32b88e9bb8a10211ff5",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "4ea510924260f15668063d77a18edd2413963b70f60dcd75b949433d08919081",
   "scenarioSha256": "373ea3743dac4e0845df01d5c8f75c909563b8c517f3858293a478234dc9ca5c",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "090c88478661": {
+    "13c996e4ec2b": {
+      "creating": true,
+      "error": "",
+      "settings": {
+        "disabledTuiAgents": ["claude"]
+      }
+    },
+    "2e8e352c8dd1": {
+      "creating": false,
+      "error": "Selected agent is disabled. Choose an enabled agent before creating.",
+      "settings": {
+        "disabledTuiAgents": ["claude"]
+      }
+    },
+    "39f99cf479f0": {
+      "name": "error",
+      "ordinal": 1,
+      "value": ""
+    },
+    "51d4cb56be85": {
       "name": "settings.get#1",
+      "ordinal": 2,
       "args": [
         {
           "name": "method",
@@ -38,42 +58,31 @@
         "startedAt": 0
       }
     },
-    "13c996e4ec2b": {
-      "creating": true,
-      "error": "",
-      "settings": {
-        "disabledTuiAgents": ["claude"]
-      }
-    },
-    "2e8e352c8dd1": {
-      "creating": false,
-      "error": "Selected agent is disabled. Choose an enabled agent before creating.",
-      "settings": {
-        "disabledTuiAgents": ["claude"]
-      }
-    },
-    "3405a06dce84": {
+    "5940cb6d5fdf": {
       "name": "error",
+      "ordinal": 6,
       "value": "Selected agent is disabled. Choose an enabled agent before creating."
-    },
-    "7ddcb1852b39": {
-      "name": "settings.get#1",
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
-    },
-    "82cd71d524c8": {
-      "name": "error",
-      "value": ""
     },
     "9270aeb7d9c6": {
       "status": "pending",
       "startedAt": 0
     },
-    "ae291b5dba88": {
+    "94ddc6962cd6": {
+      "name": "selectedAgent",
+      "ordinal": 4,
+      "value": {
+        "id": "codex",
+        "label": "Codex"
+      }
+    },
+    "bc0a5f0f4956": {
       "name": "agentOverridden",
+      "ordinal": 5,
       "value": false
     },
-    "d6140b218abd": {
+    "d942c8ef3642": {
       "name": "settings.get#1",
+      "ordinal": 2,
       "args": [
         {
           "name": "method",
@@ -106,13 +115,6 @@
         }
       }
     },
-    "eb6f7a9c5bf1": {
-      "name": "selectedAgent",
-      "value": {
-        "id": "codex",
-        "label": "Codex"
-      }
-    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -120,6 +122,11 @@
       "value": {
         "$rpc": "undefined"
       }
+    },
+    "f648b042d810": {
+      "name": "settings.get#1",
+      "ordinal": 3,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
     }
   },
   "recording": {
@@ -128,27 +135,27 @@
       {
         "id": "settings-pending",
         "observation": {
-          "sender": ["090c88478661"],
-          "payloads": ["7ddcb1852b39"],
+          "sender": ["51d4cb56be85"],
+          "payloads": ["f648b042d810"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "9270aeb7d9c6"
           },
           "state": "13c996e4ec2b",
-          "effects": ["82cd71d524c8"]
+          "effects": ["39f99cf479f0"]
         }
       },
       {
         "id": "settled",
         "observation": {
-          "sender": ["d6140b218abd"],
-          "payloads": ["7ddcb1852b39"],
+          "sender": ["d942c8ef3642"],
+          "payloads": ["f648b042d810"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "2e8e352c8dd1",
-          "effects": ["82cd71d524c8", "eb6f7a9c5bf1", "ae291b5dba88", "3405a06dce84"]
+          "effects": ["39f99cf479f0", "94ddc6962cd6", "bc0a5f0f4956", "5940cb6d5fdf"]
         }
       }
     ]

@@ -8,33 +8,74 @@
  * resubscribe) keeps showing the conversation that stopped. Measured once at 27
  * hours, on a chat that looked perfectly healthy the whole time.
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { AgentHookServer } from './server'
 
-const PANE = 'tab-1:leaf-1'
+const PANE = 'tab-1:11111111-1111-4111-8111-111111111111'
+const OTHER_PANE = 'tab-2:22222222-2222-4222-8222-222222222222'
 const OLD = 'd7088df0-6130-486e-955a-eb08b295acce'
 const NEW = '051ba680-d60e-42e8-b69d-cd73abd31eac'
 
 function seed(server: AgentHookServer, paneKey: string, sessionId: string): void {
-  const state = (server as unknown as { state: { lastStatusByPaneKey: Map<string, unknown> } })
-    .state
-  state.lastStatusByPaneKey.set(paneKey, {
-    paneKey,
-    payload: { state: 'idle', agentType: 'claude' },
-    providerSession: { key: 'session_id', id: sessionId, transcriptPath: `/p/${sessionId}.jsonl` }
-  })
+  server.ingestRemote(
+    {
+      paneKey,
+      tabId: paneKey.split(':')[0],
+      worktreeId: 'folder-workspace',
+      source: 'claude',
+      payload: { state: 'done', agentType: 'claude' },
+      providerSession: { key: 'session_id', id: sessionId, transcriptPath: `/p/${sessionId}.jsonl` }
+    },
+    'ssh-connection'
+  )
 }
 
 function sessionOf(server: AgentHookServer, paneKey: string) {
-  const state = (
-    server as unknown as {
-      state: { lastStatusByPaneKey: Map<string, { providerSession?: Record<string, string> }> }
-    }
-  ).state
-  return state.lastStatusByPaneKey.get(paneKey)?.providerSession
+  return server.getStatusSnapshotForPane(paneKey)[0]?.providerSession
 }
 
 describe('noteSessionContinued', () => {
+  it('publishes the identity mutation without renewing status freshness', () => {
+    const server = new AgentHookServer()
+    seed(server, PANE, OLD)
+    const before = server.getStatusSnapshotForPane(PANE)[0]
+    const identities = vi.fn()
+    const mutations = vi.fn()
+    const freshness = vi.fn()
+    const enriched = vi.fn()
+    server.subscribeProviderSessionChanges(identities)
+    server.subscribeStatusRowMutations(mutations)
+    server.subscribeStatusFreshness(freshness)
+    server.subscribeEnrichedStatus(enriched)
+
+    server.noteSessionContinued(OLD, { sessionId: NEW, transcriptPath: `/p/${NEW}.jsonl` })
+
+    expect(identities).toHaveBeenCalledExactlyOnceWith([
+      {
+        paneKey: PANE,
+        sessionId: NEW,
+        transcriptPath: `/p/${NEW}.jsonl`,
+        worktreeId: 'folder-workspace'
+      }
+    ])
+    expect(mutations).toHaveBeenCalledExactlyOnceWith({
+      before: { paneKey: PANE, worktreeId: 'folder-workspace' },
+      after: { paneKey: PANE, worktreeId: 'folder-workspace' }
+    })
+    expect(server.getStatusSnapshotForPane(PANE)[0]).toMatchObject({
+      receivedAt: before?.receivedAt,
+      stateStartedAt: before?.stateStartedAt,
+      connectionId: 'ssh-connection',
+      agentType: 'claude',
+      state: 'done'
+    })
+    expect(freshness).not.toHaveBeenCalled()
+    expect(enriched).not.toHaveBeenCalled()
+    server.noteSessionContinued(OLD, { sessionId: NEW, transcriptPath: `/p/${NEW}.jsonl` })
+    expect(identities).toHaveBeenCalledTimes(1)
+    expect(mutations).toHaveBeenCalledTimes(1)
+  })
+
   it('moves the pane onto the file its session continued into', () => {
     const server = new AgentHookServer()
     seed(server, PANE, OLD)
@@ -60,11 +101,11 @@ describe('noteSessionContinued', () => {
   it('leaves panes running a different session alone', () => {
     const server = new AgentHookServer()
     seed(server, PANE, OLD)
-    seed(server, 'tab-2:leaf-2', 'someone-else')
+    seed(server, OTHER_PANE, 'someone-else')
 
     server.noteSessionContinued(OLD, { sessionId: NEW, transcriptPath: `/p/${NEW}.jsonl` })
 
-    expect(sessionOf(server, 'tab-2:leaf-2')?.id).toBe('someone-else')
+    expect(sessionOf(server, OTHER_PANE)?.id).toBe('someone-else')
   })
 
   it('ignores a move that names the session it already has', () => {

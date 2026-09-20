@@ -7,7 +7,7 @@ import type { RpcResponse } from '../transport/types'
 import { gitBulkStageRun, gitCommitRun, gitPushRun } from './mobile-git-mutation-operations'
 import { gitStatusProjectionRead } from './mobile-git-read-operations'
 import type { MobileGitStatusResult } from './mobile-git-status'
-import type { MobileSourceControlRpcSender } from './mobile-source-control-rpc-sender'
+import type { RpcOperationSender } from '../transport/rpc-operation-sender'
 import { translate } from '../i18n/i18n'
 
 export type MobileHostedReviewStatusReadResult =
@@ -17,7 +17,7 @@ export type MobileHostedReviewStatusReadResult =
 export type MobileHostedReviewMutationResult = { ok: true } | { ok: false; error: string }
 
 export async function readMobileHostedReviewGitStatus(
-  client: MobileSourceControlRpcSender,
+  client: RpcOperationSender,
   worktreeId: string
 ): Promise<MobileHostedReviewStatusReadResult> {
   const reply = await gitStatusProjectionRead.request(client, { worktree: `id:${worktreeId}` })
@@ -64,7 +64,7 @@ async function settleMobileHostedReviewMutation(
 }
 
 export function pushMobileHostedReviewBranch(
-  client: MobileSourceControlRpcSender,
+  client: RpcOperationSender,
   params: RpcSendParams<'git.push'>,
   fallback: string
 ): Promise<MobileHostedReviewMutationResult> {
@@ -76,7 +76,7 @@ export function pushMobileHostedReviewBranch(
 }
 
 export function stageMobileHostedReviewPaths(
-  client: MobileSourceControlRpcSender,
+  client: RpcOperationSender,
   worktreeId: string,
   filePaths: string[]
 ): Promise<MobileHostedReviewMutationResult> {
@@ -88,7 +88,7 @@ export function stageMobileHostedReviewPaths(
 }
 
 export async function commitMobileHostedReviewStagedChanges(
-  client: MobileSourceControlRpcSender,
+  client: RpcOperationSender,
   worktreeId: string,
   message: string
 ): Promise<MobileHostedReviewMutationResult> {

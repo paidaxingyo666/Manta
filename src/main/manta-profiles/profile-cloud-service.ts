@@ -40,8 +40,17 @@ import {
 } from './profile-cloud-dev-service'
 import { getMantaProfileAuthStatusFromProfile } from './profile-cloud-auth-status'
 import { selectCloudOrgWithMutationFence } from './profile-cloud-org-selection'
+import type { MantaCloudSessionExchangeResponse } from './profile-cloud-session-exchange'
 
 export { refreshCurrentMantaProfileAuth } from './profile-cloud-capability-refresh'
+
+let nextCloudConnectAttempt = 0
+let linkedCloudConnectAttempt = 0
+
+function invalidateOutstandingCloudConnectAttempts(): void {
+  nextCloudConnectAttempt += 1
+  linkedCloudConnectAttempt = nextCloudConnectAttempt
+}
 
 function isUserCancelledAuthError(message: string): boolean {
   return message === 'manta_cloud_auth_timeout' || message === 'manta_cloud_auth_denied'
@@ -83,19 +92,35 @@ export async function connectCurrentMantaProfile(
     }
   }
 
+  const attempt = ++nextCloudConnectAttempt
   try {
-    // Three ways in, in order of specificity: an account the user named, the
-    // deployment-wide enrolment secret, and finally the browser code flow.
-    const exchange = args?.credentials
-      ? await exchangeMantaCloudCredentials(configState.config, args.credentials)
-      : configState.config.enrollmentSecret
-        ? await grantMantaCloudSessionDirectly(configState.config, active.profile.id)
-        : await exchangeMantaCloudAuthCode(configState.config, {
-            ...(await beginMantaCloudPkceFlow(configState.config, active.profile.id)),
-            localProfileId: active.profile.id
-          })
+    let exchange: MantaCloudSessionExchangeResponse
+    if (args?.credentials) {
+      exchange = await exchangeMantaCloudCredentials(configState.config, args.credentials)
+    } else if (configState.config.enrollmentSecret) {
+      exchange = await grantMantaCloudSessionDirectly(configState.config, active.profile.id)
+    } else {
+      const code = await beginMantaCloudPkceFlow(configState.config, active.profile.id)
+      if (attempt < linkedCloudConnectAttempt) {
+        return {
+          status: 'cancelled',
+          auth: getCurrentMantaProfileAuthStatus(userDataPath)
+        }
+      }
+      exchange = await exchangeMantaCloudAuthCode(configState.config, {
+        ...code,
+        localProfileId: active.profile.id
+      })
+    }
+    if (attempt < linkedCloudConnectAttempt) {
+      return {
+        status: 'cancelled',
+        auth: getCurrentMantaProfileAuthStatus(userDataPath)
+      }
+    }
     saveMantaCloudSessionExchange(active.profile.id, userDataPath, exchange)
     const list = linkMantaProfileToCloud(active.profile.id, exchange.cloud, userDataPath)
+    linkedCloudConnectAttempt = attempt
     return {
       status: 'connected',
       auth: getCurrentMantaProfileAuthStatus(userDataPath),
@@ -131,6 +156,10 @@ export async function connectCurrentMantaProfile(
 export async function signOutCurrentMantaProfile(
   userDataPath: string
 ): Promise<SignOutCurrentMantaProfileResult> {
+  // Why: a Sign in click still waiting in the browser must not relink after
+  // the user explicitly signed out.
+  invalidateOutstandingCloudConnectAttempts()
+  const signOutEpoch = linkedCloudConnectAttempt
   const active = ensureActiveMantaProfile(userDataPath)
   const configState = getMantaCloudAuthConfig()
   const session = readMantaCloudSession(active.profile.id, userDataPath)
@@ -144,6 +173,15 @@ export async function signOutCurrentMantaProfile(
   }
   if (!isMantaCloudDevAuthEnabled() && configState.configured && session.status === 'found') {
     await revokeMantaCloudSession(configState.config, session.session).catch(() => undefined)
+  }
+  if (linkedCloudConnectAttempt > signOutEpoch) {
+    const current = ensureActiveMantaProfile(userDataPath)
+    return {
+      status: 'signed-out',
+      auth: getCurrentMantaProfileAuthStatus(userDataPath),
+      activeProfileId: current.index.activeProfileId,
+      profiles: current.index.profiles
+    }
   }
   clearMantaCloudSession(active.profile.id, userDataPath)
   const list = unlinkMantaProfileFromCloud(active.profile.id, userDataPath)

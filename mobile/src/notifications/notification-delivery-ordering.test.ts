@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications'
 import { subscribeToDesktopNotifications } from './mobile-notifications'
 import { resetHostNotificationSessionsForTests } from './notification-reconnect-catchup'
 import type { RpcClient } from '../transport/rpc-client'
+import { createFakeRpcClient } from '../mobile-web-shell/bridge-host-test-fakes'
 import { loadPushNotificationsEnabled } from '../storage/preferences'
 
 vi.mock('expo-notifications', () => ({
@@ -79,13 +80,13 @@ describe('#8591 per-host delivery ordering', () => {
       return 'sched-1'
     })
 
-    let onData: ((data: unknown) => void) | null = null
-    const client = {
+    const onData: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
-        onData = cb
+        onData.current = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(async (method: string) => {
         if (method === 'notifications.getMissedSince') {
           return {
@@ -112,15 +113,15 @@ describe('#8591 per-host delivery ordering', () => {
         }
         return { ok: true, result: undefined } as never
       })
-    } as unknown as RpcClient
+    }
 
     storage.set(WATERMARK_KEY, JSON.stringify({ seq: 5, epoch: 'epoch-1' }))
     subscribeToDesktopNotifications(client, 'host-1')
-    onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
+    onData.current?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
     await flushAsync()
 
     // Live seq 11 arrives while the replay is wedged on seq 6.
-    onData?.({
+    onData.current?.({
       type: 'notification',
       title: 'live-11',
       body: 'b',
@@ -159,13 +160,13 @@ describe('#8591 per-host delivery ordering', () => {
       return `sched-${shown}`
     })
 
-    let onData: ((data: unknown) => void) | null = null
-    const client = {
+    const onData: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
-        onData = cb
+        onData.current = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(async (method: string) => {
         if (method === 'notifications.getMissedSince') {
           return {
@@ -185,16 +186,16 @@ describe('#8591 per-host delivery ordering', () => {
         }
         return { ok: true, result: undefined } as never
       })
-    } as unknown as RpcClient
+    }
 
     storage.set(WATERMARK_KEY, JSON.stringify({ seq: 5, epoch: 'epoch-1' }))
     subscribeToDesktopNotifications(client, 'host-1')
-    onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
+    onData.current?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
     await flushAsync()
 
     // Same id arrives live while the replay's show is still blocked. A different
     // seq, so the seen-set does not catch it — only the queued-show claim does.
-    onData?.({
+    onData.current?.({
       type: 'notification',
       title: 'dup',
       body: 'b',
@@ -214,21 +215,21 @@ describe('#8591 per-host delivery ordering', () => {
     // this host's notifications for the whole app lifetime — silently.
     getItemImpl = () => new Promise<string | null>(() => {})
 
-    let onData: ((data: unknown) => void) | null = null
-    const client = {
+    const onData: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
-        onData = cb
+        onData.current = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(async () => ({ ok: true, result: undefined }) as never)
-    } as unknown as RpcClient
+    }
 
     vi.useFakeTimers()
     try {
       subscribeToDesktopNotifications(client, 'host-1')
-      onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
-      onData?.({
+      onData.current?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-1' })
+      onData.current?.({
         type: 'notification',
         title: 'live-1',
         body: 'b',

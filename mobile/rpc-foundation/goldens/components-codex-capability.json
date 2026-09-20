@@ -1,0 +1,82 @@
+{
+  "operation": "components.codex-reset-capability",
+  "family": "components.codex-reset-capability",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "5cfbce3c7d97d908fbd447646d611e41a8aa1f61f684b9b710c4b67d6ff023a7",
+  "scenarioSha256": "88570b9d2376863c7f88d7ed8c745a5fb771deddbc7409f8944fa861dd4bdce9",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 5,
+  "values": {
+    "578b9d38ecc7": {
+      "supported": true
+    },
+    "83aeff886309": {
+      "name": "status.get#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "status.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "capabilities": ["accounts.codex-reset-credit.v1"]
+          }
+        }
+      }
+    },
+    "84e5ca07cb7a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": true
+    },
+    "d08f74d65ee6": {
+      "name": "status.get#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
+    }
+  },
+  "recording": {
+    "scenario": "components-codex-capability",
+    "checkpoints": [
+      {
+        "id": "settled",
+        "observation": {
+          "sender": ["83aeff886309"],
+          "payloads": ["d08f74d65ee6"],
+          "settlements": {
+            "probe": "84e5ca07cb7a"
+          },
+          "state": "578b9d38ecc7",
+          "effects": []
+        }
+      }
+    ]
+  }
+}

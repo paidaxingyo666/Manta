@@ -10,6 +10,10 @@ import { maxTimestamp } from './runtime-worktree-status-projection'
 import type { RuntimeSyncedLeaf } from '../../shared/runtime-types'
 import { isTerminalLeafId, makePaneKey } from '../../shared/stable-pane-id'
 import { inferWorktreeIdFromPtyId } from './runtime-worktree-path-identity'
+import {
+  recordPtySurfaceClaim,
+  SURFACE_CLAIM_WITHOUT_STANDING
+} from './pty-recorded-surface-topology'
 
 export class MantaRuntimeWithRecordPtyWorktree extends MantaRuntimeWithRefreshRepoWorktreeScan {
   protected recordPtyWorktree(
@@ -23,6 +27,7 @@ export class MantaRuntimeWithRecordPtyWorktree extends MantaRuntimeWithRefreshRe
         | 'preview'
         | 'tabId'
         | 'paneKey'
+        | 'surfaceRecordedAtGraphSequence'
         | 'title'
         | 'connectionId'
         | 'runtimeSessionOwned'
@@ -56,6 +61,13 @@ export class MantaRuntimeWithRecordPtyWorktree extends MantaRuntimeWithRefreshRe
         wslDistro,
         tabId: state.tabId ?? null,
         paneKey: state.paneKey ?? null,
+        // A PTY the runtime is meeting for the first time has no prior observation for a graph
+        // statement to contradict, and the leaf map cannot answer for a pane no statement has ever
+        // named — a headless workspace has no renderer graph at all. The next statement decides it.
+        surfaceRecordedAtGraphSequence: Math.max(
+          this.graphSequence,
+          state.surfaceRecordedAtGraphSequence ?? this.graphSequence
+        ),
         launchConfig: null,
         launchToken: null,
         launchIncarnationId: null,
@@ -147,7 +159,13 @@ export class MantaRuntimeWithRecordPtyWorktree extends MantaRuntimeWithRefreshRe
       pty.tabId = state.tabId
     }
     if (state.paneKey !== undefined) {
-      pty.paneKey = state.paneKey
+      // A caller that does not say where the pane came from does not get graph standing for it:
+      // the unsafe default is what let a persisted replay un-drop a pane (#18191).
+      recordPtySurfaceClaim(
+        pty,
+        state.paneKey,
+        state.surfaceRecordedAtGraphSequence ?? SURFACE_CLAIM_WITHOUT_STANDING
+      )
     }
     if (state.connected !== undefined) {
       pty.connected = state.connected

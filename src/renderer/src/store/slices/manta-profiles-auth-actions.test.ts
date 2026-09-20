@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createTestStore } from './store-test-helpers'
 import type {
   ConnectCurrentMantaProfileResult,
   CreateCloudLinkedMantaProfileResult,
@@ -9,6 +8,21 @@ import type {
   SelectMantaProfileOrgResult,
   SignOutCurrentMantaProfileResult
 } from '../../../../shared/manta-profiles'
+import { createTestStore } from './store-test-helpers'
+
+const { toastErrorMock, toastSuccessMock } = vi.hoisted(() => ({
+  toastErrorMock: vi.fn(),
+  toastSuccessMock: vi.fn()
+}))
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: toastErrorMock,
+    info: vi.fn(),
+    success: toastSuccessMock,
+    warning: vi.fn()
+  }
+}))
 
 const listState: MantaProfileListState = {
   activeProfileId: 'local-default',
@@ -73,6 +87,8 @@ const mantaProfilesApi = {
 describe('manta profile auth actions slice', () => {
   beforeEach(() => {
     vi.resetAllMocks()
+    toastErrorMock.mockReset()
+    toastSuccessMock.mockReset()
     mantaProfilesApi.authStatus.mockResolvedValue(localAuthStatus)
     vi.stubGlobal('window', {
       api: {
@@ -98,13 +114,51 @@ describe('manta profile auth actions slice', () => {
     mantaProfilesApi.connectCurrent.mockResolvedValue(result)
     const store = createTestStore()
 
-    const pending = store.getState().connectCurrentMantaProfile()
-
-    expect(store.getState().mantaProfileConnecting).toBe(true)
-    await expect(pending).resolves.toEqual(result)
-    expect(store.getState().mantaProfileConnecting).toBe(false)
+    await expect(store.getState().connectCurrentMantaProfile()).resolves.toEqual(result)
     expect(store.getState().mantaProfileAuthStatus).toEqual(connectedAuthStatus)
     expect(store.getState().mantaProfiles).toEqual(connectedProfiles)
+    expect(toastSuccessMock).toHaveBeenCalledOnce()
+  })
+
+  it('starts a second sign-in while the first browser wait is still open', async () => {
+    const connectedProfiles = [
+      {
+        ...listState.profiles[0],
+        kind: 'cloud-linked' as const,
+        cloud: connectedAuthStatus.cloud
+      }
+    ]
+    const connected: ConnectCurrentMantaProfileResult = {
+      status: 'connected',
+      auth: connectedAuthStatus,
+      activeProfileId: 'local-default',
+      profiles: connectedProfiles
+    }
+    const cancelled: ConnectCurrentMantaProfileResult = {
+      status: 'cancelled',
+      auth: connectedAuthStatus
+    }
+    let finishFirst!: (value: ConnectCurrentMantaProfileResult) => void
+    mantaProfilesApi.connectCurrent
+      .mockReturnValueOnce(
+        new Promise<ConnectCurrentMantaProfileResult>((resolve) => {
+          finishFirst = resolve
+        })
+      )
+      .mockResolvedValueOnce(connected)
+    const store = createTestStore()
+
+    const first = store.getState().connectCurrentMantaProfile()
+    const second = store.getState().connectCurrentMantaProfile()
+
+    expect(mantaProfilesApi.connectCurrent).toHaveBeenCalledTimes(2)
+    await expect(second).resolves.toEqual(connected)
+    expect(toastSuccessMock).toHaveBeenCalledOnce()
+    finishFirst(cancelled)
+    await expect(first).resolves.toEqual(cancelled)
+    expect(toastErrorMock).not.toHaveBeenCalled()
+    expect(toastSuccessMock).toHaveBeenCalledOnce()
+    expect(store.getState().mantaProfileAuthStatus).toEqual(connectedAuthStatus)
   })
 
   it('refreshes current profile auth and stores fresh capability flags', async () => {

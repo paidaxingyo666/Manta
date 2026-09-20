@@ -170,6 +170,9 @@ jobs:
         with:
           node-version-file: package.json
           cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
 
       - name: Cache electron-builder downloads
         uses: actions/cache@v5
@@ -192,6 +195,8 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: pnpm install --frozen-lockfile --cpu=current,x64,arm64
+
+      - uses: ./.github/actions/install-mobile-dependencies
 
       # Fails before the twenty minutes of packaging rather than after, and
       # before an unsigned app can look like a successful release.
@@ -287,6 +292,9 @@ jobs:
         with:
           node-version-file: package.json
           cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
 
       - name: Cache electron-builder downloads
         uses: actions/cache@v5
@@ -306,8 +314,18 @@ jobs:
           retry_wait_seconds: 30
           command: pnpm install --frozen-lockfile
 
+      - uses: ./.github/actions/install-mobile-dependencies
+
+      - name: Build Windows process-table addons for the relay
+        shell: bash
+        run: |
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=x64
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=arm64
+
       - name: Build app
         run: pnpm build:release
+        env:
+          MANTA_REQUIRE_RELAY_NATIVE_ADDONS: x64,arm64
 
       # `;` and $LASTEXITCODE rather than `&&`: nick-fields/retry runs Windows
       # commands under Windows PowerShell 5.1, whose parser does not know `&&`
@@ -389,6 +407,9 @@ jobs:
         with:
           node-version-file: package.json
           cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
 
       - name: Cache electron-builder downloads
         uses: actions/cache@v5
@@ -407,6 +428,8 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: pnpm install --frozen-lockfile
+
+      - uses: ./.github/actions/install-mobile-dependencies
 
       # Before Build app, not after. `pnpm build:release` runs
       # verify:computer-native, which evaluates native/computer-use-linux's

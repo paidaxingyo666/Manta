@@ -479,6 +479,9 @@ describe('connectPanePty', () => {
     transportFactoryQueue.push(transport)
     mockStoreState = {
       ...mockStoreState,
+      tabsByWorktree: {
+        'wt-1': [{ id: 'web-terminal-host-tab', ptyId: remotePtyId }]
+      },
       runtimeStatusByEnvironmentId: new Map([
         [
           'env-1',
@@ -492,7 +495,12 @@ describe('connectPanePty', () => {
 
     const pane = createPane(1)
     const { parseCallbacks, writes } = captureCallbackTerminalWrites(pane)
-    const deps = createDeps({ mountFollowsTerminalPark: true })
+    const deps = createDeps({
+      tabId: 'web-terminal-host-tab',
+      mountFollowsTerminalPark: true,
+      restoredLeafId: LEAF_1,
+      restoredPtyIdByLeafId: { [LEAF_1]: remotePtyId }
+    })
 
     connectPanePty(pane as never, createManager(1) as never, deps as never)
     for (let step = 0; step < 30; step += 1) {
@@ -501,6 +509,10 @@ describe('connectPanePty', () => {
     }
 
     expect(transport.serializeBuffer).toHaveBeenCalledWith({ scrollbackRows: 5000 })
+    expect(createdTransportOptions[0]).toMatchObject({
+      bufferInputUntilConnect: true,
+      preconnectPtyId: remotePtyId
+    })
     expect(transport.attach).not.toHaveBeenCalled()
     expect(writes.join('')).toContain('DEEP_PAIRED_SCROLLBACK')
     expect(writes.join('')).toContain('current screen from initial subscribe')

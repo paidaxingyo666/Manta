@@ -150,8 +150,12 @@ describe('mobile clipboard image paste helpers', () => {
   })
 
   it('brackets generated image paths before sending to the terminal', () => {
-    expect(buildMobileImagePastePayload('/tmp/manta.png')).toBe('\x1b[200~/tmp/manta.png\x1b[201~')
-    expect(buildMobileImagePastePayload('/tmp/\x1b.png')).toBe('\x1b[200~/tmp/\u241b.png\x1b[201~')
+    expect(buildMobileImagePastePayload('/tmp/manta.png', 'claude')).toBe(
+      '\x1b[200~/tmp/manta.png\x1b[201~'
+    )
+    expect(buildMobileImagePastePayload('/tmp/\x1b.png', 'claude')).toBe(
+      '\x1b[200~/tmp/\u241b.png\x1b[201~'
+    )
   })
 })
 

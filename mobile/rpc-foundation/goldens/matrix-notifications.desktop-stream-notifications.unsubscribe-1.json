@@ -1,0 +1,741 @@
+{
+  "operation": "notifications.desktop-stream",
+  "family": "notifications.desktop-stream",
+  "namedDeltas": [],
+  "runnerVersion": 1,
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "eacf859143588ae6bee2804975d642b6c1088d57ae77ffe298620250d9a9f0e4",
+  "scenarioSha256": "f8a837bbda147d489a10868b5562729e1a7d04d35e940ec9fd057bb4ad3fe8ab",
+  "platform": "darwin",
+  "scenarioVersion": 1,
+  "projectionVersion": 2,
+  "goldenFormatVersion": 5,
+  "values": {
+    "0ba59ff70596": {
+      "name": "device-store.setItem",
+      "ordinal": 4,
+      "value": {
+        "key": "manta:mobileNotificationsWatermark:host-1",
+        "value": "{\"seq\":7,\"epoch\":\"epoch-1\"}"
+      }
+    },
+    "1381f7673721": {
+      "name": "notifications.getMissedSince#1",
+      "ordinal": 3,
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":6,\"epoch\":\"epoch-1\"}}"
+    },
+    "34408026fe7f": {
+      "name": "notifications.getMissedSince#1",
+      "ordinal": 2,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.getMissedSince"
+        },
+        {
+          "name": "params",
+          "value": {
+            "epoch": "epoch-1",
+            "lastSeenSeq": 6
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "epoch": "epoch-1",
+            "notifications": [
+              {
+                "notificationEpoch": "epoch-1",
+                "notificationId": "note-1",
+                "notificationSeq": 7,
+                "type": "dismiss"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "4510854e3d64": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-3",
+          "ok": true,
+          "result": {
+            "unsubscribed": true
+          }
+        }
+      }
+    },
+    "4aaae7bd6131": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "refused",
+            "message": ""
+          },
+          "id": "frame-3",
+          "ok": false
+        }
+      }
+    },
+    "4c8cb72d6fab": {
+      "name": "notifications.subscribe#1",
+      "ordinal": 1,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{}}"
+    },
+    "5359579cc62d": {
+      "running": true
+    },
+    "571f7b7dda26": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "refused",
+            "message": "outer refused"
+          },
+          "id": "frame-3",
+          "ok": false
+        }
+      }
+    },
+    "599497ddaa85": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-3",
+          "ok": true,
+          "result": {
+            "error": "refused"
+          }
+        }
+      }
+    },
+    "67a4aa2084b2": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "method_not_found",
+            "message": "Unknown method"
+          },
+          "id": "frame-3",
+          "ok": false
+        }
+      }
+    },
+    "6efd92e320ef": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "832b0b8f0a22": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-3",
+          "ok": true,
+          "result": {
+            "error": "inner refused",
+            "ok": false
+          }
+        }
+      }
+    },
+    "91ce74b77783": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-3",
+          "ok": true,
+          "result": {
+            "$rpc": "null"
+          }
+        }
+      }
+    },
+    "936a1a6d2cf4": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-3",
+          "ok": true
+        }
+      }
+    },
+    "9b511167c41b": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-3",
+          "ok": true,
+          "result": {
+            "error": {
+              "message": "inner refused"
+            },
+            "ok": false
+          }
+        }
+      }
+    },
+    "a0b2bcfcde77": {
+      "running": false
+    },
+    "ab0e4b79457f": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 7,
+      "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.unsubscribe\",\"params\":{\"subscriptionId\":\"sub-1\"}}"
+    },
+    "b483d7e697e1": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "b549524b43f3": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.unsubscribe"
+        },
+        {
+          "name": "params",
+          "value": {
+            "subscriptionId": "sub-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "transport failure",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "beb4f7594f1c": {
+      "name": "device-store.setItem",
+      "ordinal": 5,
+      "value": {
+        "key": "manta:mobileNotificationsWatermark:host-1",
+        "value": "{\"seq\":8,\"epoch\":\"epoch-1\"}"
+      }
+    },
+    "d2b0b932d356": {
+      "name": "notifications.getMissedSince#1",
+      "ordinal": 2,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.getMissedSince"
+        },
+        {
+          "name": "params",
+          "value": {
+            "epoch": "epoch-1",
+            "lastSeenSeq": 6
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    }
+  },
+  "recording": {
+    "scenario": "matrix-notifications.desktop-stream-notifications.unsubscribe-1",
+    "checkpoints": [
+      {
+        "id": "notifications-desktop-stream.prelude:subscribed",
+        "observation": {
+          "sender": [],
+          "payloads": ["4c8cb72d6fab"],
+          "settlements": {
+            "start": "eb79a9b3682a"
+          },
+          "state": "5359579cc62d",
+          "effects": []
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.prelude:ready",
+        "observation": {
+          "sender": ["d2b0b932d356"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721"],
+          "settlements": {
+            "start": "eb79a9b3682a"
+          },
+          "state": "5359579cc62d",
+          "effects": []
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.prelude:caught-up",
+        "observation": {
+          "sender": ["34408026fe7f"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721"],
+          "settlements": {
+            "start": "eb79a9b3682a"
+          },
+          "state": "5359579cc62d",
+          "effects": ["0ba59ff70596"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.prelude:dismissed",
+        "observation": {
+          "sender": ["34408026fe7f"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721"],
+          "settlements": {
+            "start": "eb79a9b3682a"
+          },
+          "state": "5359579cc62d",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.prelude:unsubscribing",
+        "observation": {
+          "sender": ["34408026fe7f", "6efd92e320ef"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.normal:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "4510854e3d64"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.result-absent:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "936a1a6d2cf4"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.result-null:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "91ce74b77783"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.inner-ok-missing:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "599497ddaa85"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.inner-false-string-error:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "832b0b8f0a22"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.inner-false-object-error:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "9b511167c41b"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.outer-refused:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "571f7b7dda26"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.outer-refused-no-message:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "4aaae7bd6131"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.method-not-found:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "67a4aa2084b2"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.transport-rejection:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "b549524b43f3"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      },
+      {
+        "id": "notifications-desktop-stream.transport-rejection-no-message:stopped",
+        "observation": {
+          "sender": ["34408026fe7f", "b483d7e697e1"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "settlements": {
+            "start": "eb79a9b3682a",
+            "stop": "eb79a9b3682a"
+          },
+          "state": "a0b2bcfcde77",
+          "effects": ["0ba59ff70596", "beb4f7594f1c"]
+        }
+      }
+    ]
+  }
+}

@@ -1,7 +1,8 @@
 import { useEffect, useCallback } from 'react'
 import * as Clipboard from 'expo-clipboard'
-import type { RpcFailure, RpcSuccess } from '../transport/types'
-import { translate } from '../i18n/i18n'
+import { interpretOrThrowRefusalMessage } from '../transport/rpc-refusal-message'
+import { sessionWorktreeRecordRead } from './mobile-session-read-operations'
+import { sessionWorktreeNotesWrite } from './mobile-session-write-operations'
 import { triggerSelection, triggerSuccess, triggerError } from '../platform/haptics'
 import {
   addMobileDiffComment,
@@ -12,6 +13,7 @@ import {
 } from './mobile-diff-comments'
 import type { DiffComment } from '../../../src/shared/diff-comment-types'
 import type { MobileSessionDocumentReadersModel } from './use-mobile-session-document-readers'
+import { translate } from '../i18n/i18n'
 
 export function useMobileSessionDiffComments(scope: MobileSessionDocumentReadersModel) {
   const {
@@ -31,16 +33,13 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
       setDiffComments([])
       return
     }
-    const response = await client.sendRequest('worktree.show', {
-      worktree: `id:${worktreeId}`
-    })
-    if (!response.ok) {
+    const response = sessionWorktreeRecordRead.interpret(
+      await sessionWorktreeRecordRead.request(client, { worktree: `id:${worktreeId}` })
+    )
+    if (!response.accepted) {
       return
     }
-    const result = (response as RpcSuccess).result as {
-      worktree?: { diffComments?: unknown }
-    }
-    setDiffComments(normalizeMobileDiffComments(result.worktree?.diffComments, worktreeId))
+    setDiffComments(normalizeMobileDiffComments(response.value?.diffComments, worktreeId))
   }, [client, connState, worktreeId, isFloatingWorkspaceRoute])
 
   const persistDiffComments = useCallback(
@@ -48,13 +47,14 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
       if (!client || connState !== 'connected') {
         throw new Error('Waiting for desktop...')
       }
-      const response = await client.sendRequest('worktree.set', {
+      const response = await sessionWorktreeNotesWrite.request(client, {
         worktree: `id:${worktreeId}`,
-        diffComments: comments
+        diffComments: [...comments]
       })
-      if (!response.ok) {
-        throw new Error((response as RpcFailure).error.message || 'Failed to save review notes')
-      }
+      interpretOrThrowRefusalMessage(
+        () => sessionWorktreeNotesWrite.interpret(response),
+        'Failed to save review notes'
+      )
     },
     [client, connState, worktreeId]
   )
@@ -86,7 +86,7 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
       try {
         await persistDiffComments(result.comments)
         triggerSuccess()
-        showToast(translate('m.worktreeId.4d7d1880f9', 'Note added'))
+        showToast(translate('m.use.mobile.session.diff.comments.59acac62c5', 'Note added'))
         return true
       } catch (err) {
         setDiffComments(previous)
@@ -94,7 +94,7 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
         showToast(
           err instanceof Error
             ? err.message
-            : translate('m.worktreeId.c9adeb8139', 'Failed to save note'),
+            : translate('m.use.mobile.session.diff.comments.d41989b7c2', 'Failed to save note'),
           1600
         )
         return false
@@ -126,7 +126,7 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
         showToast(
           err instanceof Error
             ? err.message
-            : translate('m.worktreeId.4c360ea739', 'Failed to delete note'),
+            : translate('m.use.mobile.session.diff.comments.fa73606b23', 'Failed to delete note'),
           1600
         )
       } finally {
@@ -144,10 +144,13 @@ export function useMobileSessionDiffComments(scope: MobileSessionDocumentReaders
     try {
       await Clipboard.setStringAsync(formatDiffComments(comments))
       triggerSuccess()
-      showToast(translate('m.worktreeId.765dba3163', 'Notes copied'))
+      showToast(translate('m.use.mobile.session.diff.comments.e7b3c2c42d', 'Notes copied'))
     } catch {
       triggerError()
-      showToast(translate('m.worktreeId.5c8a3179db', "Couldn't copy notes"), 1600)
+      showToast(
+        translate('m.use.mobile.session.diff.comments.3a5f962539', "Couldn't copy notes"),
+        1600
+      )
     }
   }, [showToast])
 

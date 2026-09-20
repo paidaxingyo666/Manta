@@ -3,560 +3,19 @@
   "family": "settings.task-workspace-create",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "c6a72169843ececf3a21da370ac50c5c5a4e6462",
-  "lockfileSha256": "788c1234b38a61fc882fca292341fce6690deee9cc6695673b0575cf2c4cf571",
-  "recorderSha256": "f85c63428eccd9e0c45ba9f291dee074ba7b6da6052bfe3733977b024e31afee",
-  "adapterSha256": "ec04f434d3da733ea8eeb1c706fb1e51f86a11ce4422a32b88e9bb8a10211ff5",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "4ea510924260f15668063d77a18edd2413963b70f60dcd75b949433d08919081",
   "scenarioSha256": "8e67afcdc3d9d96391afa386d2ef2ad6930a1e6daf257440e6f32ff313a7ac0e",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "067cef118d9f": {
-      "name": "runtimeTaskSettings",
-      "value": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "090c88478661": {
-      "name": "settings.get#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "settings.get"
-        },
-        {
-          "name": "params",
-          "value": {
-            "$rpc": "absent"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "pending",
-        "startedAt": 0
-      }
-    },
-    "51727bdecb2d": {
+    "059a962e8460": {
       "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true,
-          "result": {
-            "$rpc": "null"
-          }
-        }
-      }
-    },
-    "776aa2203bbd": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true,
-          "result": {
-            "worktree": {
-              "displayName": "ORC-1 Recorded issue",
-              "id": "wt-1"
-            }
-          }
-        }
-      }
-    },
-    "12b9d0436b8a": {
-      "name": "error",
-      "value": "Cannot read properties of undefined (reading 'displayName')"
-    },
-    "180125f5d1a6": {
-      "name": "workspaceCreateDraft",
-      "value": {
-        "$rpc": "null"
-      }
-    },
-    "186f44bc465a": {
-      "name": "error",
-      "value": "Unknown method"
-    },
-    "1bb065c2a768": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "Unknown method",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "2473f12c7cdd": {
-      "name": "settings.get#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "settings.get"
-        },
-        {
-          "name": "params",
-          "value": {
-            "$rpc": "absent"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-1",
-          "ok": true,
-          "result": {
-            "settings": {
-              "defaultTuiAgent": "codex",
-              "disabledTuiAgents": []
-            }
-          }
-        }
-      }
-    },
-    "2e80de97dd3b": {
-      "name": "error",
-      "value": "Cannot read properties of null (reading 'worktree')"
-    },
-    "19ec19d3b912": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "error": {
-            "code": "refused",
-            "message": ""
-          },
-          "id": "frame-2",
-          "ok": false
-        }
-      }
-    },
-    "2fac0da15fae": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "transport failure",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "a1ae4b4e5400": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "rejected",
-        "startedAt": 0,
-        "settledAt": 0,
-        "error": {
-          "category": "Error",
-          "message": "transport failure",
-          "isRpcDeliveryUnknown": true
-        }
-      }
-    },
-    "33e3b949d4c5": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "390f989ac9dc": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "rejected",
-        "startedAt": 0,
-        "settledAt": 0,
-        "error": {
-          "category": "Error",
-          "message": "",
-          "isRpcDeliveryUnknown": true
-        }
-      }
-    },
-    "5b8e61be1638": {
-      "name": "error",
-      "value": "Cannot read properties of undefined (reading 'worktree')"
-    },
-    "67b44e804cc9": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "Cannot read properties of null (reading 'worktree')",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "6eb4e79ad99a": {
-      "name": "setupPrompt",
-      "value": {
-        "$rpc": "null"
-      }
-    },
-    "730f92993963": {
-      "name": "creatingKey",
-      "value": "linear:1"
-    },
-    "7abdfe20af50": {
-      "creating": "linear:1",
-      "error": "",
-      "settings": {
-        "disabledTuiAgents": ["claude"]
-      }
-    },
-    "7b27297e7f2d": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "outer refused",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "7ddcb1852b39": {
-      "name": "settings.get#1",
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
-    },
-    "7ee99993a895": {
-      "name": "navigation",
-      "value": "/h/host-1/session/wt-1?name=ORC-1+Recorded+issue&created=1"
-    },
-    "82cd71d524c8": {
-      "name": "error",
-      "value": ""
-    },
-    "ff2dcedc9cbd": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true
-        }
-      }
-    },
-    "9b8edee7c11d": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true,
-          "result": {
-            "error": "inner refused",
-            "ok": false
-          }
-        }
-      }
-    },
-    "9270aeb7d9c6": {
-      "status": "pending",
-      "startedAt": 0
-    },
-    "945ea389c1ef": {
-      "name": "error",
-      "value": "transport failure"
-    },
-    "97348f3fe285": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "Cannot read properties of undefined (reading 'worktree')",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "97dc8fc98386": {
-      "creating": {
-        "$rpc": "null"
-      },
-      "error": "Cannot read properties of undefined (reading 'displayName')",
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": []
-      }
-    },
-    "9f82f10075a3": {
-      "name": "error",
-      "value": "Connection closed"
-    },
-    "ac9996319e05": {
-      "name": "actionItem",
-      "value": {
-        "$rpc": "null"
-      }
-    },
-    "0bd10631cf9f": {
-      "name": "worktree.create#1",
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "error": {
-            "code": "method_not_found",
-            "message": "Unknown method"
-          },
-          "id": "frame-2",
-          "ok": false
-        }
-      }
-    },
-    "ba65a7abe43b": {
-      "name": "error",
-      "value": "outer refused"
-    },
-    "15c314736113": {
-      "name": "worktree.create#1",
-      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.create\",\"params\":{\"repo\":\"id:repo-1\",\"name\":\"orc-1\",\"displayName\":\"ORC-1 Recorded issue\",\"displayNameKind\":\"generated\",\"linkedLinearIssue\":\"ORC-1\",\"setupDecision\":\"inherit\",\"activate\":true,\"startupDraft\":\"https://linear.app/manta/issue/ORC-1\",\"createdWithAgent\":\"claude\"}}"
-    },
-    "d6677d2450bb": {
-      "name": "worktree.create#1",
+      "ordinal": 6,
       "args": [
         {
           "name": "method",
@@ -597,14 +56,24 @@
         }
       }
     },
-    "c9cb32059b8d": {
-      "name": "creatingKey",
-      "value": {
-        "$rpc": "null"
-      }
+    "0ab47d066cba": {
+      "name": "error",
+      "ordinal": 8,
+      "value": "outer refused"
     },
-    "ffcb3ba7be02": {
+    "0e0c27425410": {
+      "name": "navigation",
+      "ordinal": 11,
+      "value": "/h/host-1/session/wt-1?name=ORC-1+Recorded+issue&created=1"
+    },
+    "104bf14d3af8": {
+      "name": "error",
+      "ordinal": 8,
+      "value": ""
+    },
+    "132391b30273": {
       "name": "worktree.create#1",
+      "ordinal": 6,
       "args": [
         {
           "name": "method",
@@ -632,34 +101,82 @@
         }
       ],
       "settlement": {
-        "status": "rejected",
+        "status": "fulfilled",
         "startedAt": 0,
         "settledAt": 0,
-        "error": {
-          "category": "Error",
-          "message": "Connection closed",
-          "isRpcDeliveryUnknown": true
+        "value": {
+          "error": {
+            "code": "method_not_found",
+            "message": "Unknown method"
+          },
+          "id": "frame-2",
+          "ok": false
         }
       }
     },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
+    "15a350feeedb": {
+      "name": "creatingKey",
+      "ordinal": 12,
       "value": {
-        "$rpc": "undefined"
+        "$rpc": "null"
       }
     },
-    "eecc0c1b6490": {
-      "creating": "linear:1",
-      "error": "",
+    "1bb065c2a768": {
+      "creating": {
+        "$rpc": "null"
+      },
+      "error": "Unknown method",
       "settings": {
         "defaultTuiAgent": "codex",
         "disabledTuiAgents": []
       }
     },
-    "c2478e384991": {
+    "227890c81954": {
       "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "refused",
+            "message": ""
+          },
+          "id": "frame-2",
+          "ok": false
+        }
+      }
+    },
+    "2bc476410f6f": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
       "args": [
         {
           "name": "method",
@@ -702,8 +219,452 @@
         }
       }
     },
-    "bdf751c8e06d": {
+    "2de55c6a9eb4": {
       "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true
+        }
+      }
+    },
+    "2fac0da15fae": {
+      "creating": {
+        "$rpc": "null"
+      },
+      "error": "transport failure",
+      "settings": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": []
+      }
+    },
+    "33e3b949d4c5": {
+      "creating": {
+        "$rpc": "null"
+      },
+      "error": "",
+      "settings": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": []
+      }
+    },
+    "41a2214deb19": {
+      "name": "settings.get#1",
+      "ordinal": 3,
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "pending",
+        "startedAt": 0
+      }
+    },
+    "5986af4aa2e3": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "transport failure",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "71f882fa01cd": {
+      "name": "error",
+      "ordinal": 8,
+      "value": "The host sent a reply this app could not read (worktree.create)"
+    },
+    "7abdfe20af50": {
+      "creating": "linear:1",
+      "error": "",
+      "settings": {
+        "disabledTuiAgents": ["claude"]
+      }
+    },
+    "7b27297e7f2d": {
+      "creating": {
+        "$rpc": "null"
+      },
+      "error": "outer refused",
+      "settings": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": []
+      }
+    },
+    "7cea9aece943": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "$rpc": "null"
+          }
+        }
+      }
+    },
+    "85b99a2ca439": {
+      "name": "workspaceCreateDraft",
+      "ordinal": 9,
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "86a3bbb38597": {
+      "name": "error",
+      "ordinal": 8,
+      "value": "transport failure"
+    },
+    "8ac371cf7234": {
+      "name": "settings.get#1",
+      "ordinal": 3,
+      "args": [
+        {
+          "name": "method",
+          "value": "settings.get"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "settings": {
+              "defaultTuiAgent": "codex",
+              "disabledTuiAgents": []
+            }
+          }
+        }
+      }
+    },
+    "8ba45c7afd42": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "worktree": {
+              "displayName": "ORC-1 Recorded issue",
+              "id": "wt-1"
+            }
+          }
+        }
+      }
+    },
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "955a880537f4": {
+      "name": "worktree.create#1",
+      "ordinal": 7,
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.create\",\"params\":{\"repo\":\"id:repo-1\",\"name\":\"orc-1\",\"displayName\":\"ORC-1 Recorded issue\",\"displayNameKind\":\"generated\",\"linkedLinearIssue\":\"ORC-1\",\"setupDecision\":\"inherit\",\"activate\":true,\"startupDraft\":\"https://linear.app/manta/issue/ORC-1\",\"createdWithAgent\":\"claude\"}}"
+    },
+    "975f2ff9a730": {
+      "name": "settings.get#1",
+      "ordinal": 4,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
+    },
+    "a96aa6008b85": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "error": "inner refused",
+            "ok": false
+          }
+        }
+      }
+    },
+    "ce455f0c9a54": {
+      "name": "actionItem",
+      "ordinal": 8,
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "cf1f4a1c4899": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "Connection closed",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "dac4022522a4": {
+      "name": "error",
+      "ordinal": 8,
+      "value": "Unknown method"
+    },
+    "df8accf1ced4": {
+      "creating": {
+        "$rpc": "null"
+      },
+      "error": "The host sent a reply this app could not read (worktree.create)",
+      "settings": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": []
+      }
+    },
+    "e0a8ee1f3c00": {
+      "name": "creatingKey",
+      "ordinal": 1,
+      "value": "linear:1"
+    },
+    "e445683fd6a5": {
+      "name": "runtimeTaskSettings",
+      "ordinal": 5,
+      "value": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": []
+      }
+    },
+    "e969ced16929": {
+      "name": "setupPrompt",
+      "ordinal": 10,
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "ed3a7d6bc894": {
+      "name": "error",
+      "ordinal": 2,
+      "value": ""
+    },
+    "eecc0c1b6490": {
+      "creating": "linear:1",
+      "error": "",
+      "settings": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": []
+      }
+    },
+    "eee36deef9c5": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
       "args": [
         {
           "name": "method",
@@ -742,6 +703,58 @@
           }
         }
       }
+    },
+    "f2ebfa81caaf": {
+      "name": "creatingKey",
+      "ordinal": 9,
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "f8be855182d9": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "rejected",
+        "startedAt": 0,
+        "settledAt": 0,
+        "error": {
+          "category": "Error",
+          "message": "",
+          "isRpcDeliveryUnknown": true
+        }
+      }
+    },
+    "f9a104d641fd": {
+      "name": "error",
+      "ordinal": 8,
+      "value": "Connection closed"
     }
   },
   "recording": {
@@ -750,259 +763,244 @@
       {
         "id": "settings-task-workspace-create-linear.prelude:settings-pending",
         "observation": {
-          "sender": ["090c88478661"],
-          "payloads": ["7ddcb1852b39"],
+          "sender": ["41a2214deb19"],
+          "payloads": ["975f2ff9a730"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "9270aeb7d9c6"
           },
           "state": "7abdfe20af50",
-          "effects": ["730f92993963", "82cd71d524c8"]
+          "effects": ["e0a8ee1f3c00", "ed3a7d6bc894"]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.prelude:cleanup",
         "observation": {
-          "sender": ["2473f12c7cdd", "ffcb3ba7be02"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "cf1f4a1c4899"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "eecc0c1b6490",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "9f82f10075a3",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "f9a104d641fd",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.normal:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "776aa2203bbd"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "8ba45c7afd42"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "33e3b949d4c5",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ac9996319e05",
-            "180125f5d1a6",
-            "6eb4e79ad99a",
-            "7ee99993a895",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "ce455f0c9a54",
+            "85b99a2ca439",
+            "e969ced16929",
+            "0e0c27425410",
+            "15a350feeedb"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.result-absent:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "ff2dcedc9cbd"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "2de55c6a9eb4"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
-          "state": "97348f3fe285",
+          "state": "df8accf1ced4",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ac9996319e05",
-            "180125f5d1a6",
-            "6eb4e79ad99a",
-            "5b8e61be1638",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "71f882fa01cd",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.result-null:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "51727bdecb2d"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "7cea9aece943"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
-          "state": "67b44e804cc9",
+          "state": "df8accf1ced4",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ac9996319e05",
-            "180125f5d1a6",
-            "6eb4e79ad99a",
-            "2e80de97dd3b",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "71f882fa01cd",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.inner-ok-missing:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "bdf751c8e06d"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "eee36deef9c5"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
-          "state": "97dc8fc98386",
+          "state": "df8accf1ced4",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ac9996319e05",
-            "180125f5d1a6",
-            "6eb4e79ad99a",
-            "12b9d0436b8a",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "71f882fa01cd",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.inner-false-string-error:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "9b8edee7c11d"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "a96aa6008b85"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
-          "state": "97dc8fc98386",
+          "state": "df8accf1ced4",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ac9996319e05",
-            "180125f5d1a6",
-            "6eb4e79ad99a",
-            "12b9d0436b8a",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "71f882fa01cd",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.inner-false-object-error:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "c2478e384991"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "2bc476410f6f"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
-          "state": "97dc8fc98386",
+          "state": "df8accf1ced4",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ac9996319e05",
-            "180125f5d1a6",
-            "6eb4e79ad99a",
-            "12b9d0436b8a",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "71f882fa01cd",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.outer-refused:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "d6677d2450bb"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "059a962e8460"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "7b27297e7f2d",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "ba65a7abe43b",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "0ab47d066cba",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.outer-refused-no-message:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "19ec19d3b912"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "227890c81954"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "33e3b949d4c5",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "82cd71d524c8",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "104bf14d3af8",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.method-not-found:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "0bd10631cf9f"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "132391b30273"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "1bb065c2a768",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "186f44bc465a",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "dac4022522a4",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.transport-rejection:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "a1ae4b4e5400"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "5986af4aa2e3"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "2fac0da15fae",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "945ea389c1ef",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "86a3bbb38597",
+            "f2ebfa81caaf"
           ]
         }
       },
       {
         "id": "settings-task-workspace-create-linear.transport-rejection-no-message:created",
         "observation": {
-          "sender": ["2473f12c7cdd", "390f989ac9dc"],
-          "payloads": ["7ddcb1852b39", "15c314736113"],
+          "sender": ["8ac371cf7234", "f8be855182d9"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"
           },
           "state": "33e3b949d4c5",
           "effects": [
-            "730f92993963",
-            "82cd71d524c8",
-            "067cef118d9f",
-            "82cd71d524c8",
-            "c9cb32059b8d"
+            "e0a8ee1f3c00",
+            "ed3a7d6bc894",
+            "e445683fd6a5",
+            "104bf14d3af8",
+            "f2ebfa81caaf"
           ]
         }
       }

@@ -25,6 +25,14 @@ const LINEAR_ISSUE: LinearIssue = {
   updatedAt: '2026-08-12T00:00:00.000Z'
 }
 
+declare global {
+  // oxlint-disable-next-line typescript-eslint/consistent-type-definitions -- declaration merging requires interface
+  interface Window {
+    // Set by the fixture below while a Linear lookup is deliberately held open.
+    __mantaTestReleaseLinearLookup?: () => void
+  }
+}
+
 function pasteChord(): string {
   return process.platform === 'darwin' ? 'Meta+V' : 'Control+V'
 }
@@ -86,7 +94,7 @@ async function installLinearFixture(
 
 async function releaseHeldLinearLookup(page: Page): Promise<void> {
   await page.evaluate(() => {
-    const release = Reflect.get(window, '__mantaTestReleaseLinearLookup')
+    const release = window.__mantaTestReleaseLinearLookup
     if (typeof release !== 'function') {
       throw new Error('Linear lookup is not held')
     }
@@ -131,9 +139,7 @@ test.describe('Linear URL workspace entry', () => {
     await pasteLinearUrl(mantaPage, input)
     await expect
       .poll(() =>
-        mantaPage.evaluate(
-          () => typeof Reflect.get(window, '__mantaTestReleaseLinearLookup') === 'function'
-        )
+        mantaPage.evaluate(() => typeof window.__mantaTestReleaseLinearLookup === 'function')
       )
       .toBe(true)
     await input.press('Enter')

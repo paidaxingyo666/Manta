@@ -8,6 +8,7 @@ import {
 } from './mobile-notifications'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { RpcClient } from '../transport/rpc-client'
+import { createFakeRpcClient } from '../mobile-web-shell/bridge-host-test-fakes'
 import { loadPushNotificationsEnabled } from '../storage/preferences'
 import { resetHostNotificationSessionsForTests } from './notification-reconnect-catchup'
 
@@ -93,11 +94,11 @@ describe('subscribeToDesktopNotifications', () => {
 
   it('drops the local stream when disposed before the desktop returns ready', () => {
     const unsubscribeStream = vi.fn()
-    const client = {
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn(() => unsubscribeStream),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn()
-    } as unknown as RpcClient
+    }
 
     const unsubscribe = subscribeToDesktopNotifications(client, 'host-1')
     unsubscribe()
@@ -116,18 +117,18 @@ describe('subscribeToDesktopNotifications', () => {
       .mockResolvedValueOnce('scheduled-1')
       .mockResolvedValueOnce('scheduled-2')
     vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
-    let onEvent: ((data: unknown) => void) | null = null
-    const client = {
-      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
-        onEvent = callback
+    const onEvent: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
+      subscribe: vi.fn((_method: string, _params: unknown, callback: (data: unknown) => void) => {
+        onEvent.current = callback
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn()
-    } as unknown as RpcClient
+    }
 
     subscribeToDesktopNotifications(client, 'host-1')
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done',
@@ -136,7 +137,7 @@ describe('subscribeToDesktopNotifications', () => {
       notificationId: 'agent:one'
     })
     await flushAsync()
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done again',
@@ -145,7 +146,7 @@ describe('subscribeToDesktopNotifications', () => {
     })
     await flushAsync()
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(2)
-    onEvent?.({ type: 'dismiss', notificationId: 'agent:one' })
+    onEvent.current?.({ type: 'dismiss', notificationId: 'agent:one' })
     await flushAsync()
 
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(2)
@@ -172,25 +173,25 @@ describe('subscribeToDesktopNotifications', () => {
       canAskAgain: true
     } as never)
     vi.mocked(Notifications.scheduleNotificationAsync).mockResolvedValue('scheduled-1')
-    let onEvent: ((data: unknown) => void) | null = null
-    const client = {
-      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
-        onEvent = callback
+    const onEvent: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
+      subscribe: vi.fn((_method: string, _params: unknown, callback: (data: unknown) => void) => {
+        onEvent.current = callback
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn()
-    } as unknown as RpcClient
+    }
 
     subscribeToDesktopNotifications(client, 'host-concurrent')
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done',
       body: 'Finished.',
       notificationId: 'agent:concurrent'
     })
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done',
@@ -216,18 +217,18 @@ describe('subscribeToDesktopNotifications', () => {
         })
     )
     vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
-    let onEvent: ((data: unknown) => void) | null = null
-    const client = {
-      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
-        onEvent = callback
+    const onEvent: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
+      subscribe: vi.fn((_method: string, _params: unknown, callback: (data: unknown) => void) => {
+        onEvent.current = callback
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn()
-    } as unknown as RpcClient
+    }
 
     subscribeToDesktopNotifications(client, 'host-dismiss-race')
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done',
@@ -235,7 +236,7 @@ describe('subscribeToDesktopNotifications', () => {
       notificationId: 'agent:pending'
     })
     await flushAsync()
-    onEvent?.({ type: 'dismiss', notificationId: 'agent:pending' })
+    onEvent.current?.({ type: 'dismiss', notificationId: 'agent:pending' })
     resolveSchedule('scheduled-pending')
     await flushAsync()
 
@@ -256,18 +257,18 @@ describe('subscribeToDesktopNotifications', () => {
       .mockResolvedValueOnce('scheduled-1')
       .mockResolvedValueOnce('scheduled-2')
     vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
-    let onEvent: ((data: unknown) => void) | null = null
-    const client = {
-      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
-        onEvent = callback
+    const onEvent: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
+      subscribe: vi.fn((_method: string, _params: unknown, callback: (data: unknown) => void) => {
+        onEvent.current = callback
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn()
-    } as unknown as RpcClient
+    }
 
     subscribeToDesktopNotifications(client, 'host-dismiss-failed-replacement')
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done',
@@ -275,7 +276,7 @@ describe('subscribeToDesktopNotifications', () => {
       notificationId: 'agent:stale-dismiss'
     })
     await flushAsync()
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done again',
@@ -283,11 +284,11 @@ describe('subscribeToDesktopNotifications', () => {
       notificationId: 'agent:stale-dismiss'
     })
     await flushAsync()
-    onEvent?.({ type: 'dismiss', notificationId: 'agent:stale-dismiss' })
+    onEvent.current?.({ type: 'dismiss', notificationId: 'agent:stale-dismiss' })
     secondEnabled.resolve(false)
     await flushAsync()
 
-    onEvent?.({
+    onEvent.current?.({
       type: 'notification',
       source: 'agent-task-complete',
       title: 'Done later',
@@ -303,18 +304,18 @@ describe('subscribeToDesktopNotifications', () => {
 
   it('treats unknown dismiss events as no-ops', async () => {
     vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
-    let onEvent: ((data: unknown) => void) | null = null
-    const client = {
-      subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
-        onEvent = callback
+    const onEvent: { current?: (data: unknown) => void } = {}
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
+      subscribe: vi.fn((_method: string, _params: unknown, callback: (data: unknown) => void) => {
+        onEvent.current = callback
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn()
-    } as unknown as RpcClient
+    }
 
     subscribeToDesktopNotifications(client, 'host-unknown')
-    onEvent?.({ type: 'dismiss', notificationId: 'agent:missing' })
+    onEvent.current?.({ type: 'dismiss', notificationId: 'agent:missing' })
     await flushAsync()
 
     expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalled()
@@ -334,29 +335,39 @@ describe('subscribeToDesktopNotifications', () => {
         .mockResolvedValueOnce('scheduled-old')
         .mockResolvedValueOnce('scheduled-new')
       vi.mocked(Notifications.dismissNotificationAsync).mockResolvedValue(undefined)
-      let onEvent: ((data: unknown) => void) | null = null
-      const client = {
-        subscribe: vi.fn((_method, _params, callback: (data: unknown) => void) => {
-          onEvent = callback
+      const onEvent: { current?: (data: unknown) => void } = {}
+      const client: RpcClient = {
+        ...createFakeRpcClient(),
+        subscribe: vi.fn((_method: string, _params: unknown, callback: (data: unknown) => void) => {
+          onEvent.current = callback
           return vi.fn()
         }),
-        getState: vi.fn(() => 'connected'),
         sendRequest: vi.fn()
-      } as unknown as RpcClient
+      }
 
       subscribeToDesktopNotifications(client, 'host-1')
-      onEvent?.({ type: 'notification', title: 't', body: 'b', notificationId: 'agent:old' })
+      onEvent.current?.({
+        type: 'notification',
+        title: 't',
+        body: 'b',
+        notificationId: 'agent:old'
+      })
       await flushAsync()
-      onEvent?.({ type: 'notification', title: 't', body: 'b', notificationId: 'agent:new' })
+      onEvent.current?.({
+        type: 'notification',
+        title: 't',
+        body: 'b',
+        notificationId: 'agent:new'
+      })
       await flushAsync()
 
       // The older entry was evicted by the cap: dismissing it is a no-op...
-      onEvent?.({ type: 'dismiss', notificationId: 'agent:old' })
+      onEvent.current?.({ type: 'dismiss', notificationId: 'agent:old' })
       await flushAsync()
       expect(Notifications.dismissNotificationAsync).not.toHaveBeenCalledWith('scheduled-old')
 
       // ...while the most-recent entry is retained and still dismissable.
-      onEvent?.({ type: 'dismiss', notificationId: 'agent:new' })
+      onEvent.current?.({ type: 'dismiss', notificationId: 'agent:new' })
       await flushAsync()
       expect(Notifications.dismissNotificationAsync).toHaveBeenCalledWith('scheduled-new')
     } finally {
@@ -386,12 +397,12 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
   function makeClient() {
     let onData: ((data: unknown) => void) | null = null
     const sentRequests: { method: string; params: unknown }[] = []
-    const client = {
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_method: string, _params: unknown, cb: (data: unknown) => void) => {
         onData = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(
         async (method: string, _params: unknown = {}) =>
           ({
@@ -404,7 +415,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     // subscribe mock assigns it asynchronously as a side effect of
     // subscribeToDesktopNotifications calling client.subscribe.
     return {
-      client: client as unknown as RpcClient,
+      client,
       get onData() {
         return onData
       },
@@ -490,10 +501,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     // Only agent:missed was pushed; agent:dup appears exactly once (live only).
     const scheduledIds = vi
       .mocked(Notifications.scheduleNotificationAsync)
-      .mock.calls.map(
-        (call) =>
-          (call[0] as { content: { data: { notificationId: string } } }).content.data.notificationId
-      )
+      .mock.calls.map((call) => call[0].content.data?.notificationId)
     expect(scheduledIds).toEqual(['agent:dup', 'agent:missed'])
     expect(scheduledIds.filter((id) => id === 'agent:dup')).toHaveLength(1)
   })
@@ -669,10 +677,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
 
     const scheduledIds = vi
       .mocked(Notifications.scheduleNotificationAsync)
-      .mock.calls.map(
-        (call) =>
-          (call[0] as { content: { data: { notificationId: string } } }).content.data.notificationId
-      )
+      .mock.calls.map((call) => call[0].content.data?.notificationId)
     expect(scheduledIds).toEqual(['agent:dup', 'agent:new'])
     expect(scheduledIds.filter((id) => id === 'agent:dup')).toHaveLength(1)
   })
@@ -869,6 +874,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
     vi.mocked(sub.client.sendRequest).mockImplementation(async (method: string) =>
       method === 'notifications.getMissedSince'
         ? {
+            id: 'catchup-reply',
             ok: true,
             result: {
               epoch: 'epoch-live',
@@ -884,7 +890,7 @@ describe('subscribeToDesktopNotifications — reconnect catch-up', () => {
               ]
             }
           }
-        : { ok: true, result: {} }
+        : { id: 'reply', ok: true, result: {} }
     )
     subscribeToDesktopNotifications(sub.client, 'host-1')
     sub.onData?.({ type: 'ready', subscriptionId: 'sub-1', epoch: 'epoch-live' })
