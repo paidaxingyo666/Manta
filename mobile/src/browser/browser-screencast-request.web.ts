@@ -22,16 +22,27 @@ export type {
  * Uniform random noise at quality 72, which is the image JPEG compresses least and the ceiling
  * every real page sits under; photographic content measures near a tenth of it.
  *
- * Swept 2026-09-20 over 143 viewports — widths 320 to 1400 and heights 480 to 1600 — each encoded
- * by Chromium at the scale `budgetedMobileViewDeviceScaleFactor` picks for it. Across the 111 the
- * budget fits, the measured cost ranged from 0.54470 to 0.55351 bytes per pixel. This is that
- * maximum plus a margin of 0.00649, about 1.2%, for the encoder version it was not swept on.
+ * Swept 2026-09-20 over 143 viewports — widths 320 to 1400 and heights 480 to 1600 — each frame
+ * encoded at the scale `budgetedMobileViewDeviceScaleFactor` picks for it. Across the 111 the
+ * budget fits, `Page.startScreencast` measured 0.543986 to 0.552964 bytes per pixel. This is that
+ * maximum plus a margin of 0.007036, about 1.3%, for the encoder version it was not swept on.
  *
- * It was 0.545 before that sweep, taken from one 2400x2160 frame. A single large frame is the
+ * Re-measured on the real encoder, which was the point of the exercise: the first sweep used
+ * `canvas.toDataURL` and read 0.54470 to 0.55351, while the product's frames come from
+ * `Page.startScreencast`. The two agree to within a thousandth of a byte per pixel, and the
+ * screencast is the marginally cheaper of them, so the encoder is not what makes a budgeted frame
+ * miss. `mobile-web-app-frame-budget-sweep.test.ts` now drives the screencast, so the number and
+ * the product share one encoder, and re-running it is how this number is changed.
+ *
+ * It was 0.545 before any sweep, taken from one 2400x2160 frame. A single large frame is the
  * cheapest per pixel in the whole range, so the number it gave was under 90 of those 143 viewports
  * and the budget it produced posted a frame over the cap on a phone. A worst case measured at one
- * point is not a worst case; `mobile-web-app-frame-budget-sweep.test.ts` is what holds this one to
- * the whole range, and re-running it is how this number is changed.
+ * point is not a worst case.
+ *
+ * What this margin does not cover: the C6.6 device proof, with the budget on, dropped 1 frame in
+ * 41 at 402x593, which needs about 0.5649 bytes per pixel — above everything either sweep has
+ * seen. Nothing here reproduces it, so it is not folded into this constant; a frame that still
+ * does not fit is C6 ruling 1's to drop.
  */
 export const WORST_CASE_JPEG_BYTES_PER_PIXEL = 0.56
 
