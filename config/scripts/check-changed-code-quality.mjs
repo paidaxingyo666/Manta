@@ -151,6 +151,9 @@ export function collectAddedLineRanges(root, requestedBase) {
   )
   const rangesByFile = new Map()
 
+  // Hydrate historical blobs in one fetch before per-file reads on partial clones.
+  runGit(root, ['diff', '--numstat', '--no-ext-diff', '--no-textconv', comparisonBase, '--'])
+
   for (const file of changedFiles) {
     if (
       !isRootCodeQualityPath(file) ||

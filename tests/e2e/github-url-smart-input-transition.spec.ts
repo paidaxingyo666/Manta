@@ -177,7 +177,7 @@ async function installHeldGitHubLookup(
     }
     fixture.__githubUrlLookupStarted = false
     ipcMain.removeHandler('gh:repoSlug')
-    ipcMain.handle('gh:repoSlug', () => ({ owner: 'stablyai', repo: 'manta' }))
+    ipcMain.handle('gh:repoSlug', () => ({ owner: 'stablyai', repo: 'orca' }))
     ipcMain.removeHandler('gh:workItemByOwnerRepo')
     ipcMain.handle('gh:workItemByOwnerRepo', () => {
       fixture.__githubUrlLookupStarted = true
