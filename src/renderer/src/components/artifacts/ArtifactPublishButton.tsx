@@ -36,7 +36,6 @@ export function ArtifactPublishButton({
   const lookupSequence = useRef(0)
   const popoverContentRef = useRef<HTMLDivElement>(null)
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
   const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
@@ -57,7 +56,7 @@ export function ArtifactPublishButton({
   const checkingLink =
     signedIn && currentLookup?.status !== 'loaded' && currentLookup?.status !== 'error'
   const publishedLink = currentLookup?.status === 'loaded' ? currentLookup.shareUrl : null
-  const busy = publishing || connecting
+  const busy = publishing
   const blocked = disabled || busy
 
   useEffect(() => {
@@ -190,23 +189,15 @@ export function ArtifactPublishButton({
                 type="button"
                 variant="outline"
                 size="xs"
-                disabled={connecting || authStatus?.configured !== true}
+                disabled={authStatus?.configured !== true}
                 onClick={() => void connect()}
               >
-                {connecting
+                {authStatus?.state === 'reconnect-required'
                   ? translate(
-                      'auto.components.artifacts.ArtifactPublishButton.signingIn',
-                      'Signing in…'
+                      'auto.components.artifacts.ArtifactPublishButton.signInAgain',
+                      'Sign in again'
                     )
-                  : authStatus?.state === 'reconnect-required'
-                    ? translate(
-                        'auto.components.artifacts.ArtifactPublishButton.signInAgain',
-                        'Sign in again'
-                      )
-                    : translate(
-                        'auto.components.artifacts.ArtifactPublishButton.signIn',
-                        'Sign in'
-                      )}
+                  : translate('auto.components.artifacts.ArtifactPublishButton.signIn', 'Sign in')}
               </Button>
             </div>
           ) : null}

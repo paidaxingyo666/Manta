@@ -9,6 +9,7 @@ import {
   SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV
 } from '../../shared/setup-agent-sequencing'
 import { getShellReadyWrapperRoot } from '../providers/local-pty-shell-ready-wrapper-root'
+import { ORCA_IMAGE_PROTOCOL_ENV } from '../../shared/terminal-image-protocol'
 
 const WSLENV_ENTRY_SEPARATOR = ':'
 
@@ -98,6 +99,8 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     'MANTA_WSL_HOOK_INSTANCE/u',
     'MANTA_OMP_SOURCE_AGENT_DIR/p',
     'MANTA_OMP_STATUS_EXTENSION/p',
+    `${ORCA_IMAGE_PROTOCOL_ENV}/u`,
+    'MANTA_OMP_FRESH_CONFIG/p',
     ...worktreeSetupWslenvEntries(env)
   ]
   applyWslenvPassthrough(env, passthroughEntries)

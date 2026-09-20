@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs'
-import { join, resolve, sep } from 'node:path'
+import { join, relative, resolve, sep } from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 import { adapterSourceByOperation } from './adapter-digest'
@@ -7,6 +7,10 @@ import { MOUNTED_OPERATION_MODULES } from './adapters/mounted-operation-modules'
 import { operationModuleLoader } from './operation-module-loader'
 import { pilotMountAdapters } from './pilot-mount-adapters'
 import { ADAPTER_DIRECTORY, RECORDER_DIRECTORY } from './recorder-digest'
+import {
+  HOST_CLIENT_CONTEXT_LOCAL,
+  hostClientContextExposure
+} from './host-client-context-exposure'
 import { readScenarios } from './scenario-input'
 
 const root = resolve(import.meta.dirname, '../../../..')
@@ -37,8 +41,11 @@ function read(source: string): string {
 function registerImports(file: ts.SourceFile): Map<string, string> {
   const bindings = new Map<string, string>()
   for (const statement of file.statements) {
-    const clause = ts.isImportDeclaration(statement) ? statement.importClause : undefined
-    if (!clause || clause.isTypeOnly || !ts.isStringLiteral(statement.moduleSpecifier!)) {
+    if (!ts.isImportDeclaration(statement)) {
+      continue
+    }
+    const clause = statement.importClause
+    if (!clause || clause.isTypeOnly || !ts.isStringLiteral(statement.moduleSpecifier)) {
       continue
     }
     const named = clause.namedBindings
@@ -165,6 +172,48 @@ describe('the engine/adapter seam', () => {
       })
     })
     expect(carried).toEqual([])
+  })
+
+  it('keeps the host-client context exposure in one place, still anchored on the product source', () => {
+    // The recorder's appended export must name the same context the provider imports.
+    const [, source] = hostClientContextExposure
+    const declaration = `export const ${HOST_CLIENT_CONTEXT_LOCAL} = createContext`
+    const context = readFileSync(
+      join(root, 'mobile/src/transport/rpc-client-context-contract.ts'),
+      'utf8'
+    )
+    expect(context.split(declaration).length - 1).toBe(1)
+    const provider = ts.createSourceFile(
+      'client-context.tsx',
+      readFileSync(join(root, 'mobile/src/transport/client-context.tsx'), 'utf8'),
+      ts.ScriptTarget.Latest,
+      true
+    )
+    const bindings = provider.statements.filter(ts.isImportDeclaration).flatMap((statement) => {
+      const clause = statement.importClause?.namedBindings
+      if (
+        !ts.isStringLiteral(statement.moduleSpecifier) ||
+        statement.moduleSpecifier.text !== './rpc-client-context-contract' ||
+        !clause ||
+        !ts.isNamedImports(clause)
+      ) {
+        return []
+      }
+      return clause.elements.map((element) => element.name.text)
+    })
+    expect(bindings.filter((binding) => binding === HOST_CLIENT_CONTEXT_LOCAL)).toHaveLength(1)
+    // Check the engine too: its copies would bypass the adapters' provenance digest.
+    // Sources only, since the README quotes the string to document it.
+    const copies = [engine, directory]
+      .flatMap((from) =>
+        readdirSync(from, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && /\.tsx?$/.test(entry.name))
+          .map((entry) => join(from, entry.name))
+      )
+      .filter((file) => readFileSync(file, 'utf8').includes(source.trim()))
+      .map((file) => relative(root, file))
+      .sort()
+    expect(copies).toEqual([])
   })
 
   it('mounts nothing outside a registered module', () => {

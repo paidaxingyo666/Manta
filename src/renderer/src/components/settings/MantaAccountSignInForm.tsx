@@ -22,7 +22,7 @@ export function MantaAccountSignInForm({
   onDone?: () => void
 } = {}): React.JSX.Element {
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
+  const [connecting, setConnecting] = useState(false)
   const [mode, setMode] = useState<Mode>('sign-in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -36,30 +36,35 @@ export function MantaAccountSignInForm({
       return
     }
     setError(null)
-    const result = await connect({
-      credentials: {
-        email: email.trim(),
-        password,
-        mode,
-        ...(registering && displayName.trim() ? { displayName: displayName.trim() } : {})
+    setConnecting(true)
+    try {
+      const result = await connect({
+        credentials: {
+          email: email.trim(),
+          password,
+          mode,
+          ...(registering && displayName.trim() ? { displayName: displayName.trim() } : {})
+        }
+      })
+      if (result?.status === 'connected') {
+        // Never keep the password around once it has been exchanged for a token.
+        setPassword('')
+        setDisplayName('')
+        onDone?.()
+        return
       }
-    })
-    if (result?.status === 'connected') {
-      // Never keep the password around once it has been exchanged for a token.
-      setPassword('')
-      setDisplayName('')
-      onDone?.()
-      return
+      const unreachable = translate(
+        'auto.components.settings.mantaAccount.signInFailed',
+        'Could not reach the relay.'
+      )
+      setError(
+        result?.status === 'failed'
+          ? signInFailureMessage(result.errorCode, result.error || unreachable)
+          : unreachable
+      )
+    } finally {
+      setConnecting(false)
     }
-    const unreachable = translate(
-      'auto.components.settings.mantaAccount.signInFailed',
-      'Could not reach the relay.'
-    )
-    setError(
-      result?.status === 'failed'
-        ? signInFailureMessage(result.errorCode, result.error || unreachable)
-        : unreachable
-    )
   }
 
   return (

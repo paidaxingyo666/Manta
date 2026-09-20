@@ -1,7 +1,6 @@
 import { reportWorkerTerminalUserInput } from '../terminal/worker-terminal-takeover-report'
 import { useCallback } from 'react'
-import { translate } from '../i18n/i18n'
-import { isTerminalSendRpcAccepted } from '../terminal/terminal-send-rpc-response'
+import { terminalBufferClear, terminalInputSend } from '../terminal/mobile-terminal-operations'
 import {
   clearTerminalLiveInputFocusTimer,
   scheduleTerminalLiveInputFocus
@@ -22,6 +21,7 @@ import {
 } from './mobile-session-route-helpers'
 import type { Terminal, TerminalGestureInputQueue } from './mobile-session-route-types'
 import type { MobileSessionFileActionsModel } from './use-mobile-session-file-actions'
+import { translate } from '../i18n/i18n'
 
 export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsModel) {
   const {
@@ -113,8 +113,8 @@ export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsMod
     terminalGestureInputInFlightRef.current.add(handle)
     try {
       // Why: gesture arrows parked across a reconnect would move a TUI long after the swipe.
-      const response = await rpc.sendRequest(
-        'terminal.send',
+      const response = await terminalInputSend.request(
+        rpc,
         buildTerminalSendParams({
           terminal: handle,
           text: queued.bytes,
@@ -123,7 +123,7 @@ export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsMod
         }),
         TERMINAL_INPUT_SEND_OPTIONS
       )
-      if (isTerminalSendRpcAccepted(response)) {
+      if (terminalInputSend.interpret(response) === true) {
         reportWorkerTerminalUserInput(rpc, handle)
       }
     } catch {
@@ -235,12 +235,14 @@ export function useMobileSessionTerminalInput(scope: MobileSessionFileActionsMod
     }
     getTerminalRef(target.handle)?.clear()
     try {
-      await client.sendRequest('terminal.clearBuffer', {
-        terminal: target.handle
-      })
-      showToast(translate('m.worktreeId.f2173a95a7', 'Terminal cleared'))
+      // The reply is unread: main toasted success on any fulfilled envelope, refusal included.
+      await terminalBufferClear.request(client, { terminal: target.handle })
+      showToast(translate('m.use.mobile.session.terminal.input.3bbf593a66', 'Terminal cleared'))
     } catch {
-      showToast(translate('m.worktreeId.9b7df64511', "Couldn't clear terminal"), 1500)
+      showToast(
+        translate('m.use.mobile.session.terminal.input.900b1074e9', "Couldn't clear terminal"),
+        1500
+      )
     }
   }
   return {

@@ -20,7 +20,6 @@ const LOCAL_RUNTIME = { kind: 'local' } as const
 export default function ArtifactsPage(): React.JSX.Element {
   const closePage = useAppStore((state) => state.closeArtifactsPage)
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const refreshAuth = useAppStore((state) => state.refreshCurrentMantaProfileAuth)
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
@@ -192,7 +191,6 @@ export default function ArtifactsPage(): React.JSX.Element {
       ) : null}
       {!signedIn ? (
         <ArtifactsPageAuthState
-          connecting={connecting}
           needsReconnect={needsReconnect}
           configured={authStatus?.configured === true}
           onConnect={() => void connect()}

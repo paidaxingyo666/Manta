@@ -2197,7 +2197,8 @@
         "0f3066256e": "上一个结果",
         "42e466b9f1": "正则表达式",
         "90c61387d9": "区分大小写",
-        "e07012f26e": "搜索..."
+        "e07012f26e": "搜索...",
+        "10e039b591": "No results"
       },
       "UpdateCard": {
         "68b235d264": "重启即可更新",
@@ -6745,8 +6746,6 @@
           "e8012c03a1": "使智能体能够使用 Manta 工作区、终端和进度命令。",
           "cliSkillTerminalTitle": "CLI 技能设置",
           "cliSkillTerminalAria": "CLI 技能安装终端",
-          "installFailureUnknownReason": "Manta 未能完成 CLI 注册，也未报告原因。",
-          "installFailureConflictRemedy": "如果不再需要 {{value0}}，请将其移除后重新注册。",
           "6053cf736c": "CLI技能",
           "36a6f919ba": "为智能体提供 Manta 感知的工作区、终端和进度工作流程。",
           "04873eea3e": "智能体技能",
@@ -6775,7 +6774,12 @@
           "14444243ba": "从路径中删除`{{value0}}`？",
           "5d432fe44d": "已安装",
           "8a9b784c60": "陈旧",
-          "d363e5929b": "正在检查 CLI 注册..."
+          "d363e5929b": "正在检查 CLI 注册...",
+          "6f894ef9c2": "在 Finder 中显示",
+          "cbe55e4d48": "在资源管理器中显示",
+          "9fd4023db0": "在文件管理器中显示",
+          "installFailureUnknownReason": "Manta 未能完成 CLI 注册，也未报告原因。",
+          "installFailureConflictRemedy": "如果不再需要 {{value0}}，请将其移除后重新注册。"
         },
         "CliSkillRuntimeSetup": {
           "04325573f8": "WSL",
@@ -10044,6 +10048,12 @@
             "keepForkUpToDateDescription": "从 upstream 安全地快进此 Fork。",
             "projectRuntime": "项目运行时",
             "projectRuntimeDescription": "选择此项目运行在 Windows 还是 WSL。",
+            "githubAccount": "GitHub 账户",
+            "githubAccountDescription": "为该项目的 GitHub API 调用绑定密钥环中的 gh 登录。",
+            "githubAccountKeyword": "GitHub 账户",
+            "ghAccount": "gh 账户",
+            "login": "登录",
+            "token": "token",
             "externalWorktrees": "外部工作树",
             "externalWorktreesDescription": "覆盖是否为此项目显示在 Manta 外部创建的工作树。",
             "waitForSetupBeforeAgent": "等待设置完成后再启动智能体",
@@ -10510,6 +10520,24 @@
           "on": "开启",
           "auto": "智能体",
           "off": "关闭"
+        },
+        "RepositoryGitHubAccountSection": {
+          "unsupported": "此运行时的 GitHub CLI 版本过旧，不支持账户绑定（需要 gh ≥ 2.40）。",
+          "capabilityUnknown": "无法确定此运行时的 GitHub CLI 是否支持账户绑定。请重试。",
+          "envToken": "环境令牌账户无法绑定。请使用密钥环登录。",
+          "invalidBinding": "该 GitHub 账户绑定无效。",
+          "unavailable": "该 GitHub 账户在此运行时不可用。",
+          "saveFailed": "无法保存 GitHub 账户绑定。",
+          "title": "GitHub 账户",
+          "description": "为此项目的 GitHub 议题和拉取请求调用使用特定的 gh 登录。",
+          "longDescription": "Manta 会将所选密钥环登录的短期令牌注入此项目的每次 gh 调用。项目视图继续使用当前活动的 gh 登录。",
+          "retry": "重试",
+          "selectLabel": "账户",
+          "ambient": "默认（当前活动的 gh 登录）",
+          "unavailableOption": "{{user}} @ {{host}}（不可用）",
+          "capabilityBlocked": "在此运行时的 GitHub CLI 支持 `gh auth token --user`（gh ≥ 2.40）之前，无法使用账户绑定。",
+          "capabilityUnknownHint": "无法确定此运行时的 GitHub CLI 是否支持账户绑定。请清除绑定或重试。",
+          "notEnforced": "已保存，但此运行时（混合版本主机）不会强制执行。"
         },
         "agent-status-hooks-copy": {
           "7707c15abb": "智能体状态钩子",
@@ -11460,7 +11488,8 @@
           "noteKeysBody": "API 密钥和工作区存储在当前运行环境中。",
           "noteVisibilityTitle": "隐藏不等于断开连接",
           "noteVisibilityBody": "在任务来源中隐藏 Linear 只会将其从选择器中移除，不会删除密钥或技能。",
-          "setupChecking": "检查中…"
+          "setupChecking": "检查中…",
+          "setupUnverified": "无法验证"
         },
         "TaskSourceLinearSetup": {
           "connectTitle": "连接 Linear",
@@ -11482,6 +11511,7 @@
           "statusReady": "已就绪",
           "statusConnectRequired": "需要连接",
           "statusSkillRequired": "需要技能",
+          "statusUnverified": "无法验证",
           "statusUnavailable": "状态不可用",
           "statusHidden": "已从任务中隐藏",
           "statusIncomplete": "需要设置",
@@ -11569,7 +11599,6 @@
           "account": "Manta 账户",
           "connected": "已连接",
           "signInRequired": "上传和管理工件需要先登录。",
-          "signingIn": "正在登录…",
           "signIn": "登录 Manta",
           "title": "工件",
           "description": "与团队共享 HTML 和 Markdown 文件，并管理它们的公共链接。",
@@ -11616,7 +11645,6 @@
           "checking": "正在检查账户状态…",
           "account": "Manta 账户",
           "signOut": "退出登录",
-          "signingIn": "正在登录…",
           "signInAgain": "重新登录",
           "signIn": "登录 Manta",
           "title": "Manta 账户",
@@ -11736,7 +11764,6 @@
           "signInTitle": "登录以共享技能",
           "signInWebDescription": "发布和链接管理可在 Manta 桌面端中使用。",
           "signInDescription": "使用您的 Manta 账户发布技能包并管理其链接。接收者无需账户。",
-          "signingIn": "正在登录…",
           "signInAgain": "重新登录",
           "signIn": "登录 Manta",
           "howToTitle": "如何分享技能",
@@ -16770,7 +16797,6 @@
           "refresh": "刷新",
           "signInHeading": "登录 Manta",
           "signInCopy": "登录后即可查看和管理通过你的账户分享的工件。",
-          "signingIn": "正在登录…",
           "signIn": "登录 Manta",
           "empty": "暂无已分享的工件",
           "emptyCopy": "打开一个 HTML 或 Markdown 文件并选择「分享为工件」，也可以让智能体代为分享。",
@@ -16819,7 +16845,6 @@
           "confirmDescription": "这会把当前文件发布为一个链接，任何拿到该网址的人都能查看。",
           "accountTitle": "Manta 账户",
           "accountDescription": "登录后才能创建和管理此链接。",
-          "signingIn": "正在登录…",
           "signInAgain": "重新登录",
           "signIn": "登录",
           "publishingOffTitle": "工件分享已关闭",
@@ -16913,7 +16938,6 @@
         "4b7d2e8f1a": "通过蜂窝网络或任意 Wi-Fi 将 Manta 手机端连接到此桌面端。",
         "9a4c6b2d7e": "技能分享",
         "3d8e5f1b9c": "通过不公开列出的链接分享技能，并在您使用的任何设备上安装。",
-        "7e1a9c4d2f": "正在登录…",
         "c5b3e8a17d": "登录 Manta"
       },
       "WorktreeBaseFallbackDialog": {
@@ -17183,7 +17207,6 @@
       "launchPromptNotDelivered": "未送达 — 请检查终端",
       "structuredSessionCloseFailed": "无法关闭此聊天会话",
       "structuredSessionLaunchFailed": "无法打开 {{value0}} 聊天",
-      "structuredSessionLaunchPending": "正在启动 {{value0}} 聊天…",
       "structuredSessionCloseFailedDescription": "终端已保持打开，以便仍可恢复提供方。",
       "receipt": {
         "unavailable": "所选答案不可用",
@@ -17263,8 +17286,6 @@
         "retry": "重试",
         "details": "详情"
       },
-      "structuredSessionFellBackToTerminal": "结构化聊天不可用",
-      "structuredSessionFellBackToTerminalDescription": "Manta 已尝试改为打开 {{value0}} 终端。",
       "structuredSessionLaunchFailedDescription": "Manta 无法打开结构化 {{value0}} 聊天。详情请查看日志。",
       "notices": {
         "compaction": "上下文已压缩",
@@ -17639,78 +17660,6 @@
     }
   },
   "dashboardPopout": {
-    "view": {
-      "label": "仪表盘视图",
-      "board": "仪表盘",
-      "map": "智能体地图"
-    },
-    "map": {
-      "host": {
-        "local": "本地",
-        "ssh": "SSH",
-        "wsl": "WSL",
-        "remote": "远程"
-      },
-      "liveContainmentMap": "实时包含关系图",
-      "empty": "没有智能体符合当前筛选条件。",
-      "canvasLabel": "项目、工作区和智能体的嵌套关系图",
-      "zoomOut": "缩小",
-      "zoomIn": "放大",
-      "fit": "适配屏幕",
-      "openWorktree": "打开工作树 {{worktree}} 的详情",
-      "openFolderWorkspace": "打开文件夹工作区 {{workspace}} 的详情",
-      "worktreeSummary": "{{total}} 个智能体 · {{active}} 个活跃 · {{done}} 个已完成",
-      "worktreeSummary_one": "{{total}} 个智能体 · {{active}} 个活跃 · {{done}} 个已完成",
-      "worktreeSummary_other": "{{total}} 个智能体 · {{active}} 个活跃 · {{done}} 个已完成",
-      "projectCount": "{{agents}} 个智能体 · {{workspaces}} 个工作区",
-      "agentCount": "{{count}} 个智能体",
-      "agentCount_one": "{{count}} 个智能体",
-      "filters": {
-        "showStates": "智能体状态",
-        "agentlessWorkspaces": "无智能体的工作区",
-        "orchestrationLinks": "编排连线",
-        "orchestrationLinksHidden": "已隐藏编排连线",
-        "workspaceVisibility": "地图内容",
-        "title": "地图控制",
-        "reset": "重置",
-        "ofTotalAgents": "/ {{total}} 个智能体已显示",
-        "quickViews": "快速视图",
-        "time": "时间",
-        "lifespan": "会话时长",
-        "sinceMessage": "距上条消息的时长",
-        "timeInState": "处于当前状态的时长",
-        "timeMinimum": "{{label}}最小值",
-        "timeMaximum": "{{label}}最大值",
-        "timeAny": "不限",
-        "timeRangeCount": "{{count}} 个范围",
-        "resetRanges": "重置范围",
-        "summarySelected": "已选择 {{count}} 个",
-        "workspace": "工作区",
-        "stateChip": "状态：{{states}}",
-        "agents": "智能体",
-        "summaryAll": "全部",
-        "summaryCount": "{{shown}}/{{total}}"
-      },
-      "agentCount_other": "{{count}} 个智能体",
-      "noWorkspaceAgents": "此工作区中没有智能体。",
-      "status": {
-        "doneSeen": "已完成，已查看"
-      },
-      "quickView": {
-        "everything": "全部",
-        "attention": "需要我处理",
-        "stuck": "卡住",
-        "unread": "未读",
-        "recent": "最近 30 分钟",
-        "longRunning": "长时间运行",
-        "stale": "陈旧 > 3 天",
-        "orchestration": "编排"
-      },
-      "runningAgents": "智能体",
-      "spawnAgent": "启动新智能体",
-      "noLaunchableAgents": "未检测到已启用的智能体。",
-      "sleepWorkspace": "睡眠"
-    },
     "placeholder": {
       "title": "智能体仪表盘",
       "description": "你的所有智能体都会在这里一览无余。看板即将上线。"
@@ -17769,8 +17718,7 @@
       "project": "项目",
       "workspaceStatus": "工作区状态",
       "reviewStatus": "PR / MR 状态",
-      "clearAll": "清除所有筛选条件",
-      "removeChip": "移除 {{filter}}"
+      "clearAll": "清除所有筛选条件"
     },
     "search": {
       "placeholder": "搜索工作树、项目或智能体…",

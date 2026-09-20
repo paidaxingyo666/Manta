@@ -287,7 +287,7 @@ function DragReorderRow({
       backgroundColor: colors.bgPanel,
       transform: [{ scale: 1 }]
     }
-  })
+  }, [positions, activeKey, activeTop, rowKey, rowHeight])
 
   return (
     <Animated.View style={[styles.row, { height: rowHeight }, rowStyle]}>

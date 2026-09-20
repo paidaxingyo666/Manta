@@ -19,7 +19,6 @@ export function ArtifactsSettingsPane({
 }): React.JSX.Element {
   const openArtifactsPage = useAppStore((state) => state.openArtifactsPage)
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const signedIn = authStatus?.state === 'connected'
   // Why: the capability lives in the desktop host's store and is deliberately absent from the
@@ -134,14 +133,12 @@ export function ArtifactsSettingsPane({
           <Button
             type="button"
             size="sm"
-            disabled={connecting || authStatus?.configured !== true}
+            disabled={authStatus?.configured !== true}
             onClick={() => void connect()}
           >
-            {connecting
-              ? translate('auto.components.settings.artifacts.signingIn', 'Signing in…')
-              : authStatus?.state === 'reconnect-required'
-                ? translate('auto.components.settings.artifacts.signInAgain', 'Sign in again')
-                : translate('auto.components.settings.artifacts.signIn', 'Sign in to Manta')}
+            {authStatus?.state === 'reconnect-required'
+              ? translate('auto.components.settings.artifacts.signInAgain', 'Sign in again')
+              : translate('auto.components.settings.artifacts.signIn', 'Sign in to Manta')}
           </Button>
         </section>
       ) : null}

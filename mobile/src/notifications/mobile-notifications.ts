@@ -1,3 +1,4 @@
+import { desktopNotificationStreamUnsubscribe } from './desktop-notification-stream-operations'
 import { ensureDesktopNotificationChannel } from './desktop-notification-channel'
 import { reportPushToken } from './push-token-reporting'
 import type { RpcClient } from '../transport/rpc-client'
@@ -210,7 +211,7 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
 
   function unsubscribeServer(id: string) {
     if (client.getState() === 'connected') {
-      client.sendRequest('notifications.unsubscribe', { subscriptionId: id }).catch(() => {})
+      desktopNotificationStreamUnsubscribe.request(client, { subscriptionId: id }).catch(() => {})
     }
   }
 

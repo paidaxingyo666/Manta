@@ -14,7 +14,6 @@ export function ShareSkillsSettingsPane(): React.JSX.Element {
   const settings = useAppStore((state) => state.settings)
   const updateSettings = useAppStore((state) => state.updateSettings)
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const signedIn = authStatus?.state === 'connected'
   const isWebClient = isWebClientLocation()
@@ -135,14 +134,12 @@ export function ShareSkillsSettingsPane(): React.JSX.Element {
             <Button
               type="button"
               size="sm"
-              disabled={connecting || authStatus?.configured !== true}
+              disabled={authStatus?.configured !== true}
               onClick={() => void connect()}
             >
-              {connecting
-                ? translate('auto.components.settings.shareSkills.signingIn', 'Signing in…')
-                : authStatus?.state === 'reconnect-required'
-                  ? translate('auto.components.settings.shareSkills.signInAgain', 'Sign in again')
-                  : translate('auto.components.settings.shareSkills.signIn', 'Sign in to Manta')}
+              {authStatus?.state === 'reconnect-required'
+                ? translate('auto.components.settings.shareSkills.signInAgain', 'Sign in again')
+                : translate('auto.components.settings.shareSkills.signIn', 'Sign in to Manta')}
             </Button>
           ) : null}
         </section>

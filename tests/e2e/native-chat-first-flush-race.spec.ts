@@ -166,8 +166,11 @@ test.describe('Native chat first-flush transcript race (#8401)', () => {
         'The main process now retries a not-yet-flushed transcript instead of caching a permanent miss.'
       writeFileSync(transcriptPath, claudeTranscriptLines({ sessionId, userText, assistantText }))
 
-      await expect(mantaPage.getByText(userText)).toBeVisible({ timeout: 30_000 })
-      await expect(mantaPage.getByText(assistantText)).toBeVisible({ timeout: 30_000 })
+      // Why: the user text also surfaces as chrome (worktree row, tab
+      // title), so scope hydration assertions to the transcript subtree.
+      const transcript = mantaPage.locator('[data-native-chat-root="true"]')
+      await expect(transcript.getByText(userText)).toBeVisible({ timeout: 30_000 })
+      await expect(transcript.getByText(assistantText)).toBeVisible({ timeout: 30_000 })
       await expect(mantaPage.getByText(ERROR_TITLE)).toHaveCount(0)
       await mantaPage.screenshot({
         path: path.join(screenshotDir, '02-hydrated.png')

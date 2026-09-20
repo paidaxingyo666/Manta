@@ -118,6 +118,42 @@ describe('fork release workflow contract', () => {
     }
   })
 
+  it('installs the mobile bundle dependencies before each release build', () => {
+    const release = workflow()
+    for (const name of ['macos', 'windows', 'linux']) {
+      const steps = release.jobs[name].steps
+      const mobileInstall = steps.findIndex(
+        (step) => step.uses === './.github/actions/install-mobile-dependencies'
+      )
+      const build = steps.findIndex((step) => step.run === 'pnpm build:release')
+      expect(mobileInstall, name).toBeGreaterThanOrEqual(0)
+      expect(build, name).toBeGreaterThan(mobileInstall)
+      const setup = steps.find((step) => String(step.uses ?? '').startsWith('actions/setup-node'))
+      expect(setup.with['cache-dependency-path'].trim().split('\n'), name).toEqual([
+        'pnpm-lock.yaml',
+        'mobile/pnpm-lock.yaml'
+      ])
+    }
+  })
+
+  it('requires both Windows relay process-table addons before building', () => {
+    const steps = workflow().jobs.windows.steps
+    const addonBuild = steps.findIndex((step) =>
+      String(step.run ?? '').includes('build-windows-process-tree-relay-addon.mjs')
+    )
+    const releaseBuild = steps.findIndex((step) => step.run === 'pnpm build:release')
+    expect(addonBuild).toBeGreaterThanOrEqual(0)
+    expect(releaseBuild).toBeGreaterThan(addonBuild)
+    expect(steps[addonBuild].shell).toBe('bash')
+    expect(steps[addonBuild].if).toBeUndefined()
+    for (const arch of ['x64', 'arm64']) {
+      expect(steps[addonBuild].run).toContain(
+        `node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=${arch}`
+      )
+    }
+    expect(steps[releaseBuild].env.MANTA_REQUIRE_RELAY_NATIVE_ADDONS).toBe('x64,arm64')
+  })
+
   // A retry budget larger than the job it runs in is not a retry budget: the
   // last attempt is cut off partway and the failure reads as a job timeout
   // rather than as whatever actually stalled.

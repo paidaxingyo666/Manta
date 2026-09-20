@@ -280,6 +280,37 @@
           },
           "512809da09": "Settings"
         }
+      },
+      "branch": {
+        "compare": {
+          "outcome": {
+            "8eea99f7cd": "Unable to load committed changes",
+            "0de9ddd6b9": "Unable to resolve the base branch for comparison."
+          }
+        }
+      },
+      "web": {
+        "bundle": {
+          "probe": {
+            "row": {
+              "9e9bbd7927": "{{value0}} ms",
+              "5423f35086": "Elapsed",
+              "3808a6a12b": "Bytes",
+              "6a70855f9e": "Assets",
+              "8f7d8fa787": "Build",
+              "e1ab7ffa4b": "Host",
+              "75615fd996": "Bundle"
+            }
+          }
+        },
+        "shell": {
+          "dev": {
+            "row": {
+              "207f2d9a20": "Open hybrid shell for the first paired host",
+              "186695e057": "Hybrid shell (dev)"
+            }
+          }
+        }
       }
     },
     "workspace": {
@@ -526,6 +557,53 @@
               "9d287af4e4": "Waiting for host…"
             }
           }
+        },
+        "session": {
+          "accessory": {
+            "selection": {
+              "a43b50bde9": "Selection cleared (scrolled out of buffer)",
+              "0e11663748": "Couldn't copy",
+              "fb414710e4": "Copied"
+            }
+          },
+          "content": {
+            "create": {
+              "actions": {
+                "7d4f6e29d6": "Browser page is not available yet.",
+                "754d0d99c5": "Desktop update required for mobile browser streaming"
+              }
+            }
+          },
+          "diff": {
+            "comments": {
+              "3a5f962539": "Couldn't copy notes",
+              "e7b3c2c42d": "Notes copied",
+              "fa73606b23": "Failed to delete note",
+              "d41989b7c2": "Failed to save note",
+              "59acac62c5": "Note added"
+            }
+          },
+          "document": {
+            "readers": {
+              "a276eb742c": "Couldn't load markdown"
+            }
+          },
+          "startup": {
+            "2a947c07e3": "Open Manta on the host to wake sleeping agents."
+          },
+          "terminal": {
+            "create": {
+              "actions": {
+                "bc62534eb0": "Edit this quick command before running it",
+                "ac43c4f206": "Couldn't send notes",
+                "7088f59be7": "Notes sent"
+              }
+            },
+            "input": {
+              "900b1074e9": "Couldn't clear terminal",
+              "3bbf593a66": "Terminal cleared"
+            }
+          }
         }
       },
       "codex": {
@@ -748,6 +826,21 @@
         },
         "rpc": {
           "70faee796e": "Request failed: {{value0}}"
+        },
+        "entity": {
+          "reply": {
+            "schema": {
+              "0ebdaf4ba6": "review has no login"
+            }
+          }
+        },
+        "read": {
+          "reply": {
+            "schema": {
+              "77d0f4e2e4": "pull request has no number or state",
+              "cdde7f34b5": "found outcome has no readable pr"
+            }
+          }
         }
       }
     },
@@ -772,7 +865,9 @@
       "3a676018db": "Stay updated while away",
       "a3d2f11cf8": "How should sessions open?",
       "f849206cff": "Get notified when an agent finishes a task or needs your input.",
-      "ae7a310662": "Delivered through Manta’s push service. Change this anytime in Settings."
+      "ae7a310662": "Delivered through Manta’s push service. Change this anytime in Settings.",
+      "acd755524a": "Get a notification on this phone when an agent finishes or is waiting — even if you aren’t using the app.",
+      "92f407849b": "Don’t miss when an agent needs you"
     },
     "MobileFileExplorerPanel": {
       "09a641d5f9": "No files found",
@@ -978,7 +1073,8 @@
       "09c9f2cce4": "This paired desktop app is too old for your current Manta Mobile app. Update Manta on your computer, then try this host again.",
       "938a1a102b": "This desktop needs a newer Manta Mobile app. Update Manta Mobile from {{value0}}, then try this host again.",
       "0b8f38e4de": "Update Manta on your computer",
-      "682bbfb813": "Update Manta Mobile"
+      "682bbfb813": "Update Manta Mobile",
+      "e21ce244af": "If this message stays, remove this host and pair it again."
     },
     "SetupHookTrustDrawer": {
       "3def439a17": "Don't run",
@@ -1090,7 +1186,10 @@
       }
     },
     "MermaidDiagram": {
-      "5ba6e6ad8e": "mermaid"
+      "5ba6e6ad8e": "mermaid",
+      "web": {
+        "bd13862940": "mermaid"
+      }
     },
     "MobileLinkPrForm": {
       "90f2dc7750": "Link pull request",
@@ -1175,7 +1274,9 @@
       "9936c08744_other": "{{value0}} commits behind (base commit:",
       "9936c08744_one": "{{value0}} commit behind (base commit:",
       "0e748c1c6d": "Conflicts",
-      "a05ef6245f": "Conflict file details are unavailable"
+      "a05ef6245f": "Conflict file details are unavailable",
+      "9936c08744": "commit",
+      "ea317155fa": "Failed to copy text"
     },
     "PRReviewersSection": {
       "8c14e85fe2": "No reviewers requested",
@@ -1601,7 +1702,8 @@
       "6137d5f7ea": "Tasks",
       "295637a5f9": "Accounts",
       "d3370f3d6f": "Edit host",
-      "7aca81e533": "Host"
+      "7aca81e533": "Host",
+      "c2d88db1d7": "Workspace"
     },
     "edit": {
       "0e51843adf": "Connects to",
@@ -2106,6 +2208,25 @@
     },
     "NotificationDeliverySection": {
       "73d6d0eb7b": "Alert types follow each paired desktop’s notification settings. Notifications pause after 7 days without using this app; open it and reconnect to resume."
+    },
+    "MobileNativeChatPermission": {
+      "f24ff178ab": "Plan file:",
+      "c5bf577559": "Ask rule:",
+      "e235b1ee4c": "Blocked path:",
+      "a784e8b5e0": "Reason:"
+    },
+    "NotificationOnboardingPreview": {
+      "7f7868532b": "now",
+      "d8bfb0bc16": "Manta"
+    },
+    "MobileWebShellScreen": {
+      "a5432aa51c": "Checking host",
+      "e140d1a67b": "Opening workspace",
+      "8eb61c3a16": "Connect to this host to download the workspace",
+      "58e7554411": "{{value0}} · {{value1}} B · {{value2}} ms",
+      "3506ff8c3d": "Try again",
+      "b735c4e986": "{{value0}}/{{value1}} files · {{value2}}/{{value3}} bytes",
+      "be7789dffb": "Downloading workspace"
     }
   },
   "mobile": {

@@ -1,4 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { resetWorktreeTestSshHostHome } from '../../worktree-removal-test-ssh-host-home'
+
 import {
   MantaRuntimeService,
   SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV,
@@ -29,6 +31,10 @@ import {
   store,
   syncSinglePty
 } from '../manta-runtime-test-fixtures.spec'
+
+// Why: these fixtures register an SSH provider, which models a connected relay session — and a
+// connected session has always read the host's `$HOME`. The removal guards refuse without it.
+beforeEach(resetWorktreeTestSshHostHome)
 
 describe('MantaRuntimeService', () => {
   it('launches SSH setup terminals for runtime task-created worktrees', async () => {
@@ -396,7 +402,7 @@ describe('MantaRuntimeService', () => {
     })
 
     try {
-      await runtime.removeManagedWorktree('path:/remote/feature', true, false)
+      await runtime.removeManagedWorktree('path:/remote/feature', { force: true, runHooks: false })
     } finally {
       unregisterSshGitProvider('ssh-1')
     }
@@ -472,7 +478,7 @@ describe('MantaRuntimeService', () => {
     runtime.registerPty('pty-local-same-id', `${TEST_REPO_ID}::/remote/feature`, null)
 
     try {
-      await runtime.removeManagedWorktree('path:/remote/feature', true, false)
+      await runtime.removeManagedWorktree('path:/remote/feature', { force: true, runHooks: false })
     } finally {
       unregisterSshGitProvider('ssh-1')
     }
@@ -519,9 +525,9 @@ describe('MantaRuntimeService', () => {
     const runtime = new MantaRuntimeService(remoteStore as never)
 
     try {
-      await expect(runtime.removeManagedWorktree('path:/remote/repo', true)).rejects.toThrow(
-        'Refusing to delete protected worktree path: /remote/repo'
-      )
+      await expect(
+        runtime.removeManagedWorktree('path:/remote/repo', { force: true })
+      ).rejects.toThrow('Refusing to delete protected worktree path: /remote/repo')
     } finally {
       unregisterSshGitProvider('ssh-1')
     }

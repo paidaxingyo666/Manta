@@ -48,10 +48,6 @@ const SURFACE_EXPANSION_NAMES = new Set([
   'MobileSessionCommandDock',
   'MobileSessionSheets'
 ])
-// MobileMarkdownReader, not upstream's MarkdownReader: this fork replaced that
-// component with a rich markdown editor and renamed it, leaving this check
-// looking for a function no longer defined — it has thrown since, unnoticed
-// because a red Mobile Checks does not block a merge.
 const CONTENT_COMPONENT_NAMES = ['MobileMarkdownReader', 'DiffLineRow', 'FileReader'] as const
 const HOST_COMPONENT_NAMES = new Set([
   'ActivityIndicator',
@@ -66,15 +62,41 @@ const HOST_COMPONENT_NAMES = new Set([
   'View'
 ])
 
-const HEAD_MAIN_HOOK_SHA256 = 'c7a1bbc0588a5d27797bbab13168e76eb20200288921fdc3347632c2b4afd0ae'
-const HEAD_HOOK_BINDING_SHA256 = '06edf1a4314eba41b1d3e1cb67b0cfab2a936aef7d127c5dc48e789c9adc6c8f'
+// Rebased for the 2026-09-20 sync with the fork's localization and rich markdown reader.
+const HEAD_MAIN_HOOK_SHA256 = '1b436d21f48e4d7b316178ba9eb7d8f0d3801ffd4e42b6b8987adb1cfcbac570'
+const HEAD_HOOK_BINDING_SHA256 = '5b324d661574950c24c47ad9675afc40f34bf3d6dc0ea7b81a469cf708803dc8'
 const HEAD_CALLBACK_IDENTITY_SHA256 =
   '2a9e4825df007f6ef53b81aa5004991d6318eee7507b44d625c07e630be432eb'
-const HEAD_CALLBACK_BODY_SHA256 = '0607ab31664a6c35de83ac57b43e962cf942991939cc05e1e2fd406e0aa421b1'
-const HEAD_EFFECT_SHA256 = 'd34f05f0b7bfb8c84476477d74d6007991c201bd0bf5bae285ddd05d3c586df9'
+// Pins that no callback body in the route changed unnoticed. Body text, not behaviour: the sends
+// and repo reads inside them now name their `RpcOperation` instead of the raw `sendRequest` port.
+// Refreshed in step 6 for the gesture flush, whose `terminal.send` became `terminalInputSend` and
+// whose accepted-check became that operation's own verdict, then again when that check was spelled
+// `=== true` to match the other four sites reading the same verdict. Refreshed in step 7 for the
+// reply casts the checked readers made unnecessary — the markdown tab doc, the worktree record's
+// `diffComments` and the browser tab's page id are typed by their schemas now. Refreshed once more
+// on the merge, for the display-mode toggle whose send became `terminalDisplayModeSet`. Refreshed
+// for the files domain's step 7, which retired the markdown disk fallback's `{ content, truncated,
+// byteLength }` cast: the preview reader checks the content and salvages the flag, so `readMarkdownTab`
+// reads `fallback.value` directly. The dictation-mode refresh is main's own body again — it forwards
+// whatever mode the reply carried, so an absent one leaves the mic as inert as main left it.
+const HEAD_CALLBACK_BODY_SHA256 = '63fd132aa11099054d0f3daede38d2a2c86af1cc5c7cd18a730ffe729de49641'
+// Refreshed for the startup effect: both `worktree.activate` sends became `worktreeActivate`, and
+// the sleeping-agent check reads that operation's verdict instead of the reply envelope. Refreshed
+// again when the reporter took the reply and interpreted it itself, retiring the hand-built
+// refusal the timer site passed when it had no reply at all. Refreshed once more for the
+// last-visited-worktree effect, whose bare store write became the one writer of that key, so the
+// hybrid shell's page mirror sees it as it is written rather than one `init` later.
+const HEAD_EFFECT_SHA256 = '6217e4ce82b5862d9e5ae8ecd38d841aed17f8e13c00313792ea38c9944ef991'
 const HEAD_CONTENT_HOOK_SHA256 = 'd74431115b27c22dd38c29a510604554ca767cdd2585beaa73ec2e2dae0c5de4'
+// Same pin for the 12 bodies that sit in nested functions rather than callbacks, moved by the same
+// rewrite of those send and read expressions. Count unchanged. Refreshed again in step 6 for
+// `handleClearTerminal`, whose send became `terminalBufferClear`, in step 7 for the browser tab
+// create, whose `{ browserPageId?: string }` cast its schema now carries, and once more for
+// `handleCreateTerminal`, whose send became `sessionTabCreateTerminal` and whose `response.ok`
+// branch became that operation's own throw-the-host-message acceptance. Refreshed for negotiated
+// optimistic placement, which defers to legacy host snapshots when ownership paths disagree.
 const HEAD_NESTED_FUNCTION_SHA256 =
-  '3646cf3bef11722dbb4573b95e75e66243275baeabd3b16d95b82838640ff6e9'
+  '5a096e0cecaa16a1f184802af873e762da2eb336096ea1e22d3d39b9fd4fc553'
 const HEAD_NATIVE_REGISTRATION_SHA256 =
   'cab85e4e4a3f43289ba93ddea9ccce57aea83e0bf14fd1620a965aad0c1cb49e'
 const HEAD_NATIVE_REMOVAL_SHA256 =
@@ -82,8 +104,12 @@ const HEAD_NATIVE_REMOVAL_SHA256 =
 const HEAD_TIMER_CREATION_SHA256 =
   '1a31b625e2174c3db77272249843196d2b6b06ab1e654a96d8f7858e3082e66b'
 const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f34234541a2065ec3d1a8cd116'
+// Six method literals fewer than before step 6: `terminal.send` and `terminal.clearBuffer` went
+// first, then `worktree.activate` twice, `session.tabs.createTerminal` and
+// `terminal.setDisplayMode`. Each is now fixed at its operation's definition instead of being
+// spelled at the call site.
 const HEAD_RUNTIME_STRING_SHA256 =
-  '691abd9cfbb4761b35fa5a9193b8d25bfddc40ef326656a98401b3c5950c332f'
+  'a85ab7b0500df3c95370097db5fa40bd9b7d5233325736eab13ef879d8d0f90e'
 const HEAD_HOST_JSX_SHA256 = '628a3eef98e5b9d47a456488e087e164bb739bf20e18246ea250936ed9ee7efc'
 const HEAD_LEAF_JSX_SHA256 = '2c059fcdfb1e3e4021e230439dc520905b9bc53e3830e27773a17ac3653050a8'
 const HEAD_STYLE_REFERENCE_SHA256 =
@@ -469,13 +495,6 @@ function readCompatibilityFacts(definitions: ReadonlyMap<string, Definition>): {
   return { capabilities, identityFields, navigation }
 }
 
-// The pins below were re-established on 2026-09-05. They had been stale since
-// this fork replaced MarkdownReader with a rich markdown editor and renamed it:
-// the lookup threw on a function that no longer existed, so every count and
-// digest beneath it had gone unchecked, and a red Mobile Checks does not block a
-// merge. Re-pinned against the tree that sync brought in, which is the first
-// state where the whole check runs again.
-
 describe('mobile session route extraction parity', () => {
   it('preserves hooks, callbacks, effects, and nested action bodies', () => {
     const definitions = readDefinitions()
@@ -483,7 +502,7 @@ describe('mobile session route extraction parity', () => {
     const contentBindings = CONTENT_COMPONENT_NAMES.flatMap(
       (name) => readHookFacts(name, definitions).bindings
     )
-    expect(main.hooks).toHaveLength(269)
+    expect(main.hooks).toHaveLength(270)
     expect(hash(main.hooks)).toBe(HEAD_MAIN_HOOK_SHA256)
     expect(hash(main.bindings)).toBe(HEAD_HOOK_BINDING_SHA256)
     expect(main.callbacks).toHaveLength(77)
@@ -528,7 +547,7 @@ describe('mobile session route extraction parity', () => {
 
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(630)
+    expect(strings).toHaveLength(616)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
     expect(jsx.host).toHaveLength(126)

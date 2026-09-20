@@ -137,7 +137,7 @@ export function useMobileDiffReviewController(input: ControllerInput) {
     }
     const branchEntries =
       screenState.branchCompare && canOpenMobileBranchCompareDiff(screenState.branchCompare.summary)
-        ? screenState.branchCompare.entries
+        ? (screenState.branchCompare.entries ?? [])
         : []
     return buildMobileDiffReviewQueue({
       worktreeId,

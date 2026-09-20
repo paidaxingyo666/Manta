@@ -3,7 +3,11 @@ import type { ConnectionDiagnosticCode, ConnectionLogLevel, ConnectionLogSink } 
 export type RelayRecoveryLog = (
   message: string,
   detail?: string,
-  evidence?: { level?: ConnectionLogLevel; code?: ConnectionDiagnosticCode }
+  evidence?: {
+    level?: ConnectionLogLevel
+    code?: ConnectionDiagnosticCode
+    relayCloseCode?: number
+  }
 ) => void
 
 let relayLoggerInstanceSequence = 0
@@ -27,6 +31,7 @@ export function createRelayRecoveryLog(
       level: evidence?.level ?? 'info',
       path: 'relay',
       ...(evidence?.code ? { code: evidence.code } : {}),
+      ...(evidence?.relayCloseCode ? { relayCloseCode: evidence.relayCloseCode } : {}),
       message: `Relay: ${message}`,
       ...(detail ? { detail } : {})
     })

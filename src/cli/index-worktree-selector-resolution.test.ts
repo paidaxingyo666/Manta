@@ -153,6 +153,7 @@ describe('manta cli worktree awareness', () => {
 
       expect(callMock).toHaveBeenCalledWith('agentTeams.prepareLaunch', {
         paneKey: 'tab-1:11111111-1111-4111-8111-111111111111',
+        prepareAuth: true,
         env: expect.objectContaining({
           MANTA_PANE_KEY: 'tab-1:11111111-1111-4111-8111-111111111111'
         })

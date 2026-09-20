@@ -16,7 +16,6 @@ const mocks = vi.hoisted(() => ({
       string,
       unknown
     > | null,
-    mantaProfileConnecting: false,
     isWebClient: false,
     settings: { showSkillsButton: false, agentSkillSharingEnabled: false }
   }
@@ -50,7 +49,6 @@ describe('ShareSkillsSettingsPane', () => {
     mocks.openSkillsPage.mockReset()
     mocks.updateSettings.mockReset()
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'connected' }
-    mocks.state.mantaProfileConnecting = false
     mocks.state.isWebClient = false
     Object.defineProperty(window, 'api', {
       configurable: true,

@@ -1,3 +1,4 @@
+import { parsePaneKey } from '../../../shared/stable-pane-id'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { randomUUID } from 'node:crypto'
 
@@ -105,9 +106,22 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
             })
           : 'suppress'
         if (normalized.event && statusDisposition !== 'suppress') {
+          const restartedAuthority =
+            statusDisposition === 'restart' && source === 'omp'
+              ? this.restoreRetiredStatusRestart(normalized.event.paneKey)
+              : undefined
           const event =
             statusDisposition === 'restart'
-              ? { ...normalized.event, launchToken: undefined }
+              ? {
+                  ...normalized.event,
+                  launchToken: undefined,
+                  ...(restartedAuthority
+                    ? {
+                        ...restartedAuthority,
+                        tabId: parsePaneKey(restartedAuthority.paneKey)?.tabId
+                      }
+                    : {})
+                }
               : normalized.event
           if (statusDisposition === 'restart') {
             // Why: a retired pane accepting a new turn is a different agent session behind the
@@ -116,8 +130,10 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
           }
           this.recordCurrentAuthorityObservation(event)
           const enriched = this.applyNormalizedStatus(event, normalized.onAccepted)
-          this.scheduleAssistantMessageRetry(source, aliasedBody, enriched)
-          this.scheduleCodexSubagentPoll(source, aliasedBody, enriched)
+          if (enriched) {
+            this.scheduleAssistantMessageRetry(source, aliasedBody, enriched)
+            this.scheduleCodexSubagentPoll(source, aliasedBody, enriched)
+          }
         }
         res.writeHead(204)
         res.end()
@@ -212,6 +228,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
     this.ownerStateInitialized = false
     // Why: don't unlink the endpoint file — a stale file matches fail-open and avoids a TOCTOU race with a concurrent Manta.
     clearAllListenerCaches(this.state)
+    this.resetCanonicalStatus()
     this.notifyStatusChangeListeners()
     this.paneStatusClearListeners.clear()
     this.statusDropListeners.clear()

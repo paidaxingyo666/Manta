@@ -1,10 +1,4 @@
-/**
- * Resume metadata for the agent-session history panel: the repos, folder
- * workspaces, project groups, settings, and worktrees a session can be
- * resumed into. Split from the panel, which is already at its line budget.
- */
 import type { RpcClient } from '../transport/rpc-client'
-import { optionalSettingsRead } from '../transport/settings-read-operations'
 import type { Worktree } from '../worktree/workspace-list-types'
 import { RESUME_RPC_TIMEOUT_MS } from '../session/ai-vault-resume-preparation'
 import type { MobileAiVaultResumeSettings } from '../session/ai-vault-resume-launch'
@@ -13,8 +7,17 @@ import type {
   MobileAiVaultResumeProjectGroup,
   MobileAiVaultResumeRepo
 } from './agent-history-resume-target'
-
-export async function loadMobileResumeMetadata(client: Pick<RpcClient, 'sendRequest'>): Promise<{
+import { optionalSettingsRead } from '../transport/settings-read-operations'
+import { interpretOrThrowRefusalMessage } from '../transport/rpc-refusal-message'
+import { rpcPayloadMember } from '../transport/rpc-reader-payload'
+import { readAcceptedResumeList } from './resume-metadata-lists'
+import {
+  resumeFolderWorkspaceListRead,
+  resumeProjectGroupListRead,
+  resumeRepoListRead,
+  resumeWorktreeListRead
+} from './mobile-agent-history-operations'
+export async function loadMobileResumeMetadata(client: RpcClient): Promise<{
   repos: MobileAiVaultResumeRepo[]
   folderWorkspaces: MobileAiVaultResumeFolderWorkspace[]
   projectGroups: MobileAiVaultResumeProjectGroup[]
@@ -25,54 +28,43 @@ export async function loadMobileResumeMetadata(client: Pick<RpcClient, 'sendRequ
   // metadata after explicit user intent instead of delaying history browsing.
   // timeoutMs: without it a socket drop parks these on the reconnect waiter
   // for minutes, pinning the resume spinner (see RESUME_RPC_TIMEOUT_MS).
-  const [
-    repoResponse,
-    folderWorkspaceResponse,
-    projectGroupResponse,
-    settingsResponse,
-    worktreeResponse
-  ] = await Promise.all([
-    client.sendRequest('repo.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS }),
-    client
-      .sendRequest('folderWorkspace.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null),
-    client
-      .sendRequest('projectGroup.list', undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null),
-    optionalSettingsRead
-      .request(client, undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null),
-    client
-      .sendRequest('worktree.ps', { limit: 10000 }, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
-      .catch(() => null)
-  ])
-  if (!repoResponse.ok) {
-    throw new Error(repoResponse.error?.message || 'Unable to load workspace metadata.')
-  }
-  const repoResult = repoResponse.result as { repos?: MobileAiVaultResumeRepo[] }
+  const [repoReply, folderWorkspaceReply, projectGroupReply, settingsReply, worktreeReply] =
+    await Promise.all([
+      resumeRepoListRead.request(client, undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS }),
+      resumeFolderWorkspaceListRead
+        .request(client, undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
+        .catch(() => null),
+      resumeProjectGroupListRead
+        .request(client, undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
+        .catch(() => null),
+      optionalSettingsRead
+        .request(client, undefined, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
+        .catch(() => null),
+      resumeWorktreeListRead
+        .request(client, { limit: 10000 }, { timeoutMs: RESUME_RPC_TIMEOUT_MS })
+        .catch(() => null)
+    ])
+  const repoResult = interpretOrThrowRefusalMessage(
+    () => resumeRepoListRead.interpret(repoReply),
+    'Unable to load workspace metadata.'
+  )
   const folderWorkspaceResult =
-    folderWorkspaceResponse?.ok === true
-      ? (folderWorkspaceResponse.result as {
-          folderWorkspaces?: MobileAiVaultResumeFolderWorkspace[]
-        })
-      : null
+    folderWorkspaceReply && resumeFolderWorkspaceListRead.interpret(folderWorkspaceReply)
   const projectGroupResult =
-    projectGroupResponse?.ok === true
-      ? (projectGroupResponse.result as { groups?: MobileAiVaultResumeProjectGroup[] })
-      : null
-  const settingsResult = settingsResponse ? optionalSettingsRead.interpret(settingsResponse) : null
+    projectGroupReply && resumeProjectGroupListRead.interpret(projectGroupReply)
+  const settingsResult = settingsReply ? optionalSettingsRead.interpret(settingsReply) : null
   const settings = settingsResult?.accepted
     ? // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
       (settingsResult.value as MobileAiVaultResumeSettings | null | undefined)
     : null
-  const worktreeResult =
-    worktreeResponse?.ok === true ? (worktreeResponse.result as { worktrees?: Worktree[] }) : null
+  const worktreeResult = worktreeReply && resumeWorktreeListRead.interpret(worktreeReply)
   return {
-    repos: repoResult.repos ?? [],
-    folderWorkspaces: folderWorkspaceResult?.folderWorkspaces ?? [],
-    projectGroups: projectGroupResult?.groups ?? [],
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
+    repos: (rpcPayloadMember(repoResult, 'repos') as MobileAiVaultResumeRepo[] | undefined) ?? [],
+    folderWorkspaces: readAcceptedResumeList(folderWorkspaceResult, 'folderWorkspaces') ?? [],
+    projectGroups: readAcceptedResumeList(projectGroupResult, 'groups') ?? [],
     settings: settings ?? null,
-    worktrees: worktreeResult?.worktrees ?? null
+    worktrees: readAcceptedResumeList(worktreeResult, 'worktrees') ?? null
   }
 }
 

@@ -62,7 +62,6 @@ function AccountBenefit({
 
 export function MantaAccountSettingsPane(): React.JSX.Element {
   const authStatus = useAppStore((state) => state.mantaProfileAuthStatus)
-  const connecting = useAppStore((state) => state.mantaProfileConnecting)
   const connect = useAppStore((state) => state.connectCurrentMantaProfile)
   const signOut = useAppStore((state) => state.signOutCurrentMantaProfile)
   const signInMethods = useAppStore((state) => state.mantaRelaySignInMethods)
@@ -131,17 +130,10 @@ export function MantaAccountSettingsPane(): React.JSX.Element {
               {translate('auto.components.settings.mantaAccount.signOut', 'Sign out')}
             </Button>
           ) : perUser ? null : (
-            <Button
-              type="button"
-              size="sm"
-              disabled={!canConnect || connecting}
-              onClick={() => void connect()}
-            >
-              {connecting
-                ? translate('auto.components.settings.mantaAccount.signingIn', 'Signing in…')
-                : authStatus?.state === 'reconnect-required'
-                  ? translate('auto.components.settings.mantaAccount.signInAgain', 'Sign in again')
-                  : translate('auto.components.settings.mantaAccount.signIn', 'Sign in to Manta')}
+            <Button type="button" size="sm" disabled={!canConnect} onClick={() => void connect()}>
+              {authStatus?.state === 'reconnect-required'
+                ? translate('auto.components.settings.mantaAccount.signInAgain', 'Sign in again')
+                : translate('auto.components.settings.mantaAccount.signIn', 'Sign in to Manta')}
             </Button>
           )}
         </div>

@@ -82,7 +82,7 @@ export function createMobileDiffReviewFileKey(
 function statusEntryIdentity(entry: MobileGitStatusEntry, scope: DiffReviewScope): string {
   return buildMobileDiffIdentity([
     scope,
-    entry.area,
+    entry.area ?? '',
     entry.status,
     entry.oldPath ?? '',
     entry.path,
@@ -163,8 +163,15 @@ function queueNoteCounts(
   return { noteCount, unsentNoteCount, staleNoteCount }
 }
 
+/** A row whose staging area this build can place. One with no area is in no section either. */
+type PlaceableStatusEntry = MobileGitStatusEntry & { area: MobileGitStagingArea }
+
+function isPlaceableStatusEntry(entry: MobileGitStatusEntry): entry is PlaceableStatusEntry {
+  return entry.area !== undefined
+}
+
 function statusEntryToQueueItem(
-  entry: MobileGitStatusEntry,
+  entry: PlaceableStatusEntry,
   comments: readonly DiffComment[],
   reviewState: MobileDiffReviewState
 ): MobileDiffReviewQueueItem {
@@ -241,9 +248,9 @@ export function buildMobileDiffReviewQueue(
   input: BuildMobileDiffReviewQueueInput
 ): MobileDiffReviewQueueItem[] {
   const queue = [
-    ...input.statusEntries.map((entry) =>
-      statusEntryToQueueItem(entry, input.comments, input.reviewState)
-    ),
+    ...input.statusEntries
+      .filter(isPlaceableStatusEntry)
+      .map((entry) => statusEntryToQueueItem(entry, input.comments, input.reviewState)),
     ...input.branchEntries.map((entry) => branchEntryToQueueItem(entry, input))
   ]
   if (queue.length > 1) {

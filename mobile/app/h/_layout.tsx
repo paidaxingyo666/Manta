@@ -11,7 +11,7 @@ import {
   saveHostSidebarWidth
 } from '../../src/storage/preferences'
 import { HostProtocolGate } from '../../src/components/HostProtocolGate'
-import { HostScreen } from './[hostId]/index'
+import { HostScreen } from '../../src/host-screen/HostScreen'
 import { translate } from '../../src/i18n/i18n'
 
 // Keep at least this much room for the detail pane when resizing the sidebar.
@@ -66,9 +66,7 @@ function HostStack({ animation }: { animation: 'none' | 'default' }) {
       />
       <Stack.Screen
         name="[hostId]/agent-history/[worktreeId]"
-        options={{
-          title: translate('m.layout.6adb9b8189', 'Agent Session History')
-        }}
+        options={{ title: translate('m.layout.6adb9b8189', 'Agent Session History') }}
       />
       <Stack.Screen
         name="[hostId]/review/[worktreeId]"
@@ -77,6 +75,11 @@ function HostStack({ animation }: { animation: 'none' | 'default' }) {
       <Stack.Screen
         name="[hostId]/pr/[worktreeId]"
         options={{ title: translate('m.layout.7ceda7cfcf', 'Pull Request') }}
+      />
+      {/* Dev-flag only: redirects to the host screen unless the hybrid shell flag is on. */}
+      <Stack.Screen
+        name="[hostId]/web"
+        options={{ title: translate('m.layout.c2d88db1d7', 'Workspace') }}
       />
     </Stack>
   )

@@ -1,8 +1,7 @@
 import { useRef, useCallback } from 'react'
 import { Keyboard, Platform, type View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
-import { translate } from '../i18n/i18n'
-import type { RpcFailure, RpcSuccess } from '../transport/types'
+import { newTabRepoListRead, type MobileRuntimeRepoSummary } from './mobile-session-read-operations'
 import {
   triggerSelection,
   triggerSuccess,
@@ -18,8 +17,8 @@ import { clearTerminalLiveInputFocusTimer } from '../terminal/terminal-live-inpu
 import { stripTerminalSelectionGutter } from '../../../src/shared/terminal-selection-gutter'
 import { useTerminalCopyTrimsGutter } from '../terminal/terminal-copy-gutter-preference'
 import { getRepoIdFromMobileWorktreeId } from './mobile-session-route-helpers'
-import type { RuntimeRepoSummary } from './mobile-session-route-types'
 import type { MobileSessionTerminalInputModel } from './use-mobile-session-terminal-input'
+import { translate } from '../i18n/i18n'
 
 export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalInputModel) {
   const {
@@ -126,7 +125,7 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
         triggerSuccess()
         // Why: Android 13+ shows its own system copy toast; iOS shows none, so only iOS needs our in-app toast.
         if (Platform.OS === 'ios') {
-          showToast(translate('m.worktreeId.03a999d86d', 'Copied'))
+          showToast(translate('m.use.mobile.session.accessory.selection.fb414710e4', 'Copied'))
         }
         terminalRefs.current.get(handle)?.cancelSelect()
       } catch (e) {
@@ -137,7 +136,10 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
           name: err.name,
           message: err.message
         })
-        showToast(translate('m.worktreeId.ff4ac128b0', "Couldn't copy"), 1500)
+        showToast(
+          translate('m.use.mobile.session.accessory.selection.0e11663748', "Couldn't copy"),
+          1500
+        )
       }
     },
     [showToast]
@@ -151,7 +153,10 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
       // eslint-disable-next-line no-console
       console.warn('[mobile-clip] selection evicted')
       showToast(
-        translate('m.worktreeId.0589af040a', 'Selection cleared (scrolled out of buffer)'),
+        translate(
+          'm.use.mobile.session.accessory.selection.a43b50bde9',
+          'Selection cleared (scrolled out of buffer)'
+        ),
         1500
       )
       setSelectModeActive(false)
@@ -201,12 +206,9 @@ export function useMobileSessionAccessorySelection(scope: MobileSessionTerminalI
       return null
     }
     const repoId = getRepoIdFromMobileWorktreeId(worktreeId)
-    const repoResponse = await client.sendRequest('repo.list')
-    if (!repoResponse.ok) {
-      throw new Error((repoResponse as RpcFailure).error.message)
-    }
-    const repos =
-      ((repoResponse as RpcSuccess).result as { repos?: RuntimeRepoSummary[] }).repos ?? []
+    const repoResponse = await newTabRepoListRead.request(client)
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Preserve the established response shape at this boundary.
+    const repos = (newTabRepoListRead.interpret(repoResponse) as MobileRuntimeRepoSummary[]) ?? []
     return repos.find((repo) => repo.id === repoId)?.connectionId?.trim() || null
   }, [client, isFloatingWorkspaceRoute, worktreeId])
 

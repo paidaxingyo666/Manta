@@ -7,12 +7,7 @@ description: >-
   ownership handoffs — "hand off", "handoff", "handover", "give this to another
   agent", "another worktree" — unless asked to supervise, monitor, or coordinate
   a DAG, and for terminal control, lightweight terminal prompts, shell commands,
-  Manta worktree management, and reading or waiting on terminals. Use Computer
-  Use for external browser windows, webviews, Manta app UI, or desktop UI outside
-  Manta's embedded browser only when the task requires OS/window-level control
-  such as focus, menus, dialogs, coordinates, or screenshots. Use `manta-cli` for
-  Manta's embedded pages and a page-automation tool such as Playwright or CDP for
-  external pages.
+  Manta worktree management, and reading or waiting on terminals.
 ---
 
 # Manta orchestration
@@ -137,6 +132,7 @@ After three consecutive empty waits, stop waiting blindly and enumerate with
 `MANTA orchestration worker-list --include-remote --json` (defaults to the bound
 Run; `--run <run_id>` overrides; the receipt's `scope` names which), acting on
 each row's `projection.attention` categories, `projection.attention.requiresAction`, and literal `projection.nextAction` argv.
+Rows come newest first and page at 100: while `page.hasMore`, follow `page.nextCursor` with `--cursor <value>`.
 A `none` `nextAction` has no argv to run: read `liveness.reason` and keep waiting
 with `check --wait`. Absence never earns an argv; settlement and pending work still do.
 Leave the wait only on positive proof the agent stopped: `exited` liveness, the

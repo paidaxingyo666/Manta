@@ -55,13 +55,17 @@ export function MobileHostCard(props: {
     : credentialUnavailable
       ? translate('m.MobileHostCard.ed956cf562', 'Unlock your phone, then tap to retry')
       : null
+  // The verdict's own second line (what to check on the desktop); credential copy wins.
+  const verdictDetail =
+    credentialHint === null && 'detail' in props.verdict ? (props.verdict.detail ?? null) : null
   const accessibilityLabel = [
     `Open ${props.host.name}`,
     statusLabel,
     connectionPathLabel?.replace(' · ', ' via '),
     connected ? worktreeSummary?.replace(' · ', ', ') : null,
     discoveryHint,
-    credentialHint
+    credentialHint,
+    verdictDetail
   ]
     .filter(Boolean)
     .join(', ')
@@ -112,6 +116,11 @@ export function MobileHostCard(props: {
           {credentialHint ? (
             <Text style={styles.discoveryHint} numberOfLines={2}>
               {credentialHint}
+            </Text>
+          ) : null}
+          {verdictDetail ? (
+            <Text style={styles.discoveryHint} numberOfLines={2}>
+              {verdictDetail}
             </Text>
           ) : null}
         </View>

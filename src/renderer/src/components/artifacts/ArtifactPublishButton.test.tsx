@@ -17,7 +17,6 @@ const mocks = vi.hoisted(() => ({
   openPopover: null as ((open: boolean) => void) | null,
   state: {
     mantaProfileAuthStatus: { configured: true, state: 'connected' } as Record<string, unknown>,
-    mantaProfileConnecting: false,
     settings: { artifactSharingEnabled: true }
   }
 }))
@@ -83,7 +82,6 @@ describe('ArtifactPublishButton', () => {
     mocks.copyLink.mockResolvedValue(true)
     mocks.openPopover = null
     mocks.state.mantaProfileAuthStatus = { configured: true, state: 'connected' }
-    mocks.state.mantaProfileConnecting = false
     mocks.state.settings = { artifactSharingEnabled: true }
   })
 

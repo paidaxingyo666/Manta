@@ -102,6 +102,13 @@ function showDeleteFailureToast(): void {
     ),
     canForceDelete: true,
     forceDeleteReason: 'dirty',
+    onDeleteAnyway: () =>
+      toast.error(
+        translate(
+          'auto.components.settings.DevToolsPane.deleteAnywayClicked',
+          'Delete Anyway clicked'
+        )
+      ),
     onViewChanges: () =>
       toast.message(
         translate(
@@ -132,7 +139,6 @@ function showDeleteFailureToast(): void {
 // progress; this surfaces it (and its status) in dev when the env vars are set.
 function MantaCloudDevSubsection(): React.JSX.Element {
   const authStatus = useAppStore((s) => s.mantaProfileAuthStatus)
-  const connecting = useAppStore((s) => s.mantaProfileConnecting)
   const connect = useAppStore((s) => s.connectCurrentMantaProfile)
   const signOut = useAppStore((s) => s.signOutCurrentMantaProfile)
   const refresh = useAppStore((s) => s.fetchMantaProfileAuthStatus)
@@ -163,23 +169,11 @@ function MantaCloudDevSubsection(): React.JSX.Element {
           </p>
           <div className="flex flex-wrap gap-2">
             {connected ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={connecting}
-                onClick={() => void signOut()}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={() => void signOut()}>
                 {translate('auto.components.settings.DevToolsPane.mantaCloudSignOut', 'Sign out')}
               </Button>
             ) : (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={connecting}
-                onClick={() => void connect()}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={() => void connect()}>
                 {translate(
                   'auto.components.settings.DevToolsPane.mantaCloudConnect',
                   'Connect profile'

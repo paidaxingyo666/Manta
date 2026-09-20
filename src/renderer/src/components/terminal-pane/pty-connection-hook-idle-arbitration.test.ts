@@ -218,7 +218,6 @@ describe('connectPanePty', () => {
         worktreeId: 'wt-1',
         repoLabel: 'manta',
         worktreeLabel: 'feat/notis',
-        hasMultipleActiveRepos: true,
         terminalTitle: '* Claude done',
         agentType: 'claude',
         agentState: 'done',

@@ -326,6 +326,7 @@ function PrSidebarSections({
       />
       <PRChecksSection
         checks={data.checks}
+        checksError={data.checksError}
         client={client}
         worktreeId={worktreeId}
         prRepo={data.pr.prRepo ?? null}
