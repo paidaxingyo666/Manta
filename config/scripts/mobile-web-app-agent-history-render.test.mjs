@@ -138,7 +138,7 @@ afterAll(async () => {
 
 /** A page carrying every signal these cases read: uncaught errors, console errors, script paths. */
 async function openPage({ shellRoute, shellGrants, shellPageRoutes = null, replies } = {}) {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'en-US' })
   // At document start, where the native shell installs the real channel: the entry reads it while
   // its own script runs, so a channel added after `load` would already be too late.
   await page.addInitScript(installShellDouble, {

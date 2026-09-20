@@ -161,6 +161,8 @@ describeDrawer('the bottom drawer on the page', () => {
         // after `goto` would leave the assertion below passing over an already-latched `true`.
         const page = await browser.newPage({
           viewport: VIEWPORT,
+          // WebKit inherits the host language; these interaction labels are English fixtures.
+          locale: 'en-US',
           reducedMotion: 'no-preference'
         })
         const errors = []

@@ -115,7 +115,7 @@ async function openPage({
   shellGrants,
   shellPageRoutes = null
 } = {}) {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'en-US' })
   if (shellRoute !== undefined) {
     // At document start, where the native shell installs the real channel: the entry reads it
     // while its own script runs, so a channel added after `load` would already be too late.

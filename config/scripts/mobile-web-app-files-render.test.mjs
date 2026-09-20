@@ -110,7 +110,7 @@ afterAll(async () => {
 })
 
 async function openPreview() {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: 'en-US' })
   await page.addInitScript(installShellDouble, {
     version: bridgeVersion,
     sessionId: SHELL_SESSION_ID,
