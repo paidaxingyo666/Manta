@@ -243,6 +243,8 @@ export type IpcPtyTransportOptions = {
   cwd?: string
   /** Retain bounded user input while a visible split waits to start its PTY. */
   bufferInputUntilConnect?: boolean
+  /** A restored remote pane may replay retained input only to this PTY. */
+  preconnectPtyId?: string
   /** Seed a fresh transport with input handed off from a remounted deferred split. */
   preconnectInput?: readonly PtyPreconnectInputEntry[]
   /** Records newly retained input against a remount-safe deferred split handoff. */

@@ -83,6 +83,7 @@ import {
   ptyShutdownLifecycleHandlers
 } from './pty-shutdown-data-suspension'
 import { getRuntimeEnvironmentRevision } from '@/runtime/runtime-environment-revision'
+import { createPtyPreconnectInputBuffer } from './pty-preconnect-input-buffer'
 
 const REMOTE_TERMINAL_INPUT_FLUSH_MS = 8
 const REMOTE_TERMINAL_VIEWPORT_FLUSH_MS = 33
@@ -186,6 +187,33 @@ export function createRemoteRuntimePtyTransport(
   let authoritativePtyIncarnationId: string | null = null
   let currentRuntimeEnvironmentId = runtimeEnvironmentId
   const runtimeEnvironmentPairingRevision = getRuntimeEnvironmentRevision(runtimeEnvironmentId)
+  const preconnectInputBuffer =
+    opts.bufferInputUntilConnect || opts.preconnectInput?.length
+      ? createPtyPreconnectInputBuffer(opts.preconnectInput)
+      : null
+  let preconnectPtyId: string | null = null
+  const bindPreconnectInput = (existingPtyId?: string): void => {
+    if (lifecycleEpoch !== 0) {
+      preconnectInputBuffer?.clear()
+      return
+    }
+    if (!existingPtyId) {
+      return
+    }
+    const environmentId = getRemoteRuntimePtyEnvironmentId(existingPtyId)
+    const existingHandle = getRemoteRuntimeTerminalHandle(existingPtyId)
+    if (!existingHandle || (environmentId !== null && environmentId !== runtimeEnvironmentId)) {
+      preconnectInputBuffer?.clear()
+      return
+    }
+    const nextPtyId = toRemoteRuntimePtyId(existingHandle, runtimeEnvironmentId)
+    if (preconnectPtyId && preconnectPtyId !== nextPtyId) {
+      preconnectInputBuffer?.clear()
+      return
+    }
+    preconnectPtyId = nextPtyId
+  }
+  bindPreconnectInput(opts.preconnectPtyId)
   let multiplexedStream: RemoteRuntimeMultiplexedTerminal | null = null
   let multiplexedStreamHandle: string | null = null
   let desiredOutputPaused = false
@@ -254,6 +282,7 @@ export function createRemoteRuntimePtyTransport(
       clearPublishedHandleWait()
     }
     if (recovery.currentPhase === 'disconnected') {
+      preconnectInputBuffer?.clear()
       // Why: only the wall-clock deadline is evidence the window was spent; a UI latch from a fatal
       // resubscribe must not license reattaching a fenced same handle (#12683).
       autoRecoveryWindowSpent ||= recovery.autoRecoveryDeadlineExpired
@@ -490,6 +519,7 @@ export function createRemoteRuntimePtyTransport(
   }
 
   function surfaceErrorMessage(message: string): void {
+    preconnectInputBuffer?.clear()
     if (surfacedErrorMessages.has(message)) {
       return
     }
@@ -1385,23 +1415,26 @@ export function createRemoteRuntimePtyTransport(
     return recovery.isActive || recovery.currentPhase === 'disconnected'
   }
 
-  async function sendInputAcceptedToRuntime(data: string): Promise<boolean> {
+  async function sendInputAcceptedToRuntime(
+    data: string,
+    isCurrent: () => boolean = () => true
+  ): Promise<boolean> {
     const targetHandle = handle
-    if (!connected || !targetHandle || recoveryBlocksIo()) {
+    if (!connected || !targetHandle || recoveryBlocksIo() || !isCurrent()) {
       return false
     }
     if (!data) {
       return true
     }
     await inputBatcher.drain()
-    if (!connected || handle !== targetHandle || recoveryBlocksIo()) {
+    if (!connected || handle !== targetHandle || recoveryBlocksIo() || !isCurrent()) {
       return false
     }
     if (pendingViewportClaim && !getCurrentMultiplexedStream(targetHandle)) {
       const ready = await new Promise<boolean>((resolve) => {
         viewportClaimReadyWaiters.add(resolve)
       })
-      if (!ready || !connected || handle !== targetHandle) {
+      if (!ready || !connected || handle !== targetHandle || !isCurrent()) {
         return false
       }
     }
@@ -1417,7 +1450,7 @@ export function createRemoteRuntimePtyTransport(
     }
     try {
       for (const chunk of iterateTerminalInputChunks(text)) {
-        if (!connected || handle !== targetHandle || recoveryBlocksIo()) {
+        if (!connected || handle !== targetHandle || recoveryBlocksIo() || !isCurrent()) {
           return false
         }
         // Why: acknowledged sends order behind pending debounce text but must not collapse large paste back into one remote RPC.
@@ -1434,7 +1467,7 @@ export function createRemoteRuntimePtyTransport(
       return true
     } catch (error) {
       // Why: stale-handle errors must retire the mirror (recoverable via next snapshot), not dead-end in a red xterm banner (#7718).
-      if (handle === targetHandle) {
+      if (handle === targetHandle && isCurrent()) {
         handleRemoteTerminalError(error)
       }
       return false
@@ -1495,6 +1528,35 @@ export function createRemoteRuntimePtyTransport(
     REMOTE_TERMINAL_INPUT_FLUSH_MS,
     sendUnacknowledgedInput
   )
+
+  function flushPreconnectInput(): void {
+    if (!preconnectInputBuffer?.isBuffering()) {
+      return
+    }
+    const targetPtyId = remotePtyId
+    const targetLifecycleEpoch = lifecycleEpoch
+    // Cached pixels authorize input only to the retained terminal, never its replacement.
+    if (!targetPtyId || (preconnectPtyId && preconnectPtyId !== targetPtyId)) {
+      preconnectInputBuffer.clear()
+      return
+    }
+    const isCurrent = (): boolean =>
+      preconnectInputBuffer.isBuffering() &&
+      !destroyed &&
+      attachmentReady &&
+      !recoveryBlocksIo() &&
+      lifecycleEpoch === targetLifecycleEpoch &&
+      remotePtyId === targetPtyId &&
+      getRuntimeEnvironmentRevision(runtimeEnvironmentId) === runtimeEnvironmentPairingRevision
+    void preconnectInputBuffer
+      .flush({
+        isCurrent,
+        sendInput: (data) => sendUnacknowledgedInput(data),
+        sendInputImmediate: (data) => sendUnacknowledgedInput(data, true),
+        sendInputAccepted: (data) => sendInputAcceptedToRuntime(data, isCurrent)
+      })
+      .catch(notifyWriteUnavailable)
+  }
 
   function sendViewportUpdate(cols: number, rows: number, claim = false): void {
     const targetHandle = handle
@@ -1558,6 +1620,7 @@ export function createRemoteRuntimePtyTransport(
   }
 
   function retireRemoteTerminalId(exitCode?: number): void {
+    preconnectInputBuffer?.clear()
     recovery.cancel()
     resetRecoveryReplacementPolicy()
     resetSameHandleEndReuse()
@@ -2044,6 +2107,7 @@ export function createRemoteRuntimePtyTransport(
           connecting = false
           resetRecoveryReplacementPolicy()
           markRecoveryHealthy()
+          flushPreconnectInput()
           emitRecoveryState()
           storedCallbacks.onConnect?.()
           // Why: a recovery subscribe replays nothing when the host's push snapshot is
@@ -2173,6 +2237,7 @@ export function createRemoteRuntimePtyTransport(
 
   const transport: PtyTransport = {
     async connect(options) {
+      bindPreconnectInput(options.sessionId)
       cancelTerminalCreateRetryWait()
       const connectLifecycleEpoch = ++lifecycleEpoch
       const createEnvironmentId = currentRuntimeEnvironmentId
@@ -2424,6 +2489,7 @@ export function createRemoteRuntimePtyTransport(
     },
 
     attach(options) {
+      bindPreconnectInput(options.existingPtyId)
       const attachLifecycleEpoch = ++lifecycleEpoch
       const generation = ++attachGeneration
       cancelTerminalCreateRetryWait()
@@ -2523,6 +2589,7 @@ export function createRemoteRuntimePtyTransport(
     },
 
     disconnect() {
+      preconnectInputBuffer?.clear()
       lifecycleEpoch += 1
       attachGeneration += 1
       cancelTerminalCreateRetryWait()
@@ -2557,6 +2624,7 @@ export function createRemoteRuntimePtyTransport(
     },
 
     detach() {
+      preconnectInputBuffer?.clear()
       // Why first: the successor transport owns the PTY after detach, and the batcher flushes
       // below can throw past the census drop — a stranded gauge outlives the transport.
       outputProcessor.disposePendingSideEffectGauge()
@@ -2582,6 +2650,9 @@ export function createRemoteRuntimePtyTransport(
     },
 
     sendInput(data: string): boolean {
+      if (!destroyed && preconnectInputBuffer?.isBuffering()) {
+        return preconnectInputBuffer.enqueue(data, 'ordinary', opts.onPreconnectInput)
+      }
       if (!connected || !handle || recoveryBlocksIo()) {
         return false
       }
@@ -2594,6 +2665,9 @@ export function createRemoteRuntimePtyTransport(
 
     // Why: query replies (CPR/DSR/DA/OSC) are read in raw mode with a short timeout; the 8ms debounce would miss it and echo the reply onto the prompt (#7329).
     sendInputImmediate(data: string): boolean {
+      if (!destroyed && preconnectInputBuffer?.isBuffering()) {
+        return preconnectInputBuffer.enqueue(data, 'immediate', opts.onPreconnectInput)
+      }
       const targetHandle = handle
       const targetLifecycleEpoch = lifecycleEpoch
       if (!connected || !targetHandle || recoveryBlocksIo()) {
@@ -2628,7 +2702,16 @@ export function createRemoteRuntimePtyTransport(
       return sendUnacknowledgedInput(data, true)
     },
 
-    sendInputAccepted: sendInputAcceptedToRuntime,
+    sendInputAccepted(data) {
+      if (!destroyed && preconnectInputBuffer?.isBuffering()) {
+        return preconnectInputBuffer.enqueueAccepted(data, opts.onPreconnectInput)
+      }
+      return sendInputAcceptedToRuntime(data)
+    },
+
+    abandonPreconnectInput() {
+      preconnectInputBuffer?.clear()
+    },
 
     claimViewport(cols: number, rows: number): boolean {
       if (!connected || !handle) {

@@ -36,13 +36,18 @@ export function installPtyInputRecovery(session: ConnectPanePtySession): void {
     ? { foreground: session.terminalTheme.foreground, background: session.terminalTheme.background }
     : undefined
   session.agentLaunchPreferences = toAgentLaunchPreferences(session.paneStartup?.sessionOptions)
+  const parkedRemotePtyId =
+    session.mountFollowsTerminalPark && session.runtimeEnvironmentId
+      ? session.deps.restoredPtyIdByLeafId?.[session.deps.restoredLeafId ?? session.pane.leafId]
+      : undefined
   session.transportOptions = {
     terminalKittyKeyboardProtocol:
       session.pane.terminal.options.vtExtensions?.kittyKeyboard === true,
     cwd: session.deps.cwd,
-    ...(session.deps.cwdPromise || session.deps.preconnectInput?.length
+    ...(session.deps.cwdPromise || session.deps.preconnectInput?.length || parkedRemotePtyId
       ? { bufferInputUntilConnect: true }
       : {}),
+    ...(parkedRemotePtyId ? { preconnectPtyId: parkedRemotePtyId } : {}),
     ...(session.deps.preconnectInput?.length
       ? { preconnectInput: session.deps.preconnectInput }
       : {}),
