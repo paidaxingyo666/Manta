@@ -92,6 +92,28 @@ export async function readBridgeWindowCaps() {
 }
 
 /**
+ * The base64 one append of the clipboard-image upload carries, read from the leaf that defines it.
+ *
+ * The page's canvas resize is measured against this, so a check carrying its own copy is one that
+ * goes on passing after the upload path's chunk has moved. Written as a product, so the reader
+ * evaluates one the way the window caps above do.
+ */
+export async function readClipboardImageUploadChunkBase64Chars() {
+  const source = await readFile(
+    join(projectDir, 'mobile/src/session/mobile-clipboard-image-upload-chunk.ts'),
+    'utf8'
+  )
+  const match = /MOBILE_CLIPBOARD_IMAGE_UPLOAD_CHUNK_BASE64_CHARS = ([0-9*\s]+)/.exec(source)
+  if (!match) {
+    throw new Error('could not read MOBILE_CLIPBOARD_IMAGE_UPLOAD_CHUNK_BASE64_CHARS')
+  }
+  return match[1]
+    .split('*')
+    .map((part) => Number(part.trim()))
+    .reduce((product, factor) => product * factor, 1)
+}
+
+/**
  * The JPEG quality the pane asks Chromium for, read from the module that sends it. A test that
  * encoded its fixtures at a retyped quality would certify the budget at a number nothing ships.
  */

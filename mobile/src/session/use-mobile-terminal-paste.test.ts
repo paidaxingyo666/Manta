@@ -9,6 +9,8 @@ vi.mock('react', () => ({
   useCallback: (callback: unknown) => callback,
   useMemo: (factory: () => unknown) => factory()
 }))
+// The clipboard seam's native half is what the hook calls, so the pasteboard is what a test stands
+// in for: text, image and the two probes behind `contents`.
 vi.mock('expo-clipboard', () => ({
   getStringAsync: async () => '',
   getImageAsync: async () => ({ data: 'png' })

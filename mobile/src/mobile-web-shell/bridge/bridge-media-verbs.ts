@@ -108,6 +108,8 @@ export const mediaReadResultSchema = z.strictObject({
   eof: z.boolean()
 })
 
+export type BridgeMediaChunk = z.infer<typeof mediaReadResultSchema>
+
 /** False for a handle this session no longer holds, which is not a fault: a page that releases
  *  twice, or releases after the TTL swept, asked for the state it already has. */
 export const mediaReleaseParamsSchema = z.strictObject({ handle: handleSchema })

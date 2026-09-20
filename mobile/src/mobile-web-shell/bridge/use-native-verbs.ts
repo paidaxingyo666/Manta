@@ -2,6 +2,14 @@ import { useMemo } from 'react'
 import { z } from 'zod'
 import { usePageBridgeClient } from '../../transport/client-context.web'
 import {
+  mediaPickResultSchema,
+  mediaReadResultSchema,
+  mediaReleaseResultSchema,
+  type BridgeMediaChunk,
+  type BridgeMediaItem,
+  type BridgeMediaSource
+} from './bridge-media-verbs'
+import {
   clipboardReadResultSchema,
   clipboardWriteResultSchema,
   type BridgeClipboardMime,
@@ -35,8 +43,29 @@ export type NativeVerbs = {
    */
   canWriteClipboardText: boolean
   canReadClipboardText: boolean
+  /**
+   * Whether the shell serves all three media verbs, which is the page's only route to an image.
+   *
+   * All three, not the two a read needs. Every caller releases what it picked, and a shell that
+   * granted `pick` and `read` but not `release` would take the handles and never give them back:
+   * the release rejects, the cleanup swallows it by design, and the staged files stay live to the
+   * five-minute TTL — eight pastes and the next pick is refused at the cap. A route missing one
+   * verb has no working image path, so this says so up front rather than after four of them.
+   *
+   * Read by `contents()` on the clipboard seam, which answers without probing: a route granted all
+   * three may have an image on the pasteboard, and one that is not never can.
+   */
+  canPickMedia: boolean
   writeClipboardText: (value: string) => Promise<boolean>
   readClipboardText: () => Promise<string>
+  /** Opens the shell's picker and answers a handle per item; an empty list is a cancelled picker,
+   *  which is not a fault and never a rejection. */
+  pickMedia: (source: BridgeMediaSource, multiple: boolean) => Promise<readonly BridgeMediaItem[]>
+  /** One byte range of a staged item. `length` above the cap is refused by the shell's schema, so
+   *  a caller bounds its own ask rather than discovering the bound as a rejection. */
+  readMedia: (handle: string, offset: number, length: number) => Promise<BridgeMediaChunk>
+  /** False for a handle this session no longer holds, which is not a fault. */
+  releaseMedia: (handle: string) => Promise<boolean>
 }
 
 /**
@@ -160,10 +189,18 @@ export function useNativeVerbs(): NativeVerbs {
       granted: canWriteClipboardText && canReadClipboardText,
       canWriteClipboardText,
       canReadClipboardText,
+      canPickMedia:
+        has('native.media.pick') && has('native.media.read') && has('native.media.release'),
       writeClipboardText: async (value) =>
         (await call('native.clipboard.write', { mime, value }, clipboardWriteResultSchema)).written,
       readClipboardText: async () =>
-        (await call('native.clipboard.read', { mime }, clipboardReadResultSchema)).value
+        (await call('native.clipboard.read', { mime }, clipboardReadResultSchema)).value,
+      pickMedia: async (source, multiple) =>
+        (await call('native.media.pick', { source, multiple }, mediaPickResultSchema)).items,
+      readMedia: (handle, offset, length) =>
+        call('native.media.read', { handle, offset, length }, mediaReadResultSchema),
+      releaseMedia: async (handle) =>
+        (await call('native.media.release', { handle }, mediaReleaseResultSchema)).released
     }
   }, [client])
 }

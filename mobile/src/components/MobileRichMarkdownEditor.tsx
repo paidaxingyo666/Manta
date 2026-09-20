@@ -43,7 +43,11 @@ import {
 const EDITOR_DOCUMENT_ORIGIN = 'https://manta-mobile-editor.invalid'
 const EDITOR_DOCUMENT_URL = `${EDITOR_DOCUMENT_ORIGIN}/rich-markdown-editor`
 
-type Props = Omit<MobileRichMarkdownEditorProps, 'onOpenLink'> & {
+/** Exported so the web sibling answers the same shape and a change to it fails there too. */
+export type MobileRichMarkdownEditorComponentProps = Omit<
+  MobileRichMarkdownEditorProps,
+  'onOpenLink'
+> & {
   onOpenLink?: (url: string) => void
 }
 
@@ -76,7 +80,13 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
 ]
 
 function MobileRichMarkdownEditorInner(
-  { content, editable, onChange, onKeyboardInsetChange, onOpenLink }: Props,
+  {
+    content,
+    editable,
+    onChange,
+    onKeyboardInsetChange,
+    onOpenLink
+  }: MobileRichMarkdownEditorComponentProps,
   ref: ForwardedRef<MobileRichMarkdownEditorHandle>
 ) {
   const webViewRef = useRef<WebView>(null)

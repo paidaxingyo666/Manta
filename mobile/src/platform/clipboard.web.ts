@@ -1,6 +1,10 @@
 import { useMemo } from 'react'
+import {
+  readStagedMediaItem,
+  releaseAllStagedMedia
+} from '../mobile-web-shell/bridge/staged-media-bytes'
 import { useNativeVerbs } from '../mobile-web-shell/bridge/use-native-verbs'
-import type { ClipboardReader, ClipboardWriter } from './clipboard'
+import type { ClipboardImage, ClipboardReader, ClipboardWriter } from './clipboard'
 
 /**
  * Web sibling: the page has no clipboard of its own worth using, so the shell writes for it.
@@ -29,25 +33,29 @@ export function useClipboardWriter(): ClipboardWriter {
 }
 
 /**
- * Web sibling: the shell reads text for the page, and no shell reads an image for it yet.
+ * Web sibling: the shell reads text for the page with one verb and stages an image with three.
  *
  * `native.clipboard.read` is text and only text: `BRIDGE_CLIPBOARD_MIMES` is `['text']`, so an
  * image mime is not a refusal the verb spells out but a value its schema does not admit, answered
  * `invalid-params`. Widening it cannot work — `CLIPBOARD_IMAGE_MAX_BASE64_CHARS` is 24 MiB against
- * a reply cap of 8 MiB — so an image on the pasteboard is `native.media.pick { source: 'clipboard' }`,
- * which C7.4 landed and C7.6 will wire. `readImage` therefore answers null, which is the answer an
- * empty clipboard already gives, and the terminal's paste takes the branch it has always taken for
- * one. A recorded degradation, not a silent one: on the page an image on the clipboard pastes
- * nothing until that wiring lands.
+ * a reply cap of 8 MiB. So an image on the pasteboard is `native.media.pick { source: 'clipboard' }`
+ * instead: the shell stages it and answers a handle, the bytes come back a chunk at a time under
+ * the frame cap, and the handle goes back. The result is the same `{ data, size }` the phone's
+ * `getImageAsync` answers, so the terminal's paste and the upload path below it are unchanged.
+ *
+ * Null still means "nothing there", which is what an empty pasteboard answers on both platforms
+ * and the branch the paste already takes. Every other outcome rejects, because a refused pick and
+ * an empty clipboard lead a caller to different screens.
  *
  * `contents` cannot be a probe. The shell serves no "is there text" verb and reading to find out
  * would raise iOS's paste-consent prompt on every mount and every foreground, which is the whole
  * reason `hasStringAsync` exists. So it answers what this side actually knows: a shell that granted
- * the read verb may have text, and no shell has an image. The paste button is enabled on a maybe
- * and the read is what settles it, which is the same order a phone runs when the probe throws.
+ * the read verb may have text, and one that granted the media verbs may have an image. The paste
+ * button is enabled on a maybe and the read is what settles it, which is the same order a phone
+ * runs when the probe throws.
  *
- * The read grant specifically, not both: a route granted only `native.clipboard.read` can paste,
- * and answering on the pair would tell it its clipboard is empty.
+ * Per grant, not on the pair: a route granted only `native.clipboard.read` can paste text, and
+ * answering on both would tell it its clipboard is empty.
  */
 export function useClipboardReader(): ClipboardReader {
   const verbs = useNativeVerbs()
@@ -55,9 +63,26 @@ export function useClipboardReader(): ClipboardReader {
   return useMemo(
     () => ({
       readText: async () => await verbs.readClipboardText(),
-      readImage: async () => await Promise.resolve(null),
+      readImage: async (): Promise<ClipboardImage | null> => {
+        const picked = await verbs.pickMedia('clipboard', false)
+        const [image] = picked
+        if (image === undefined) {
+          return null
+        }
+        try {
+          return {
+            data: await readStagedMediaItem(verbs, image),
+            // Zero when the pasteboard reported no dimensions, which is what the downscale loop
+            // already reads as "cannot resize this": the upload path's own size check then refuses
+            // an image too large rather than this seam guessing a raster size for it.
+            size: { width: image.width ?? 0, height: image.height ?? 0 }
+          }
+        } finally {
+          await releaseAllStagedMedia(verbs, picked)
+        }
+      },
       contents: async () =>
-        await Promise.resolve({ text: verbs.canReadClipboardText, image: false })
+        await Promise.resolve({ text: verbs.canReadClipboardText, image: verbs.canPickMedia })
     }),
     [verbs]
   )
