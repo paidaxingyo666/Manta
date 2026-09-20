@@ -80,7 +80,7 @@ describe('electron-builder mac channel config', () => {
     })
     expect(electronBuilderConfig.publish).toMatchObject({
       repo: 'manta',
-      releaseType: 'release'
+      releaseType: 'draft'
     })
   })
 
