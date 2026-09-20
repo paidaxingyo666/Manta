@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { Script } from 'node:vm'
 import { describe, expect, it } from 'vitest'
-import { readTerminalWebViewHtmlSource } from './terminal-webview-html-source.test-support'
+import {
+  documentScopePreamble,
+  generatedDocumentModule
+} from './document/generated-document-region.test-support'
+import { XTERM_HTML } from './terminal-webview-html'
 
 const terminalWebViewSource = readFileSync(
   new URL('./TerminalWebView.tsx', import.meta.url),
@@ -15,24 +19,22 @@ const terminalHtmlDocumentShellSource = readFileSync(
   new URL('./terminal-webview-html/document-shell.ts', import.meta.url),
   'utf8'
 )
-// Read behavior from the assembled document; the module source only contains
-// fragment imports and cannot prove the injected code is present.
-const terminalHtmlSource = readTerminalWebViewHtmlSource()
-const terminalWebglRecoverySource = readFileSync(
-  new URL('./terminal-webview-webgl-recovery-injected.ts', import.meta.url),
-  'utf8'
-)
+// Read behavior from the assembled document: it is what the WebView runs, and the module source
+// alone cannot prove the generated script carries the code.
+const terminalHtmlSource = XTERM_HTML
+
+const terminalWebglRecoverySource = await generatedDocumentModule('webgl-recovery')
 
 function extractStatusDotNormalizer() {
-  const declarationStart = terminalHtmlSource.indexOf('  var CLAUDE_STATUS_DOT =')
-  const declarationEnd = terminalHtmlSource.indexOf('  var PRIVATE_MODE_SCAN_TAIL_LIMIT')
+  const declarationStart = terminalHtmlSource.indexOf('  scope.CLAUDE_STATUS_DOT =')
+  const declarationEnd = terminalHtmlSource.indexOf('  scope.PRIVATE_MODE_SCAN_TAIL_LIMIT')
   const functionStart = terminalHtmlSource.indexOf('  function isStatusDotPresentationSelector')
-  const functionEnd = terminalHtmlSource.indexOf('\n\n  function enqueueWrite', functionStart)
+  const functionEnd = terminalHtmlSource.indexOf('\n  function enqueueWrite', functionStart)
   expect(declarationStart).toBeGreaterThanOrEqual(0)
   expect(declarationEnd).toBeGreaterThan(declarationStart)
   expect(functionStart).toBeGreaterThan(declarationEnd)
   expect(functionEnd).toBeGreaterThan(functionStart)
-  return `${terminalHtmlSource.slice(declarationStart, declarationEnd)}\n${terminalHtmlSource.slice(functionStart, functionEnd)}`
+  return `${documentScopePreamble()}${terminalHtmlSource.slice(declarationStart, declarationEnd)}\n${terminalHtmlSource.slice(functionStart, functionEnd)}`
 }
 
 function normalizeStatusDotChunks(chunks: string[]) {
@@ -52,8 +54,8 @@ function resolveTerminalFontFamily(navigatorValue: {
   // Slice only the font block itself (isIOSWebView + terminalFontFamily), anchored
   // on font-related markers so unrelated edits below it can't break this extraction.
   const functionStart = terminalHtmlSource.indexOf('  function isIOSWebView()')
-  const declarationLine = terminalHtmlSource.indexOf('  var terminalFontFamily =', functionStart)
-  const declarationEnd = terminalHtmlSource.indexOf('\n', declarationLine)
+  const declarationLine = terminalHtmlSource.indexOf('  scope.terminalFontFamily =', functionStart)
+  const declarationEnd = terminalHtmlSource.indexOf(';\n', declarationLine) + 1
   expect(functionStart).toBeGreaterThanOrEqual(0)
   expect(declarationLine).toBeGreaterThan(functionStart)
   expect(declarationEnd).toBeGreaterThan(declarationLine)
@@ -61,8 +63,8 @@ function resolveTerminalFontFamily(navigatorValue: {
     navigator: navigatorValue
   }
   new Script(`
-${terminalHtmlSource.slice(functionStart, declarationEnd)}
-output = terminalFontFamily;
+${documentScopePreamble()}${terminalHtmlSource.slice(functionStart, declarationEnd)}
+output = scope.terminalFontFamily;
 `).runInNewContext(context)
   return context.output ?? ''
 }
@@ -92,16 +94,20 @@ describe('TerminalWebView text zoom', () => {
 
   it('forces the Claude status dot to text presentation before xterm writes', () => {
     expect(terminalHtmlSource).toContain('font-variant-emoji: text')
-    expect(terminalHtmlSource).toContain('var CLAUDE_STATUS_DOT = String.fromCharCode(0x23fa)')
-    expect(terminalHtmlSource).toContain('TEXT_PRESENTATION_SELECTOR = String.fromCharCode(0xfe0e)')
+    expect(terminalHtmlSource).toContain('scope.CLAUDE_STATUS_DOT = String.fromCharCode(9210)')
     expect(terminalHtmlSource).toContain(
-      'EMOJI_PRESENTATION_SELECTOR = String.fromCharCode(0xfe0f)'
+      'scope.TEXT_PRESENTATION_SELECTOR = String.fromCharCode(65038)'
+    )
+    expect(terminalHtmlSource).toContain(
+      'scope.EMOJI_PRESENTATION_SELECTOR = String.fromCharCode(65039)'
     )
     expect(terminalHtmlSource).toContain('function normalizeStatusDotPresentation(data)')
     expect(terminalHtmlSource).toContain(
-      'data.replace(CLAUDE_STATUS_DOT_PATTERN, CLAUDE_STATUS_DOT + TEXT_PRESENTATION_SELECTOR)'
+      'data.replace(\n      scope.CLAUDE_STATUS_DOT_PATTERN,\n      scope.CLAUDE_STATUS_DOT + scope.TEXT_PRESENTATION_SELECTOR\n    )'
     )
-    expect(terminalHtmlSource).toContain('writeQueue.push(normalizeStatusDotPresentation(data))')
+    expect(terminalHtmlSource).toContain(
+      'scope.writeQueue.push(normalizeStatusDotPresentation(data))'
+    )
   })
 
   it('normalizes Claude status dots idempotently across write chunks', () => {
@@ -133,28 +139,28 @@ describe('TerminalWebView text zoom', () => {
   it('resets pending Claude status dot selector state when the terminal lifecycle resets', () => {
     const initStart = terminalHtmlSource.indexOf('function init(')
     const initReplay = terminalHtmlSource.indexOf(
-      'var replayData = normalizeInitialData(initialData)'
+      'const replayData = normalizeInitialData(initialData)'
     )
-    const clearStart = terminalHtmlSource.indexOf("} else if (msg.type === 'clear') {")
-    const clearEnd = terminalHtmlSource.indexOf("} else if (msg.type === 'measure')", clearStart)
+    const clearStart = terminalHtmlSource.indexOf('} else if (msg.type === "clear") {')
+    const clearEnd = terminalHtmlSource.indexOf('} else if (msg.type === "measure")', clearStart)
     expect(initStart).toBeGreaterThanOrEqual(0)
     expect(initReplay).toBeGreaterThan(initStart)
     expect(clearStart).toBeGreaterThanOrEqual(0)
     expect(clearEnd).toBeGreaterThan(clearStart)
     expect(terminalHtmlSource.slice(initStart, initReplay)).toContain(
-      'statusDotPendingSelector = false'
+      'scope.statusDotPendingSelector = false'
     )
     expect(terminalHtmlSource.slice(clearStart, clearEnd)).toContain(
-      'statusDotPendingSelector = false'
+      'scope.statusDotPendingSelector = false'
     )
   })
 
   it('loads Unicode 11 before replaying mobile terminal bytes', () => {
     expect(terminalHtmlDocumentShellSource).toContain('XTERM_ENGINE_JS')
     expect(terminalHtmlSource).toContain('window.Unicode11Addon.Unicode11Addon')
-    const open = terminalHtmlSource.indexOf('term.open(surface)')
-    const unicode = terminalHtmlSource.indexOf("term.unicode.activeVersion = '11'")
-    const replay = terminalHtmlSource.indexOf("enqueueWrite(ESC + '[0m' + replayData)")
+    const open = terminalHtmlSource.indexOf('scope.term.open(scope.surface)')
+    const unicode = terminalHtmlSource.indexOf('scope.term.unicode.activeVersion = "11"')
+    const replay = terminalHtmlSource.indexOf('enqueueWrite(scope.ESC + "[0m" + replayData)')
     expect(open).toBeGreaterThanOrEqual(0)
     expect(unicode).toBeGreaterThan(open)
     expect(replay).toBeGreaterThan(unicode)
@@ -164,9 +170,9 @@ describe('TerminalWebView text zoom', () => {
     expect(terminalHtmlSource).not.toContain('cdn.jsdelivr.net')
     expect(terminalWebglRecoverySource).toContain('window.WebglAddon.WebglAddon')
     expect(terminalHtmlSource).toContain('function isIOSWebView()')
-    expect(terminalHtmlSource).toContain('fontFamily: terminalFontFamily')
-    expect(terminalHtmlSource).toContain("fontWeight: '300'")
-    expect(terminalHtmlSource).toContain("fontWeightBold: '500'")
+    expect(terminalHtmlSource).toContain('fontFamily: scope.terminalFontFamily')
+    expect(terminalHtmlSource).toContain('fontWeight: "300"')
+    expect(terminalHtmlSource).toContain('fontWeightBold: "500"')
     expect(terminalWebglRecoverySource).toContain('new window.WebglAddon.WebglAddon()')
   })
 
