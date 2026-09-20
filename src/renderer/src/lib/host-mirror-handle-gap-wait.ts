@@ -77,14 +77,15 @@ const waitersByPane = new Map<string, HandleGapWaiter>()
  * about its predecessor. Pinned as class D in host-mirror-handle-gap-verdict-union.test.ts; do not
  * delete that case.
  *
- * KNOWN LEAK, deliberately not drained: a verdict whose row the host retracts for good on an
- * environment that stays paired and never records again. The generation has not moved, teardown
- * never fires, the retracted row can never publish a handle, and the tab-death rule only runs from
- * inside a later recording. That entry outlives the session, and because
- * `stopStoreSubscriptionIfIdle` counts verdicts, so does the store subscription — a no-op rescan on
- * every write to the two `HandleGapStoreState` slices above. It cannot answer: the STORED binding is
- * non-empty, so the `''` early return below does not catch it; what does is the compare against a
- * fresh `paneBindingFor`, which reads '' for a row that is gone. So it costs work, not correctness.
+ * BOUNDED RETENTION BACKSTOP: a verdict whose row the host retracts for good on an environment
+ * that stays paired and never records again. The generation has not moved, teardown never fires,
+ * the retracted row can never publish a handle, and the tab-death rule only runs from inside a
+ * later recording. While retained, `stopStoreSubscriptionIfIdle` keeps the subscription alive and
+ * causes a no-op rescan on writes to the two `HandleGapStoreState` slices above. The 512-entry cap
+ * eventually evicts it under cross-pane churn; the entry still costs work while retained, not
+ * correctness. It cannot answer: the STORED binding is non-empty, so the `''` early return below
+ * does not catch it; what does is the compare against a fresh `paneBindingFor`, which reads '' for
+ * a row that is gone.
  * The obvious drain — drop a verdict whose binding no longer matches — is NOT safe: it would break
  * the genuine reattach, where
  * the binding goes away and comes back and the verdict must still answer
@@ -106,6 +107,7 @@ type ExpiredHandleGapVerdict = {
   /** Sorted environment-minted PTY ids the tab's leaves held AT PARK TIME; '' when none. */
   paneBinding: string
 }
+const MAX_EXPIRED_HANDLE_GAP_VERDICTS = 512
 const expiredGenerationByPane = new Map<string, ExpiredHandleGapVerdict>()
 let unsubscribeStore: (() => void) | null = null
 
@@ -199,6 +201,16 @@ function recordExpiredWait(environmentId: string, key: string): void {
   // gate stops recording anything at all rather than admitting ''. It pins a different property
   // (reconnect-void, host-mirror-handle-gap-resume.test.ts). Both are load-bearing, for different
   // reasons — do not collapse them as redundant.
+  // Eviction is conservative: a missing verdict makes the pane wait once more, never resume early.
+  if (!expiredGenerationByPane.has(key)) {
+    while (expiredGenerationByPane.size >= MAX_EXPIRED_HANDLE_GAP_VERDICTS) {
+      const oldest = expiredGenerationByPane.keys().next()
+      if (oldest.done) {
+        break
+      }
+      expiredGenerationByPane.delete(oldest.value)
+    }
+  }
   expiredGenerationByPane.set(key, {
     generation,
     paneBinding: waitersByPane.get(key)?.paneBinding ?? ''

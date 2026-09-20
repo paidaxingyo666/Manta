@@ -658,7 +658,6 @@ describe('buildArgs (Antigravity)', () => {
   })
 })
 
-
 describe('Pi Source Control AI model selection', () => {
   it('leaves provider selection to Pi for the config default', () => {
     const args = getCommitMessageAgentSpec('pi')!.buildArgs({

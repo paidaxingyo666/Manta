@@ -30,6 +30,8 @@ import {
   recordManagedWslCodexHome,
   wslRuntimeHomePathsEqual
 } from '../codex/managed-wsl-codex-home-registry'
+import { resolveWslHookDefaultDistro } from './wsl-hook-default-distro'
+import { resumeStoppedWslHookRelays } from './wsl-hook-relay-resume'
 
 type DistroState = {
   /** Original casing for wsl.exe argv and breadcrumbs; map keys are lowercased. */
@@ -40,7 +42,8 @@ type DistroState = {
   guestHome?: string
   codexHomePath?: string
   guestEndpointFilePath?: string
-  opencodeOverlayDir?: string; opencode2OverlayDir?: string
+  opencodeOverlayDir?: string
+  opencode2OverlayDir?: string
   failures: number
   cooldownUntil: number
   connectedAt?: number
@@ -101,7 +104,15 @@ export class WslHookRelayManager {
     return this.stateFor(distro)?.guestEndpointFilePath ?? null
   }
 
-  getOpenCodeOverlayDir(distro: string | null, agent: 'opencode' | 'opencode2' = 'opencode'): string | null { const state = this.stateFor(distro); return agent === 'opencode2' ? (state?.opencode2OverlayDir ?? null) : (state?.opencodeOverlayDir ?? null) }
+  getOpenCodeOverlayDir(
+    distro: string | null,
+    agent: 'opencode' | 'opencode2' = 'opencode'
+  ): string | null {
+    const state = this.stateFor(distro)
+    return agent === 'opencode2'
+      ? (state?.opencode2OverlayDir ?? null)
+      : (state?.opencodeOverlayDir ?? null)
+  }
 
   /** Kills every live relay. Non-permanent (hooks switched off mid-session) leaves the
    *  manager reusable, so re-enabling hooks can start relays again without an app restart. */
@@ -121,18 +132,11 @@ export class WslHookRelayManager {
   /** Restarts what a hooks-off teardown stopped. Skips distros the user has since shut
    *  down: `wsl -d` BOOTS a stopped distro, and nothing in it is waiting on status. */
   resumeStoppedRelays(): void {
-    const distros = [...this.stoppedByHooksOff]
-    this.stoppedByHooksOff.clear()
-    for (const [distro, codexHomePath] of distros) {
-      void this.deps
-        .isDistroRunning(distro)
-        .then((running) => {
-          if (running) {
-            this.ensureForDistro(distro, codexHomePath)
-          }
-        })
-        .catch(() => undefined)
-    }
+    resumeStoppedWslHookRelays(
+      this.stoppedByHooksOff,
+      this.deps.isDistroRunning,
+      (distro, codexHomePath) => this.ensureForDistro(distro, codexHomePath)
+    )
   }
 
   private async ensureInternal(
@@ -190,7 +194,8 @@ export class WslHookRelayManager {
       failures: existing?.failures ?? 0,
       // Why: instance-keyed and on the distro's persistent fs, so it outlives a relay
       // crash — dropping it would blank status on panes spawned mid-relaunch.
-      opencodeOverlayDir: existing?.opencodeOverlayDir, opencode2OverlayDir: existing?.opencode2OverlayDir,
+      opencodeOverlayDir: existing?.opencodeOverlayDir,
+      opencode2OverlayDir: existing?.opencode2OverlayDir,
       codexHomePath: requestedCodexHomePath ?? existing?.codexHomePath,
       cooldownUntil: 0
     }
@@ -328,15 +333,10 @@ export class WslHookRelayManager {
   }
 
   private async resolveDefaultDistro(): Promise<string | null> {
-    if (this.defaultDistro) {
-      return this.defaultDistro
-    }
-    try {
-      const distros = await this.deps.listDistros()
-      this.defaultDistro = distros[0] ?? null
-    } catch {
-      this.defaultDistro = null
-    }
+    this.defaultDistro = await resolveWslHookDefaultDistro(
+      this.defaultDistro,
+      this.deps.listDistros
+    )
     return this.defaultDistro
   }
 }

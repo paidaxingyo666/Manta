@@ -93,7 +93,6 @@ installMonacoContextMenuPaste(monaco)
 // Configure Monaco to use the locally bundled editor instead of CDN
 loader.config({ monaco })
 
-
 const unregisterEditorModelRegistry = editorModelRegistry.register(monaco)
 if (import.meta.hot) {
   import.meta.hot.dispose(unregisterEditorModelRegistry)
