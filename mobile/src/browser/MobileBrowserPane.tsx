@@ -32,6 +32,7 @@ import { MobileBrowserPaneView } from './MobileBrowserPaneView'
 import { useMobileBrowserInteractions } from './use-mobile-browser-interactions'
 import { useMobileBrowserPaneLayers } from './use-mobile-browser-pane-layers'
 import { useMobileBrowserStream } from './use-mobile-browser-stream'
+import { useBrowserBinaryScreencastGrant } from './use-browser-binary-screencast-grant'
 
 export type MobileBrowserTab = {
   type: 'browser'
@@ -202,8 +203,11 @@ export function MobileBrowserPane({
     setBrowserViewMode(getInitialMobileBrowserViewMode(worktreeId, tab.browserPageId, tab.url))
   }, [tab.browserPageId, tab.url, worktreeId])
 
+  const binaryScreencastGranted = useBrowserBinaryScreencastGrant()
+
   const { frameGeometry, pageParams, sendBrowserRequest } = useMobileBrowserStream({
     appActive,
+    binaryScreencastGranted,
     browserImageRefs,
     browserLayerRefs,
     browserViewMode,
