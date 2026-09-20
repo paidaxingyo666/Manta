@@ -215,13 +215,20 @@ async function readPaneDiagnostics(
       const pane = manager?.getActivePane?.() ?? manager?.getPanes?.()[0] ?? null
       const state = window.__store?.getState()
       const tab = (state?.tabsByWorktree[worktreeId] ?? []).find((entry) => entry.id === webTabId)
+      const textarea = pane?.container?.querySelector('.xterm-helper-textarea') ?? null
+      const buffer = pane?.serializeAddon?.serialize?.() ?? null
       return {
         mounted: Boolean(manager),
+        activeTabId: state?.activeTabId ?? null,
+        inputFocused: textarea !== null && document.activeElement === textarea,
+        activeElementTag: document.activeElement?.tagName ?? null,
+        activeElementClass: document.activeElement?.getAttribute('class') ?? null,
         ptyId: pane?.container?.dataset?.ptyId ?? null,
         recoveryState: pane?.container?.dataset?.ptyRecoveryState ?? null,
         cols: pane?.terminal?.cols ?? null,
         rows: pane?.terminal?.rows ?? null,
-        bufferLength: pane?.serializeAddon?.serialize?.()?.length ?? null,
+        bufferLength: buffer?.length ?? null,
+        bufferTail: buffer?.slice(-512) ?? null,
         paneLeafIds: manager?.getPanes?.().map((entry) => entry.leafId ?? null) ?? null,
         storeTabPtyId: tab?.ptyId ?? null,
         storePtyIdsByTab: state?.ptyIdsByTabId?.[webTabId] ?? null
@@ -261,6 +268,10 @@ type ScenarioResult = {
   paintedAfterFlip: boolean
   paneGrid: { cols: number; rows: number } | null
   ptyGrid: { cols: number; rows: number } | null
+  inputDiagnostics: unknown
+  hostSinkBeforeInput: string
+  hostSinkAfterInput: string
+  hostSinkFinal: string
   diagnostics: unknown
 }
 
@@ -278,8 +289,11 @@ async function probeInteractivity(
   // Why: a human types once the pane looks restored; typing earlier would race the reattach.
   const restoredBuffer = await waitForPaneMarker(page, target.webTabId, 'READY:', REVEAL_BUDGET_MS)
   await focusActiveTerminalInput(page)
+  const inputDiagnostics = await readPaneDiagnostics(page, worktreeId, target.webTabId)
+  const hostSinkBeforeInput = readSink(target.sinkPath)
   await page.keyboard.type(token)
   await page.keyboard.press('Enter')
+  const hostSinkAfterInput = readSink(target.sinkPath)
   const paintedLive = await waitForPaneMarker(
     page,
     target.webTabId,
@@ -308,6 +322,10 @@ async function probeInteractivity(
     paintedAfterFlip,
     paneGrid,
     ptyGrid: readPtyGridFromContent(sink),
+    inputDiagnostics,
+    hostSinkBeforeInput,
+    hostSinkAfterInput,
+    hostSinkFinal: sink,
     diagnostics
   }
 }
