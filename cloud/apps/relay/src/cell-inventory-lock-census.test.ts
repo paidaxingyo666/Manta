@@ -47,7 +47,9 @@ const CENSUS: CensusEntry[] = [
   { method: 'rebalanceDormant', mode: 'request', reach: 'request' },
   { method: 'startRegionalRehomeCandidate', mode: 'nowait', reach: 'request' },
   { method: 'completeRegionalRehomeCandidate', mode: 'nowait', reach: 'sweep' },
-  { method: 'abortExpiredRegionalRehomes', mode: 'nowait', reach: 'sweep' },
+  // Both regional-rehome abort sweeps share this rollback; only the 24-hour
+  // one also disables the durable switch.
+  { method: 'rollBackStalledRegionalRehomes', mode: 'nowait', reach: 'sweep' },
   { method: 'abortExpiredEvacuations', mode: 'nowait', reach: 'sweep' },
   { method: 'abortExpiredEvacuations', mode: 'nowait', reach: 'sweep' },
   { method: 'releaseExpiredActivityLeases', mode: 'nowait', reach: 'sweep' },

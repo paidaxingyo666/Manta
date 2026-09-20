@@ -297,6 +297,7 @@ CREATE TABLE IF NOT EXISTS relay_region_rehome_attempts (
   ),
   completed_at BIGINT,
   aborted_at BIGINT,
+  abort_reason TEXT,
   created_at BIGINT NOT NULL,
   updated_at BIGINT NOT NULL,
   UNIQUE (user_id, relay_host_id, assignment_epoch)
@@ -676,6 +677,9 @@ export const POSTGRES_SCHEMA_MIGRATIONS = [
      DEFAULT ${REGIONAL_REHOME_DEFAULT_HOST_COOLDOWN_MS}`,
   `ALTER TABLE relay_control_capabilities ADD COLUMN IF NOT EXISTS idle_regional_rehome BIGINT NOT NULL DEFAULT 0`,
   `ALTER TABLE relay_region_rehome_attempts ADD COLUMN IF NOT EXISTS source_generation BIGINT NOT NULL DEFAULT 0`,
+  // Nullable with no default, so the rewrite is catalog-only; every row
+  // aborted before this column existed reads as an unattributed abort.
+  `ALTER TABLE relay_region_rehome_attempts ADD COLUMN IF NOT EXISTS abort_reason TEXT`,
   // Dropped, not created: see the comment on relay_assignment_activity_leases. Deferrable because
   // this is the one boot where it has to take ACCESS EXCLUSIVE on a table under continuous write,
   // and all 28 directors reach it at once; a lock timeout here must not restart the instance, which

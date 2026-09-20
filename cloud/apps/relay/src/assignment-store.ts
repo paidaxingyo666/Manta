@@ -30,6 +30,7 @@ import {
   type RelayRegion,
   type RegionCorrectionRequest,
   type RegionCorrectionResponse,
+  type IdleRegionalRehomeCommit,
   type IdleRegionalRehomeRequest,
 } from '@orca-cloud/relay-contract'
 import {
@@ -80,6 +81,10 @@ import {
   regionalRehomePoolPressure,
   regionalRehomeSafetyFailure
 } from './regional-rehome-safety.js'
+import {
+  REGIONAL_REHOME_ARRIVAL_WINDOW_MS,
+  type RegionalRehomeAbortReason
+} from './regional-rehome-abort-reason.js'
 import {
   ABANDONED_REGISTERED_MIGRATION,
   DURABLY_FENCED_MIGRATION_SOURCE,
@@ -3445,21 +3450,26 @@ export class RelayAssignmentStore {
     request: IdleRegionalRehomeRequest,
     processSafety?: RegionalRehomeSafetySnapshot,
     cohortPercent = this.regionalRehomeCohortPercent
-  ): Promise<{ outcome: 'committed' | 'deferred' | 'stale' }> {
+  ): Promise<IdleRegionalRehomeCommit> {
     const prior = await this.reconcileIdleRegionalRehome(request)
     if (prior !== 'not-committed') return { outcome: prior }
-    if (!processSafety || !Number.isInteger(cohortPercent) || cohortPercent <= 0 || cohortPercent > 100) {
-      return { outcome: 'deferred' }
+    if (!processSafety) return { outcome: 'deferred', reason: 'director-safety-stale' }
+    if (!Number.isInteger(cohortPercent) || cohortPercent <= 0 || cohortPercent > 100) {
+      return { outcome: 'deferred', reason: 'cohort-closed' }
     }
     let safetyDisable: Record<string, string | number> | null = null
-    const result = await this.database.transaction(async (transaction): Promise<{ outcome: 'committed' | 'deferred' | 'stale' }> => {
+    // Set on every fleet-safety failure, disable or not: the pause is durable
+    // and global either way, so no later candidate in this poll can get past it.
+    let safetyPaused = false
+    const result = await this.database.transaction(async (transaction): Promise<IdleRegionalRehomeCommit> => {
       safetyDisable = null
+      safetyPaused = false
       const now = this.now()
       const control = (await transaction.queryLocked(
         `SELECT * FROM relay_region_rehome_control WHERE control_id = 'global'`
       ))[0]
       if (!control || Number(control.enabled) !== 1 || Number(control.not_before) > now) {
-        return { outcome: 'deferred' }
+        return { outcome: 'deferred', reason: 'control-closed' }
       }
       await transaction.query(
         `INSERT INTO relay_region_rehome_worker_state
@@ -3470,13 +3480,15 @@ export class RelayAssignmentStore {
         `SELECT * FROM relay_region_rehome_worker_state WHERE worker_id = 'global'`
       ))[0]!
       if (Number(worker.paused_until) > now || Number(worker.next_dispatch_at) > now) {
-        return { outcome: 'deferred' }
+        return { outcome: 'deferred', reason: 'budget-closed' }
       }
       const open = (await transaction.query(
         `SELECT COUNT(*) AS count FROM relay_assignment_migrations
          WHERE completed_at IS NULL AND aborted_at IS NULL`
       ))[0]
-      if (Number(open?.count ?? 0) >= REGIONAL_REHOME_CONCURRENT_LIMIT) return { outcome: 'deferred' }
+      if (Number(open?.count ?? 0) >= REGIONAL_REHOME_CONCURRENT_LIMIT) {
+        return { outcome: 'deferred', reason: 'concurrency-limit' }
+      }
       const attempt = await this.startRegionalRehomeCandidate(transaction, {
         identity: request,
         sourceCellId: request.sourceCellId,
@@ -3490,9 +3502,14 @@ export class RelayAssignmentStore {
         skips: [],
         idleRequest: request,
         cohortPercent,
-        onSafetyDisabled: (event) => { safetyDisable = event }
+        onSafetyDisabled: (event) => {
+          safetyDisable = event
+          safetyPaused = true
+        }
       })
-      if (!attempt) return { outcome: 'deferred' }
+      if (!attempt) {
+        return { outcome: 'deferred', reason: safetyPaused ? 'fleet-safety' : 'candidate-ineligible' }
+      }
       await this.markRegionalRehomeDispatchClaimed(
         transaction, request.attemptId, now, Math.ceil(60_000 / Number(control.rate_per_minute))
       )
@@ -6354,8 +6371,43 @@ export class RelayAssignmentStore {
     return integer(completed[0]!, 'changes') + integer(aborted[0]!, 'changes')
   }
 
+  // A move the host never finished: it holds no activity on the source and is
+  // not present at the target, so the registered migration row can do nothing
+  // but occupy one of the eight concurrent slots until something clears it.
+  // Rolling it back leaves the durable assignment on the source, so the host
+  // lands where it started whenever it next reconnects.
+  async abortUnarrivedRegionalRehomes(limit = 100): Promise<number> {
+    return await this.rollBackStalledRegionalRehomes({
+      sweep: 'abort-unarrived-regional-rehomes',
+      minimumAttemptAgeMs: REGIONAL_REHOME_ARRIVAL_WINDOW_MS,
+      abortReason: 'host_not_arrived',
+      disableControl: false,
+      limit
+    })
+  }
+
+  // The last-resort latch, and the only sweep that disables the switch. With
+  // the arrival sweep above running it should never reach a row; one that
+  // survives a day past dispatch means the rollback path itself is broken.
   async abortExpiredRegionalRehomes(limit = 100): Promise<number> {
+    return await this.rollBackStalledRegionalRehomes({
+      sweep: 'abort-expired-regional-rehomes',
+      minimumAttemptAgeMs: REGIONAL_REHOME_MAX_REFRESH_MS,
+      abortReason: 'max_refresh_expired',
+      disableControl: true,
+      limit
+    })
+  }
+
+  private async rollBackStalledRegionalRehomes(input: {
+    sweep: string
+    minimumAttemptAgeMs: number
+    abortReason: RegionalRehomeAbortReason
+    disableControl: boolean
+    limit: number
+  }): Promise<number> {
     const now = this.now()
+    const dispatchedBefore = now - input.minimumAttemptAgeMs
     const quarantined = this.quarantinedRegionalRehomeAttemptIds(now)
     const exclusion = quarantined.length
       ? ` AND attempt_id NOT IN (${quarantined.map(() => '?').join(', ')})`
@@ -6366,7 +6418,7 @@ export class RelayAssignmentStore {
        WHERE completed_at IS NULL AND aborted_at IS NULL
          AND created_at <= ?${exclusion}
        ORDER BY created_at, attempt_id LIMIT ?`,
-      [now - REGIONAL_REHOME_MAX_REFRESH_MS, ...quarantined, limit]
+      [dispatchedBefore, ...quarantined, input.limit]
     )
     let aborted = 0
     let inventoryBusy = 0
@@ -6403,7 +6455,7 @@ export class RelayAssignmentStore {
           !migration ||
           optionalInteger(attempt, 'completed_at') !== undefined ||
           optionalInteger(attempt, 'aborted_at') !== undefined ||
-          integer(attempt, 'created_at') > now - REGIONAL_REHOME_MAX_REFRESH_MS ||
+          integer(attempt, 'created_at') > dispatchedBefore ||
           optionalInteger(migration, 'completed_at') !== undefined ||
           optionalInteger(migration, 'aborted_at') !== undefined
         ) {
@@ -6472,16 +6524,22 @@ export class RelayAssignmentStore {
           [now, now, identity.userId, identity.relayHostId, assignmentEpoch]
         )
         await transaction.query(
-          `UPDATE relay_region_rehome_attempts SET aborted_at = ?, updated_at = ?
+          `UPDATE relay_region_rehome_attempts
+           SET aborted_at = ?, abort_reason = ?, updated_at = ?
            WHERE attempt_id = ?`,
-          [now, now, text(attempt, 'attempt_id')]
+          [now, input.abortReason, now, text(attempt, 'attempt_id')]
         )
-        await transaction.query(
-          `UPDATE relay_region_rehome_control
-           SET generation = generation + 1, enabled = 0, updated_at = ?
-           WHERE control_id = 'global' AND enabled = 1`,
-          [now]
-        )
+        // Only the last-resort latch turns the feature off. A host that closed
+        // its laptop mid-move says nothing about whether rehoming is safe, and
+        // one such row a day would otherwise disable the switch every day.
+        if (input.disableControl) {
+          await transaction.query(
+            `UPDATE relay_region_rehome_control
+             SET generation = generation + 1, enabled = 0, updated_at = ?
+             WHERE control_id = 'global' AND enabled = 1`,
+            [now]
+          )
+        }
         return true
         })
         this.regionalRehomeCandidateQuarantine.delete(attemptId)
@@ -6491,7 +6549,7 @@ export class RelayAssignmentStore {
       }
       if (changed) aborted++
     }
-    warnSweepCellInventoryBusy('abort-expired-regional-rehomes', inventoryBusy)
+    warnSweepCellInventoryBusy(input.sweep, inventoryBusy)
     return aborted
   }
 

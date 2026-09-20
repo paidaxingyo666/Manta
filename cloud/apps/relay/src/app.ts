@@ -2,7 +2,7 @@ import {
   AssignmentRequestSchema,
   IdleRegionalRehomeRequestSchema,
   type IdleRegionalRehomeRequest,
-  type IdleRegionalRehomeOutcome,
+  type IdleRegionalRehomeResult,
   type RegionCorrectionResponse,
   isRelayCellConnectionHardCap,
   RELAY_ADMISSION_BUDGETS,
@@ -79,7 +79,7 @@ export function createRelayApp(
     idleRehome?: (input: IdleRegionalRehomeRequest & {
       cohortPercent: number
       directorSafety: RegionalRehomeSafetySnapshot
-    }) => Promise<{ outcome: IdleRegionalRehomeOutcome }>
+    }) => Promise<IdleRegionalRehomeResult>
     drainHost?: (input: {
       attemptId: string
       userId: string
