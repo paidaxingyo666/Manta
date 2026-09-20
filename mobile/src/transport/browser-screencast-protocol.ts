@@ -1,7 +1,11 @@
 const BROWSER_SCREENCAST_KIND = 0x62
 const BROWSER_SCREENCAST_VERSION = 1
 const HEADER_BYTES = 16
-const METADATA_KEYS = [
+/**
+ * Every metadata field a frame carries, exported because the page's frame-area budget sizes the
+ * envelope from this list rather than from a copy of it.
+ */
+export const METADATA_KEYS = [
   'offsetTop',
   'pageScaleFactor',
   'deviceWidth',

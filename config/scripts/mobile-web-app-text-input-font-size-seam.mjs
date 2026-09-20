@@ -8,7 +8,7 @@
  * A rule per route closure rather than per known site: the first fix covered two inputs and eight
  * others in the same closures still carried the old size.
  */
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import ts from 'typescript-api'
 
@@ -28,13 +28,32 @@ function readOrNull(path) {
   }
 }
 
+/**
+ * The extensions a specifier is tried with, in the order the page bundle tries them.
+ *
+ * `.web` first, because that is what `resolveExtensions` in the builder does and therefore what a
+ * route closure is made of. A census that followed an import to the native sibling would be judging
+ * a module no browser loads, which fails in the direction that matters: a split whose web half sits
+ * under the floor reads as clean because its native half is on the seam.
+ */
+const RESOLVED_EXTENSIONS = [
+  '.web.tsx',
+  '.web.ts',
+  '.tsx',
+  '.ts',
+  '/index.web.tsx',
+  '/index.web.ts',
+  '/index.tsx',
+  '/index.ts'
+]
+
 /** A relative specifier as a path under `mobile/`, or null for a package. */
 function resolveLocal(mobileDir, fromFile, specifier) {
   if (!specifier.startsWith('.')) {
     return null
   }
   const base = resolve(dirname(join(mobileDir, fromFile)), specifier)
-  for (const extension of ['.ts', '.tsx', '/index.ts', '/index.tsx']) {
+  for (const extension of RESOLVED_EXTENSIONS) {
     if (existsSync(base + extension)) {
       // Relative to the root rather than sliced by its length, which leaves a leading separator
       // whenever the root is passed without a trailing one.
@@ -42,6 +61,17 @@ function resolveLocal(mobileDir, fromFile, specifier) {
     }
   }
   return null
+}
+
+/**
+ * A resolved path with its platform suffix dropped, so both siblings name one module.
+ *
+ * Needed because the seam is itself a split: `text-input-font-size.web.ts` is where the raise
+ * lives, so resolving an import of it now lands on the web file, and comparing that against the
+ * seam's native path would make every binding in the tree stop counting as the seam.
+ */
+function moduleIdentity(path) {
+  return path === null ? null : path.replace(/\.web(\.[jt]sx?)$/, '$1')
 }
 
 /**
@@ -91,6 +121,60 @@ function styleExpressions(expression) {
     return []
   }
   return [expression]
+}
+
+/**
+ * Every non-test module under `directory` that renders a `TextInput`, as paths under `mobileDir`.
+ *
+ * Exported so a hand-written closure can state what it claims to cover and be held to it: an
+ * offender list over a list somebody typed proves the walk read those files, not that they are the
+ * screen's set. Uses the same JSX tag rule the walk below does, rather than a text search that
+ * would count an import or a comment.
+ */
+export function modulesDeclaringTextInput(mobileDir, directory) {
+  const found = []
+  const walk = (relativeDirectory) => {
+    const absolute = join(mobileDir, relativeDirectory)
+    if (!existsSync(absolute)) {
+      return
+    }
+    for (const entry of readdirSync(absolute, { withFileTypes: true })) {
+      const child = `${relativeDirectory}/${entry.name}`
+      if (entry.isDirectory()) {
+        walk(child)
+        continue
+      }
+      if (!/\.(tsx|ts)$/.test(entry.name) || /\.test\.(tsx|ts)$/.test(entry.name)) {
+        continue
+      }
+      const source = readOrNull(join(mobileDir, child))
+      if (source !== null && declaresTextInput(parse(child, source))) {
+        found.push(child)
+      }
+    }
+  }
+  walk(directory)
+  return found.sort()
+}
+
+/** Whether a parsed module renders a `TextInput` element, by tag rather than by mention. */
+function declaresTextInput(parsed) {
+  let found = false
+  const visit = (node) => {
+    if (found) {
+      return
+    }
+    if (
+      (ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) &&
+      node.tagName.getText() === 'TextInput'
+    ) {
+      found = true
+      return
+    }
+    ts.forEachChild(node, visit)
+  }
+  ts.forEachChild(parsed, visit)
+  return found
 }
 
 /**
@@ -190,7 +274,8 @@ function isSeamBinding(mobileDir, parsed, file, initializer) {
       if (
         element.name.text === initializer.text &&
         (element.propertyName ?? element.name).text === SEAM_EXPORT &&
-        resolveLocal(mobileDir, file, statement.moduleSpecifier.text) === SEAM_MODULE
+        moduleIdentity(resolveLocal(mobileDir, file, statement.moduleSpecifier.text)) ===
+          SEAM_MODULE
       ) {
         return true
       }

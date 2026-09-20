@@ -11,6 +11,8 @@ vi.mock('react-native', () => ({
   }
 }))
 
+import { browserAddressFieldStyles } from '../browser/browser-address-field-styles'
+import { mobileBrowserPaneStyles } from '../browser/mobile-browser-pane-styles'
 import { listStyles } from '../source-control/mobile-source-control-list-styles'
 import { mobileDiffReviewControlStyles } from '../components/mobile-diff-review-control-styles'
 import { typography } from '../theme/mobile-theme'
@@ -28,8 +30,21 @@ import { TEXT_INPUT_FONT_SIZE as WEB_TEXT_INPUT_FONT_SIZE } from './text-input-f
 const MOBILE_ROOT = join(import.meta.dirname, '..', '..')
 const STYLE_MODULES = [
   'src/source-control/mobile-source-control-list-styles.ts',
-  'src/components/mobile-diff-review-control-styles.ts'
+  'src/components/mobile-diff-review-control-styles.ts',
+  'src/browser/mobile-browser-pane-styles.ts'
 ]
+
+/**
+ * The inputs that reach the seam through a `.web.ts` sibling instead of directly.
+ *
+ * The browser pane's address bar renders at the theme's meta size natively, so it cannot take the
+ * seam's value on both platforms the way the four above do. Its web half is where the raise lives,
+ * and that is the file that has to carry the binding.
+ */
+const SPLIT_STYLE_MODULES = ['src/browser/browser-address-field-styles.web.ts']
+
+/** The seam's export, so the source check below looks for a binding rather than for a mention. */
+const SEAM_EXPORT_NAME = 'TEXT_INPUT_FONT_SIZE'
 
 describe('the font size the page-served text inputs carry', () => {
   it('clears the size iOS zooms the page for, on the web', () => {
@@ -42,15 +57,21 @@ describe('the font size the page-served text inputs carry', () => {
     expect(TEXT_INPUT_FONT_SIZE).toBe(typography.bodySize)
     expect(listStyles.commitInput.fontSize).toBe(typography.bodySize)
     expect(mobileDiffReviewControlStyles.composerInput.fontSize).toBe(typography.bodySize)
+    expect(mobileBrowserPaneStyles.keyboardInput.fontSize).toBe(typography.bodySize)
+    // The pane's address bar is the one that is split: it keeps the compact size natively, so the
+    // seam reaches it through the `.web.ts` sibling rather than through this constant.
+    expect(browserAddressFieldStyles.input.fontSize).toBe(typography.metaSize)
   })
 
-  it('takes that size from the seam in both styles, which is what the web build swaps', () => {
-    // Read as source: both modules resolve to the native constant here, so a style that went back
-    // to `typography.bodySize` would pass every assertion above and ship 14px to the web.
+  it('takes that size from the seam in every style, which is what the web build swaps', () => {
+    // Read as source, and at the property rather than anywhere in the file: every one of these
+    // modules resolves to the native constant here, so a style that went back to a literal 14 or
+    // to `typography.bodySize` would pass every assertion above and ship 14px to the web. A
+    // file-wide search would not see it either, because the import line survives the change.
     expect(
-      STYLE_MODULES.filter(
+      [...STYLE_MODULES, ...SPLIT_STYLE_MODULES].filter(
         (module) =>
-          !readFileSync(join(MOBILE_ROOT, module), 'utf8').includes('TEXT_INPUT_FONT_SIZE')
+          !readFileSync(join(MOBILE_ROOT, module), 'utf8').includes(`fontSize: ${SEAM_EXPORT_NAME}`)
       )
     ).toEqual([])
   })

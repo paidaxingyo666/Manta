@@ -269,6 +269,85 @@ describe('the size a text input declares, as the census reads it', () => {
   })
 })
 
+/**
+ * The platform sibling, which is the file the page actually runs.
+ *
+ * `mobileWebAppRouteClosure` reports what esbuild resolved, and esbuild prefers `.web.tsx`/`.web.ts`
+ * ahead of the native file. A census that followed an import to the native sibling would judge a
+ * module no browser loads: it would clear a split whose web half is off the seam, and report one
+ * whose web half is on it. Both directions are below, because only one of them is a false pass.
+ */
+describe('a style module with a platform sibling', () => {
+  const FIELD = [
+    "import { styles } from './field-styles'",
+    'export const Field = () => <TextInput style={styles.input} />'
+  ].join('\n')
+
+  it('is read through its .web sibling, so a raised web size clears the native one', () => {
+    const root = plant({
+      'src/ui/Field.tsx': FIELD,
+      'src/ui/field-styles.ts': 'export const styles = { input: { fontSize: 12 } }',
+      'src/ui/field-styles.web.ts': [
+        SEAM_IMPORT.replace('../platform', '../platform'),
+        'export const styles = { input: { fontSize: TEXT_INPUT_FONT_SIZE } }'
+      ].join('\n'),
+      ...SEAM_SOURCE
+    })
+    try {
+      const closure = { local: ['src/ui/Field.tsx', 'src/ui/field-styles.web.ts'] }
+      expect(textInputFontSizeOffenders(root, closure)).toEqual([])
+      expect(unresolvedTextInputStyles(root, closure)).toEqual([])
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it('is reported when the .web half is the one off the seam, native half notwithstanding', () => {
+    const root = plant({
+      'src/ui/Field.tsx': FIELD,
+      'src/ui/field-styles.ts': [
+        SEAM_IMPORT,
+        'export const styles = { input: { fontSize: TEXT_INPUT_FONT_SIZE } }'
+      ].join('\n'),
+      'src/ui/field-styles.web.ts': 'export const styles = { input: { fontSize: 12 } }',
+      ...SEAM_SOURCE
+    })
+    try {
+      expect(
+        textInputFontSizeOffenders(root, {
+          local: ['src/ui/Field.tsx', 'src/ui/field-styles.web.ts']
+        })
+      ).toEqual(['src/ui/field-styles.web.ts:1'])
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  /**
+   * The seam has a `.web.ts` sibling of its own, and that is the whole point of it: the native file
+   * is the app's body size and the web one raises it past the focus-zoom floor. Preferring the web
+   * file when following an import must not make every seam binding stop naming the seam.
+   */
+  it('still counts the seam as the seam when the seam itself is the split one', () => {
+    const root = plant({
+      'src/ui/Field.tsx': FIELD,
+      'src/ui/field-styles.ts': [
+        SEAM_IMPORT,
+        'export const styles = { input: { fontSize: TEXT_INPUT_FONT_SIZE } }'
+      ].join('\n'),
+      ...SEAM_SOURCE,
+      'src/platform/text-input-font-size.web.ts': 'export const TEXT_INPUT_FONT_SIZE = 16'
+    })
+    try {
+      const closure = { local: ['src/ui/Field.tsx', 'src/ui/field-styles.ts'] }
+      expect(textInputFontSizeOffenders(root, closure)).toEqual([])
+      expect(unresolvedTextInputStyles(root, closure)).toEqual([])
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+})
+
 describeClosure(
   'the text inputs the source-control and review pages reach',
   () => {
