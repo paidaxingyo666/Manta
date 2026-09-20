@@ -809,6 +809,16 @@ jobs:
         with:
           ref: refs/tags/${{ needs.cut.outputs.tag }}
 
+      - name: Restore draft-release scripts from the workflow ref
+        env:
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$WORKFLOW_SHA"
+          git checkout "$WORKFLOW_SHA" -- \
+            config/scripts/create-draft-release.mjs \
+            config/scripts/assert-github-release-is-draft.mjs
+
       - name: Create draft release with bounded generated notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1181,14 +1191,14 @@ jobs:
               ~\AppData\Local\electron-builder\Cache
           - os: ubuntu-latest
             platform: linux-x64
-            release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --x64 --publish always
+            release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --x64 --publish always -c.publish.releaseType=draft
             unpacked_dir: dist/linux-unpacked
             eb_cache_path: |
               ~/.cache/electron
               ~/.cache/electron-builder
           - os: ubuntu-24.04-arm
             platform: linux-arm64
-            release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && MANTA_LINUX_ARM64_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --arm64 --publish always
+            release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && MANTA_LINUX_ARM64_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --arm64 --publish always -c.publish.releaseType=draft
             unpacked_dir: dist/linux-arm64-unpacked
             eb_cache_path: |
               ~/.cache/electron
@@ -1226,6 +1236,18 @@ jobs:
       # actions directory from the commit this workflow file itself came from.
       # Not Windows-only: every platform now consumes install-mobile-dependencies, so
       # any of them can be the one whose cut ref predates the action.
+      - name: Restore draft-publish scripts from the workflow ref
+        # Why: this job checks out the release tag, so a cut from an older SHA
+        # still has electron-builder releaseType:release and no re-draft helper.
+        # The workflow YAML is from main; restore the scripts it invokes.
+        shell: bash
+        env:
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$WORKFLOW_SHA"
+          git checkout "$WORKFLOW_SHA" -- config/scripts/assert-github-release-is-draft.mjs
+
       - name: Restore composite actions from the workflow ref
         shell: bash
         env:

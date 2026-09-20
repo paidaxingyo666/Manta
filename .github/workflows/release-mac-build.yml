@@ -37,6 +37,14 @@ jobs:
         with:
           ref: refs/tags/${{ inputs.tag }}
 
+      - name: Restore draft-publish scripts from the workflow ref
+        env:
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "$WORKFLOW_SHA"
+          git checkout "$WORKFLOW_SHA" -- config/scripts/assert-github-release-is-draft.mjs
+
       - name: Setup pnpm
         uses: pnpm/setup@v2
         with:
@@ -163,7 +171,7 @@ jobs:
           timeout_minutes: 45
           max_attempts: 3
           retry_wait_seconds: 30
-          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && MANTA_MAC_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && MANTA_MAC_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always -c.publish.releaseType=draft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.MAC_CERTS }}
