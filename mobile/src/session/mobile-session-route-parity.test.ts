@@ -83,7 +83,12 @@ const HEAD_CALLBACK_IDENTITY_SHA256 =
 // byteLength }` cast: the preview reader checks the content and salvages the flag, so `readMarkdownTab`
 // reads `fallback.value` directly. The dictation-mode refresh is main's own body again — it forwards
 // whatever mode the reply carried, so an absent one leaves the mic as inert as main left it.
-const HEAD_CALLBACK_BODY_SHA256 = 'a5cad68712a53a2d5fb5514ecd391adb5bc7621d3542ac895ec65a383ac1810f'
+// Refreshed on the merge of C7.2 and C7.3, which moved this pin from both sides: the terminal
+// subscribe now carries the snapshot byte budget its transport imposes, nothing on a phone and the
+// frame cap inside the shell's page, and the Markdown copy action gained the failure branch that
+// answers a refused write. Re-recorded against the merged tree, since neither side's hash covers
+// the other's body. The hook and string counts are C7.2's and stand.
+const HEAD_CALLBACK_BODY_SHA256 = '5845c3b85217a3af9d3d2bfafe564a2b29a1b2c6776b5c2c9ec5afbf365a5157'
 // Refreshed for the startup effect: both `worktree.activate` sends became `worktreeActivate`, and
 // the sleeping-agent check reads that operation's verdict instead of the reply envelope. Refreshed
 // again when the reporter took the reply and interpreted it itself, retiring the hand-built
