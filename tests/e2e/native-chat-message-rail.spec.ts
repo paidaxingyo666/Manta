@@ -141,9 +141,9 @@ test.describe('Native chat message rail', () => {
     const panelCount = await panel.getByRole('button').count()
     expect(panelCount).toBe(TRANSCRIPT_ROWS / 2)
 
-    // Activating the hover preview transfers focus into the prompt picker.
+    // Activating the hover preview focuses the current prompt.
     await rail.press('Enter')
-    await expect(panel.getByRole('button').first()).toBeFocused()
+    await expect(panel.locator('button[aria-current="true"]')).toBeFocused()
     await panel.getByRole('button', { name: 'Question 5:', exact: false }).click()
     await expect(panel).not.toBeVisible()
     const target = transcriptWindow.locator('[data-index="10"]')
