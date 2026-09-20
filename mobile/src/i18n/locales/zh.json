@@ -2283,6 +2283,14 @@
     "hostActions": {
       "reconnect": "重新连接",
       "connect": "连接"
+    },
+    "onboarding": {
+      "preview": {
+        "codexTitle": "Codex 已完成",
+        "codexBody": "测试已通过。",
+        "claudeTitle": "Claude 等待输入",
+        "claudeBody": "等待你的操作。"
+      }
     }
   }
 }

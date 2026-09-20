@@ -12,6 +12,8 @@ import {
   hostClientContextExposure
 } from './host-client-context-exposure'
 import { readScenarios } from './scenario-input'
+import { runRecording } from './run-recording'
+import { vitestRecordingScheduler } from './vitest-recording-scheduler'
 
 const root = resolve(import.meta.dirname, '../../../..')
 const manifest = readScenarios(
@@ -222,6 +224,28 @@ describe('the engine/adapter seam', () => {
       Object.keys(module.mounts(modules, {}))
     )
     expect(Object.keys(pilotMountAdapters(root).adapters).sort()).toEqual([...registered].sort())
+  })
+
+  it.each([
+    ['aivault-history-scan-fulfilled', 'ready'],
+    ['aivault-history-scan-unsupported', 'unsupported'],
+    ['aivault-history-scan-worktrees-late', 'ready']
+  ])('mounts %s through the fork context contract', async (id, kind) => {
+    const scenario = manifest.find((candidate) => candidate.id === id)
+    if (!scenario) {
+      throw new Error(`No recording scenario named ${id}`)
+    }
+    const { adapters } = pilotMountAdapters(root, { device: scenario })
+    const recording = await runRecording(
+      scenario,
+      adapters[scenario.operation]!,
+      vitestRecordingScheduler()
+    )
+    expect(recording.checkpoints.at(-1)?.observation.state).toMatchObject({
+      scope: 'workspace',
+      screenState: { kind },
+      refreshing: false
+    })
   })
 
   it('attributes every recorded operation to a registered module', () => {

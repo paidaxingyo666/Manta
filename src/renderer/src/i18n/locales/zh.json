@@ -83,7 +83,8 @@
       "remoteBrowsing": {
         "heading": "远程浏览",
         "headingDescription": "远程工作区页面在何处渲染，以及其网络流量从何处发出。"
-      }
+      },
+      "userAgent": {}
     }
   },
   "menu": {
@@ -733,7 +734,7 @@
           "flow": {
             "structured": {
               "launch": {
-                "unknown": "无法确认 Codex 聊天是否已打开。请重试以再次检查。"
+                "unknown": "无法确认 {{value0}} 聊天是否已打开。请重试以再次检查。"
               }
             }
           }
@@ -882,7 +883,8 @@
         "preview": {
           "pairedOutsideWorktree": "暂不支持在已配对的服务器上预览工作区以外的文件。"
         }
-      }
+      },
+      "clipboardWriteFailure": {}
     },
     "hooks": {
       "useAutomationDispatchEvents": {
@@ -5722,6 +5724,9 @@
               "unstoppedPtyLive": "此工作区仍有运行中的终端，因此 Manta 已在删除任何文件前停止操作。“强制删除”将终止这些终端，并丢弃其中所有未提交的工作。",
               "runningAgentSession": "Manta 无法确认此工作区中的所有智能体会话均已关闭，因此已在删除任何文件前停止操作。如仍要移除，请使用“强制删除”。",
               "runningAgentSessionLive": "此工作区仍有 Manta 无法关闭的运行中智能体会话，因此 Manta 在删除任何文件前已停止操作。“强制删除”将丢弃这些会话中的所有工作。"
+            },
+            "failure": {
+              "archive": {}
             }
           }
         },
@@ -9141,7 +9146,8 @@
               "routing": "路由",
               "network": "网络",
               "ssh": "SSH"
-            }
+            },
+            "userAgent": {}
           },
           "use": {
             "search": {
@@ -11684,7 +11690,8 @@
           "switchAccount": "使用其他账户",
           "signInFailed": "无法连接到中继。",
           "emailLabel": "邮箱",
-          "emailPlaceholder": "you@example.com"
+          "emailPlaceholder": "you@example.com",
+          "signingIn": "正在登录…"
         },
         "MantaCloudEndpointsSection": {
           "artifactsOriginShared": "工件主机必须与中继地址使用不同的源。",
@@ -11883,7 +11890,8 @@
             "server": "服务器",
             "latency": "延迟"
           }
-        }
+        },
+        "TerminalRenderingSection": {}
       },
       "right": {
         "sidebar": {
@@ -13396,7 +13404,8 @@
             "90cabf6cfc": "将此 PR 堆叠在 #{{value0}} 之上",
             "ff81473a57": "创建 GitHub Stack，或扩展父 PR 已有的堆叠。",
             "29732f2fb0": "新 PR"
-          }
+          },
+          "AiVaultSearchEvidence": {}
         }
       },
       "repo": {
@@ -16962,9 +16971,11 @@
             "1f772bb5d0": "无法确认消息是否已送达。",
             "93ef441197": "消息未发送。",
             "a5e7f14068": "重试"
-          }
+          },
+          "NativeChatLaunchRetry": {}
         }
-      }
+      },
+      "NativeChatResumeOnRestartModal": {}
     },
     "i18n": {
       "hostedReview": {
@@ -17202,7 +17213,8 @@
       "approval": {
         "title": "允许 {{value0}}？",
         "allow": "允许",
-        "deny": "拒绝"
+        "deny": "拒绝",
+        "plan": {}
       },
       "launchPromptNotDelivered": "未送达 — 请检查终端",
       "structuredSessionCloseFailed": "无法关闭此聊天会话",
@@ -17315,7 +17327,9 @@
       "conversationCommand": {
         "pendingWork": "请等待进行中的工作和消息完成后再使用此命令。",
         "unconfirmed": "对话操作未得到确认。"
-      }
+      },
+      "ask": {},
+      "drop": {}
     },
     "tab": {
       "bar": {
@@ -17657,6 +17671,14 @@
       "select": "选择 {{value0}}",
       "search": "搜索用户",
       "empty": "未找到用户"
+    },
+    "settings": {
+      "TerminalInteraction": {},
+      "terminal": {
+        "clipboard": {
+          "search": {}
+        }
+      }
     }
   },
   "dashboardPopout": {
@@ -17839,13 +17861,15 @@
     },
     "remote": {
       "findUnavailable": "此页面由远程主机流式传输时，无法使用页内查找。"
-    }
+    },
+    "userAgentMigration": {}
   },
   "editor": {
     "richMarkdown": {
       "tooLarge": "文件超过 {{limit}} 的富文本编辑上限，已改为源码模式显示。",
       "openAnyway": "仍然打开"
-    }
+    },
+    "fileLoad": {}
   },
   "runtimeRpc": {
     "startupFailure": {
@@ -17932,5 +17956,16 @@
       "stopped": "已停止",
       "finished": "已完成"
     }
-  }
+  },
+  "sessionSearch": {
+    "panel": {}
+  },
+  "sessionHistory": {
+    "status": {},
+    "settings": {}
+  },
+  "aiVault": {
+    "subagents": {}
+  },
+  "common": {}
 }

@@ -538,9 +538,11 @@ test.describe('Onboarding flow', () => {
     await expectAddProjectDialog(mantaPage)
     // The runtime env is selected as the Add Project host and the browse action
     // is host-scoped, proving the server project-setup UI is preserved on skip.
-    await expect(mantaPage.getByText('Existing Git repository or folder on this host')).toBeVisible({
-      timeout: 30_000
-    })
+    await expect(mantaPage.getByText('Existing Git repository or folder on this host')).toBeVisible(
+      {
+        timeout: 30_000
+      }
+    )
     await expect(mantaPage.getByRole('button', { name: /Browse folder/i })).toBeVisible()
     await expect(mantaPage.getByRole('button', { name: /Clone from URL/i })).toBeVisible()
     await expect(mantaPage.getByRole('button', { name: /Create new project/i })).toBeVisible()

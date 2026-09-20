@@ -4,11 +4,21 @@ import { MantaLogo } from '../components/MantaLogo'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { useReducedMotionEnabled } from './use-reduced-motion'
 import { translate } from '../i18n/i18n'
+import { localizedConstant } from '../i18n/localized-constant'
 
-const SAMPLE_NOTIFICATIONS = [
-  { title: 'Codex finished', body: 'Tests are passing.' },
-  { title: 'Claude needs input', body: 'Waiting on you.' }
-] as const
+const sampleNotifications = localizedConstant(
+  () =>
+    [
+      {
+        title: translate('mobile.onboarding.preview.codexTitle', 'Codex finished'),
+        body: translate('mobile.onboarding.preview.codexBody', 'Tests are passing.')
+      },
+      {
+        title: translate('mobile.onboarding.preview.claudeTitle', 'Claude needs input'),
+        body: translate('mobile.onboarding.preview.claudeBody', 'Waiting on you.')
+      }
+    ] as const
+)
 
 const ENTER_MS = 676
 const EXIT_MS = 416
@@ -23,6 +33,7 @@ type Props = {
 
 /** Decorative banners; the surrounding copy is the accessible explanation. */
 export function NotificationOnboardingPreview({ active }: Props) {
+  const notifications = sampleNotifications()
   const reduceMotion = useReducedMotionEnabled()
   const first = useRef(new Animated.Value(0)).current
   const second = useRef(new Animated.Value(0)).current
@@ -77,16 +88,20 @@ export function NotificationOnboardingPreview({ active }: Props) {
       style={styles.stack}
     >
       <Animated.View style={bannerMotion(first)}>
-        <SampleBanner notification={SAMPLE_NOTIFICATIONS[0]} />
+        <SampleBanner notification={notifications[0]} />
       </Animated.View>
       <Animated.View style={bannerMotion(second)}>
-        <SampleBanner notification={SAMPLE_NOTIFICATIONS[1]} />
+        <SampleBanner notification={notifications[1]} />
       </Animated.View>
     </View>
   )
 }
 
-function SampleBanner({ notification }: { notification: (typeof SAMPLE_NOTIFICATIONS)[number] }) {
+function SampleBanner({
+  notification
+}: {
+  notification: ReturnType<typeof sampleNotifications>[number]
+}) {
   return (
     <View style={styles.card}>
       <View style={styles.appIcon}>

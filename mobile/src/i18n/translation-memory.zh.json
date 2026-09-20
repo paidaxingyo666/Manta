@@ -1209,5 +1209,9 @@
   "{{value0}} · {{value1}} B · {{value2}} ms": "{{value0}} · {{value1}} 字节 · {{value2}} 毫秒",
   "Try again": "重试",
   "{{value0}}/{{value1}} files · {{value2}}/{{value3}} bytes": "{{value0}}/{{value1}} 个文件 · {{value2}}/{{value3}} 字节",
-  "Downloading workspace": "正在下载工作区"
+  "Downloading workspace": "正在下载工作区",
+  "Codex finished": "Codex 已完成",
+  "Tests are passing.": "测试已通过。",
+  "Claude needs input": "Claude 等待输入",
+  "Waiting on you.": "等待你的操作。"
 }

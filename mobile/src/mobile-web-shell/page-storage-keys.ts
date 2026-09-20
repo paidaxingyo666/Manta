@@ -13,7 +13,9 @@
  */
 export const PAGE_STORAGE_EXACT_KEYS = [
   /** The repo the New Workspace drawer opens on. */
-  'manta:last-visited-worktree'
+  'manta:last-visited-worktree',
+  /** The language chosen in the native app's settings. */
+  'manta.ui-language'
 ] as const
 
 export const PAGE_STORAGE_KEY_PREFIXES = [

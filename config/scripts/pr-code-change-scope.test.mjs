@@ -260,6 +260,9 @@ describe('per-job path classification', () => {
     for (const file of [
       'config/scripts/build-mobile-web-app-bundle.mjs',
       'config/scripts/mobile-web-app-route-manifest.mjs',
+      'config/scripts/mobile-web-app-router-query-string.test.mjs',
+      'mobile/pnpm-workspace.yaml',
+      'mobile/patches/query-string@9.5.1.patch',
       'mobile/web-entry/index.tsx',
       'mobile/app/h/[hostId]/index.tsx',
       'mobile/src/transport/client-context.web.tsx',

@@ -2283,6 +2283,14 @@
     "hostActions": {
       "reconnect": "Reconnect",
       "connect": "Connect"
+    },
+    "onboarding": {
+      "preview": {
+        "codexTitle": "Codex finished",
+        "codexBody": "Tests are passing.",
+        "claudeTitle": "Claude needs input",
+        "claudeBody": "Waiting on you."
+      }
     }
   }
 }

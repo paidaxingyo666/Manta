@@ -120,6 +120,34 @@ describe('a scenario that declares its device', () => {
     ])
   })
 
+  it('reads notification permission only when the scenario declares it', async () => {
+    const device = declaredDeviceSubstitutes({
+      deviceState: { notificationPermission: 'denied' }
+    })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the permission declaration supplies this member; its value and undeclared tray are asserted below.
+    const module = device.substitutes.get('expo-notifications') as {
+      getPermissionsAsync: () => Promise<{ status: string }>
+      getPresentedNotificationsAsync: () => Promise<unknown[]>
+    }
+    await expect(module.getPermissionsAsync()).resolves.toEqual({ status: 'denied' })
+    expect(() => module.getPresentedNotificationsAsync()).toThrow(
+      'Unsubstituted native member: expo-notifications.getPresentedNotificationsAsync'
+    )
+  })
+
+  it.each([
+    'notifications-desktop-stream',
+    'notifications-desktop-stream-replayed',
+    'notifications-desktop-stream-closed'
+  ])('records %s against the persisted fork watermark', async (id) => {
+    const recording = await record(id)
+    expect(sentParams(recording)).toEqual({
+      name: 'notifications.getMissedSince#1',
+      params: { lastSeenSeq: 6, epoch: 'epoch-1' }
+    })
+    expect(lastCheckpoint(recording).state).toEqual({ running: false })
+  })
+
   it('backs a recorded read: the declared last-visited repo is the one the dialog selects', async () => {
     const recording = await record('new-workspace-repositories-fulfilled')
     expect(sentParams(recording)).toEqual({ name: 'repo.list#1', params: { $rpc: 'absent' } })

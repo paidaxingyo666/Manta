@@ -762,6 +762,7 @@ jobs:
           pnpm exec vitest run --config config/vitest.config.ts \
             config/scripts/build-mobile-web-app-bundle.test.mjs \
             config/scripts/mobile-web-app-web-overrides.test.mjs \
+            config/scripts/mobile-web-app-router-query-string.test.mjs \
             config/scripts/mobile-web-app-render.test.mjs \
             config/scripts/mobile-web-app-drawer-render.test.mjs \
             config/scripts/mobile-web-app-agent-history-render.test.mjs \
@@ -791,6 +792,16 @@ jobs:
           filter: blob:none
           persist-credentials: false
 
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+
+      - name: Pin the fork release baseline
+        run: |
+          set -euo pipefail
+          baseline="$(node --input-type=module -e "import { resolveBaselineReleaseRef } from './tests/e2e/cross-version-wire/release-checkout.ts'; console.log(resolveBaselineReleaseRef())")"
+          echo "MANTA_CROSS_VERSION_BASELINE_REF=$baseline" >> "$GITHUB_ENV"
+
       # Why: the baseline the harness skews against is an UPSTREAM release tag.
       # This fork's own tags start well after it, and the tags a clone of upstream
       # carries locally are never pushed here — so on CI the ref does not resolve
@@ -808,8 +819,7 @@ jobs:
           set -euo pipefail
           # Every pinned baseline in the lane, read out of the tests rather than
           # repeated here, so a bump stays a one-line change in the file that owns it.
-          refs="$(sed -n "s/.*RELEASE_REF = '\([^']*\)'.*/\1/p" \
-            tests/e2e/cross-version-wire/*.unit.test.ts | sort -u)"
+          refs="$(node --input-type=module -e "import { readCrossVersionPinnedRefs } from './config/scripts/cross-version-pinned-refs.mjs'; console.log(readCrossVersionPinnedRefs(process.cwd()).tags.join('\n'))")"
           if [ -z "$refs" ]; then
             echo "::error::could not read any baseline release ref out of the cross-version tests"
             exit 1
@@ -825,8 +835,7 @@ jobs:
             git rev-parse -q --verify "$ref^{commit}" >/dev/null
           done
 
-          commit_refs="$(sed -n "s/^const .*_REF = '\([0-9a-f]\{40\}\)'.*/\1/p" \
-            tests/e2e/cross-version-wire/reported-lossy-initial-snapshot.unit.test.ts | sort -u)"
+          commit_refs="$(node --input-type=module -e "import { readCrossVersionPinnedRefs } from './config/scripts/cross-version-pinned-refs.mjs'; console.log(readCrossVersionPinnedRefs(process.cwd()).commits.join('\n'))")"
           for ref in $commit_refs; do
             if git rev-parse -q --verify "$ref^{commit}" >/dev/null; then
               echo "$ref already present"
@@ -836,10 +845,6 @@ jobs:
             git fetch --no-tags --depth=1 baseline "$ref:refs/manta-cross-version/$ref"
             git rev-parse -q --verify "$ref^{commit}" >/dev/null
           done
-
-      - uses: ./.github/actions/install-node-dependencies
-        with:
-          native-runtime: node
 
       # A path filter that matches nothing exits 1 ("No test files found"), so this
       # lane cannot report success while running zero tests.

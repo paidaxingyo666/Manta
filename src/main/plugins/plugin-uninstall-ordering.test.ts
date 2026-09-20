@@ -103,7 +103,7 @@ it('retains a bundled plugin worker and history when ordinary IPC removal is ref
 
 it('checks bundled ownership after an earlier queued refresh before deactivation', async () => {
   const { root, service, install } = await createUninstallFixture()
-  const key = await install('orca-queued', {}, true)
+  const key = await install('manta-queued', {}, true)
   const held = holdNextUninstallRefresh(service)
   const deactivate = vi.spyOn(uninstallWorkerController(service), 'deactivate')
   const refresh = service.refresh()
@@ -111,7 +111,7 @@ it('checks bundled ownership after an earlier queued refresh before deactivation
   const failed = service.removePlugin(key, remove).catch((error: unknown) => error)
   try {
     await held.entered.promise
-    await publishBundledUninstallSuccessor(root, 'orca-queued', key)
+    await publishBundledUninstallSuccessor(root, 'manta-queued', key)
   } finally {
     held.release.resolve()
   }
@@ -128,7 +128,7 @@ it('checks bundled ownership after an earlier queued refresh before deactivation
 
 it('rechecks bundled ownership under the filesystem queue after a held worker shutdown', async () => {
   const { root, service, install } = await createUninstallFixture()
-  const key = await install('orca-deactivate', {}, true)
+  const key = await install('manta-deactivate', {}, true)
   const controller = uninstallWorkerController(service)
   const original = controller.deactivate.bind(controller)
   const entered = uninstallGate()
@@ -141,7 +141,7 @@ it('rechecks bundled ownership under the filesystem queue after a held worker sh
   const failed = removeThroughPluginIpc(key).catch((error: unknown) => error)
   try {
     await entered.promise
-    await publishBundledUninstallSuccessor(root, 'orca-deactivate', key)
+    await publishBundledUninstallSuccessor(root, 'manta-deactivate', key)
   } finally {
     release.resolve()
   }

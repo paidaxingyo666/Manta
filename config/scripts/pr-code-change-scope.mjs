@@ -121,6 +121,8 @@ const MOBILE_WEB_APP_PREFIXES = [
   'mobile/packages/',
   'mobile/package.json',
   'mobile/pnpm-lock.yaml',
+  'mobile/pnpm-workspace.yaml',
+  'mobile/patches/',
   'mobile/modules/manta-mobile-web-shell/'
 ]
 

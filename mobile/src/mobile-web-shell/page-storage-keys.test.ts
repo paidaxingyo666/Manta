@@ -7,8 +7,9 @@ import {
 } from './page-storage-keys'
 
 describe('the keys a page may read and write', () => {
-  it('takes the two the list keeps', () => {
+  it('takes the list preferences and the native UI language', () => {
     expect(isPageStorageKey('manta:last-visited-worktree')).toBe(true)
+    expect(isPageStorageKey('manta.ui-language')).toBe(true)
     expect(isPageStorageKey('manta:pins:host-1')).toBe(true)
   })
 
@@ -41,7 +42,7 @@ describe('the keys a page may read and write', () => {
 
   it('names what the shell reads out of the app store for one host', () => {
     const keys = pageStorageKeysForHost('host-1')
-    expect(keys).toEqual(['manta:last-visited-worktree', 'manta:pins:host-1'])
+    expect(keys).toEqual(['manta:last-visited-worktree', 'manta.ui-language', 'manta:pins:host-1'])
     for (const key of keys) {
       expect(isPageStorageKey(key), key).toBe(true)
     }

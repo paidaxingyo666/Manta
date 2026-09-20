@@ -43,6 +43,20 @@ const realZshUsage =
   /(?:spawnSync|execFileSync|spawn)\(\s*['"](?:\/(?:usr\/)?bin\/)?zsh['"]|spawnSync\(\s*['"]which['"]\s*,\s*\[\s*['"]zsh['"]|name:\s*['"]zsh['"]\s*,\s*path:\s*executablePath|from '[^']*zsh-startup-hook-pty-harness'/
 
 describe('PR workflow parallelism', () => {
+  it('keeps upstream fleet integration separate from the fork relay gate', () => {
+    expect(unitTestWorkflow.jobs.relay_integration.if).toBe("github.repository == 'stablyai/orca'")
+    const shard = unitTestWorkflow.jobs.test.steps.find((step) => step.name === 'Test shard')
+    for (const name of ['compatibility', 'correction']) {
+      expect(shard.run).toContain(`--exclude=tests/e2e/relay-region-${name}.unit.test.ts`)
+    }
+    const relay = workflow.jobs.relay
+    expect(relay.if).toBe("needs.code_paths.outputs.relay == 'true'")
+    expect(relay.steps).toContainEqual(
+      expect.objectContaining({ 'working-directory': 'relay-server', run: 'npm run check' })
+    )
+    expect(workflow.jobs.verify.needs).toContain('relay')
+  })
+
   it('cancels superseded runs for the same pull request', () => {
     expect(workflow.concurrency.group).toBe('pr-checks-${{ github.event.pull_request.number }}')
     expect(workflow.concurrency['cancel-in-progress']).toBe(true)
@@ -498,5 +512,6 @@ describe('PR workflow parallelism', () => {
       entry.run?.includes('build-mobile-web-app-bundle.test.mjs')
     )
     expect(step.env[MOBILE_WEB_APP_DEPENDENCIES_REQUIRED_ENV]).toBe('1')
+    expect(step.run).toContain('config/scripts/mobile-web-app-router-query-string.test.mjs')
   })
 })

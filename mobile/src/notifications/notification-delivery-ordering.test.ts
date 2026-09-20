@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications'
 import { subscribeToDesktopNotifications } from './mobile-notifications'
 import { resetHostNotificationSessionsForTests } from './notification-reconnect-catchup'
 import type { RpcClient } from '../transport/rpc-client'
+import { createFakeRpcClient } from '../mobile-web-shell/bridge-host-test-fakes'
 import { loadPushNotificationsEnabled } from '../storage/preferences'
 
 vi.mock('expo-notifications', () => ({
@@ -80,12 +81,12 @@ describe('#8591 per-host delivery ordering', () => {
     })
 
     const onData: { current?: (data: unknown) => void } = {}
-    const client = {
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
         onData.current = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(async (method: string) => {
         if (method === 'notifications.getMissedSince') {
           return {
@@ -112,7 +113,7 @@ describe('#8591 per-host delivery ordering', () => {
         }
         return { ok: true, result: undefined } as never
       })
-    } as unknown as RpcClient
+    }
 
     storage.set(WATERMARK_KEY, JSON.stringify({ seq: 5, epoch: 'epoch-1' }))
     subscribeToDesktopNotifications(client, 'host-1')
@@ -160,12 +161,12 @@ describe('#8591 per-host delivery ordering', () => {
     })
 
     const onData: { current?: (data: unknown) => void } = {}
-    const client = {
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
         onData.current = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(async (method: string) => {
         if (method === 'notifications.getMissedSince') {
           return {
@@ -185,7 +186,7 @@ describe('#8591 per-host delivery ordering', () => {
         }
         return { ok: true, result: undefined } as never
       })
-    } as unknown as RpcClient
+    }
 
     storage.set(WATERMARK_KEY, JSON.stringify({ seq: 5, epoch: 'epoch-1' }))
     subscribeToDesktopNotifications(client, 'host-1')
@@ -215,14 +216,14 @@ describe('#8591 per-host delivery ordering', () => {
     getItemImpl = () => new Promise<string | null>(() => {})
 
     const onData: { current?: (data: unknown) => void } = {}
-    const client = {
+    const client: RpcClient = {
+      ...createFakeRpcClient(),
       subscribe: vi.fn((_m: string, _p: unknown, cb: (data: unknown) => void) => {
         onData.current = cb
         return vi.fn()
       }),
-      getState: vi.fn(() => 'connected'),
       sendRequest: vi.fn(async () => ({ ok: true, result: undefined }) as never)
-    } as unknown as RpcClient
+    }
 
     vi.useFakeTimers()
     try {

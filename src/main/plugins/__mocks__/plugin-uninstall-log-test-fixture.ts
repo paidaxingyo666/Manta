@@ -12,6 +12,10 @@ import { getUserPluginsDir } from '../plugin-discovery'
 import { PluginWorkerController } from '../plugin-worker-controller'
 import { UninstallWorkerPort } from '../plugin-uninstall-worker-fixture'
 import type { PluginManifest } from '../../../shared/plugins/plugin-manifest'
+import {
+  OFFICIAL_MARKETPLACE_GIT_SOURCE,
+  OFFICIAL_PLUGIN_PUBLISHER
+} from '../../../shared/plugins/plugin-marketplace'
 
 const ports = vi.hoisted(() => ({
   handlers: new Map<string, (...args: unknown[]) => unknown>(),
@@ -106,7 +110,7 @@ export async function createUninstallFixture() {
     const manifest = {
       manifestVersion: 1,
       id,
-      publisher: official ? 'stablyai' : 'memory-audit',
+      publisher: official ? OFFICIAL_PLUGIN_PUBLISHER : 'memory-audit',
       name: id,
       version: '1.0.0',
       engines: { manta: '>=1.0.0' },
@@ -125,7 +129,7 @@ export async function createUninstallFixture() {
           pluginsDir: getUserPluginsDir(root),
           stagingDir: sourcePath,
           hostVersion: '1.4.0',
-          source: { kind: 'git', url: 'https://github.com/stablyai/orca-plugins.git', ref: 'main' },
+          source: OFFICIAL_MARKETPLACE_GIT_SOURCE,
           resolvedCommit: '1'.repeat(40)
         })
       : await installPluginFromLocalPath({

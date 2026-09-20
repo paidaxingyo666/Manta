@@ -88,7 +88,7 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toContain('MANTA_CLI_COMMAND/u')
     expect(env.WSLENV).toContain('MANTA_CODEX_LAUNCH_PREFLIGHT/p')
     expect(env.WSLENV).toContain('MANTA_OMP_STATUS_EXTENSION/p')
-    expect(env.WSLENV).toContain('MANTA_OMP_FRESH_CONFIG/p')
+    expect(env.WSLENV).toContain('ORCA_OMP_FRESH_CONFIG/p')
     expect(env.WSLENV).not.toContain('MANTA_PRIME_AGENT_STATUS_EXTENSION')
     expect(env.WSLENV).toContain('MANTA_PANE_KEY/u')
     expect(env.WSLENV).toContain('MANTA_TAB_ID/u')
@@ -212,7 +212,7 @@ describe('addMantaWslInteropEnv', () => {
   it('crosses the inline-image protocol hint into the guest untranslated (/u)', () => {
     const env: Record<string, string> = { ORCA_IMAGE_PROTOCOL: 'kitty' }
     addMantaWslInteropEnv(env)
-    expect(env.WSLENV).toContain('MANTA_IMAGE_PROTOCOL/u')
+    expect(env.WSLENV).toContain('ORCA_IMAGE_PROTOCOL/u')
   })
 
   it('marks the WSL hook relay version for import on relay spawn envs', () => {

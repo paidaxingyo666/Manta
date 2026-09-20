@@ -18,6 +18,7 @@ import { publishExternalLinkOpener } from '../src/platform/external-link.web'
 // sibling's, which takes the page's client. The screens below still import `./client-context`
 // and reach the same module, because the builder resolves both specifiers to the same file.
 import { RpcClientProvider } from '../src/transport/client-context.web'
+import { I18nProvider } from '../src/i18n/I18nProvider'
 // Body replaced at build time: esbuild has no require.context, so the builder synthesizes one.
 import routeContext from './route-manifest'
 
@@ -28,13 +29,20 @@ import routeContext from './route-manifest'
 // and that is the boundary below's, not suspense's.
 // A factory because the client is not in scope until `init` lands, and ExpoRoot takes a component.
 function createRootProviders(client: BridgeRpcClient, target: PageMountTarget) {
-  return function RootProviders({ children }: PropsWithChildren) {
+  function ReadyProviders({ children }: PropsWithChildren) {
     // Effects run child-first, so 'mounted' lands only after the router tree below this wrapper
     // has committed. The tree is rendered once, with a ready client, so there is one such commit.
     useEffect(() => {
       stampPageMountState(target, 'mounted')
     }, [])
     return <RpcClientProvider client={client}>{children}</RpcClientProvider>
+  }
+  return function RootProviders({ children }: PropsWithChildren) {
+    return (
+      <I18nProvider>
+        <ReadyProviders>{children}</ReadyProviders>
+      </I18nProvider>
+    )
   }
 }
 
