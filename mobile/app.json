@@ -78,7 +78,7 @@
       "allowBackup": false,
       "permissions": ["RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
       "package": "cn.sh.manta.mobile",
-      "versionCode": 16
+      "versionCode": 17
     },
     "plugins": [
       "expo-router",
