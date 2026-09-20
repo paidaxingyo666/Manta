@@ -3,11 +3,11 @@
   "family": "settings.task-workspace-create",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
-  "adapterSha256": "c2eed306311a844cd6f2f84b6513c0a1182f86a5e3cace434385b8287c80d7c5",
-  "scenarioSha256": "662c3e04e31bce5757f09f91e3e3739fb9d57767b7443be4dc936705b64b1432",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "4ea510924260f15668063d77a18edd2413963b70f60dcd75b949433d08919081",
+  "scenarioSha256": "aee72c15994ffb7f5cb5e8ab5492e114be7fcf93e2a0e6d6afdd90ae23f40727",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -23,51 +23,6 @@
       "ordinal": 12,
       "value": {
         "$rpc": "null"
-      }
-    },
-    "2142af96648c": {
-      "name": "worktree.create#1",
-      "ordinal": 6,
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.create"
-        },
-        {
-          "name": "params",
-          "value": {
-            "activate": true,
-            "createdWithAgent": "claude",
-            "displayName": "ORC-1 Recorded issue",
-            "displayNameKind": "generated",
-            "linkedLinearIssue": "ORC-1",
-            "name": "orc-1",
-            "repo": "id:repo-1",
-            "setupDecision": "inherit",
-            "startupDraft": "https://linear.app/manta/issue/ORC-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "timeoutMs": 600000
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true,
-          "result": {
-            "worktree": {
-              "displayName": "ORC-1 Recorded issue",
-              "id": "wt-1"
-            }
-          }
-        }
       }
     },
     "33e3b949d4c5": {
@@ -157,9 +112,59 @@
         }
       }
     },
+    "8ba45c7afd42": {
+      "name": "worktree.create#1",
+      "ordinal": 6,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.create"
+        },
+        {
+          "name": "params",
+          "value": {
+            "activate": true,
+            "createdWithAgent": "claude",
+            "displayName": "ORC-1 Recorded issue",
+            "displayNameKind": "generated",
+            "linkedLinearIssue": "ORC-1",
+            "name": "orc-1",
+            "repo": "id:repo-1",
+            "setupDecision": "inherit",
+            "startupDraft": "https://linear.app/manta/issue/ORC-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "timeoutMs": 600000
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "worktree": {
+              "displayName": "ORC-1 Recorded issue",
+              "id": "wt-1"
+            }
+          }
+        }
+      }
+    },
     "9270aeb7d9c6": {
       "status": "pending",
       "startedAt": 0
+    },
+    "955a880537f4": {
+      "name": "worktree.create#1",
+      "ordinal": 7,
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.create\",\"params\":{\"repo\":\"id:repo-1\",\"name\":\"orc-1\",\"displayName\":\"ORC-1 Recorded issue\",\"displayNameKind\":\"generated\",\"linkedLinearIssue\":\"ORC-1\",\"setupDecision\":\"inherit\",\"activate\":true,\"startupDraft\":\"https://linear.app/manta/issue/ORC-1\",\"createdWithAgent\":\"claude\"}}"
     },
     "975f2ff9a730": {
       "name": "settings.get#1",
@@ -172,11 +177,6 @@
       "value": {
         "$rpc": "null"
       }
-    },
-    "e0423a9e6995": {
-      "name": "worktree.create#1",
-      "ordinal": 7,
-      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.create\",\"params\":{\"repo\":\"id:repo-1\",\"name\":\"orc-1\",\"displayName\":\"ORC-1 Recorded issue\",\"displayNameKind\":\"generated\",\"linkedLinearIssue\":\"ORC-1\",\"setupDecision\":\"inherit\",\"activate\":true,\"startupDraft\":\"https://linear.app/manta/issue/ORC-1\",\"createdWithAgent\":\"claude\"}}"
     },
     "e0a8ee1f3c00": {
       "name": "creatingKey",
@@ -231,8 +231,8 @@
       {
         "id": "created",
         "observation": {
-          "sender": ["8ac371cf7234", "2142af96648c"],
-          "payloads": ["975f2ff9a730", "e0423a9e6995"],
+          "sender": ["8ac371cf7234", "8ba45c7afd42"],
+          "payloads": ["975f2ff9a730", "955a880537f4"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "submit": "eb79a9b3682a"

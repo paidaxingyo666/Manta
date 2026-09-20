@@ -3,9 +3,9 @@
   "family": "files.explorer-screen",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "7a42a348f4407b94cf75ac77a4b6b783b7d28103b1ae1d111d2708dab0dd4a0c",
   "scenarioSha256": "38b5590173c1f6791d1b35c0f036e2f844ed4b0e39c880e8e376c5f314adaade",
   "platform": "darwin",
@@ -13,7 +13,7 @@
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "13db9ec07bae": {
+    "06a11c2d797c": {
       "crash": {
         "$rpc": "null"
       },
@@ -26,22 +26,13 @@
       },
       "labels": ["Back to session"],
       "rows": [],
-      "text": ["Files", "orca-files", "outer refused", "Retry"]
-    },
-    "17ee98fb7a54": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ChevronLeft": 1,
-        "Pressable": 2,
-        "SafeAreaView": 1,
-        "Text": 4,
-        "View": 4
-      },
-      "labels": ["Back to session"],
-      "rows": [],
-      "text": ["Files", "orca-files", "Unknown method", "Retry"]
+      "text": [
+        "Files",
+        " ",
+        "orca-files",
+        "The host sent a reply this app could not read (files.list)",
+        "Retry"
+      ]
     },
     "1b7ad474c481": {
       "name": "files.list#1",
@@ -73,6 +64,22 @@
           "ok": true
         }
       }
+    },
+    "1dc5eed08313": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ChevronLeft": 1,
+        "FlatList": 1,
+        "Pressable": 1,
+        "SafeAreaView": 1,
+        "Text": 2,
+        "View": 3
+      },
+      "labels": ["Back to session"],
+      "rows": ["dir:src", "file:README.md"],
+      "text": ["Files", " ", "orca-files", "- Showing first 5000"]
     },
     "1f40025f388c": {
       "name": "files.list#1",
@@ -179,20 +186,20 @@
         }
       }
     },
-    "345725f4b97d": {
+    "3545ef795e82": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
         "ChevronLeft": 1,
-        "Pressable": 2,
+        "Pressable": 1,
         "SafeAreaView": 1,
-        "Text": 4,
+        "Text": 3,
         "View": 4
       },
       "labels": ["Back to session"],
       "rows": [],
-      "text": ["Files", "orca-files", "transport failure", "Retry"]
+      "text": ["Files", " ", "orca-files", "No files found"]
     },
     "41c86594aed3": {
       "name": "files.list#1",
@@ -417,36 +424,36 @@
       "ordinal": 2,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"files.readDir\",\"params\":{\"worktree\":\"id:wt-files\",\"relativePath\":\"\"}}"
     },
-    "a0139a06ef98": {
+    "a9b00cd05e17": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
         "ChevronLeft": 1,
-        "Pressable": 1,
+        "Pressable": 2,
         "SafeAreaView": 1,
-        "Text": 3,
+        "Text": 4,
         "View": 4
       },
       "labels": ["Back to session"],
       "rows": [],
-      "text": ["Files", "orca-files", "No files found"]
+      "text": ["Files", " ", "orca-files", "transport failure", "Retry"]
     },
-    "b85511fb8929": {
+    "abdb4ed30545": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
+        "ActivityIndicator": 1,
         "ChevronLeft": 1,
-        "FlatList": 1,
         "Pressable": 1,
         "SafeAreaView": 1,
         "Text": 2,
-        "View": 3
+        "View": 4
       },
       "labels": ["Back to session"],
-      "rows": ["dir:src", "file:README.md"],
-      "text": ["Files", "orca-files", " - Showing first 5000"]
+      "rows": [],
+      "text": ["Files", " ", "orca-files"]
     },
     "bec439845fd2": {
       "name": "files.list#1",
@@ -481,6 +488,21 @@
           }
         }
       }
+    },
+    "e07fae454f1b": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ChevronLeft": 1,
+        "Pressable": 2,
+        "SafeAreaView": 1,
+        "Text": 4,
+        "View": 4
+      },
+      "labels": ["Back to session"],
+      "rows": [],
+      "text": ["Files", " ", "orca-files", "outer refused", "Retry"]
     },
     "e1c4922557f8": {
       "name": "files.list#1",
@@ -517,22 +539,6 @@
         }
       }
     },
-    "e91880eefe86": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ActivityIndicator": 1,
-        "ChevronLeft": 1,
-        "Pressable": 1,
-        "SafeAreaView": 1,
-        "Text": 2,
-        "View": 4
-      },
-      "labels": ["Back to session"],
-      "rows": [],
-      "text": ["Files", "orca-files"]
-    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -541,7 +547,7 @@
         "$rpc": "undefined"
       }
     },
-    "eededbc093fb": {
+    "f1264f5a5c34": {
       "crash": {
         "$rpc": "null"
       },
@@ -554,12 +560,7 @@
       },
       "labels": ["Back to session"],
       "rows": [],
-      "text": [
-        "Files",
-        "orca-files",
-        "The host sent a reply this app could not read (files.list)",
-        "Retry"
-      ]
+      "text": ["Files", " ", "orca-files", "Unknown method", "Retry"]
     },
     "f9892850cc0f": {
       "name": "files.list#1",
@@ -605,7 +606,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "e91880eefe86",
+          "state": "abdb4ed30545",
           "effects": []
         }
       },
@@ -617,7 +618,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "b85511fb8929",
+          "state": "1dc5eed08313",
           "effects": []
         }
       },
@@ -629,7 +630,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "eededbc093fb",
+          "state": "06a11c2d797c",
           "effects": []
         }
       },
@@ -641,7 +642,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "eededbc093fb",
+          "state": "06a11c2d797c",
           "effects": []
         }
       },
@@ -653,7 +654,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "eededbc093fb",
+          "state": "06a11c2d797c",
           "effects": []
         }
       },
@@ -665,7 +666,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "eededbc093fb",
+          "state": "06a11c2d797c",
           "effects": []
         }
       },
@@ -677,7 +678,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "eededbc093fb",
+          "state": "06a11c2d797c",
           "effects": []
         }
       },
@@ -689,7 +690,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "13db9ec07bae",
+          "state": "e07fae454f1b",
           "effects": []
         }
       },
@@ -701,7 +702,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "17ee98fb7a54",
+          "state": "f1264f5a5c34",
           "effects": []
         }
       },
@@ -713,7 +714,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "17ee98fb7a54",
+          "state": "f1264f5a5c34",
           "effects": []
         }
       },
@@ -725,7 +726,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "345725f4b97d",
+          "state": "a9b00cd05e17",
           "effects": []
         }
       },
@@ -737,7 +738,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "a0139a06ef98",
+          "state": "3545ef795e82",
           "effects": []
         }
       }

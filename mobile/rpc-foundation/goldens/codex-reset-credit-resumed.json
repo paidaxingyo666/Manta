@@ -3,11 +3,11 @@
   "family": "components.codex-reset-credit",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "76b53dea504a688493843e23e8e7d052fc196f559bb1e2579d0fd38bf3156d0e",
-  "scenarioSha256": "d85a4031b701e563941afcdd7375cf78a1ee1487a0dab722f8516c2bc8d3dcee",
+  "scenarioSha256": "5064d52c09e8a877f361a5b045daeb0e76c88f4c7b7ea23b5335c5bf24e1e435",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -96,17 +96,17 @@
         "$rpc": "null"
       }
     },
-    "0e5764df4bfd": {
-      "settled": {
-        "attemptJournalRetained": false,
-        "outcome": "alreadyRedeemed"
-      }
-    },
-    "413aa2c48b5e": {
+    "0ddb60a87839": {
       "name": "device-store.removeItem",
       "ordinal": 3,
       "value": {
         "key": "manta:codex-reset-credit-attempt:v1:0832055c2fa90e8e145c588ad4db656a2fc2840ed2e851a28494eae769db9b3e"
+      }
+    },
+    "0e5764df4bfd": {
+      "settled": {
+        "attemptJournalRetained": false,
+        "outcome": "alreadyRedeemed"
       }
     },
     "9270aeb7d9c6": {
@@ -282,7 +282,7 @@
             "confirm": "074c5080c062"
           },
           "state": "0e5764df4bfd",
-          "effects": ["413aa2c48b5e"]
+          "effects": ["0ddb60a87839"]
         }
       }
     ]

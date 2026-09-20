@@ -3,11 +3,11 @@
   "family": "worktree.setup-hook-trust",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "52a76b7a830b32287bce14abbe1b9d9ac70e71eafe5b4c6801c2eb14a4150125",
-  "scenarioSha256": "0d2e3f48aadf45abbf6927b72ed5fef4caa8e3eb2efd1046339a3fbfab6f9f18",
+  "scenarioSha256": "47260df686bab9e198513ddcd1e298930302059efef753f071db8ab28ab49d91",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -16,7 +16,12 @@
     "229c35d1a4ba": {
       "trust": "unapproved"
     },
-    "b6a1b1ed0a08": {
+    "51185c56d6ce": {
+      "name": "ui.set#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"all\":{\"approvedAt\":1767225600000}}}}}"
+    },
+    "533bf35dfbd1": {
       "name": "ui.set#1",
       "ordinal": 1,
       "args": [
@@ -57,11 +62,6 @@
         }
       }
     },
-    "f35a1e7f7cdb": {
-      "name": "ui.set#1",
-      "ordinal": 2,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"all\":{\"approvedAt\":1767225600000}}}}}"
-    },
     "f3b516f62081": {
       "status": "rejected",
       "startedAt": 0,
@@ -79,8 +79,8 @@
       {
         "id": "refused-empty-message",
         "observation": {
-          "sender": ["b6a1b1ed0a08"],
-          "payloads": ["f35a1e7f7cdb"],
+          "sender": ["533bf35dfbd1"],
+          "payloads": ["51185c56d6ce"],
           "settlements": {
             "approve": "f3b516f62081"
           },

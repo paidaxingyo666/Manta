@@ -3,11 +3,11 @@
   "family": "notifications.push-dismissal",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "595a3eb2994d0596b9fcd0707b175b4e978625053dfbc5c541b0350c0cbfb524",
-  "scenarioSha256": "9ab21cda2ac956c70ddd23fe589778bbb46333314508cf92770d668ba59d5a90",
+  "scenarioSha256": "fa806f20442ca311d3ae42f695b29f4b7a5d770dfd770536f17acb35771e29df",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -264,6 +264,14 @@
       "ordinal": 4,
       "value": {
         "identifier": "tray-1"
+      }
+    },
+    "72cac49e6acc": {
+      "name": "device-store.setItem",
+      "ordinal": 3,
+      "value": {
+        "key": "manta:pushDismissalWatermarks:v1",
+        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-1\\\"]\",\"seq\":7,\"expiresAt\":1767312000000}]"
       }
     },
     "9270aeb7d9c6": {
@@ -549,14 +557,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "fa03fdca3d1d": {
-      "name": "device-store.setItem",
-      "ordinal": 3,
-      "value": {
-        "key": "manta:pushDismissalWatermarks:v1",
-        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-1\\\"]\",\"seq\":7,\"expiresAt\":1767312000000}]"
-      }
     }
   },
   "recording": {
@@ -583,7 +583,7 @@
             "catchup": "eb79a9b3682a"
           },
           "state": "cf9c28129225",
-          "effects": ["fa03fdca3d1d", "6cfa895b17c4"]
+          "effects": ["72cac49e6acc", "6cfa895b17c4"]
         }
       },
       {

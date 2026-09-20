@@ -3,16 +3,35 @@
   "family": "notifications.display-test-screen",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "f55275c268e49679b37d72ce6cbe71186ce02c77fe3fd53f0f21e796502d62e8",
-  "scenarioSha256": "37439be5aba4a84cf6c12c5f583a0334405792387edb72ceab388e7c64109eff",
+  "scenarioSha256": "cc34e8715f547164d93dfc1fb32e91edc0a0bd7e35fa0d850f694339077473ea",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
+    "05cd3b068789": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 6,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting",
+        "Could not send through Manta’s push service. Try again."
+      ]
+    },
     "0bfc5a373e4d": {
       "name": "notifications.testPush#1",
       "ordinal": 1,
@@ -87,7 +106,25 @@
         }
       }
     },
-    "6967f95147f9": {
+    "9d718fa0bcec": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 5,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting"
+      ]
+    },
+    "d7493d813b59": {
       "crash": {
         "$rpc": "null"
       },
@@ -105,24 +142,6 @@
         "Troubleshooting"
       ]
     },
-    "d86c08a509c4": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 5,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting"
-      ]
-    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -130,25 +149,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "f3e2e816b496": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 6,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting",
-        "Could not send through Manta’s push service. Try again."
-      ]
     },
     "f68b017d64bd": {
       "name": "notifications.testPush#1",
@@ -167,7 +167,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d86c08a509c4",
+          "state": "9d718fa0bcec",
           "effects": []
         }
       },
@@ -180,7 +180,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "6967f95147f9",
+          "state": "d7493d813b59",
           "effects": []
         }
       },
@@ -193,7 +193,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": ["14bb4c669631"]
         }
       }

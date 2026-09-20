@@ -3,16 +3,22 @@
   "family": "worktree.retired-names",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "4e942ddfbaa0ba6bfc2993969276987f6528ac53765d125e99a830e261f93a8e",
-  "scenarioSha256": "2faa07ee5f12b3ed584117359d3b7aeb9c78a04e8fc49e753372f8c3927a3740",
+  "scenarioSha256": "3baa99fe55ef7614c35639ba111e444bb1504c146e3647db60925a992eec9d84",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
+    "14a70c2074ec": {
+      "registry": {
+        "exhaustedTiers": 2,
+        "names": ["marlin", "manta"]
+      }
+    },
     "3a6762b141aa": {
       "name": "worktree.listRetiredNames#1",
       "ordinal": 2,
@@ -44,13 +50,21 @@
         "startedAt": 0
       }
     },
-    "85d826c606ff": {
+    "cb76d0017b96": {
       "registry": {
-        "exhaustedTiers": 2,
-        "names": ["marlin", "manta"]
+        "exhaustedTiers": 0,
+        "names": []
       }
     },
-    "97b3650e7890": {
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "f24fb1fae715": {
       "name": "worktree.listRetiredNames#1",
       "ordinal": 1,
       "args": [
@@ -88,20 +102,6 @@
           }
         }
       }
-    },
-    "cb76d0017b96": {
-      "registry": {
-        "exhaustedTiers": 0,
-        "names": []
-      }
-    },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "$rpc": "undefined"
-      }
     }
   },
   "recording": {
@@ -122,12 +122,12 @@
       {
         "id": "settled",
         "observation": {
-          "sender": ["97b3650e7890"],
+          "sender": ["f24fb1fae715"],
           "payloads": ["3a6762b141aa"],
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "85d826c606ff",
+          "state": "14a70c2074ec",
           "effects": []
         }
       }

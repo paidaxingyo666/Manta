@@ -3,61 +3,25 @@
   "family": "notifications.desktop-stream",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "eacf859143588ae6bee2804975d642b6c1088d57ae77ffe298620250d9a9f0e4",
-  "scenarioSha256": "24f8c05639f82bc5e32abe3864c3d01a0589e295369028929fed2f0c684f1d0c",
+  "scenarioSha256": "ed378713463c688b9f336781bd2b921966401b94f9a8e24142ca8aea5cd9ae43",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "0493957d4faf": {
+    "1381f7673721": {
       "name": "notifications.getMissedSince#1",
-      "ordinal": 2,
-      "args": [
-        {
-          "name": "method",
-          "value": "notifications.getMissedSince"
-        },
-        {
-          "name": "params",
-          "value": {
-            "deliveredPushes": [
-              {
-                "notificationEpoch": "epoch-1",
-                "notificationId": "note-1",
-                "notificationSeq": 7
-              },
-              {
-                "notificationEpoch": "epoch-1",
-                "notificationId": "note-2",
-                "notificationSeq": 8
-              }
-            ],
-            "lastSeenSeq": 9007199254740991
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true,
-          "result": {
-            "dismissedPushes": []
-          }
-        }
-      }
+      "ordinal": 3,
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":6,\"epoch\":\"epoch-1\"}}"
+    },
+    "4c8cb72d6fab": {
+      "name": "notifications.subscribe#1",
+      "ordinal": 1,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{}}"
     },
     "5359579cc62d": {
       "running": true
@@ -104,10 +68,41 @@
     "a0b2bcfcde77": {
       "running": false
     },
-    "e074c0b6fa0a": {
+    "b87d8f0b3a78": {
       "name": "notifications.getMissedSince#1",
-      "ordinal": 3,
-      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":9007199254740991,\"deliveredPushes\":[{\"notificationId\":\"note-1\",\"notificationEpoch\":\"epoch-1\",\"notificationSeq\":7},{\"notificationId\":\"note-2\",\"notificationEpoch\":\"epoch-1\",\"notificationSeq\":8}]}}"
+      "ordinal": 2,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.getMissedSince"
+        },
+        {
+          "name": "params",
+          "value": {
+            "epoch": "epoch-1",
+            "lastSeenSeq": 6
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "epoch": "epoch-1",
+            "notifications": []
+          }
+        }
+      }
     },
     "eb79a9b3682a": {
       "status": "fulfilled",
@@ -116,11 +111,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "f552b5040ec7": {
-      "name": "notifications.subscribe#1",
-      "ordinal": 1,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{\"includeDesktopSuppressed\":true}}"
     }
   },
   "recording": {
@@ -129,8 +119,8 @@
       {
         "id": "ready",
         "observation": {
-          "sender": ["0493957d4faf"],
-          "payloads": ["f552b5040ec7", "e074c0b6fa0a"],
+          "sender": ["b87d8f0b3a78"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721"],
           "settlements": {
             "start": "eb79a9b3682a"
           },
@@ -141,8 +131,8 @@
       {
         "id": "stopped",
         "observation": {
-          "sender": ["0493957d4faf", "6a8123e61fb7"],
-          "payloads": ["f552b5040ec7", "e074c0b6fa0a", "851428b22bd4"],
+          "sender": ["b87d8f0b3a78", "6a8123e61fb7"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "851428b22bd4"],
           "settlements": {
             "start": "eb79a9b3682a",
             "stop": "eb79a9b3682a"
@@ -154,8 +144,8 @@
       {
         "id": "not-replayed",
         "observation": {
-          "sender": ["0493957d4faf", "6a8123e61fb7"],
-          "payloads": ["f552b5040ec7", "e074c0b6fa0a", "851428b22bd4"],
+          "sender": ["b87d8f0b3a78", "6a8123e61fb7"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "851428b22bd4"],
           "settlements": {
             "start": "eb79a9b3682a",
             "stop": "eb79a9b3682a",

@@ -3,11 +3,11 @@
   "family": "tasks.route-repo-list",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "23f974df8b57c723069605de1db80c339ead286b18aae38e67fce03ea50c5180",
-  "scenarioSha256": "b62ca571d4defcc2e53960033c5b4eb3f7e406b57664664cbc6a173041a9f803",
+  "scenarioSha256": "2963731c3b8075f7a136ff19e79fcf3d9e8820431bd021586d6bb135ad9035bd",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -44,7 +44,58 @@
         "startedAt": 0
       }
     },
-    "7d0fa424be7c": {
+    "9270aeb7d9c6": {
+      "status": "pending",
+      "startedAt": 0
+    },
+    "9924e0d12305": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": [
+        {
+          "id": "repo-1",
+          "name": "manta"
+        },
+        {
+          "id": "repo-2",
+          "name": "relay"
+        }
+      ]
+    },
+    "afa949a66032": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "repoListError": "",
+      "repoListStatus": "idle",
+      "repos": []
+    },
+    "b15e86f79919": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "repoListError": "",
+      "repoListStatus": "loading",
+      "repos": []
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "f5484d90b3f7": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "repoListError": "",
+      "repoListStatus": "loaded",
+      "repos": ["repo-1", "repo-2"]
+    },
+    "fadf89db1f81": {
       "name": "repo.list#1",
       "ordinal": 1,
       "args": [
@@ -86,57 +137,6 @@
           }
         }
       }
-    },
-    "9270aeb7d9c6": {
-      "status": "pending",
-      "startedAt": 0
-    },
-    "afa949a66032": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "repoListError": "",
-      "repoListStatus": "idle",
-      "repos": []
-    },
-    "b15e86f79919": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "repoListError": "",
-      "repoListStatus": "loading",
-      "repos": []
-    },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "$rpc": "undefined"
-      }
-    },
-    "f5484d90b3f7": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "repoListError": "",
-      "repoListStatus": "loaded",
-      "repos": ["repo-1", "repo-2"]
-    },
-    "fcd8faa86ca8": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": [
-        {
-          "id": "repo-1",
-          "name": "manta"
-        },
-        {
-          "id": "repo-2",
-          "name": "relay"
-        }
-      ]
     }
   },
   "recording": {
@@ -170,11 +170,11 @@
       {
         "id": "repos-loaded",
         "observation": {
-          "sender": ["7d0fa424be7c"],
+          "sender": ["fadf89db1f81"],
           "payloads": ["19b2979d7fc2"],
           "settlements": {
             "mount": "eb79a9b3682a",
-            "ensure": "fcd8faa86ca8"
+            "ensure": "9924e0d12305"
           },
           "state": "f5484d90b3f7",
           "effects": []

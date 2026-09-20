@@ -3,9 +3,9 @@
   "family": "session.startup",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "6b08c394e37fd572cf63a4c11934247d379008f11117aa5af33b2926fbd32d1e",
   "scenarioSha256": "efb7ff45ac09f1b7f0f3ad7f1b6f09d4d5c349e22de7d9c4d63ca93530552418",
   "platform": "darwin",
@@ -42,14 +42,6 @@
       "ordinal": 30,
       "value": {}
     },
-    "0c11a07914d9": {
-      "name": "toast",
-      "ordinal": 12,
-      "value": {
-        "durationMs": 3000,
-        "message": "Open Manta on the host to wake sleeping agents."
-      }
-    },
     "11cf5160d835": {
       "name": "worktree.activate#1",
       "ordinal": 10,
@@ -82,6 +74,14 @@
       "name": "clear-pending-live-input-commit",
       "ordinal": 31,
       "value": {}
+    },
+    "2f2d25d60434": {
+      "name": "toast",
+      "ordinal": 12,
+      "value": {
+        "durationMs": 3000,
+        "message": "Open Manta on the host to wake sleeping agents."
+      }
     },
     "3ff3bd674907": {
       "name": "ensure-session-tabs",
@@ -142,6 +142,14 @@
       "ordinal": 11,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.activate\",\"params\":{\"worktree\":\"id:wt-1\",\"notifyClients\":false,\"navigation\":\"caller\"}}"
     },
+    "8050097a5807": {
+      "name": "toast",
+      "ordinal": 27,
+      "value": {
+        "durationMs": 3000,
+        "message": "Open Manta on the host to wake sleeping agents."
+      }
+    },
     "83de0c92427d": {
       "name": "fetch-terminals",
       "ordinal": 9,
@@ -195,14 +203,6 @@
       "closedTabTombstones": 0,
       "initializedHandles": [],
       "terminalsLoaded": false
-    },
-    "b804d344d320": {
-      "name": "toast",
-      "ordinal": 27,
-      "value": {
-        "durationMs": 3000,
-        "message": "Open Manta on the host to wake sleeping agents."
-      }
     },
     "bf6936c769d1": {
       "name": "clear-terminal-cache",
@@ -424,7 +424,7 @@
             "a193ad4304cb",
             "5bd54a356841",
             "83de0c92427d",
-            "0c11a07914d9",
+            "2f2d25d60434",
             "04f9f79493f1"
           ]
         }
@@ -448,7 +448,7 @@
             "a193ad4304cb",
             "5bd54a356841",
             "83de0c92427d",
-            "0c11a07914d9",
+            "2f2d25d60434",
             "04f9f79493f1",
             "6d3ccc8dd226"
           ]
@@ -474,7 +474,7 @@
             "a193ad4304cb",
             "5bd54a356841",
             "83de0c92427d",
-            "0c11a07914d9",
+            "2f2d25d60434",
             "04f9f79493f1",
             "6d3ccc8dd226",
             "852e16abba25",
@@ -510,7 +510,7 @@
             "a193ad4304cb",
             "5bd54a356841",
             "83de0c92427d",
-            "0c11a07914d9",
+            "2f2d25d60434",
             "04f9f79493f1",
             "6d3ccc8dd226",
             "852e16abba25",
@@ -523,7 +523,7 @@
             "04cec5da2df1",
             "3ff3bd674907",
             "5dbd71a7b565",
-            "b804d344d320"
+            "8050097a5807"
           ]
         }
       },
@@ -547,7 +547,7 @@
             "a193ad4304cb",
             "5bd54a356841",
             "83de0c92427d",
-            "0c11a07914d9",
+            "2f2d25d60434",
             "04f9f79493f1",
             "6d3ccc8dd226",
             "852e16abba25",
@@ -560,7 +560,7 @@
             "04cec5da2df1",
             "3ff3bd674907",
             "5dbd71a7b565",
-            "b804d344d320",
+            "8050097a5807",
             "c4b96136baf3",
             "0439d4e9a9bf"
           ]
@@ -586,7 +586,7 @@
             "a193ad4304cb",
             "5bd54a356841",
             "83de0c92427d",
-            "0c11a07914d9",
+            "2f2d25d60434",
             "04f9f79493f1",
             "6d3ccc8dd226",
             "852e16abba25",
@@ -599,7 +599,7 @@
             "04cec5da2df1",
             "3ff3bd674907",
             "5dbd71a7b565",
-            "b804d344d320",
+            "8050097a5807",
             "c4b96136baf3",
             "0439d4e9a9bf",
             "0a48a6e4d579",

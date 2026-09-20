@@ -3,9 +3,9 @@
   "family": "hostedReview.create-intent",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "c582ce355b0704b38d7e84cbce352630096c91231bf09aecd1f6dbb409fed17f",
   "scenarioSha256": "beb1161b98ffde8c5f1128e843766a1da3182d195f1f0a9012e12e5318ae01bc",
   "platform": "darwin",
@@ -323,48 +323,6 @@
         }
       }
     },
-    "2c6dd148501e": {
-      "outcome": {
-        "committed": true,
-        "ok": true,
-        "prefill": {
-          "base": "main",
-          "blockedReason": {
-            "$rpc": "null"
-          },
-          "body": "Host body",
-          "canCreate": true,
-          "nextAction": {
-            "$rpc": "null"
-          },
-          "provider": "github",
-          "reviewLookupOutcome": "not_found",
-          "title": "Host title"
-        },
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        },
-        "url": "https://review.test/5",
-        "warning": "Pull Request created, but Manta could not refresh it yet."
-      }
-    },
     "395c47c3d42e": {
       "name": "hostedReview.getCreationEligibility#1",
       "ordinal": 17,
@@ -610,6 +568,48 @@
             }
           }
         }
+      }
+    },
+    "5b8cd3f8ce14": {
+      "outcome": {
+        "committed": true,
+        "ok": true,
+        "prefill": {
+          "base": "main",
+          "blockedReason": {
+            "$rpc": "null"
+          },
+          "body": "Host body",
+          "canCreate": true,
+          "nextAction": {
+            "$rpc": "null"
+          },
+          "provider": "github",
+          "reviewLookupOutcome": "not_found",
+          "title": "Host title"
+        },
+        "status": {
+          "branch": "feature",
+          "conflictOperation": "unknown",
+          "entries": [],
+          "head": "def5678",
+          "upstreamStatus": {
+            "ahead": 0,
+            "behind": 0,
+            "behindCommitsArePatchEquivalent": {
+              "$rpc": "undefined"
+            },
+            "hasConfiguredPushTarget": {
+              "$rpc": "undefined"
+            },
+            "hasUpstream": true,
+            "upstreamName": {
+              "$rpc": "undefined"
+            }
+          }
+        },
+        "url": "https://review.test/5",
+        "warning": "Pull Request created, but Manta could not refresh it yet."
       }
     },
     "5e23effac40d": {
@@ -1105,7 +1105,44 @@
       "ordinal": 8,
       "value": "generating_commit_message"
     },
-    "b661d30b2d73": {
+    "c9569b29c1f2": {
+      "name": "worktree.set#1",
+      "ordinal": 28,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.set"
+        },
+        {
+          "name": "params",
+          "value": {
+            "baseRef": "main",
+            "linkedPR": 5,
+            "worktree": "id:repo42::/p"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "refused",
+            "message": "outer refused"
+          },
+          "id": "frame-12",
+          "ok": false
+        }
+      }
+    },
+    "d30c57c5891d": {
       "status": "fulfilled",
       "startedAt": 0,
       "settledAt": 0,
@@ -1148,43 +1185,6 @@
         },
         "url": "https://review.test/5",
         "warning": "Pull Request created, but Manta could not refresh it yet."
-      }
-    },
-    "c9569b29c1f2": {
-      "name": "worktree.set#1",
-      "ordinal": 28,
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.set"
-        },
-        {
-          "name": "params",
-          "value": {
-            "baseRef": "main",
-            "linkedPR": 5,
-            "worktree": "id:repo42::/p"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "error": {
-            "code": "refused",
-            "message": "outer refused"
-          },
-          "id": "frame-12",
-          "ok": false
-        }
       }
     },
     "d7fed979e629": {
@@ -1826,9 +1826,9 @@
             "ffef2a178ce4"
           ],
           "settlements": {
-            "run": "b661d30b2d73"
+            "run": "d30c57c5891d"
           },
-          "state": "2c6dd148501e",
+          "state": "5b8cd3f8ce14",
           "effects": [
             "e83dca631c9c",
             "b2ae4b8e30b7",
@@ -1870,9 +1870,9 @@
             "ffef2a178ce4"
           ],
           "settlements": {
-            "run": "b661d30b2d73"
+            "run": "d30c57c5891d"
           },
-          "state": "2c6dd148501e",
+          "state": "5b8cd3f8ce14",
           "effects": [
             "e83dca631c9c",
             "b2ae4b8e30b7",
@@ -1914,9 +1914,9 @@
             "ffef2a178ce4"
           ],
           "settlements": {
-            "run": "b661d30b2d73"
+            "run": "d30c57c5891d"
           },
-          "state": "2c6dd148501e",
+          "state": "5b8cd3f8ce14",
           "effects": [
             "e83dca631c9c",
             "b2ae4b8e30b7",
@@ -1958,9 +1958,9 @@
             "ffef2a178ce4"
           ],
           "settlements": {
-            "run": "b661d30b2d73"
+            "run": "d30c57c5891d"
           },
-          "state": "2c6dd148501e",
+          "state": "5b8cd3f8ce14",
           "effects": [
             "e83dca631c9c",
             "b2ae4b8e30b7",

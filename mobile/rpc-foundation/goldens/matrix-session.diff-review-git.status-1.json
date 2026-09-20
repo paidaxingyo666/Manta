@@ -3,9 +3,9 @@
   "family": "session.diff-review",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "a8016eb61915cf80a3bdeb622ee67d35be8b4b9862a75e4ef2e8f4ff8e93e7f2",
   "scenarioSha256": "b4627f9ac9bc090a2b48fd35f32d5dc3d66fefe0fb65abab75597ef2c73510ec",
   "platform": "darwin",
@@ -77,15 +77,6 @@
       "settlement": {
         "status": "pending",
         "startedAt": 0
-      }
-    },
-    "14804a5e414f": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "kind": "unavailable",
-        "message": "Update Manta desktop to review changes on mobile."
       }
     },
     "168d1f64ca9b": {
@@ -233,14 +224,6 @@
       "ordinal": 7,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"repo.list\"}"
     },
-    "55c07df45014": {
-      "branchCompare": "unloaded",
-      "diff": "unloaded",
-      "snapshot": {
-        "kind": "unavailable",
-        "message": "Update Manta desktop to review changes on mobile."
-      }
-    },
     "5a46fcc976ac": {
       "name": "git.status#1",
       "ordinal": 1,
@@ -274,6 +257,14 @@
             "ok": false
           }
         }
+      }
+    },
+    "737571f189e0": {
+      "branchCompare": "unloaded",
+      "diff": "unloaded",
+      "snapshot": {
+        "kind": "unavailable",
+        "message": "Update Manta desktop to review changes on mobile."
       }
     },
     "80f12d7d71e7": {
@@ -754,6 +745,15 @@
         }
       }
     },
+    "f48d56804b27": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "kind": "unavailable",
+        "message": "Update Manta desktop to review changes on mobile."
+      }
+    },
     "f880a1519497": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -1082,9 +1082,9 @@
           "sender": ["45d1ea7c0b42"],
           "payloads": ["168d1f64ca9b"],
           "settlements": {
-            "snapshot": "14804a5e414f"
+            "snapshot": "f48d56804b27"
           },
-          "state": "55c07df45014",
+          "state": "737571f189e0",
           "effects": []
         }
       },

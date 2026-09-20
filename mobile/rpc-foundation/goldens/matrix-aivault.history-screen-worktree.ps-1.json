@@ -3,10 +3,10 @@
   "family": "aiVault.history-screen",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
-  "adapterSha256": "c78ab47eea594b7e1988403321ff9ba135ca60c513bb9d5848bdde26c0ffe3c3",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "f899a426f1dc243a5c67b96707fe89f4e9db348cba5bc3926b0f9577052f655d",
   "scenarioSha256": "5365449c24d789c6c01604b520b795502d0bec352032686efecd121fc4497f96",
   "platform": "darwin",
   "scenarioVersion": 1,
@@ -554,22 +554,6 @@
         }
       }
     },
-    "d22bb2f62cea": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ActivityIndicator": 1,
-        "ChevronLeft": 1,
-        "Pressable": 2,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 2,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": ["Agent Session History", "manta-history"]
-    },
     "d3c3ce66625d": {
       "name": "aiVault.listSessions#1",
       "ordinal": 8,
@@ -622,6 +606,22 @@
       "value": {
         "$rpc": "undefined"
       }
+    },
+    "f0fcd4baacac": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ActivityIndicator": 1,
+        "ChevronLeft": 1,
+        "Pressable": 2,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 2,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": ["Agent Session History", "manta-history"]
     }
   },
   "recording": {
@@ -635,7 +635,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -647,7 +647,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -659,7 +659,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -671,7 +671,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -683,7 +683,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -695,7 +695,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -707,7 +707,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -719,7 +719,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -731,7 +731,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -743,7 +743,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -755,7 +755,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -767,7 +767,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       }

@@ -3,10 +3,10 @@
   "family": "settings.task-hydration",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
-  "adapterSha256": "fc73116d95985606fe32f22d3f14f434a6d5cd49219416c9fa0f47f971fa6ff0",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "adapterSha256": "59e14a669103f2182737dedeed218795ffbadaf06a3a48a322cd8d20141a3e04",
   "scenarioSha256": "b23c3076081901c89e8a8fb8d20028e03f030db040c9cd793b6f2c7cd49d8f25",
   "platform": "darwin",
   "scenarioVersion": 1,
@@ -316,13 +316,6 @@
       "ordinal": 73,
       "value": false
     },
-    "44b2c7834336": {
-      "name": "projectRepoNotInManta",
-      "ordinal": 96,
-      "value": {
-        "$rpc": "null"
-      }
-    },
     "45e466d86a07": {
       "name": "showLinearWorkspacePicker",
       "ordinal": 3,
@@ -517,6 +510,13 @@
       "ordinal": 138,
       "value": true
     },
+    "6379b92577db": {
+      "name": "projectRepoNotInManta",
+      "ordinal": 96,
+      "value": {
+        "$rpc": "null"
+      }
+    },
     "644df42439c4": {
       "name": "linearWorkspaces",
       "ordinal": 55,
@@ -555,6 +555,11 @@
           }
         }
       }
+    },
+    "6a0285700773": {
+      "name": "trustedMantaHooks",
+      "ordinal": 121,
+      "value": {}
     },
     "6f3b18393dbd": {
       "name": "showGitHubProjectSortPicker",
@@ -661,17 +666,15 @@
         "startedAt": 0
       }
     },
-    "7d8029e889cf": {
-      "name": "projectRepoNotInManta",
-      "ordinal": 27,
-      "value": {
-        "$rpc": "null"
-      }
-    },
     "7f41fc46679f": {
       "name": "showLinearConnect",
       "ordinal": 78,
       "value": false
+    },
+    "808d840ee452": {
+      "name": "trustedMantaHooks",
+      "ordinal": 52,
+      "value": {}
     },
     "8515b9b6e08f": {
       "name": "linear.status#1",
@@ -811,11 +814,6 @@
         }
       }
     },
-    "9490fcb6d06d": {
-      "name": "trustedMantaHooks",
-      "ordinal": 52,
-      "value": {}
-    },
     "955d63f231b6": {
       "name": "showLinearViewPicker",
       "ordinal": 74,
@@ -841,11 +839,6 @@
       "name": "showLinearFilterPicker",
       "ordinal": 84,
       "value": false
-    },
-    "99e14ee31690": {
-      "name": "trustedMantaHooks",
-      "ordinal": 121,
-      "value": {}
     },
     "9a989693d0ca": {
       "name": "preflight.check#2",
@@ -1136,6 +1129,13 @@
         "visibleTaskProviders": ["github", "linear"]
       }
     },
+    "e864ce71e831": {
+      "name": "projectRepoNotInManta",
+      "ordinal": 27,
+      "value": {
+        "$rpc": "null"
+      }
+    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -1310,7 +1310,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "7d8029e889cf",
+            "e864ce71e831",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1375,7 +1375,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "7d8029e889cf",
+            "e864ce71e831",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1390,7 +1390,7 @@
             "3d60f87d082e",
             "294741680522",
             "e7538ac5908a",
-            "9490fcb6d06d",
+            "808d840ee452",
             "e715718a7e8c",
             "2ae9c5d06de2",
             "644df42439c4",
@@ -1459,7 +1459,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "7d8029e889cf",
+            "e864ce71e831",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1474,7 +1474,7 @@
             "3d60f87d082e",
             "294741680522",
             "e7538ac5908a",
-            "9490fcb6d06d",
+            "808d840ee452",
             "e715718a7e8c",
             "2ae9c5d06de2",
             "644df42439c4",
@@ -1546,7 +1546,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "7d8029e889cf",
+            "e864ce71e831",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1561,7 +1561,7 @@
             "3d60f87d082e",
             "294741680522",
             "e7538ac5908a",
-            "9490fcb6d06d",
+            "808d840ee452",
             "e715718a7e8c",
             "2ae9c5d06de2",
             "644df42439c4",
@@ -1605,7 +1605,7 @@
             "a0d562682d34",
             "f9bb0ac4991e",
             "a7ae05691ba1",
-            "44b2c7834336",
+            "6379b92577db",
             "35be767d426b",
             "5017dcad1599",
             "c4ae583fc453",
@@ -1679,7 +1679,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "7d8029e889cf",
+            "e864ce71e831",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1694,7 +1694,7 @@
             "3d60f87d082e",
             "294741680522",
             "e7538ac5908a",
-            "9490fcb6d06d",
+            "808d840ee452",
             "e715718a7e8c",
             "2ae9c5d06de2",
             "644df42439c4",
@@ -1738,7 +1738,7 @@
             "a0d562682d34",
             "f9bb0ac4991e",
             "a7ae05691ba1",
-            "44b2c7834336",
+            "6379b92577db",
             "35be767d426b",
             "5017dcad1599",
             "c4ae583fc453",
@@ -1753,7 +1753,7 @@
             "fe80cdaa7cd6",
             "de1d8881282a",
             "5fb30763cac6",
-            "99e14ee31690",
+            "6a0285700773",
             "a635ab80ac3a",
             "55d58c4a306a",
             "9bf0218faf72",

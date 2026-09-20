@@ -3,16 +3,22 @@
   "family": "worktree.retired-names",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "4e942ddfbaa0ba6bfc2993969276987f6528ac53765d125e99a830e261f93a8e",
-  "scenarioSha256": "d321d6c17e67ae90f6ceefb775495ff765a86a35423ed33a212e71ec5e9e94aa",
+  "scenarioSha256": "d09135f86958618eff29feea785bf0f64bb362e27ebab32879aeebef73974799",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
+    "14a70c2074ec": {
+      "registry": {
+        "exhaustedTiers": 2,
+        "names": ["marlin", "manta"]
+      }
+    },
     "3a6762b141aa": {
       "name": "worktree.listRetiredNames#1",
       "ordinal": 2,
@@ -251,12 +257,6 @@
         }
       }
     },
-    "85d826c606ff": {
-      "registry": {
-        "exhaustedTiers": 2,
-        "names": ["marlin", "manta"]
-      }
-    },
     "90d43035c093": {
       "name": "worktree.listRetiredNames#1",
       "ordinal": 1,
@@ -289,45 +289,6 @@
           },
           "id": "frame-1",
           "ok": false
-        }
-      }
-    },
-    "97b3650e7890": {
-      "name": "worktree.listRetiredNames#1",
-      "ordinal": 1,
-      "args": [
-        {
-          "name": "method",
-          "value": "worktree.listRetiredNames"
-        },
-        {
-          "name": "params",
-          "value": {
-            "repo": "id:repo-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-1",
-          "ok": true,
-          "result": {
-            "retiredNameTiersByRepo": {
-              "repo-1": 2
-            },
-            "retiredNamesByRepo": {
-              "repo-1": ["marlin", "manta"]
-            }
-          }
         }
       }
     },
@@ -442,6 +403,45 @@
       "value": {
         "$rpc": "undefined"
       }
+    },
+    "f24fb1fae715": {
+      "name": "worktree.listRetiredNames#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "worktree.listRetiredNames"
+        },
+        {
+          "name": "params",
+          "value": {
+            "repo": "id:repo-1"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "retiredNameTiersByRepo": {
+              "repo-1": 2
+            },
+            "retiredNamesByRepo": {
+              "repo-1": ["marlin", "manta"]
+            }
+          }
+        }
+      }
     }
   },
   "recording": {
@@ -462,12 +462,12 @@
       {
         "id": "worktree-retired-names.normal:settled",
         "observation": {
-          "sender": ["97b3650e7890"],
+          "sender": ["f24fb1fae715"],
           "payloads": ["3a6762b141aa"],
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "85d826c606ff",
+          "state": "14a70c2074ec",
           "effects": []
         }
       },

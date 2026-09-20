@@ -3,9 +3,9 @@
   "family": "speech.setup-sheet",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "3ddb44511547ae2fc97340e5a49393233f6716f9704b7b994f43bc030788b25b",
   "scenarioSha256": "0ba2d8283fe98206c7500b62732e30acdc5b8e55f50b7ea8cae96403b803d519",
   "platform": "darwin",
@@ -13,16 +13,6 @@
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "100447f8b483": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "Error",
-        "message": "Update the paired desktop Manta app to use mobile voice settings.",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "103ab24b6298": {
       "name": "speech.models.list#1",
       "ordinal": 1,
@@ -63,6 +53,16 @@
       "name": "speech.models.list#1",
       "ordinal": 2,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"speech.models.list\",\"params\":null}"
+    },
+    "544268f0e0b3": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "Update the paired desktop Manta app to use mobile voice settings.",
+        "isRpcDeliveryUnknown": false
+      }
     }
   },
   "recording": {
@@ -74,7 +74,7 @@
           "sender": ["103ab24b6298"],
           "payloads": ["4f793e38be31"],
           "settlements": {
-            "list": "100447f8b483"
+            "list": "544268f0e0b3"
           },
           "state": "44136fa355b3",
           "effects": []

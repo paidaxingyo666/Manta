@@ -3,11 +3,11 @@
   "family": "notifications.display-test-screen",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "e8a7be4ce24a3c4fed44b4488966db6f7596e396",
-  "lockfileSha256": "afafc16f7989373be291e3475af6b99bda6b9235f9e446398a94c5e49411188f",
-  "recorderSha256": "f67c2f5b753d2a4f572599f6861fae8e6e917fe89ac75b58288f8e84be609d86",
+  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
+  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
+  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
   "adapterSha256": "f55275c268e49679b37d72ce6cbe71186ce02c77fe3fd53f0f21e796502d62e8",
-  "scenarioSha256": "b7a862c0de7dd4efcdf3f4db7c5aeda6b765ab58498f40f3b21232264758b16f",
+  "scenarioSha256": "bfbc9bb5c68f5e3ca905d21d6128d710004b47f550de7d355aee310e3737a68b",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
@@ -45,6 +45,44 @@
           "isRpcDeliveryUnknown": true
         }
       }
+    },
+    "0369a3ef3f11": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 6,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting",
+        "Could not reach the desktop. Try again."
+      ]
+    },
+    "05cd3b068789": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 6,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting",
+        "Could not send through Manta’s push service. Try again."
+      ]
     },
     "0694d81f1456": {
       "name": "notifications.testPush#1",
@@ -108,25 +146,6 @@
         "startedAt": 0
       }
     },
-    "1813829924d9": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 6,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting",
-        "Accepted by Manta’s push service. Check for the notification."
-      ]
-    },
     "1d12f3e78a48": {
       "name": "notifications.testPush#1",
       "ordinal": 1,
@@ -164,25 +183,6 @@
           }
         }
       }
-    },
-    "2632a7be552e": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 6,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting",
-        "Update your desktop to run this test."
-      ]
     },
     "401bb4233294": {
       "name": "notifications.testPush#1",
@@ -249,25 +249,6 @@
         }
       }
     },
-    "4f67ed2e2c74": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 6,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting",
-        "Could not reach the desktop. Try again."
-      ]
-    },
     "649d12c8eb9b": {
       "name": "notifications.testPush#1",
       "ordinal": 1,
@@ -303,22 +284,23 @@
         }
       }
     },
-    "6967f95147f9": {
+    "83e0a76a8c36": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
         "Pressable": 2,
-        "Text": 5,
+        "Text": 6,
         "View": 3
       },
-      "labels": ["Sending…"],
+      "labels": ["Send test notification"],
       "text": [
         "Having trouble receiving alerts?",
         "Send a test through Manta’s push service.",
         "Send test notification",
-        "Sending…",
-        "Troubleshooting"
+        "Send test notification",
+        "Troubleshooting",
+        "Accepted by Manta’s push service. Check for the notification."
       ]
     },
     "95172d96bab4": {
@@ -392,13 +374,13 @@
         }
       }
     },
-    "b7f125cb7db0": {
+    "9d718fa0bcec": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
         "Pressable": 2,
-        "Text": 6,
+        "Text": 5,
         "View": 3
       },
       "labels": ["Send test notification"],
@@ -407,8 +389,7 @@
         "Send a test through Manta’s push service.",
         "Send test notification",
         "Send test notification",
-        "Troubleshooting",
-        "transport failure"
+        "Troubleshooting"
       ]
     },
     "c37bd4097e53": {
@@ -447,6 +428,25 @@
         }
       }
     },
+    "c539d57bd905": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 6,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting",
+        "transport failure"
+      ]
+    },
     "c67ea168778c": {
       "name": "notifications.testPush#1",
       "ordinal": 1,
@@ -483,7 +483,7 @@
         }
       }
     },
-    "d86c08a509c4": {
+    "d7493d813b59": {
       "crash": {
         "$rpc": "null"
       },
@@ -492,13 +492,32 @@
         "Text": 5,
         "View": 3
       },
+      "labels": ["Sending…"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Sending…",
+        "Troubleshooting"
+      ]
+    },
+    "d85ffa5f4196": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 6,
+        "View": 3
+      },
       "labels": ["Send test notification"],
       "text": [
         "Having trouble receiving alerts?",
         "Send a test through Manta’s push service.",
         "Send test notification",
         "Send test notification",
-        "Troubleshooting"
+        "Troubleshooting",
+        "Update your desktop to run this test."
       ]
     },
     "eb79a9b3682a": {
@@ -545,25 +564,6 @@
         }
       }
     },
-    "f3e2e816b496": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 6,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting",
-        "Could not send through Manta’s push service. Try again."
-      ]
-    },
     "f68b017d64bd": {
       "name": "notifications.testPush#1",
       "ordinal": 2,
@@ -581,7 +581,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d86c08a509c4",
+          "state": "9d718fa0bcec",
           "effects": []
         }
       },
@@ -594,7 +594,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "6967f95147f9",
+          "state": "d7493d813b59",
           "effects": []
         }
       },
@@ -607,7 +607,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "1813829924d9",
+          "state": "83e0a76a8c36",
           "effects": []
         }
       },
@@ -620,7 +620,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": []
         }
       },
@@ -633,7 +633,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": []
         }
       },
@@ -646,7 +646,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": []
         }
       },
@@ -659,7 +659,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": []
         }
       },
@@ -672,7 +672,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": []
         }
       },
@@ -685,7 +685,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "4f67ed2e2c74",
+          "state": "0369a3ef3f11",
           "effects": []
         }
       },
@@ -698,7 +698,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "4f67ed2e2c74",
+          "state": "0369a3ef3f11",
           "effects": []
         }
       },
@@ -711,7 +711,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "2632a7be552e",
+          "state": "d85ffa5f4196",
           "effects": []
         }
       },
@@ -724,7 +724,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "b7f125cb7db0",
+          "state": "c539d57bd905",
           "effects": []
         }
       },
@@ -737,7 +737,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "d86c08a509c4",
+          "state": "9d718fa0bcec",
           "effects": []
         }
       }
