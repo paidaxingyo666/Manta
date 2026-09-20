@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createHourlyBuildVersion,
   formatHourlyReleaseName,
@@ -6,6 +7,15 @@ import {
   nextHourlyBuildNumber
 } from './hourly-build-version.mjs'
 import { compareAppVersions } from '../../src/shared/app-version'
+
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, readFileSync: vi.fn(actual.readFileSync) }
+})
+
+afterEach(() => {
+  vi.mocked(readFileSync).mockReset()
+})
 
 describe('createHourlyBuildVersion', () => {
   it('stamps the version with a zero-padded UTC timestamp', () => {
@@ -128,6 +138,8 @@ describe('getHourlyBuildIdentity', () => {
   // hourly keeps the next build on 1.4.203 so electron-updater will still
   // install it.
   it('stays on the already-shipped hourly base after a buggy main release is unpublished', () => {
+    // The historical package floor must not move when this repository cuts a new release.
+    vi.mocked(readFileSync).mockReturnValueOnce(JSON.stringify({ version: '1.4.202-rc.0' }))
     const identity = getHourlyBuildIdentity(new Date('2026-09-14T20:00:00Z'), {
       publishedVersions: [
         'v1.4.201',
@@ -142,5 +154,15 @@ describe('getHourlyBuildIdentity', () => {
     })
     expect(identity.version).toBe('1.4.203-hourly.202609142000')
     expect(identity.buildNumber).toBe(5)
+  })
+
+  it('starts a new series when the package floor moves beyond the published hourly base', () => {
+    vi.mocked(readFileSync).mockReturnValueOnce(JSON.stringify({ version: '1.4.205-rc.0' }))
+    const identity = getHourlyBuildIdentity(new Date('2026-09-14T20:00:00Z'), {
+      publishedVersions: ['v1.4.202', 'v1.4.203-hourly.202609140417'],
+      releaseNames: ['1.4.203 • 04 • Sep 13, 9:17PM • 2ce252f']
+    })
+    expect(identity.version).toBe('1.4.205-hourly.202609142000')
+    expect(identity.buildNumber).toBe(1)
   })
 })
