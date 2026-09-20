@@ -98,7 +98,8 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     'MANTA_WSL_HOOK_RELAY_VERSION/u',
     'MANTA_WSL_HOOK_INSTANCE/u',
     'MANTA_OMP_SOURCE_AGENT_DIR/p',
-    'MANTA_OMP_STATUS_EXTENSION/p',
+    `MANTA_OMP_STATUS_EXTENSION/${env.MANTA_OMP_STATUS_EXTENSION?.startsWith('/') ? 'u' : 'p'}`,
+    ...(env.MANTA_PI_SOURCE_AGENT_DIR?.startsWith('/') ? ['MANTA_PI_SOURCE_AGENT_DIR/u'] : []),
     `${ORCA_IMAGE_PROTOCOL_ENV}/u`,
     'MANTA_OMP_FRESH_CONFIG/p',
     ...worktreeSetupWslenvEntries(env)

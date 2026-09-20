@@ -505,7 +505,7 @@ describe('registerPtyHandlers', () => {
         'MANTA_AGENT_HOOK_PORT/u',
         'MANTA_AGENT_HOOK_TOKEN/u',
         // Why: bare WSL shells no longer create ~/.omp; only status extension is exported (#10196).
-        'MANTA_OMP_STATUS_EXTENSION/p',
+        'MANTA_OMP_STATUS_EXTENSION/u',
         'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD'
       ])
     )
