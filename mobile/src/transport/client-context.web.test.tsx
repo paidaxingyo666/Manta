@@ -6,18 +6,7 @@ import { createShellPageClient } from '../mobile-web-shell/bridge/page-bootstrap
 import type { BridgeRpcClient } from '../mobile-web-shell/bridge/bridge-rpc-client'
 import type { RpcClientContextValue } from './rpc-client-context-contract'
 
-// The web file re-exports the screen hooks, and reaching the real ones imports the Expo runtime
-// this test does not have. Nothing below calls one.
-vi.mock('./host-client-hooks', () => ({
-  useDisconnectHostClient: () => () => {},
-  useForceReconnect: () => () => Promise.resolve(),
-  useForgetHostClient: () => () => {},
-  useHostClient: () => ({ client: null, clientId: null, state: 'disconnected' }),
-  usePrimeHosts: () => () => {},
-  useRefreshHostClient: () => () => {}
-}))
-
-import { RpcClientProvider, useRpcClientContext } from './client-context.web'
+import { RpcClientProvider, useHostClient, useRpcClientContext } from './client-context.web'
 
 const INIT = {
   v: BRIDGE_PROTOCOL_VERSION,
@@ -101,6 +90,24 @@ afterEach(() => {
 })
 
 describe('the page provider', () => {
+  it('serves the real shared screen hook from the same context', () => {
+    const channel = installChannel()
+    const client = createReadyClient(channel.deliver)
+    const held: { value?: ReturnType<typeof useHostClient> } = {}
+    function HostScreen(): null {
+      held.value = useHostClient('host-a')
+      return null
+    }
+    act(() => {
+      create(
+        <RpcClientProvider client={client}>
+          <HostScreen />
+        </RpcClientProvider>
+      )
+    })
+    expect(held.value).toEqual({ client, clientId: null, state: 'connected' })
+  })
+
   it('answers every screen with the one client the page has', () => {
     const channel = installChannel()
     const client = createReadyClient(channel.deliver)
