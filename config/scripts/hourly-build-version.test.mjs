@@ -1,21 +1,53 @@
-import { readFileSync } from 'node:fs'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { runProcessSync } from '../../src/shared/child-process/run-process'
 import {
   createHourlyBuildVersion,
   formatHourlyReleaseName,
-  getHourlyBuildIdentity,
   nextHourlyBuildNumber
 } from './hourly-build-version.mjs'
 import { compareAppVersions } from '../../src/shared/app-version'
 
-vi.mock('node:fs', async (importOriginal) => {
-  const actual = await importOriginal()
-  return { ...actual, readFileSync: vi.fn(actual.readFileSync) }
-})
-
-afterEach(() => {
-  vi.mocked(readFileSync).mockReset()
-})
+function hourlyIdentityFromPackage(version, options) {
+  const cwd = mkdtempSync(join(tmpdir(), 'manta-hourly-version-'))
+  try {
+    writeFileSync(join(cwd, 'package.json'), JSON.stringify({ version }))
+    const run = (program, args) => {
+      const result = runProcessSync({ program, args, cwd })
+      expect(result.code, result.stderr).toBe(0)
+      return result.stdout
+    }
+    const git = (...args) => run('git', args)
+    git('init', '-q')
+    git(
+      '-c',
+      'user.name=Test',
+      '-c',
+      'user.email=test@example.com',
+      '-c',
+      'commit.gpgsign=false',
+      'commit',
+      '--allow-empty',
+      '--no-verify',
+      '-qm',
+      'fixture'
+    )
+    const result = run(process.execPath, [
+      '--input-type=module',
+      '-e',
+      `const { getHourlyBuildIdentity } = await import(process.argv[1]);
+       console.log(JSON.stringify(getHourlyBuildIdentity(
+         new Date('2026-09-14T20:00:00Z'), JSON.parse(process.argv[2]))));`,
+      new URL('./hourly-build-version.mjs', import.meta.url).href,
+      JSON.stringify(options)
+    ])
+    return JSON.parse(result)
+  } finally {
+    rmSync(cwd, { recursive: true, force: true })
+  }
+}
 
 describe('createHourlyBuildVersion', () => {
   it('stamps the version with a zero-padded UTC timestamp', () => {
@@ -139,8 +171,7 @@ describe('getHourlyBuildIdentity', () => {
   // install it.
   it('stays on the already-shipped hourly base after a buggy main release is unpublished', () => {
     // The historical package floor must not move when this repository cuts a new release.
-    vi.mocked(readFileSync).mockReturnValueOnce(JSON.stringify({ version: '1.4.202-rc.0' }))
-    const identity = getHourlyBuildIdentity(new Date('2026-09-14T20:00:00Z'), {
+    const identity = hourlyIdentityFromPackage('1.4.202-rc.0', {
       publishedVersions: [
         'v1.4.201',
         'v1.4.202',
@@ -157,8 +188,7 @@ describe('getHourlyBuildIdentity', () => {
   })
 
   it('starts a new series when the package floor moves beyond the published hourly base', () => {
-    vi.mocked(readFileSync).mockReturnValueOnce(JSON.stringify({ version: '1.4.205-rc.0' }))
-    const identity = getHourlyBuildIdentity(new Date('2026-09-14T20:00:00Z'), {
+    const identity = hourlyIdentityFromPackage('1.4.205-rc.0', {
       publishedVersions: ['v1.4.202', 'v1.4.203-hourly.202609140417'],
       releaseNames: ['1.4.203 • 04 • Sep 13, 9:17PM • 2ce252f']
     })
