@@ -11747,6 +11747,7 @@
           "loadingBuilds": "Loading builds…",
           "noBuilds": "No builds found",
           "refresh": "Refresh build list",
+          "cacheHint": "Build lists are cached for 5 minutes. Refresh to check for new builds.",
           "switchTo": "Switch to build",
           "alreadyRunning": "This is the build you are running.",
           "willSwitch": "{{value0}} → {{value1}}",
