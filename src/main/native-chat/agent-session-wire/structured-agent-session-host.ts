@@ -35,7 +35,8 @@ import { listStructuredAgentSessionTabs } from './structured-agent-session-host-
 import {
   structuredAgentSessionMutationDelegates,
   settleStructuredAgentSessionLateDispatch,
-  type StructuredAgentSessionMutationContext
+  type StructuredAgentSessionMutationContext,
+  releaseStructuredAgentSessionUnansweredDispatches
 } from './structured-agent-session-host-mutations'
 import { flushStructuredAgentSessionHost } from './structured-agent-session-host-teardown'
 import type {
@@ -327,6 +328,10 @@ export class StructuredAgentSessionHost {
 
   settleLateDispatch = (input: Parameters<typeof settleStructuredAgentSessionLateDispatch>[1]) =>
     settleStructuredAgentSessionLateDispatch(this.mutationContext(), input)
+
+  releaseUnansweredDispatches = (
+    input: Parameters<typeof releaseStructuredAgentSessionUnansweredDispatches>[1]
+  ) => releaseStructuredAgentSessionUnansweredDispatches(this.mutationContext(), input)
 
   publishBackgroundTaskState: StructuredAgentSessionBackgroundTaskChannel['publish'] = (...args) =>
     this.backgroundTasks.publish(...args)
