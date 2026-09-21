@@ -27,6 +27,7 @@ type Recorded = {
   ordinal?: number
   settlementId?: string
   activity?: AgentSessionTurnActivity | null
+  producedBySubagent?: true
 }
 
 function target(
@@ -251,6 +252,40 @@ describe('deferred structured agent-session event sink', () => {
       { call: 'appendItem', fence: 5, ordinal: 1 },
       { call: 'publish', fence: 5 }
     ])
+  })
+
+  it('preserves producer attribution through resolved append paths', async () => {
+    for (const append of ['tryAppendResolvedItem', 'tryAppendResolvedItemAndPublish'] as const) {
+      const log: Recorded[] = []
+      const deferred = createDeferredStructuredAgentSessionEventSink()
+      const bound = target(5, log)
+      vi.spyOn(bound.journal, 'appendItem').mockImplementation(async (id, _body, options) => {
+        log.push({
+          call: 'appendItem',
+          fence: 5,
+          ordinal: id.provider === 'codex' ? id.ordinal : -1,
+          ...(options?.producedBySubagent ? { producedBySubagent: true } : {})
+        })
+        return {
+          cursor: { epoch: 'e', sequence: 1 },
+          itemId: 'test-item',
+          revision: 1
+        }
+      })
+      deferred.bind(bound)
+      const admission = deferred.sink[append]?.(identity(1), BODY, () => identity(1), {
+        producedBySubagent: true
+      })
+      expect(admission).toEqual({ accepted: true })
+      await deferred.drained()
+      expect(log).toContainEqual({
+        call: 'appendItem',
+        fence: 5,
+        ordinal: 1,
+        producedBySubagent: true
+      })
+      deferred.close()
+    }
   })
 
   it('pauses provider reading at the soft byte watermark before rejecting writes', async () => {

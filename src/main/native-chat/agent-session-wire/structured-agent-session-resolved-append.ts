@@ -27,7 +27,8 @@ export function createStructuredAgentSessionResolvedAppend(
             }
             await bound.journal.appendItem(identity, body, {
               fence: bound.fence,
-              ...(options.observedAt === undefined ? {} : { observedAt: options.observedAt })
+              ...(options.observedAt === undefined ? {} : { observedAt: options.observedAt }),
+              ...(options.producedBySubagent ? { producedBySubagent: true as const } : {})
             })
           }
         },
@@ -49,7 +50,8 @@ export function createStructuredAgentSessionResolvedAppend(
             }
             await bound.journal.appendItem(identity, body, {
               fence: bound.fence,
-              ...(options.observedAt === undefined ? {} : { observedAt: options.observedAt })
+              ...(options.observedAt === undefined ? {} : { observedAt: options.observedAt }),
+              ...(options.producedBySubagent ? { producedBySubagent: true as const } : {})
             })
             bound.publish()
           }
