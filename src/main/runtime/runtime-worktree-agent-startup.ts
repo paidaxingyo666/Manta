@@ -1,7 +1,9 @@
 import type { AgentLaunchPreferences } from '../../shared/agent-session-host-authority'
+import { tuiAgentToAgentKind } from '../../shared/agent-kind'
 import type { Repo } from '../../shared/repo-types'
 import type { TuiAgent } from '../../shared/tui-agent'
 import type { WorktreeStartupLaunch } from '../../shared/worktree/launch-types'
+import { launchSourceSchema } from '../../shared/telemetry-property-schemas'
 import { repoIsRemote } from '../../shared/agent-launch-remote'
 import { getRepoSshConnectionId } from '../../shared/execution-host'
 import { isTuiAgent, TUI_AGENT_CONFIG } from '../../shared/tui-agent-config'
@@ -31,6 +33,10 @@ type StartupEnvironment = {
   repo: Repo
   settings: ReturnType<RuntimeStore['getSettings']>
   getLaunchPlatform: () => NodeJS.Platform
+  /** Replaces the configured arguments for this launch; `null` means none. */
+  agentArgs?: string | null
+  /** Caller-supplied telemetry attribution, validated leniently at the host boundary. */
+  launchSource?: string
 }
 
 export async function buildWorktreeStartupForDraft(
@@ -146,7 +152,10 @@ export function buildWorktreeStartupForAgent(
     agent,
     prompt: environment.prompt ?? '',
     cmdOverrides: settings.agentCmdOverrides ?? {},
-    agentArgs: resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
+    agentArgs:
+      environment.agentArgs !== undefined
+        ? environment.agentArgs
+        : resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
     agentEnv: resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
     sessionOptions,
     sessionOptionsOverrideAgentArgs: Boolean(sessionOptions),
@@ -162,6 +171,7 @@ export function buildWorktreeStartupForAgent(
   if (!startupPlan) {
     throw new Error(`Could not build launch command for ${agent}.`)
   }
+  const telemetry = agentLaunchTelemetry(agent, environment.launchSource)
   return {
     agent,
     startup: {
@@ -170,7 +180,8 @@ export function buildWorktreeStartupForAgent(
       ...(startupPlan.startupCommandDelivery
         ? { startupCommandDelivery: startupPlan.startupCommandDelivery }
         : {}),
-      ...(startupPlan.env ? { env: startupPlan.env } : {})
+      ...(startupPlan.env ? { env: startupPlan.env } : {}),
+      ...(telemetry ? { telemetry } : {})
     },
     ...(startupPlan.followupPrompt
       ? {
@@ -181,6 +192,20 @@ export function buildWorktreeStartupForAgent(
         }
       : {})
   }
+}
+
+function agentLaunchTelemetry(
+  agent: TuiAgent,
+  launchSource: string | undefined
+): WorktreeStartupLaunch['telemetry'] | undefined {
+  const parsed = launchSourceSchema.safeParse(launchSource)
+  return parsed.success
+    ? {
+        agent_kind: tuiAgentToAgentKind(agent),
+        launch_source: parsed.data,
+        request_kind: 'new'
+      }
+    : undefined
 }
 
 export async function markLocalWorktreeTrusted(

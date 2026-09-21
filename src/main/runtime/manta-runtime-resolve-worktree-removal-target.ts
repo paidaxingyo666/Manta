@@ -229,7 +229,12 @@ export class MantaRuntimeWithResolveWorktreeRemovalTarget extends MantaRuntimeWi
       agent,
       prompt: opts.startupPrompt ?? '',
       cmdOverrides: settings.agentCmdOverrides ?? {},
-      agentArgs: resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
+      // A per-launch override wins over the Settings default; `null` is "no arguments", so this
+      // tests for absence rather than falsiness.
+      agentArgs:
+        opts.agentArgs !== undefined
+          ? opts.agentArgs
+          : resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
       agentEnv: resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
       sessionOptions,
       sessionOptionsOverrideAgentArgs: Boolean(sessionOptions),

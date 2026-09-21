@@ -521,6 +521,66 @@ describe('MantaRuntimeService', () => {
     expect(spawnCall?.command).toBe("cursor-agent --beta '--force'")
   })
 
+  // Why: a saved launch recipe carries its own arguments, and the host previously read only the
+  // Settings default, so there was no way to express one over the wire.
+  it('prefers a per-call agentArgs over the agentDefaultArgs setting', async () => {
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-bg' })
+    const runtime = new MantaRuntimeService({
+      ...store,
+      getSettings: () => ({
+        ...store.getSettings(),
+        disabledTuiAgents: [],
+        agentCmdOverrides: { cursor: 'cursor-agent --beta' },
+        agentDefaultArgs: { cursor: '--force' },
+        agentDefaultEnv: {}
+      })
+    })
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+
+    await runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`, {
+      startupAgent: 'cursor',
+      agentArgs: '--headless'
+    })
+
+    const spawnCall = spawn.mock.calls[0]?.[0] as { command?: string } | undefined
+    expect(spawnCall?.command).toBe("cursor-agent --beta '--headless'")
+  })
+
+  // Why: `null` is "no arguments"; treating it as absent would restore the Settings default and
+  // launch the agent with arguments the caller explicitly cleared.
+  it('launches with no arguments when a per-call agentArgs is null', async () => {
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-bg' })
+    const runtime = new MantaRuntimeService({
+      ...store,
+      getSettings: () => ({
+        ...store.getSettings(),
+        disabledTuiAgents: [],
+        agentCmdOverrides: { cursor: 'cursor-agent --beta' },
+        agentDefaultArgs: { cursor: '--force' },
+        agentDefaultEnv: {}
+      })
+    })
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+
+    await runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`, {
+      startupAgent: 'cursor',
+      agentArgs: null
+    })
+
+    const spawnCall = spawn.mock.calls[0]?.[0] as { command?: string } | undefined
+    expect(spawnCall?.command).toBe('cursor-agent --beta')
+  })
+
   // Why: with no selector the launch is never resolved, so a dropped startupAgent
   // would reach the renderer as a bare shell — the failure this option prevents.
   it('rejects a startupAgent create with no workspace selector', async () => {
