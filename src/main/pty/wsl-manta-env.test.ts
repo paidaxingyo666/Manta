@@ -70,6 +70,7 @@ describe('addMantaWslInteropEnv', () => {
       MANTA_TAB_ID: 'tab-1',
       MANTA_WORKTREE_ID: 'repo::\\\\wsl.localhost\\Ubuntu\\home\\jin\\repo',
       MANTA_AGENT_LAUNCH_TOKEN: 'launch-secret',
+      ORCA_OPENCODE_AGENT: 'opencode2',
       MANTA_AGENT_HOOK_PORT: '4567',
       MANTA_AGENT_HOOK_TOKEN: 'token',
       MANTA_AGENT_HOOK_ENV: 'dev',
@@ -94,6 +95,7 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toContain('MANTA_TAB_ID/u')
     expect(env.WSLENV).toContain('MANTA_WORKTREE_ID/u')
     expect(env.WSLENV).toContain('MANTA_AGENT_LAUNCH_TOKEN/u')
+    expect(env.WSLENV).toContain('MANTA_OPENCODE_AGENT/u')
     expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_PORT/u')
     expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_TOKEN/u')
     expect(env.WSLENV).toContain('MANTA_AGENT_HOOK_ENV/u')
