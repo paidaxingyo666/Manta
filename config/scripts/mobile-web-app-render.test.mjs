@@ -292,10 +292,15 @@ describe('the shell policy this page is tested under', () => {
     expect(cspHeader).not.toContain("script-src 'self' 'unsafe-inline'")
   })
 
-  it('admits data: for images and for nothing else', () => {
+  it('admits data: and https: for images and for nothing else', () => {
     expect(cspHeader.split('; ').filter((entry) => entry.includes('data:'))).toEqual([
-      "img-src 'self' data:"
+      "img-src 'self' data: https:"
     ])
+    expect(cspHeader.split('; ').filter((entry) => entry.includes('https:'))).toEqual([
+      "img-src 'self' data: https:"
+    ])
+    // `http:` is not a substring of `https:`, so this still refuses a cleartext source.
+    expect(cspHeader).not.toContain('http:')
   })
 })
 

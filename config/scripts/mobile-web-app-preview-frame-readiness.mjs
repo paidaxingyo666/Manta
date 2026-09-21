@@ -79,10 +79,23 @@ export async function pollFrameUntil(page, predicate, signal) {
  *
  * `reportReady` is the other kind of precondition: a refusal the policy reported to the rig's own
  * server, which an arm about what the policy refused waits for instead of reading a list.
+ *
+ * `'images'` is the mirror of `reportReady`: an arm whose claim is that the policy admitted two
+ * image requests waits for both to have been recorded, rather than reading a count after a clock.
  */
 export async function waitForLoadedFrame(
   page,
-  { frameReady = 'artifact', reportReady = null, signal, browserVersion, arm, sink, nonce }
+  {
+    frameReady = 'artifact',
+    reportReady = null,
+    signal,
+    browserVersion,
+    arm,
+    sink,
+    nonce,
+    readImageHits,
+    describeRequests
+  }
 ) {
   const reading = async (what) =>
     `${what}: ${arm} | ${await describePreviewFrame(page, previewFrame(page), browserVersion)}`
@@ -128,7 +141,73 @@ export async function waitForLoadedFrame(
       async () => await reading('the artifact never parsed inside the frame')
     )
   }
+  // After the marker, because an image is requested by a document that has parsed.
+  if (frameReady === 'images') {
+    await untilAborted(
+      pollHitsUntilAdmitted(readImageHits, signal),
+      signal,
+      async () => await reading(await describeAdmittedImages(page, readImageHits, describeRequests))
+    )
+  }
   return previewFrame(page)
+}
+
+/** The two the widened `img-src` admits; the font beside them stays an absence. */
+const ADMITTED_IMAGE_PATHS = ['/css-bg.png', '/img.png']
+
+/**
+ * Both admitted image requests, once the rig has recorded them.
+ *
+ * Polled in Node rather than in the frame, because the asset listener records there, and the arm
+ * hands its own reader in so this module keeps no arm's state. Returns rather than throws when the
+ * case ends, like every wait here.
+ *
+ * Why a wait at all: the bounded settle these arms used to take is absence-shaped, two frames and
+ * 200 ms, and their claim is a presence. CI's Chrome 152 had recorded the CSS background and not
+ * the `<img>` when that clock expired, which a count cannot tell from a refusal.
+ */
+async function pollHitsUntilAdmitted(readImageHits, signal) {
+  while (!signal?.aborted) {
+    if (ADMITTED_IMAGE_PATHS.every((one) => readImageHits().includes(one))) {
+      return
+    }
+    await abandonAfter(POLL_MS)
+  }
+}
+
+/**
+ * Why the images are not both there, read from the element the browser would have fetched for.
+ *
+ * `complete` with a zero `naturalWidth` is a request that finished and produced no image, which is
+ * what a refusal looks like from the element; `complete` false is one still in flight; `currentSrc`
+ * separates both from an element that never resolved a URL, and `loading` from one the browser
+ * deferred. Without these a CI log says only that a count was 1.
+ */
+async function describeAdmittedImages(page, readImageHits, describeRequests) {
+  const frame = previewFrame(page)
+  const image = frame
+    ? await Promise.race([
+        frame
+          .evaluate(() => {
+            const element = document.getElementById('remote')
+            return element
+              ? {
+                  complete: element.complete,
+                  naturalWidth: element.naturalWidth,
+                  currentSrc: element.currentSrc,
+                  loading: element.getAttribute('loading')
+                }
+              : null
+          })
+          .catch(() => 'the reading itself failed'),
+        abandonAfter(EVALUATE_MS)
+      ])
+    : null
+  const reading = image === false ? 'the reading never answered' : image
+  // What the browser said about the requests themselves, which is where a request that never
+  // reached the asset listener is distinguishable from one the page never made.
+  const requests = (await describeRequests?.(frame)) ?? 'no request log for this arm'
+  return `the arm recorded ${JSON.stringify(readImageHits())} of ${JSON.stringify(ADMITTED_IMAGE_PATHS)}; #remote ${JSON.stringify(reading)}; ${requests}`
 }
 
 /**
@@ -178,9 +257,10 @@ export async function settleAfterMount(page, navigations, expectNavigation, sign
 /**
  * The moment the arm's navigation exists, for an arm that expects one.
  *
- * No clock at all: the route handler above records a main-frame navigation as the browser dispatches
- * it, so the oracles are read after the thing under test rather than after a wait, and the only
- * bound is the case's own timeout through `ctx.signal`. An arm whose click missed its target prints
+ * No clock at all: the rig's `page.on('request')` subscription records a main-frame navigation as
+ * the browser dispatches it, so the oracles are read after the thing under test rather than after a
+ * wait, and the only bound is the case's own timeout through `ctx.signal`. The route beside it only
+ * refuses the navigation; it stopped counting anything when the record moved off interception. An arm whose click missed its target prints
  * what it did record and lets the case fail as the timeout it is.
  *
  * Measured, so it is not sold as more than it is: with this replaced by a no-op every arm still
@@ -209,9 +289,14 @@ export async function waitForRecordedNavigation(
     }
     if (Date.now() - since > sampleEveryMs) {
       since = Date.now()
-      latest = await describePreviewFrame(page, reading?.frame, reading?.browserVersion).catch(
-        (error) => `the reading itself failed: ${String(error).split('\n')[0]}`
-      )
+      latest = await describePreviewFrame(page, reading?.frame, reading?.browserVersion)
+        .then(async (frameReading) => {
+          // The same evidence the images arm prints. A navigation arm that produced nothing is
+          // asking the same question of the same frame, and on CI this one fails on its own.
+          const evidence = await reading?.describeRequests?.(reading?.frame)
+          return evidence ? `${frameReading} | ${evidence}` : frameReading
+        })
+        .catch((error) => `the reading itself failed: ${String(error).split('\n')[0]}`)
     }
     await page.waitForTimeout(10)
   }
