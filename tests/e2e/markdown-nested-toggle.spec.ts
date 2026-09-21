@@ -26,6 +26,36 @@ test.describe('Markdown nested toggle regression', () => {
     await waitForActiveWorktree(mantaPage)
   })
 
+  test('a plain details block opens as an editable toggle', async ({ mantaPage }, testInfo) => {
+    const context = await getActiveWorktreeContext(mantaPage)
+    let filePath: string | null = null
+
+    try {
+      filePath = await createMarkdownFixture(
+        context,
+        NESTED_TOGGLE_FIXTURE_DIRECTORY,
+        'plain-details',
+        testInfo.workerIndex,
+        '<details>\n<summary>Toggle</summary>\n\nBody\n\n</details>\n'
+      )
+      await openMarkdownFixture(mantaPage, context, filePath)
+      const editor = await waitForRichMarkdownEditor(mantaPage)
+      const toggle = editor.locator('[data-type="details"]')
+
+      await expect(toggle).toHaveCount(1)
+      await expect(toggle.locator('summary')).toHaveText('Toggle')
+      await expect(editor.locator('[data-raw-markdown-html-block]')).toHaveCount(0)
+      const screenshotPath = testInfo.outputPath('plain-details-rich-editor.png')
+      await mantaPage.screenshot({ path: screenshotPath })
+      await testInfo.attach('plain-details-rich-editor', {
+        path: screenshotPath,
+        contentType: 'image/png'
+      })
+    } finally {
+      await cleanupMarkdownFixture(filePath)
+    }
+  })
+
   test('a nested toggle on disk reopens as editable toggles', async ({ mantaPage }, testInfo) => {
     const context = await getActiveWorktreeContext(mantaPage)
     let filePath: string | null = null
