@@ -143,8 +143,7 @@ export const MOBILE_WEB_PAGE_ROUTES = [
       'native.media.release',
       'native.audio.start',
       'native.audio.read',
-      'native.audio.stop',
-      'native.wakelock.set'
+      'native.audio.stop'
     ]
   }
 ]
