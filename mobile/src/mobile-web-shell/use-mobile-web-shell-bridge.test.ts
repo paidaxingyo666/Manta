@@ -3,6 +3,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer'
 import { beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
 import type { OrcaMobileWebShellViewHandle } from '../../modules/manta-mobile-web-shell/src'
 import { BRIDGE_NATIVE_VERB_NAMES } from './bridge/bridge-native-verbs'
+import { BRIDGE_HAPTICS_GRANT, type BridgeHapticsKind } from './bridge/bridge-haptics-notify'
 import { BRIDGE_SCREENCAST_BINARY_GRANT } from './bridge/bridge-screencast-grant'
 import {
   BRIDGE_FAULT_GRANT,
@@ -44,6 +45,7 @@ type Probe = {
   view: MobileWebShellBridgeView | null
   navigations: string[]
   externalLinks: string[]
+  haptics: BridgeHapticsKind[]
   backPops: number
   storageWrites: { key: string; value: string | null }[]
   /** The running total after each dropped screencast frame, as the screen receives it. */
@@ -130,11 +132,13 @@ function Harness(props: {
       'navigate',
       'storage',
       'externalLink',
+      BRIDGE_HAPTICS_GRANT,
       BRIDGE_SCREENCAST_BINARY_GRANT,
       ...BRIDGE_NATIVE_VERB_NAMES
     ],
     onNavigate: (href) => props.probe.navigations.push(href),
     onExternalLink: (url) => props.probe.externalLinks.push(url),
+    onHaptic: (kind) => props.probe.haptics.push(kind),
     serveNativeVerb: () => Promise.resolve({ value: 'pasteboard' }),
     onNavigateBack: () => {
       props.probe.backPops += 1
@@ -196,6 +200,7 @@ async function mount(session: MobileWebShellSessionState): Promise<Mounted> {
     view: null,
     navigations: [],
     externalLinks: [],
+    haptics: [],
     backPops: 0,
     droppedBinaryFrames: [],
     storageWrites: []
@@ -539,6 +544,7 @@ describe('the callbacks a render passes', () => {
       view: null,
       navigations: [],
       externalLinks: [],
+      haptics: [],
       backPops: 0,
       droppedBinaryFrames: [],
       storageWrites: []
@@ -600,6 +606,7 @@ describe('client changes', () => {
       view: null,
       navigations: [],
       externalLinks: [],
+      haptics: [],
       backPops: 0,
       droppedBinaryFrames: [],
       storageWrites: []

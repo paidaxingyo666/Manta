@@ -79,16 +79,22 @@ async function withScratch(run) {
  * this file under the 600-line cap.
  */
 const EXPECTED_PAGE_ROUTES = [
-  { pathname: '/h/[hostId]', grants: ['navigate', 'storage'] },
-  { pathname: '/h/[hostId]/agent-history/[worktreeId]', grants: ['navigate', 'storage'] },
+  { pathname: '/h/[hostId]', grants: ['navigate', 'storage', 'haptics'] },
+  {
+    pathname: '/h/[hostId]/agent-history/[worktreeId]',
+    grants: ['navigate', 'storage', 'haptics']
+  },
   {
     pathname: '/h/[hostId]/tasks',
-    grants: ['navigate', 'storage', 'externalLink', 'native.clipboard.write']
+    grants: ['navigate', 'storage', 'externalLink', 'haptics', 'native.clipboard.write']
   },
-  { pathname: '/h/[hostId]/files/[worktreeId]', grants: ['navigate', 'storage', 'externalLink'] },
+  {
+    pathname: '/h/[hostId]/files/[worktreeId]',
+    grants: ['navigate', 'storage', 'externalLink', 'haptics']
+  },
   {
     pathname: '/h/[hostId]/files/preview/[worktreeId]',
-    grants: ['navigate', 'storage', 'externalLink']
+    grants: ['navigate', 'storage', 'externalLink', 'haptics']
   }
 ]
 
