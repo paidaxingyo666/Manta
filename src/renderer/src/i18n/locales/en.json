@@ -13207,8 +13207,6 @@
             "agentSessionQueued": "{{value0}} session queued",
             "sessionHistory": "Agent Session History",
             "agents": "Agents",
-            "shownRecent": "{{value0}} shown · {{value1}} recent",
-            "sessionsShownCompact": "{{value0}} shown",
             "resumePastSessions": "Resume past sessions",
             "refreshSessionHistory": "Refresh Session History",
             "searchSessions": "Search sessions",
@@ -13248,7 +13246,6 @@
             "agents": "Agents",
             "selectAllAgents": "Select all",
             "clearAgents": "Clear",
-            "sort": "Sort",
             "lastUpdated": "Last updated",
             "created": "Created",
             "group": "Group",
@@ -18008,11 +18005,15 @@
   },
   "sessionSearch": {
     "panel": {
-      "rankedResults": "Best matches",
+      "resultsOne": "{{count}} result",
+      "resultsOther": "{{count}} results",
       "noMatches": "No matching sessions in the indexed history. Try another query or scope.",
       "loadMore": "Load more matches",
-      "indexedHistory": "Indexed history · best matches",
+      "indexedHistory": "Indexed history",
       "hostsSkipped": "Not searched: {{value0}}",
+      "sortRelevance": "Most relevant",
+      "sortNewest": "Newest",
+      "sortResultsAriaLabel": "Sort results: {{value0}}",
       "consent": "Enable full-text search? Manta builds an index on this computer from local agent transcripts, including full conversations and up to 3,072 characters per tool output. Content is not redacted. Authenticated paired clients can search it.",
       "remoteDisabled": "Search is disabled on this computer. Enable transcript indexing on that computer to search its sessions.",
       "notReady": "The search index is not ready yet. Try again shortly.",
@@ -18023,7 +18024,13 @@
       "enableFailed": "Could not enable search. Try again.",
       "enable": "Enable",
       "retry": "Try again",
-      "scopeUnknown": "This computer does not have this workspace or project. Switch the scope to All to search everything on it."
+      "scopeUnknown": "This computer does not have this workspace or project. Switch the scope to All to search everything on it.",
+      "sortSessionsAriaLabel": "Sort sessions: {{value0}}",
+      "sessionsOne": "{{count}} session",
+      "sessionsOther": "{{count}} sessions",
+      "sessionsOfLoaded": "{{value0}} of {{value1}} sessions",
+      "showMoreSessions": "Show more sessions",
+      "loadingMoreSessions": "Loading more sessions…"
     }
   },
   "sessionHistory": {
