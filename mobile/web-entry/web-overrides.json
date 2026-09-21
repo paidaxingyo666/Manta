@@ -132,6 +132,10 @@
     {
       "file": "src/components/MobileHtmlPreview.web.tsx",
       "reason": "The native preview renders an agent-produced HTML artifact inside a sandboxed WebView with navigation locked to the initial inline document, and react-native-webview throws at import in a browser for the reason above. This one renders the artifact in a sandboxed iframe with no allow-scripts and no allow-same-origin, keeping the Preview/Source toggle. srcdoc rather than a blob: URL and no CSP change at all: a srcdoc frame has no URL for frame-src to match and inherits its embedder's policy instead, so it is admitted under the shipped frame-src 'none' on Chromium and WebKit alike, while a blob: frame is refused by frame-src and refused again in WebKit by the frame-ancestors 'none' it inherits. The inherited policy is also what seals it -- script-src 'self' refuses the artifact's inline script, img-src bounds its images, font-src 'none' its fonts -- and allow-top-navigation-by-user-activation is the one capability granted, so a tapped link becomes a top-frame navigation the shell opens externally (ruling 29) while a meta refresh, a form submit, target=_blank and any script-initiated navigation produce none."
+    },
+    {
+      "file": "src/mobile-web-shell/catch-all-page-route.web.tsx",
+      "reason": "The catch-all's native body mounts the shell, and the page is what that shell displays; nesting one here would open a second document inside the first, and the shell module calls requireNativeViewManager at import, which throws in a browser."
     }
   ]
 }
