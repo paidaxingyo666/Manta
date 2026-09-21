@@ -340,7 +340,7 @@ describe('MantaRuntimeService', () => {
     expect(spawn).toHaveBeenCalledWith(
       expect.objectContaining({
         command: expect.stringMatching(
-          /^host-claude '--model' 'opus'.*'--permission-mode' 'plan'.*--prefill 'review before sending'/
+          /^host-claude .*'--permission-mode' 'plan'.*'--model' 'opus'.*'--effort' 'high'.*--prefill 'review before sending'/
         ),
         env: expect.objectContaining({ HOST_PROFILE: 'true' })
       })
