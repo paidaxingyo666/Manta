@@ -8,12 +8,7 @@ import type { JournalReducerState } from './journal-reducer'
 import type { JournalAppendResult } from './journal-store-contracts'
 import type { JournalRow } from './journal-row-schema'
 
-type ItemAppendOptions = {
-  fence: number
-  observedAt?: number
-  recovered?: true
-  producedBySubagent?: true
-}
+type ItemAppendOptions = { fence: number; observedAt?: number; recovered?: true }
 
 export class JournalItemAppender {
   constructor(

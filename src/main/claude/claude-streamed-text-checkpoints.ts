@@ -7,22 +7,14 @@ import {
 
 export type ClaudeStreamedTextCheckpointDeps = {
   /** Rewrites the block's journal row with the text accumulated so far. */
-  persist: (
-    identity: AgentJournalItemIdentity,
-    text: string,
-    options: { producedBySubagent?: true }
-  ) => void
+  persist: (identity: AgentJournalItemIdentity, text: string) => void
   coalesceMs?: number
   schedule?: AgentSessionDeltaCoalescerDeps['schedule']
 }
 
 export type ClaudeStreamedTextCheckpoints = {
   /** Accumulate a delta; the row is rewritten on the coalescer's own cadence. */
-  append: (
-    identity: AgentJournalItemIdentity,
-    text: string,
-    options?: { producedBySubagent?: true }
-  ) => void
+  append: (identity: AgentJournalItemIdentity, text: string) => void
   /** Write every block whose row is behind the text received for it. */
   flush: () => void
   /** Drop one block's state, for a block whose final frame has now landed. */
@@ -48,9 +40,6 @@ export function createClaudeStreamedTextCheckpoints(
   deps: ClaudeStreamedTextCheckpointDeps
 ): ClaudeStreamedTextCheckpoints {
   const identities = new Map<string, AgentJournalItemIdentity>()
-  // A block's producer is fixed when its identity is minted, so it rides the same
-  // entry rather than a parallel map that could disagree.
-  const producers = new Map<string, { producedBySubagent?: true }>()
   const latestText = new Map<string, string>()
   const checkpointLengths = new Map<string, number>()
 
@@ -66,7 +55,7 @@ export function createClaudeStreamedTextCheckpoints(
       return
     }
     checkpointLengths.set(key, text.length)
-    deps.persist(identity, text, producers.get(key) ?? {})
+    deps.persist(identity, text)
   }
 
   const coalescer = createAgentSessionDeltaCoalescer({
@@ -78,16 +67,14 @@ export function createClaudeStreamedTextCheckpoints(
   const drop = (key: string): void => {
     coalescer.forget(key)
     identities.delete(key)
-    producers.delete(key)
     latestText.delete(key)
     checkpointLengths.delete(key)
   }
 
   return {
-    append: (identity, text, options) => {
+    append: (identity, text) => {
       const key = agentJournalItemKey(identity)
       identities.set(key, identity)
-      producers.set(key, options?.producedBySubagent ? { producedBySubagent: true } : {})
       coalescer.append(key, text)
     },
     flush: () => {
@@ -111,7 +98,6 @@ export function createClaudeStreamedTextCheckpoints(
     dispose: () => {
       coalescer.dispose()
       identities.clear()
-      producers.clear()
       latestText.clear()
       checkpointLengths.clear()
     }
