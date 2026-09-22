@@ -29,10 +29,21 @@ const MAX_DATA_BASE64_LENGTH = Math.ceil(MOBILE_WEB_BUNDLE_CHUNK_BYTES / 3) * 4 
 /** A screen the desktop asks this shell to render from the bundle. Optional, because a desktop
  *  older than the field sends none and every route then stays native, which is where they all
  *  start. Loose for the same reason the manifest is: a grant name this build does not know is not a
- *  reason to refuse a bundle, it is a reason to leave that one route native. */
+ *  reason to refuse a bundle, it is a reason to leave that one route native.
+ *
+ *  `optionalGrants` is read so this build can honour it, and typed here only — the host's own
+ *  schema is where its grammar and the ceiling over the union live. A shell without this line still
+ *  receives the key, because loose passes unknown members through rather than stripping them; what
+ *  such a shell lacks is a policy that reads it, so it serves the route on `grants` alone. The
+ *  member that must not travel on from here is the whole entry: `BridgePageRouteGrantsSchema` is
+ *  `.strict()`, so `routeViewOf` builds the pairs it publishes rather than forwarding these. */
 const pageRouteSchema = z.looseObject({
   pathname: z.string().min(1).max(255),
-  grants: z.array(z.string().min(1).max(64)).max(MOBILE_WEB_BUNDLE_MAX_ROUTE_GRANTS)
+  grants: z.array(z.string().min(1).max(64)).max(MOBILE_WEB_BUNDLE_MAX_ROUTE_GRANTS),
+  optionalGrants: z
+    .array(z.string().min(1).max(64))
+    .max(MOBILE_WEB_BUNDLE_MAX_ROUTE_GRANTS)
+    .optional()
 })
 
 const assetSchema = z.looseObject({

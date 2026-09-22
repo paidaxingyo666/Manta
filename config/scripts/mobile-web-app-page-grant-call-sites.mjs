@@ -24,10 +24,16 @@ const importRow = (grants, specifier, why) => ({ kind: 'import', grants, specifi
  * One row per grant the page can ask for through a call site of its own.
  *
  * `haptics` and `screencastBinary` have their own files (`mobile-web-app-haptics-seam.test.mjs`,
- * `mobile-web-app-screencast-lane-grant.test.mjs`) and the four audio grants have
- * `mobile-web-app-session-dictation-capture.test.mjs`, so those eight are not repeated here. The
+ * `mobile-web-app-screencast-lane-grant.test.mjs`), the four audio grants have
+ * `mobile-web-app-session-dictation-capture.test.mjs` and `externalNavigation` has
+ * `mobile-web-app-external-navigation-grant.test.mjs`, so those nine are not repeated here. The
  * media three share one seam and one row: `useMediaPicker` is the only way in, and `canPickMedia`
  * is `pick && read && release`, so a route reaching it needs all three or none of them.
+ *
+ * `externalNavigation` could not be a row here whatever it owned, and that is the rule rather than a
+ * detail: a row is a call site the walk can find, and the shell's cancelled-navigation behaviour has
+ * none. Nothing is requested and nothing is answered, so the only thing a closure holds is a read of
+ * `init.grants.native` -- which is what its own census walks for.
  */
 export const PAGE_GRANT_CALL_SITES = [
   callRow(

@@ -1,10 +1,10 @@
 /**
  * The six grants that were pinned only by the list they were copied from (ruling 33.3).
  *
- * `haptics`, `screencastBinary` and the four audio grants already have call-site censuses of their
- * own; these six did not, so removing any of them from a manifest entry reddened nothing. Each row
- * below gets its own named case, and each case's control is the same rule driven over the entry
- * that route would have had with the grant struck out.
+ * `haptics`, `screencastBinary`, `externalNavigation` and the four audio grants already have
+ * censuses of their own; these six did not, so removing any of them from a manifest entry reddened
+ * nothing. Each row below gets its own named case, and each case's control is the same rule driven
+ * over the entry that route would have had with the grant struck out.
  */
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -108,7 +108,12 @@ describe('the call-site reader', () => {
       'native.media.read',
       'native.media.release'
     ])
-    for (const owned of ['haptics', 'screencastBinary', 'native.audio.start']) {
+    for (const owned of [
+      'haptics',
+      'screencastBinary',
+      'externalNavigation',
+      'native.audio.start'
+    ]) {
       expect(grants).not.toContain(owned)
     }
   })
