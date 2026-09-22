@@ -163,6 +163,29 @@ export async function readBrowserFrameQuality() {
   return Number(match[1]) / 100
 }
 
+/**
+ * The page's client-identity placeholder and the `init.accepts` name that unlocks it, read from
+ * the module that declares both. A rig carrying its own copy would go on passing after the real
+ * pair moved, which is the whole reason every other constant here is read rather than retyped.
+ */
+export async function readBridgePageClientIdentity() {
+  const source = await readFile(
+    join(projectDir, 'mobile/src/mobile-web-shell/bridge/bridge-page-client-identity.ts'),
+    'utf8'
+  )
+  const read = (name) => {
+    const match = new RegExp(`${name} = '([^']+)'`).exec(source)
+    if (!match) {
+      throw new Error(`could not read ${name} from bridge-page-client-identity.ts`)
+    }
+    return match[1]
+  }
+  return {
+    placeholder: read('BRIDGE_PAGE_CLIENT_ID'),
+    accept: read('BRIDGE_PAGE_CLIENT_IDENTITY_ACCEPT')
+  }
+}
+
 /** The grant the shell offers every page, read from the same source for the same reason. */
 export async function readBridgeFaultGrant() {
   const source = await readFile(
@@ -205,6 +228,7 @@ export function installShellDouble({
   grants,
   pageRoutes = null,
   pageRouteGrants = null,
+  accepts = null,
   replies,
   streams = [],
   windowCaps = null
@@ -262,6 +286,9 @@ export function installShellDouble({
           // Omitted when the caller names none, which is the older-shell case the page falls back
           // on: an absent field is not an empty one, and the page reads the difference.
           ...(pageRouteGrants === null ? {} : { pageRouteGrants }),
+          // Omitted when a check names none, which is the shell that performs no swap and the
+          // state every other rig in this directory runs in.
+          ...(accepts === null ? {} : { accepts }),
           // Omitted for a shell too old to name one, which is the case the page has a panel for.
           ...(route === null ? {} : { route }),
           ...(host === null ? {} : { host }),
@@ -374,6 +401,40 @@ export function installShellDouble({
     stream.unackedBytes += bytes
     channel.onmessage?.({ data: json })
     return 'posted'
+  }
+  /**
+   * One JSON stream event from the shell, on the same ledger the binary emitter uses.
+   *
+   * The host serves `session.tabs.subscribe` and `terminal.subscribe` as JSON events — the native
+   * client decodes the terminal's binary frames into `scrollback`/`data` payloads before the bridge
+   * ever sees them — so a check that drives a screen off a live stream needs this and not the
+   * binary arm. No window rule: these payloads are a check's own fixtures and are nowhere near the
+   * cap, and a drop here would read as the page ignoring an event it was never sent.
+   *
+   * It still owes the ledger its bytes. The `ack` arm subtracts what it finds on `unacked`, so a
+   * frame that took a slot without paying for it drove `unackedBytes` negative on the first ack and
+   * left the binary emitter's window admitting frames past the cap for the life of the stream.
+   */
+  globalThis.__orcaRenderCheckEmitEvent = (id, payload) => {
+    const stream = openStreams.get(id)
+    if (!stream) {
+      return 'no-stream'
+    }
+    const seq = stream.seq + 1
+    const json = JSON.stringify({ v: version, type: 'event', id, seq, payload })
+    const bytes = new TextEncoder().encode(json).length
+    stream.seq = seq
+    stream.unacked.push({ seq, bytes })
+    stream.unackedBytes += bytes
+    channel.onmessage?.({ data: json })
+    return 'posted'
+  }
+  /** The window as the double holds it, so a check can read the ledger both emitters share. */
+  globalThis.__orcaRenderCheckWindow = (id) => {
+    const stream = openStreams.get(id)
+    return stream === undefined
+      ? null
+      : { frames: stream.unacked.length, unackedBytes: stream.unackedBytes }
   }
   globalThis.orcaBridge = channel
 }
