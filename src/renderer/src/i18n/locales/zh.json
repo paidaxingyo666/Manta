@@ -88,6 +88,33 @@
       "mr": "MR",
       "port": "端口",
       "pr": "PR"
+    },
+    "filter": {
+      "emptyTitle": "没有结果符合当前筛选条件",
+      "emptySubtitle": "清除上方筛选条件，或扩大到更多主机和项目。",
+      "tabKey": "Tab",
+      "label": "筛选",
+      "activeCount": "{{value0}} 个生效",
+      "removeChip": "移除筛选 {{value0}}",
+      "chipOverflow": "+{{value0}}",
+      "clearAll": "全部清除",
+      "hosts": "主机",
+      "projects": "项目",
+      "trigger": "筛选结果",
+      "search": "按主机或项目筛选...",
+      "searchHosts": "筛选主机...",
+      "searchProjects": "筛选项目...",
+      "noOptions": "没有匹配的主机或项目",
+      "noHosts": "没有匹配的主机",
+      "noProjects": "没有匹配的项目",
+      "moreOptions": "还有 {{value0}} 个 — 继续输入以缩小范围",
+      "selectAllMatching": "选择所有匹配项 ({{value0}})",
+      "selectedCollapsed": "已选择 {{value0}} 个 — 通过标签或清除移除",
+      "clearHosts": "清除主机",
+      "clearProjects": "清除项目",
+      "back": "返回",
+      "ariaActive": "筛选：{{value0}} 个生效。",
+      "scopedTo": "范围："
     }
   },
   "auto": {

@@ -126,6 +126,7 @@
       "loadingHint": "Chargement de l'issue Linear…"
     },
     "renderCapOverflow": "{{value0}} autres — faites défiler ou continuez à taper pour affiner",
+    "seeMore": "Voir plus",
     "filter": {
       "emptyTitle": "Aucun résultat ne correspond au filtre actif",
       "emptySubtitle": "Effacez le filtre ci-dessus, ou élargissez-le à davantage d'hôtes et de projets.",
@@ -150,7 +151,8 @@
       "clearHosts": "Effacer les hôtes",
       "clearProjects": "Effacer les projets",
       "back": "Retour",
-      "ariaActive": "Filtre : {{value0}} actif(s)."
+      "ariaActive": "Filtre : {{value0}} actif(s).",
+      "scopedTo": "Portée :"
     },
     "taskUrl": {
       "loadingHint": "Chargement de {{value0}}…",

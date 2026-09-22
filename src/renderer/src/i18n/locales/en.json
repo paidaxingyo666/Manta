@@ -290,7 +290,8 @@
       "clearHosts": "Clear hosts",
       "clearProjects": "Clear projects",
       "back": "Back",
-      "ariaActive": "Filter: {{value0}} active."
+      "ariaActive": "Filter: {{value0}} active.",
+      "scopedTo": "Scoped to"
     },
     "taskUrl": {
       "loadingHint": "Loading {{value0}}…",

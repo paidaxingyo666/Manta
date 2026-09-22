@@ -88,6 +88,33 @@
       "mr": "MR",
       "port": "ポート",
       "pr": "PR"
+    },
+    "filter": {
+      "emptyTitle": "有効なフィルターに一致する結果がありません",
+      "emptySubtitle": "上のフィルターをクリアするか、より多くのホストとプロジェクトに広げてください。",
+      "tabKey": "Tab",
+      "label": "フィルター",
+      "activeCount": "{{value0}} 件アクティブ",
+      "removeChip": "フィルター {{value0}} を削除",
+      "chipOverflow": "+{{value0}}",
+      "clearAll": "すべてクリア",
+      "hosts": "ホスト",
+      "projects": "プロジェクト",
+      "trigger": "結果をフィルター",
+      "search": "ホストまたはプロジェクトで絞り込む…",
+      "searchHosts": "ホストを絞り込む…",
+      "searchProjects": "プロジェクトを絞り込む…",
+      "noOptions": "一致するホストまたはプロジェクトがありません",
+      "noHosts": "一致するホストがありません",
+      "noProjects": "一致するプロジェクトがありません",
+      "moreOptions": "他 {{value0}} 件 — 入力を続けて絞り込む",
+      "selectAllMatching": "一致するものをすべて選択 ({{value0}})",
+      "selectedCollapsed": "{{value0}} 件選択中 — チップまたはクリアで解除",
+      "clearHosts": "ホストをクリア",
+      "clearProjects": "プロジェクトをクリア",
+      "back": "戻る",
+      "ariaActive": "フィルター: {{value0}} 件アクティブ。",
+      "scopedTo": "スコープ:"
     }
   },
   "auto": {

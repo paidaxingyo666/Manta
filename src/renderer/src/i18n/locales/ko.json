@@ -88,6 +88,33 @@
       "mr": "MR",
       "port": "포트",
       "pr": "PR"
+    },
+    "filter": {
+      "emptyTitle": "활성 필터와 일치하는 결과가 없습니다",
+      "emptySubtitle": "위의 필터를 지우거나 더 많은 호스트와 프로젝트로 범위를 넓히세요.",
+      "tabKey": "Tab",
+      "label": "필터",
+      "activeCount": "{{value0}}개 활성",
+      "removeChip": "{{value0}} 필터 제거",
+      "chipOverflow": "+{{value0}}",
+      "clearAll": "모두 지우기",
+      "hosts": "호스트",
+      "projects": "프로젝트",
+      "trigger": "결과 필터",
+      "search": "호스트 또는 프로젝트로 필터...",
+      "searchHosts": "호스트 필터...",
+      "searchProjects": "프로젝트 필터...",
+      "noOptions": "일치하는 호스트 또는 프로젝트가 없습니다",
+      "noHosts": "일치하는 호스트가 없습니다",
+      "noProjects": "일치하는 프로젝트가 없습니다",
+      "moreOptions": "{{value0}}개 더 — 계속 입력하여 범위 좁히기",
+      "selectAllMatching": "일치하는 항목 모두 선택 ({{value0}})",
+      "selectedCollapsed": "{{value0}}개 선택됨 — 칩 또는 지우기로 제거",
+      "clearHosts": "호스트 지우기",
+      "clearProjects": "프로젝트 지우기",
+      "back": "뒤로",
+      "ariaActive": "필터: {{value0}}개 활성.",
+      "scopedTo": "범위:"
     }
   },
   "auto": {
