@@ -41,7 +41,8 @@ const stalePidRecord: ParsedDaemonPid = {
   linuxStartTicks: null,
   bootId: null,
   spawnerExecPath:
-    '/Users/alice/Library/Caches/cn.sh.manta.ShipIt/u/Manta.app/Contents/MacOS/Manta'
+    '/Users/alice/Library/Caches/cn.sh.manta.ShipIt/u/Manta.app/Contents/MacOS/Manta',
+  cgroupUnit: null
 }
 const origin = { app_version_match: 'different', spawner_path_class: 'updater-cache' } as const
 const PID_PATH = '/fake/daemon.pid'

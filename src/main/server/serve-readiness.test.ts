@@ -37,6 +37,7 @@ const health: OrcadHealth = {
     buildVersion: '1.4.0',
     entryPath: '/opt/mantad/daemon-entry.js',
     protocolVersion: 36,
+    cgroupUnit: null,
     selfTest: { ok: true, coverage: 'pty-spawn', verdict: 'healthy', durationMs: 12 }
   }
 }
