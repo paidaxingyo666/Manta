@@ -364,8 +364,21 @@ const MERMAID_PACKAGE = 'node_modules/mermaid/'
  *
  *   modules        4210 -> 4211   (+1)
  *   local modules  1024 -> 1025   (+1)
+ *
+ * The terminal fields' submit seam joins next, onto the 4,207 #22283 left, and both of its modules
+ * are local. react-native-web withholds `onSubmitEditing` whenever the Enter keydown reports an
+ * open composition, which is a soft keyboard's normal state mid-word, so both of the dock's fields
+ * bind the browser's own line-break signal as well.
+ * `src/terminal/use-terminal-text-field-submit-binding.ts` is the callback ref they take, and
+ * `src/terminal/terminal-text-field-submit-binding.web.ts` is the binding it resolves to here; the
+ * native sibling stays out of this closure, which is what the pair is for. Measured on this merged
+ * head with all five generators run first, and the two joiners read off the closure list itself
+ * rather than inferred from the delta.
+ *
+ *   modules        4207 -> 4209   (+2)
+ *   local modules  1021 -> 1023   (+2)
  */
-const SESSION_ROUTE_MODULES = 4207
+const SESSION_ROUTE_MODULES = 4209
 
 /** What the page enters this route through once the route is a switch with a `.web.tsx` sibling. */
 const ROUTE_ENTRY = [
