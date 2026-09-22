@@ -5285,8 +5285,6 @@
           "01af244097": "Cancelar",
           "28c8e53176": "Esto fuerza el cierre de todos los paneles de terminal en ejecución en todos los espacios de trabajo. Cualquier trabajo sin guardar en esas sesiones se perderá. El servicio sigue ejecutándose y se pueden abrir nuevos terminales inmediatamente. Esto no se puede deshacer.",
           "1bbea41a77": "¿Terminar todas las sesiones de terminal?",
-          "01d6b7c64e": "Termina todos los paneles de terminal en ejecución y reinicia el proceso del servicio. Los paneles muestran \"Process exited\" y se pueden volver a abrir inmediatamente. Se conservan las sesiones de protocolo heredado de una versión anterior de la app. Esto no se puede deshacer.",
-          "922548bc66": "¿Reiniciar el servicio del terminal?",
           "2b4efdc162": "No se pudieron finalizar las sesiones.",
           "d18f3005c2": "{{value0}} sesión{{value1}} se negó a salir.",
           "baad8cd651": "No hay sesiones en ejecución.",
