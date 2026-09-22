@@ -11,6 +11,7 @@ import {
   type MobileWebShellRuntime
 } from './mobile-web-shell-runtime'
 import { readMobileWebShellReachability } from './mobile-web-shell-reachability'
+import { shellPageFrame, type ShellPageFrame } from './shell-page-frame'
 import {
   createMobileWebShellSession,
   reduceMobileWebShellSession
@@ -34,10 +35,15 @@ export type MobileWebShellSessionView = {
   readonly retry: () => void
   /** B3's failure reasons, forwarded verbatim; the reducer owns what each one means. */
   readonly reportShellFailure: (reason: MobileWebShellFailureReason) => void
+  /** The native view began a document; drops what the document it replaces said about itself. */
+  readonly reportDocumentStarted: () => void
   /** The native view finished a document; starts the wait for the page's first word. */
   readonly reportDocumentLoaded: () => void
-  /** The page spoke over the bridge; ends that wait, whichever of the two arrived first. */
-  readonly reportPageReady: () => void
+  /** The page spoke over the bridge; ends that wait, whichever of the two arrived first. Carries
+   *  what that `ready` declared it reports, which is what says whether a paint is coming. */
+  readonly reportPageReady: (reports: readonly string[]) => void
+  /** The page has a frame on screen. Ignored for a page that never said it would report one. */
+  readonly reportPagePainted: () => void
   /**
    * Whether the page has handshaken on this session, which the bridge host is rebuilt against.
    *
@@ -45,6 +51,9 @@ export type MobileWebShellSessionView = {
    * `page-ready` changes nothing else, so no other value would re-render to carry it out.
    */
   readonly pageReady: boolean
+  /** How far this document has got towards being something to show. Projected for the same
+   *  reason as `pageReady`: `page-painted` moves nothing else. */
+  readonly pageFrame: ShellPageFrame
 }
 
 /**
@@ -73,6 +82,7 @@ export function useMobileWebShellSession(args: {
   const sessionRef = useRef(createMobileWebShellSession(routePathname))
   const [state, setState] = useState(sessionRef.current.state)
   const [pageReady, setPageReady] = useState(sessionRef.current.pageReady)
+  const [pageFrame, setPageFrame] = useState(() => shellPageFrame(sessionRef.current))
   const hostKey = useMemo(() => deriveHostCacheKey(hostId), [hostId])
   const startedAtRef = useRef(runtime.now())
   // Bumped by anything that invalidates work in flight; every dispatch out of an effect checks it.
@@ -94,6 +104,7 @@ export function useMobileWebShellSession(args: {
     sessionRef.current = stepped.session
     setState(stepped.session.state)
     setPageReady(stepped.session.pageReady)
+    setPageFrame(shellPageFrame(stepped.session))
     for (const effect of stepped.effects) {
       // Every effect of a step belongs to the flow that step produced, and its result carries that
       // number back, so a flow the session has since restarted reports into nothing.
@@ -192,6 +203,7 @@ export function useMobileWebShellSession(args: {
     startedAtRef.current = runtime.now()
     setState(sessionRef.current.state)
     setPageReady(sessionRef.current.pageReady)
+    setPageFrame(shellPageFrame(sessionRef.current))
     return invalidate
   }, [hostId, invalidate, routePathname, runtime])
 
@@ -236,24 +248,38 @@ export function useMobileWebShellSession(args: {
     [dispatch]
   )
 
+  const reportDocumentStarted = useCallback(() => {
+    dispatch(epochRef.current, { type: 'document-started' })
+  }, [dispatch])
+
   const reportDocumentLoaded = useCallback(() => {
     dispatch(epochRef.current, { type: 'document-loaded' })
   }, [dispatch])
 
-  const reportPageReady = useCallback(() => {
-    dispatch(epochRef.current, { type: 'page-ready' })
+  const reportPageReady = useCallback(
+    (reports: readonly string[]) => {
+      dispatch(epochRef.current, { type: 'page-ready', reports })
+    },
+    [dispatch]
+  )
+
+  const reportPagePainted = useCallback(() => {
+    dispatch(epochRef.current, { type: 'page-painted' })
   }, [dispatch])
 
   return {
     state,
     pageReady,
+    pageFrame,
     pageRoutes: sessionRef.current.pageRoutes,
     pageRouteGrants: sessionRef.current.pageRouteGrants,
     routeGrants: sessionRef.current.routeGrants,
     updateNotice: sessionRef.current.updateNotice,
     retry,
     reportShellFailure,
+    reportDocumentStarted,
     reportDocumentLoaded,
-    reportPageReady
+    reportPageReady,
+    reportPagePainted
   }
 }

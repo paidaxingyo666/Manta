@@ -1,89 +1,24 @@
-import { createElement } from 'react'
-import { act, create, type ReactTestInstance, type ReactTestRenderer } from 'react-test-renderer'
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
-import type { FakeRpcClient } from './bridge-host-test-fakes'
-import type {
-  MobileWebShellSessionState,
-  MobileWebShellUpdateNotice
-} from './mobile-web-shell-session-contract'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-type ScreenDependencies = {
-  retry: Mock
-  reportShellFailure: Mock
-  reportDocumentLoaded: Mock
-  reportPageReady: Mock
-  /** The profile read rejected, which is the one state that has no host to build against. */
-  snapshotUnreadable: boolean
-  storageRefreshes: number
-  openUrl: Mock
-  push: Mock
-  back: Mock
-  /** What the native stack answers: false is a page opened as the first screen on it. */
-  canGoBack: boolean
-  pathname: string
-  pageRoutes: readonly string[]
-  routeGrants: readonly string[]
-  lifecycle: string[]
-  /** Every render of the shell view, which is one per render of the screen above it. */
-  viewRenders: number
-  /** Every frame the shell posted to the page, raw. */
-  posted: string[]
-  /** Whether the view refuses what it is handed, which is a page the post never reached. */
-  postFails: boolean
-  state: MobileWebShellSessionState
-  /** Non-null when the generation on screen is a fallback from an update the shell refused. */
-  updateNotice: MobileWebShellUpdateNotice | null
-  /** What the session reducer says about the page's handshake; true only for the fence's case. */
-  pageReady: boolean
-  /** Null for every case but the bridge's: with no client the hook builds no host at all. */
-  client: FakeRpcClient | null
-  /** The IME events the app's own keyboard seam subscribes to, by name. */
-  keyboardListeners: Map<string, (event: { endCoordinates: { height: number } }) => void>
-}
-
-const SNAPSHOT = vi.hoisted(() => ({
-  host: { id: 'host-1', name: 'Host One', endpoint: 'ws://host-1', lastConnected: 3 }
-}))
-
-const DEFAULT_ROUTE_GRANTS = vi.hoisted((): readonly string[] => [
-  'navigate',
-  'storage',
-  'externalLink',
-  'native.clipboard.write'
-])
-
-const dependencies = vi.hoisted((): ScreenDependencies => {
-  // Before the module under test is imported, so its `__DEV__` guard is on and the developer facts
-  // are reachable at all — they are the one thing here that must never grow a secret.
-  Object.assign(globalThis, { __DEV__: true })
-  return {
-    retry: vi.fn(),
-    reportShellFailure: vi.fn(),
-    reportDocumentLoaded: vi.fn(),
-    reportPageReady: vi.fn(),
-    snapshotUnreadable: false,
-    storageRefreshes: 0,
-    openUrl: vi.fn(),
-    push: vi.fn(),
-    back: vi.fn(),
-    canGoBack: true,
-    pathname: '/h/host-1',
-    pageRoutes: ['/h/[hostId]'],
-    routeGrants: DEFAULT_ROUTE_GRANTS,
-    lifecycle: [],
-    viewRenders: 0,
-    posted: [],
-    postFails: false,
-    state: { kind: 'checking' },
-    updateNotice: null,
-    pageReady: false,
-    client: null,
-    keyboardListeners: new Map()
-  }
-})
+const harness = await vi.hoisted(async () => await import('./mobile-web-shell-screen-test-harness'))
+const dependencies = vi.hoisted(() => harness.createScreenDependencies())
+const SNAPSHOT = harness.SCREEN_SNAPSHOT
 
 vi.mock('react-native', () => ({
   ActivityIndicator: 'ActivityIndicator',
+  Easing: { in: (fn: unknown) => fn, quad: 'quad' },
+  // Enough of it for the cover to mount, fade and unmount. What the fade looks like is not this
+  // test's business; that the cover is up until the page paints is, and that is the `visible` prop.
+  Animated: {
+    View: 'Animated.View',
+    Value: class {
+      setValue(): void {}
+    },
+    timing: () => ({
+      start: (done?: (result: { finished: boolean }) => void) => done?.({ finished: true }),
+      stop: () => {}
+    })
+  },
   Keyboard: {
     addListener: (
       name: string,
@@ -96,7 +31,11 @@ vi.mock('react-native', () => ({
   Linking: { openURL: dependencies.openUrl },
   Platform: { OS: 'ios' },
   Pressable: 'Pressable',
-  StyleSheet: { create: (styles: unknown) => styles },
+  StyleSheet: {
+    create: (styles: unknown) => styles,
+    // The real values, so a case that reads them off the cover reads something.
+    absoluteFillObject: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
+  },
   Text: 'Text',
   View: 'View'
 }))
@@ -221,13 +160,32 @@ vi.mock('./use-mobile-web-shell-session', () => ({
     updateNotice: dependencies.updateNotice,
     retry: dependencies.retry,
     reportShellFailure: dependencies.reportShellFailure,
+    reportDocumentStarted: dependencies.reportDocumentStarted,
     reportDocumentLoaded: dependencies.reportDocumentLoaded,
     reportPageReady: dependencies.reportPageReady,
-    pageReady: dependencies.pageReady
+    reportPagePainted: dependencies.reportPagePainted,
+    pageReady: dependencies.pageReady,
+    pageFrame: dependencies.pageFrame
   })
 }))
 
+import { createElement } from 'react'
+import { act, create } from 'react-test-renderer'
 import { bridgeId, clientFrame, createFakeRpcClient } from './bridge-host-test-fakes'
+import {
+  byName,
+  DEFAULT_ROUTE_GRANTS,
+  trackRenderedScreen,
+  NativeFallback,
+  SCREEN_BUILD_ID as BUILD_ID,
+  SCREEN_DIRECTORY as DIRECTORY,
+  hostParentOf,
+  readyState,
+  renderScreen as mountScreen,
+  textOf,
+  updateScreen as reRenderScreen
+} from './mobile-web-shell-screen-test-harness'
+import { BRIDGE_PAGE_PAINTED } from './bridge/bridge-page-painted'
 import {
   BRIDGE_FAULT_GRANT,
   BRIDGE_NAVIGATE_BACK_NOTIFY,
@@ -235,114 +193,24 @@ import {
 } from './bridge/bridge-envelope'
 import { BRIDGE_ROUTE_UPDATE_ACCEPT } from './bridge/bridge-route-update'
 import { MobileWebShellScreen } from './MobileWebShellScreen'
+import type { MobileWebShellSessionState } from './mobile-web-shell-session-contract'
+import type { ReactTestInstance, ReactTestRenderer } from 'react-test-renderer'
 
-/** The caller's native screen, as a component so `findAllByType` can name it without a host string. */
-function NativeFallback(): null {
-  return null
-}
+const renderScreen = (state: MobileWebShellSessionState): Promise<ReactTestRenderer> =>
+  mountScreen(MobileWebShellScreen, dependencies, state)
 
-const BUILD_ID = 'a1b2c3d4e5f6'.repeat(5) + 'abcd'
-const DIRECTORY = '/var/mobile/Containers/Data/Caches/mobile-web/deadbeef/generations/a1b2'
+const updateScreen = (tree: ReactTestRenderer, state: MobileWebShellSessionState): Promise<void> =>
+  reRenderScreen(MobileWebShellScreen, dependencies, tree, state)
 
-async function render(state: MobileWebShellSessionState): Promise<ReactTestRenderer> {
-  dependencies.state = state
-  const rendered: { tree: ReactTestRenderer | null } = { tree: null }
-  await act(async () => {
-    rendered.tree = create(
-      createElement(MobileWebShellScreen, {
-        hostId: 'host-1',
-        route: { pathname: '/h/host-1' },
-        fallback: createElement(NativeFallback)
-      })
-    )
-  })
-  if (rendered.tree === null) {
-    throw new Error('screen did not render')
-  }
-  mounted.push(rendered.tree)
-  return rendered.tree
-}
+afterEach(harness.unmountRenderedScreens)
 
-/** Unmounted between cases: the shell's stack latch is one per stack, so a screen left mounted is
- *  a screen still holding whatever pop it took. */
-const mounted: ReactTestRenderer[] = []
-
-function unmountRenderedScreens(): void {
-  act(() => {
-    for (const tree of mounted.splice(0)) {
-      tree.unmount()
-    }
-  })
-}
-
-function readyState(sessionId: string): MobileWebShellSessionState {
-  return {
-    kind: 'ready',
-    generationDirectory: DIRECTORY,
-    sessionId,
-    buildId: BUILD_ID,
-    totalBytes: 4096,
-    elapsedMs: 811
-  }
-}
-
-async function update(tree: ReactTestRenderer, state: MobileWebShellSessionState): Promise<void> {
-  dependencies.state = state
-  await act(async () => {
-    tree.update(
-      createElement(MobileWebShellScreen, {
-        hostId: 'host-1',
-        route: { pathname: '/h/host-1' },
-        fallback: createElement(NativeFallback)
-      })
-    )
-  })
-}
-
-/** Host elements are matched by name, not by `findAllByType`: React's `ElementType` does not admit
- *  an arbitrary React Native host name, so the typed form is a predicate. */
-function byName(tree: ReactTestRenderer, name: string): ReactTestInstance[] {
-  return tree.root.findAll((node) => String(node.type) === name)
-}
-
-function textOf(tree: ReactTestRenderer): string {
-  return byName(tree, 'Text')
-    .map((node) => node.children.filter((child) => typeof child === 'string').join(''))
-    .join('\n')
-}
-
-afterEach(unmountRenderedScreens)
-
-/**
- * File-level, not per describe: every block here shares one mutable `dependencies`, so a reset
- * scoped to one of them leaves whatever the others set. `routeGrants` is reset for that reason —
- * a case that grants the screencast lane would otherwise hand it to every case that follows.
- */
 beforeEach(() => {
-  dependencies.retry.mockReset()
-  dependencies.reportShellFailure.mockReset()
-  dependencies.reportDocumentLoaded.mockReset()
-  dependencies.reportPageReady.mockReset()
-  dependencies.snapshotUnreadable = false
-  dependencies.storageRefreshes = 0
-  dependencies.lifecycle.length = 0
-  dependencies.viewRenders = 0
-  dependencies.posted.length = 0
-  dependencies.postFails = false
-  dependencies.client = null
-  dependencies.pageReady = false
-  dependencies.routeGrants = DEFAULT_ROUTE_GRANTS
-  dependencies.back.mockReset()
-  dependencies.openUrl.mockReset()
-  dependencies.openUrl.mockImplementation(() => Promise.resolve(true))
-  dependencies.canGoBack = true
-  dependencies.pathname = '/h/host-1'
-  dependencies.updateNotice = null
+  harness.resetScreenDependencies(dependencies)
 })
 
 describe('the hybrid shell screen', () => {
   it('renders the update wall for a bundle verdict, with no shell view', async () => {
-    const tree = await render({
+    const tree = await renderScreen({
       kind: 'wall',
       verdict: { kind: 'blocked', reason: 'bundle-unavailable' }
     })
@@ -351,7 +219,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('renders the refetch wall a cached generation older than the host earns', async () => {
-    const tree = await render({
+    const tree = await renderScreen({
       kind: 'wall',
       verdict: {
         kind: 'blocked',
@@ -365,7 +233,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('offers Try again on a failure a retry can clear', async () => {
-    const tree = await render({
+    const tree = await renderScreen({
       kind: 'failed',
       reason: 'document-load-failed',
       retriedOnce: true
@@ -380,7 +248,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('offers no retry when the device cannot isolate a WebView', async () => {
-    const tree = await render({
+    const tree = await renderScreen({
       kind: 'failed',
       reason: 'isolation-unavailable',
       retriedOnce: false
@@ -390,7 +258,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('offers no retry for a status that could not be read, since the gate is settled', async () => {
-    const tree = await render({
+    const tree = await renderScreen({
       kind: 'failed',
       reason: 'status-unreadable',
       retriedOnce: false
@@ -400,13 +268,13 @@ describe('the hybrid shell screen', () => {
   })
 
   it('names what is missing when the host is unreachable and nothing is cached', async () => {
-    expect(textOf(await render({ kind: 'offline' }))).toContain(
+    expect(textOf(await renderScreen({ kind: 'offline' }))).toContain(
       'Connect to this host to download the workspace'
     )
   })
 
   it('counts assets and bytes while downloading', async () => {
-    const tree = await render({
+    const tree = await renderScreen({
       kind: 'fetching',
       completedAssets: 2,
       totalAssets: 4,
@@ -418,14 +286,14 @@ describe('the hybrid shell screen', () => {
   })
 
   it('hands the shell view the generation path and the session id', async () => {
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const view = byName(tree, 'ShellViewProbe')[0]
     expect(view.props.generationDirectory).toBe(DIRECTORY)
     expect(view.props.sessionId).toBe('session-one')
   })
 
   it('opens the bridge channel on a ready session and hands it a receiver', async () => {
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const view = byName(tree, 'ShellViewProbe')[0]
     expect(view.props.bridgeEnabled).toBe(true)
     expect(typeof view.props.onBridgeMessage).toBe('function')
@@ -436,8 +304,8 @@ describe('the hybrid shell screen', () => {
   })
 
   it('rebuilds the view rather than updating it when the session id changes', async () => {
-    const tree = await render(readyState('session-one'))
-    await update(tree, readyState('session-two'))
+    const tree = await renderScreen(readyState('session-one'))
+    await updateScreen(tree, readyState('session-two'))
     expect(dependencies.lifecycle).toEqual([
       'mount:session-one',
       'unmount:session-one',
@@ -446,7 +314,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('forwards a failure the native view reports and drops a payload it cannot read', async () => {
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const view = byName(tree, 'ShellViewProbe')[0]
     await act(async () => {
       view.props.onLoadState({ nativeEvent: { state: 'ready' } })
@@ -457,7 +325,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('starts the wait for the page when the native view says the document finished', async () => {
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const view = byName(tree, 'ShellViewProbe')[0]
     await act(async () => {
       view.props.onLoadState({ nativeEvent: { state: 'loading' } })
@@ -467,6 +335,8 @@ describe('the hybrid shell screen', () => {
     // Once, for the one finished document, and never for the failure: a view that reported a
     // failure has nothing left to wait for.
     expect(dependencies.reportDocumentLoaded).toHaveBeenCalledTimes(1)
+    // The document that started is what drops the previous one's paint, so it is reported too.
+    expect(dependencies.reportDocumentStarted).toHaveBeenCalledTimes(1)
   })
 
   it('fails the session when this host could not be read from the app store', async () => {
@@ -474,14 +344,14 @@ describe('the hybrid shell screen', () => {
     // page re-posting `ready` on its backoff for as long as the screen is open.
     dependencies.snapshotUnreadable = true
     const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    await render(readyState('session-one'))
+    await renderScreen(readyState('session-one'))
     expect(dependencies.reportShellFailure.mock.calls).toEqual([['document-load-failed']])
     warned.mockRestore()
   })
 
   it('re-reads the app store on every ask, so the next init is not the first one again', async () => {
     dependencies.client = createFakeRpcClient()
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const view = byName(tree, 'ShellViewProbe')[0]
     await act(async () => {
       view.props.onBridgeMessage({ nativeEvent: { json: clientFrame({ type: 'ready' }) } })
@@ -519,7 +389,7 @@ describe('the hybrid shell screen', () => {
     if (tree === null) {
       throw new Error('screen did not render')
     }
-    mounted.push(tree)
+    trackRenderedScreen(tree)
     return {
       tree,
       // Read with the page's own reader rather than parsed loose: a frame this refuses is one the
@@ -591,7 +461,7 @@ describe('the hybrid shell screen', () => {
 
   it('ends that wait on the page asking for a session', async () => {
     dependencies.client = createFakeRpcClient()
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await act(async () => {
       byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
         nativeEvent: { json: clientFrame({ type: 'ready' }) }
@@ -610,7 +480,7 @@ describe('the hybrid shell screen', () => {
     const client = createFakeRpcClient()
     dependencies.client = client
     dependencies.pageReady = true
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     // No `ready` first, which is exactly what a page that was never told cannot send.
     await act(async () => {
       byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
@@ -625,7 +495,7 @@ describe('the hybrid shell screen', () => {
   it('fails the session on a page fault, so a blank page becomes the failure screen', async () => {
     dependencies.client = createFakeRpcClient()
     const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await act(async () => {
       // The page asks for its session first, which is what earns it the `fault` grant: a host that
       // has told a page nothing refuses the name.
@@ -646,7 +516,9 @@ describe('the hybrid shell screen', () => {
     warned.mockRestore()
     // The reducer's answer to that reason, rendered: this is what the page's blank turns into.
     expect(
-      textOf(await render({ kind: 'failed', reason: 'document-load-failed', retriedOnce: true }))
+      textOf(
+        await renderScreen({ kind: 'failed', reason: 'document-load-failed', retriedOnce: true })
+      )
     ).toContain('The downloaded workspace could not be opened.')
   })
 
@@ -658,7 +530,7 @@ describe('the hybrid shell screen', () => {
     // rejection in the window between.
     dependencies.openUrl.mockImplementation(() => Promise.reject(failure))
     const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await act(async () => {
       byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
         nativeEvent: { json: clientFrame({ type: 'ready' }) }
@@ -684,7 +556,7 @@ describe('the hybrid shell screen', () => {
 
   it('pops its own stack when the page hands its back button over', async () => {
     dependencies.client = createFakeRpcClient()
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await act(async () => {
       byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
         nativeEvent: { json: clientFrame({ type: 'ready' }) }
@@ -701,7 +573,7 @@ describe('the hybrid shell screen', () => {
     dependencies.client = createFakeRpcClient()
     dependencies.canGoBack = false
     const warned = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await act(async () => {
       byName(tree, 'ShellViewProbe')[0].props.onBridgeMessage({
         nativeEvent: { json: clientFrame({ type: 'ready' }) }
@@ -720,7 +592,7 @@ describe('the hybrid shell screen', () => {
   })
 
   it('shows a build id prefix and never the whole one, the cache path, or the host id', async () => {
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const text = textOf(tree)
     expect(text).toContain(BUILD_ID.slice(0, 12))
     expect(text).toContain('4096 B')
@@ -733,7 +605,7 @@ describe('the hybrid shell screen', () => {
 
 describe('the route the shell was not asked to render', () => {
   it('hands the screen back to the caller rather than painting anything of its own', async () => {
-    const tree = await render({ kind: 'native-route' })
+    const tree = await renderScreen({ kind: 'native-route' })
     expect(tree.root.findAllByType(NativeFallback)).toHaveLength(1)
     expect(byName(tree, 'ShellViewProbe')).toEqual([])
     expect(byName(tree, 'ActivityIndicator')).toEqual([])
@@ -789,11 +661,11 @@ describe('the dropped-frame count on the dev facts line', () => {
   it('shows the running total and resets it when the host is rebuilt', async () => {
     dependencies.client = createFakeRpcClient()
     dependencies.routeGrants = ['navigate', 'screencastBinary']
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await openBinaryStream(tree)
     await drop(2)
     expect(devFactsText(tree)).toContain('2 frames dropped')
-    await update(tree, readyState('session-two'))
+    await updateScreen(tree, readyState('session-two'))
     expect(devFactsText(tree)).not.toContain('dropped')
   })
 
@@ -807,7 +679,7 @@ describe('the dropped-frame count on the dev facts line', () => {
     try {
       dependencies.client = createFakeRpcClient()
       dependencies.routeGrants = ['navigate', 'screencastBinary']
-      const tree = await render(readyState('session-one'))
+      const tree = await renderScreen(readyState('session-one'))
       await openBinaryStream(tree)
       expect(devFactsText(tree)).toBeNull()
       const before = dependencies.viewRenders
@@ -836,7 +708,7 @@ describe('a refused update is said beside the page, not in front of it', () => {
 
   it('serves the page and says the update did not happen, promising no retry', async () => {
     dependencies.updateNotice = 'update-failed'
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     expect(byName(tree, 'ShellViewProbe')).toHaveLength(1)
     const text = textOf(tree)
     expect(text).toContain("Couldn't update the workspace from this host")
@@ -848,21 +720,21 @@ describe('a refused update is said beside the page, not in front of it', () => {
     // The banner is inserted into a screen already on screen. Assertive because the shell passes
     // the failure tone: what it reports is an update that did not happen.
     dependencies.updateNotice = 'update-failed'
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     const alert = byName(tree, 'View').find((node) => node.props.accessibilityRole === 'alert')
     expect(alert).toBeDefined()
     expect(alert?.props.accessibilityLiveRegion).toBe('assertive')
   })
 
   it('says nothing when the generation on screen is the one the host serves', async () => {
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     expect(dismissControl(tree)).toBeUndefined()
     expect(textOf(tree)).not.toContain("Couldn't update")
   })
 
   it('keeps the same document mounted when the notice is dismissed', async () => {
     dependencies.updateNotice = 'update-failed'
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     dependencies.lifecycle.length = 0
     await act(async () => {
       dismissControl(tree)?.props.onPress()
@@ -877,13 +749,13 @@ describe('a refused update is said beside the page, not in front of it', () => {
 
   it('shows a later refusal rather than staying dismissed for the rest of the host', async () => {
     dependencies.updateNotice = 'update-failed'
-    const tree = await render(readyState('session-one'))
+    const tree = await renderScreen(readyState('session-one'))
     await act(async () => {
       dismissControl(tree)?.props.onPress()
     })
     // The next flow refused too, and opened its own fallback: a new document, so the tap on the
     // one before it is not an answer about this one.
-    await update(tree, readyState('session-two'))
+    await updateScreen(tree, readyState('session-two'))
     expect(dismissControl(tree)).toBeDefined()
   })
 })
@@ -907,7 +779,7 @@ describe('what one case mutates does not reach the next', () => {
     // Edge-to-edge makes the manifest's `adjustResize` inert, so the window never shrinks and the
     // page's `visualViewport` reads full height with the IME up: it lays its live input row out
     // under the keys. The shell owns the window, so it takes the strip off the view instead.
-    const tree = await render(readyState('session-keyboard'))
+    const tree = await renderScreen(readyState('session-keyboard'))
     const root = tree.root.find((node) => node.props.testID === 'mobile-web-shell-ready')
     expect(root.props.style[1]).toEqual({ paddingTop: 44, paddingBottom: 8 })
 
@@ -920,5 +792,86 @@ describe('what one case mutates does not reach the next', () => {
       dependencies.keyboardListeners.get('keyboardWillHide')?.({ endCoordinates: { height: 0 } })
     })
     expect(root.props.style[1]).toEqual({ paddingTop: 44, paddingBottom: 8 })
+  })
+})
+
+/**
+ * What is on screen between the generation being mounted and the page having a frame.
+ *
+ * Before this the answer was nothing: the shell tore its own frame down at `ready` and the WebView
+ * draws nothing until its document paints, so the surface behind it was the whole picture for the
+ * length of the page's boot — measured at 1.42 s on a cached generation.
+ */
+describe('the frame under a page that has not painted', () => {
+  it('keeps the shell frame over a mounted view, with the view underneath it', async () => {
+    dependencies.pageFrame = 'unpainted'
+    const tree = await renderScreen(readyState('session-a'))
+    expect(
+      tree.root.findAll((node) => node.props.testID === 'mobile-web-shell-cover')
+    ).toHaveLength(1)
+    // Over, not instead of: the document is loading the whole time the cover is up.
+    expect(byName(tree, 'ShellViewProbe')).toHaveLength(1)
+    expect(textOf(tree)).toContain('Opening workspace')
+  })
+
+  it('carries the same label the screen was already painting while it opened the generation', async () => {
+    const opening = await renderScreen({ kind: 'activating' })
+    expect(textOf(opening)).toContain('Opening workspace')
+    dependencies.pageFrame = 'unpainted'
+    await updateScreen(opening, readyState('session-a'))
+    // The frame does not change when the state does, which is what makes the handover invisible.
+    expect(textOf(opening)).toContain('Opening workspace')
+  })
+
+  it('takes the frame down once the page reports one of its own', async () => {
+    dependencies.pageFrame = 'unpainted'
+    const tree = await renderScreen(readyState('session-a'))
+    dependencies.pageFrame = 'painted'
+    await updateScreen(tree, readyState('session-a'))
+    expect(tree.root.findAll((node) => node.props.testID === 'mobile-web-shell-cover')).toEqual([])
+  })
+
+  it('covers the same box the view gets, which is what the keyboard strip shortens', async () => {
+    // Both are children of the padded root: the view is `flex: 1` and the cover is an absolute
+    // fill, so Yoga lays each of them out against the same content box. The keyboard takes its
+    // strip off that box, so it takes it off both, and the cover cannot leave a gap the view fills.
+    dependencies.pageFrame = 'unpainted'
+    const tree = await renderScreen(readyState('session-keyboard-cover'))
+    const root = tree.root.find((node) => node.props.testID === 'mobile-web-shell-ready')
+    await act(async () => {
+      dependencies.keyboardListeners.get('keyboardWillShow')?.({ endCoordinates: { height: 336 } })
+    })
+    expect(root.props.style[1]).toEqual({ paddingTop: 44, paddingBottom: 336 })
+    const cover = tree.root.find((node) => node.props.testID === 'mobile-web-shell-cover')
+    expect(cover.props.style[0]).toMatchObject({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0
+    })
+    // Both sit directly in that root with no box in between, so neither carries a padding of its
+    // own for the two to disagree about.
+    expect(hostParentOf(cover)).toBe('mobile-web-shell-ready')
+    expect(hostParentOf(byName(tree, 'ShellViewProbe')[0])).toBe('mobile-web-shell-ready')
+  })
+
+  it('hands the page report to the session', async () => {
+    dependencies.pageFrame = 'unpainted'
+    dependencies.client = createFakeRpcClient()
+    const tree = await renderScreen(readyState('session-a'))
+    const probe = byName(tree, 'ShellViewProbe')[0]
+    await act(async () => {
+      probe.props.onBridgeMessage({
+        nativeEvent: { json: clientFrame({ type: 'ready', reports: [BRIDGE_PAGE_PAINTED] }) }
+      })
+    })
+    expect(dependencies.reportPageReady).toHaveBeenCalledWith([BRIDGE_PAGE_PAINTED])
+    await act(async () => {
+      probe.props.onBridgeMessage({
+        nativeEvent: { json: clientFrame({ type: 'notify', name: BRIDGE_PAGE_PAINTED }) }
+      })
+    })
+    expect(dependencies.reportPagePainted).toHaveBeenCalledTimes(1)
   })
 })

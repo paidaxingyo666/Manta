@@ -354,8 +354,18 @@ const MERMAID_PACKAGE = 'node_modules/mermaid/'
  *
  *   modules        4271 -> 4210   (-61)
  *   local modules  1023 -> 1024   (+1)
+ *
+ * The page's paint report joins beside that one, for the same reason:
+ * `src/mobile-web-shell/bridge/bridge-page-painted.ts` holds the name the page posts and the name
+ * it declares in `ready`, so `bridge-client-notifications.ts` — which every screen's client is
+ * built from — imports it. One local module, nothing vendored; the seam that schedules the report
+ * is the web entry's and does not enter a route closure. Re-measured on this merged head rather
+ * than carried over from before the cut, with all five generators run first.
+ *
+ *   modules        4210 -> 4211   (+1)
+ *   local modules  1024 -> 1025   (+1)
  */
-const SESSION_ROUTE_MODULES = 4210
+const SESSION_ROUTE_MODULES = 4211
 
 /** What the page enters this route through once the route is a switch with a `.web.tsx` sibling. */
 const ROUTE_ENTRY = [

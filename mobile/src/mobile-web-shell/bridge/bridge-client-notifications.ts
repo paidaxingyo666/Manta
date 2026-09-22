@@ -13,17 +13,18 @@ import {
   type BridgeHapticsKind
 } from './bridge-haptics-notify'
 import { captureBridgeError } from './bridge-error-capture'
+import { BRIDGE_PAGE_PAINTED } from './bridge-page-painted'
 
 /**
  * Everything the page posts and hears nothing back about.
  *
- * Six of the seven post through one guard, but only two reach its throw, and it is not the guard
+ * Seven of the eight post through one guard, but only three reach its throw, and it is not the guard
  * `sendRequest` uses. A call before `init` is a mount-order bug and throws; a call after `close` is
  * an unmounting screen posting one more nudge on its way out, which the native clients answer
  * inertly rather than by throwing into a teardown path nobody wrote a catch for. Nothing here
  * returns a promise, so nothing here can be awaited into a rejection either.
  *
- * Only the two ungated notifies reach that throw. A grant is read off the session, so before `init`
+ * Only the three ungated notifies reach that throw. A grant is read off the session, so before `init`
  * there is no grant either and `navigate`, `navigate-back`, `externalLink`, `storage` and the
  * haptic answer false without asking: that is the same false they answer a shell that withheld the
  * grant, and every caller already handles it — `useRouteHandoff` pushes or goes back inside the
@@ -41,6 +42,8 @@ export type BridgeClientNotificationDeps = {
   isClosed: () => boolean
   /** What `init.grants.native` named. A grant the shell did not give is a frame it would refuse. */
   hasGrant: (name: string) => boolean
+  /** What `init.accepts` named. The other half of the same read: a capability rather than a grant. */
+  shellAccepts: (name: string) => boolean
 }
 
 export type BridgeClientNotifications = {
@@ -55,6 +58,7 @@ export type BridgeClientNotifications = {
   notifyStorageWrite: (key: string, value: string | null) => boolean
   notifyHaptics: (kind: BridgeHapticsKind) => boolean
   notifyPageFault: (error: unknown) => boolean
+  notifyPagePainted: () => void
 }
 
 export function createBridgeClientNotifications(
@@ -133,6 +137,14 @@ export function createBridgeClientNotifications(
         name: BRIDGE_FAULT_GRANT,
         error: captureBridgeError(error)
       })
+    },
+    // Gated on the shell saying it takes one, not on a grant: `notify` is a closed union, so an
+    // older shell answers an unknown name with an error frame per mount. Answering nothing, because
+    // a page that has painted has nothing else to do about a shell that will not hear it.
+    notifyPagePainted: () => {
+      if (deps.shellAccepts(BRIDGE_PAGE_PAINTED)) {
+        post({ v: BRIDGE_PROTOCOL_VERSION, type: 'notify', name: BRIDGE_PAGE_PAINTED })
+      }
     }
   }
 }
