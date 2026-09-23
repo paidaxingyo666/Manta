@@ -52,7 +52,8 @@ export type AgentLaunchIntent = {
   agent: TuiAgent
   target: AgentLaunchTarget
   prompt?: AgentLaunchPrompt
-  /** Seeded launch options, narrowed by the host to what a structured create accepts. */
+  /** Seeded launch options: narrowed to what a structured create accepts, and read as the model,
+   *  effort and mode preferences of a terminal launch. */
   sessionOptions?: Readonly<Record<string, unknown>>
   reuseTerminal?: AgentLaunchReusedTerminal
   /**
@@ -86,6 +87,9 @@ export type AgentLaunchIntent = {
   /** The `tabId:leafId` a terminal launch creates its pane under, for a caller that places its own
    *  tabs. Not a route input; refused when that pane is already live. */
   paneKey?: string
+  /** The caller-minted id of the chat session a structured launch creates. Not a route input;
+   *  refused when that session already exists. */
+  sessionId?: string
 }
 
 /** The surface the host actually created. */

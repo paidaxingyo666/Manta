@@ -9,11 +9,8 @@
  */
 
 import { describe, expect, it, vi } from 'vitest'
-import {
-  AgentLaunchStructuredSessionRefusedError,
-  executeAgentLaunch,
-  type AgentLaunchExecution
-} from './agent-launch-executor'
+import { executeAgentLaunch, type AgentLaunchExecution } from './agent-launch-executor'
+import { AgentLaunchStructuredSessionRefusedError } from './agent-launch-surface-factories'
 import type { AgentLaunchIntent } from '../../shared/agent-launch-intent'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../shared/constants'
 

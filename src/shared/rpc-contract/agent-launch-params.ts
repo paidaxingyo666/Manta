@@ -19,6 +19,8 @@ import { isTuiAgent } from '../tui-agent-config'
 import type { TuiAgent } from '../tui-agent'
 import { WorktreeCreate } from './worktree-create-params'
 import { TerminalTabIdParam } from './agent-session-params'
+import { SessionId } from './structured-agent-session-params'
+import { isStructuredAgentSessionIdFor } from '../structured-agent-session-create'
 
 const LaunchAgent = z
   .unknown()
@@ -30,7 +32,9 @@ const LaunchAgent = z
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the superRefine above rejects anything isTuiAgent refuses, so the transform only ever runs on a TuiAgent.
   .transform((value): TuiAgent => value as TuiAgent)
 
-export const AgentLaunch = z.object({
+/** The launch's fields without the cross-field check, for building an older host's shape in tests;
+ *  every receiver parses `AgentLaunch` or `AgentLaunchReplay`. */
+export const AgentLaunchFields = z.object({
   agent: LaunchAgent,
   /**
    * Names this launch so a retry replays instead of starting a second agent.
@@ -66,7 +70,7 @@ export const AgentLaunch = z.object({
       delivery: z.enum(['submit', 'draft'])
     })
     .optional(),
-  /** Only the seedable string options a structured create accepts; a terminal launch ignores them. */
+  /** A chat seeds the options it accepts; a terminal launch reads the model, effort and mode. */
   sessionOptions: z.record(z.string(), z.string()).optional(),
   reuseTerminal: z.object({ handle: z.string().min(1, 'Missing terminal handle') }).optional(),
   /** Nullable on purpose: `null` is "no arguments", absent is "use the settings default". */
@@ -104,10 +108,36 @@ export const AgentLaunch = z.object({
         isValidHostTerminalTabId(pane.tabId)
       )
     }, 'Malformed launch pane key')
-    .optional()
+    .optional(),
+  /**
+   * The id of the chat session a structured launch creates, minted by the caller so it knows which
+   * conversation it started before the reply arrives. Refused when a session with this id already
+   * exists. Ignored when the launch settles as a terminal; the outcome's `sessionId` says which
+   * session really exists.
+   */
+  sessionId: SessionId.optional()
 })
+
+/** A caller-minted session id must be shaped like every id the host mints, so an id still names
+ *  its lane on sight. */
+function refuseSessionIdForAnotherAgent(
+  launch: { agent: string; sessionId?: string | undefined },
+  ctx: z.RefinementCtx
+): void {
+  if (launch.sessionId && !isStructuredAgentSessionIdFor(launch.agent, launch.sessionId)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['sessionId'],
+      message: 'Launch session id must be named for its agent'
+    })
+  }
+}
+
+export const AgentLaunch = AgentLaunchFields.superRefine(refuseSessionIdForAnotherAgent)
 
 export type AgentLaunchParams = z.infer<typeof AgentLaunch>
 
 // A distinct method prevents an older receiver from silently dropping the replay requirement.
-export const AgentLaunchReplay = AgentLaunch.required({ operationId: true })
+export const AgentLaunchReplay = AgentLaunchFields.required({ operationId: true }).superRefine(
+  refuseSessionIdForAnotherAgent
+)

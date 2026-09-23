@@ -24,7 +24,7 @@ import { structuredAgentSessionTabId } from '../../../../shared/structured-agent
 import {
   AgentLaunchStructuredSessionRefusedError,
   type AgentLaunchSurfaceFactory
-} from '../../../agent-launch/agent-launch-executor'
+} from '../../../agent-launch/agent-launch-surface-factories'
 import { getStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-registry'
 import type { StructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-host'
 import type { RpcContext } from '../core'
@@ -32,6 +32,9 @@ import { structuredCallerFor } from './structured-agent-session-gate'
 import { createStructuredAgentSessionForWorktree } from './structured-agent-session-create'
 import { commitStructuredAgentSessionLaunchPrompt } from './agent-launch-structured-prompt'
 import { deliverTerminalAgentLaunchPrompt } from './agent-launch-terminal-prompt'
+import { AgentLaunchSessionAlreadyExistsError } from '../../../../shared/agent-launch-session-already-exists'
+import { createStructuredAgentSessionId } from '../../../../shared/structured-agent-session-create'
+import { toAgentLaunchPreferences } from '../../../../shared/agent-launch-preferences'
 import { paneIdentity } from '../../runtime-terminal-pane-identity'
 
 /** Replay-safe launches keep the nested attach in the same stable caller namespace as the launch. */
@@ -41,8 +44,8 @@ export function agentLaunchSurfaceFactory(
   operationCallerKey?: string
 ): AgentLaunchSurfaceFactory {
   return {
-    createStructuredSession: async ({ worktreeId, agent, options }) => {
-      const sessionId = randomUUID()
+    createStructuredSession: async ({ worktreeId, agent, options, sessionId: requested }) => {
+      const sessionId = requested ?? createStructuredAgentSessionId(agent, randomUUID)
       const seeded = narrowStructuredLaunchSeedOptions(options)
       const created = await createStructuredAgentSessionForWorktree({
         runtime: context.runtime,
@@ -70,6 +73,11 @@ export function agentLaunchSurfaceFactory(
         activate: true
       })
       if (!created.ok) {
+        // The caller named this session, so a taken id is its answer, not an opaque refusal; and not
+        // a definitive one, so the launch does not fall back to a terminal over it.
+        if (requested && created.refusal.code === 'agent_session_conflict') {
+          throw new AgentLaunchSessionAlreadyExistsError()
+        }
         throw new AgentLaunchStructuredSessionRefusedError(
           created.refusal.code,
           created.refusal.message
@@ -98,8 +106,10 @@ export function agentLaunchSurfaceFactory(
       agentArgs,
       cwd,
       launchSource,
-      paneKey
+      paneKey,
+      options
     }) => {
+      const launchPreferences = toAgentLaunchPreferences(options)
       const terminal = await context.runtime.createTerminal(`id:${worktreeId}`, {
         // The agent id is not a shell command — `cursor` is the desktop app, its CLI is
         // `cursor-agent` — so the runtime builds the configured launcher.
@@ -109,6 +119,8 @@ export function agentLaunchSurfaceFactory(
         ...(startupPrompt ? { startupPrompt } : {}),
         ...(agentArgs !== undefined ? { agentArgs } : {}),
         ...(cwd ? { cwd } : {}),
+        // The model the user picked outranks configured args here too, as it does on a chat.
+        ...(launchPreferences ? { launchPreferences } : {}),
         // A live reserved pane would be attached, not launched into, so the runtime refuses it.
         ...(paneKey ? { ...paneIdentity(paneKey), requireFreshPane: true } : {}),
         ...agentLaunchTelemetry(agent, launchSource)

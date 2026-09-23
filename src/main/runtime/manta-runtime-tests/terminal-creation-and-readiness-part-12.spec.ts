@@ -189,4 +189,38 @@ describe('MantaRuntimeService', () => {
     expect((await runtime.listTerminals()).terminals.map((t) => t.handle)).toEqual([created.handle])
     expect(revealTerminalSession).toHaveBeenCalledTimes(1)
   })
+
+  // agent.launch now hands a terminal launch its session picks; this is where they must reach argv.
+  it('starts an agent terminal with the model the caller picked', async () => {
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-picked' })
+    const runtime = new MantaRuntimeService(store)
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+
+    await runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`, {
+      startupAgent: 'claude',
+      launchPreferences: { model: 'opus' }
+    })
+
+    expect(spawn.mock.calls[0]?.[0]?.command).toMatch(/'--model' 'opus'/)
+  })
+
+  it('starts an agent terminal without a model flag when no pick was made', async () => {
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-default' })
+    const runtime = new MantaRuntimeService(store)
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+
+    await runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`, { startupAgent: 'claude' })
+
+    expect(spawn.mock.calls[0]?.[0]?.command).not.toMatch(/--model/)
+  })
 })

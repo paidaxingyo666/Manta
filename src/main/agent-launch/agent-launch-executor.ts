@@ -27,7 +27,6 @@
 
 import type {
   AgentLaunchIntent,
-  AgentLaunchPrompt,
   AgentLaunchResult,
   AgentLaunchTarget
 } from '../../shared/agent-launch-intent'
@@ -55,105 +54,12 @@ import {
   type AgentLaunchModeVocabulary,
   DEFAULT_LAUNCH_VOCABULARY
 } from './agent-launch-mode'
-
-/** How a surface is built once the executor has decided which one. Injected because an
- *  orchestration worker's session carries a dispatch hold and a mailbox a plain launch must not
- *  take, while the decision and ordering above it are identical. */
-export type AgentLaunchSurfaceFactory = {
-  createStructuredSession(args: {
-    worktreeId: string
-    agent: 'claude' | 'codex'
-    options?: Readonly<Record<string, unknown>>
-  }): Promise<AgentLaunchStructuredSurface>
-  createTerminalAgent(args: {
-    worktreeId: string
-    agent: TuiAgent
-    options?: Readonly<Record<string, unknown>>
-    /** Set only for an agent whose CLI takes the prompt on argv, so the text is in the process's
-     *  arguments at exec time rather than raced into its composer afterwards. */
-    startupPrompt?: string
-    /** Replaces the settings default for this launch only; `null` means no arguments at all. */
-    agentArgs?: string | null
-    cwd?: string
-    /** The one member of the `agent_started` triple the host cannot derive for itself. */
-    launchSource?: string
-    /** The caller-minted pane to create; refused with `AgentLaunchPaneAlreadyLiveError` if live. */
-    paneKey?: string
-  }): Promise<{
-    handle: string
-    /** The pane this create minted; a factory whose runtime reports none omits it, never invents. */
-    paneKey?: string
-    warning?: string
-  }>
-  /**
-   * Commits the launch text as the session's first turn, answering with the transcript row's id.
-   *
-   * `null` means nothing was committed, and is the answer for every failure — a refused send, an
-   * unreachable host, a throw. Delivery must not fail a launch whose agent is already running: the
-   * caller can resend under `not-delivered`, but it cannot un-create a workspace.
-   */
-  deliverStructuredPrompt?(args: {
-    sessionId: string
-    fence: number
-    prompt: AgentLaunchPrompt
-  }): Promise<string | null>
-  /**
-   * Writes the launch text into a terminal agent's live PTY, answering whether it landed.
-   *
-   * The other half of `startupPrompt`, for the two cases argv cannot serve: a `stdin-after-start`
-   * agent, whose CLI takes no prompt argument, and a reused terminal, whose process was already
-   * running before this launch existed. `false` for every failure, on the same rule the structured
-   * twin follows — a launch whose agent is running must not fail because its text did not land.
-   */
-  deliverTerminalPrompt?(args: { handle: string; prompt: AgentLaunchPrompt }): Promise<boolean>
-}
-
-/** `fence` is carried out of the create because a send must name the lease it was admitted against,
- *  and re-reading it later would read whatever fence the session has by then. */
-export type AgentLaunchStructuredSurface = {
-  sessionId: string
-  handle: string
-  fence: number
-}
-
-/** A structured create refusal that proves no session was committed, so the launch may downgrade. */
-export class AgentLaunchStructuredSessionRefusedError extends Error {
-  readonly code: string
-
-  constructor(code: string, message: string) {
-    super(message)
-    this.name = 'AgentLaunchStructuredSessionRefusedError'
-    this.code = code
-  }
-}
-
-/** Creating the workspace, when the intent asks for one. Injected so orchestration keeps recording
- *  its own worktree stages and residual-resource effects around the same call. */
-export type AgentLaunchWorkspaceFactory = {
-  createWorktree(args: {
-    create: Readonly<Record<string, unknown>>
-    /** Set only when the settled mode is a terminal agent: agent-first creation sequences the
-     *  agent's startup command behind the setup runner, which is how a PTY launch gets its
-     *  wait-for-setup gate for free. A structured launch has no startup command to sequence and
-     *  must await that gate explicitly instead. */
-    startupAgent: TuiAgent | undefined
-    /** Set only alongside a `startupAgent` whose CLI takes the prompt on argv: agent-first creation
-     *  builds the startup command, so that is where an argv prompt belongs. */
-    startupPrompt?: string
-    /** Inputs needed when this terminal is created as the worktree's startup surface. */
-    agentArgs?: string | null
-    cwd?: string
-    launchSource?: string
-    paneKey?: string
-  }): Promise<{
-    worktreeId: string
-    startupTerminalHandle: string | undefined
-    /** The pane minted with the startup terminal, when the runtime reported one. */
-    startupTerminalPaneKey?: string
-    /** Created, but incomplete — surfaced on the launch result rather than dropped. */
-    warning?: string
-  }>
-}
+import {
+  AgentLaunchStructuredSessionRefusedError,
+  type AgentLaunchStructuredSurface,
+  type AgentLaunchSurfaceFactory,
+  type AgentLaunchWorkspaceFactory
+} from './agent-launch-surface-factories'
 
 export type AgentLaunchExecution = {
   runtime: Pick<MantaRuntimeService, 'getStructuredAgentSessionCreateSupport' | 'getClientSettings'>
@@ -305,14 +211,7 @@ async function resolveWorkspace(
     create: withoutReservedAgentCreateFields(intent.target.create),
     startupAgent: preflight.mode === 'structured' ? undefined : intent.agent,
     ...(startupPrompt ? { startupPrompt } : {}),
-    ...(preflight.mode === 'structured'
-      ? {}
-      : {
-          ...(intent.agentArgs !== undefined ? { agentArgs: intent.agentArgs } : {}),
-          ...(intent.cwd ? { cwd: intent.cwd } : {}),
-          ...(intent.launchSource ? { launchSource: intent.launchSource } : {}),
-          ...(intent.paneKey ? { paneKey: intent.paneKey } : {})
-        })
+    ...(preflight.mode === 'structured' ? {} : terminalLaunchInputs(intent))
   })
   // Only when a startup terminal actually came back: a create that produced none ran no command,
   // so nothing carried the prompt and the launch still owes it to whatever surface it builds next.
@@ -341,7 +240,8 @@ async function createSurface(
     const session = await surfaces.createStructuredSession({
       worktreeId,
       agent: intent.agent,
-      ...(intent.sessionOptions ? { options: intent.sessionOptions } : {})
+      ...(intent.sessionOptions ? { options: intent.sessionOptions } : {}),
+      ...(intent.sessionId ? { sessionId: intent.sessionId } : {})
     })
     return {
       outcome: { kind: 'structured', sessionId: session.sessionId, handle: session.handle },
@@ -375,6 +275,19 @@ function ignoredStructuredAgentArgsWarning(
       }
 }
 
+/** What every route that builds a terminal agent passes on, so the startup terminal of a new
+ *  workspace and the terminal of an existing one start the same agent. */
+function terminalLaunchInputs(intent: AgentLaunchIntent) {
+  return {
+    ...(intent.sessionOptions ? { options: intent.sessionOptions } : {}),
+    // `null` is a value the caller meant, so this tests for absence rather than falsiness.
+    ...(intent.agentArgs !== undefined ? { agentArgs: intent.agentArgs } : {}),
+    ...(intent.cwd ? { cwd: intent.cwd } : {}),
+    ...(intent.launchSource ? { launchSource: intent.launchSource } : {}),
+    ...(intent.paneKey ? { paneKey: intent.paneKey } : {})
+  }
+}
+
 /**
  * The one place a terminal agent is created, so the structured-refusal downgrade builds the same
  * surface — carrying the same argv prompt — as a launch that chose a terminal outright.
@@ -388,13 +301,8 @@ async function createTerminalSurface(
   const terminal = await surfaces.createTerminalAgent({
     worktreeId,
     agent: intent.agent,
-    ...(intent.sessionOptions ? { options: intent.sessionOptions } : {}),
     ...(startupPrompt ? { startupPrompt } : {}),
-    // `null` is a value the caller meant, so this tests for absence rather than falsiness.
-    ...(intent.agentArgs !== undefined ? { agentArgs: intent.agentArgs } : {}),
-    ...(intent.cwd ? { cwd: intent.cwd } : {}),
-    ...(intent.launchSource ? { launchSource: intent.launchSource } : {}),
-    ...(intent.paneKey ? { paneKey: intent.paneKey } : {})
+    ...terminalLaunchInputs(intent)
   })
   return {
     outcome: {

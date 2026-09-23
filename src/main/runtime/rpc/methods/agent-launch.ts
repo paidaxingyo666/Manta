@@ -35,6 +35,10 @@ import {
   AgentLaunchPaneAlreadyLiveError,
   AGENT_LAUNCH_PANE_ALREADY_LIVE_CODE
 } from '../../../../shared/agent-launch-pane-already-live'
+import {
+  AgentLaunchSessionAlreadyExistsError,
+  AGENT_LAUNCH_SESSION_ALREADY_EXISTS_CODE
+} from '../../../../shared/agent-launch-session-already-exists'
 import { executeAgentLaunch } from '../../../agent-launch/agent-launch-executor'
 import type { MantaRuntimeService } from '../../manta-runtime'
 import { defineMethod, type RpcContext } from '../core'
@@ -96,7 +100,8 @@ async function agentLaunchIntent(
     ...(params.agentArgs !== undefined ? { agentArgs: params.agentArgs } : {}),
     ...(params.cwd ? { cwd: params.cwd } : {}),
     ...(params.launchSource ? { launchSource: params.launchSource } : {}),
-    ...(params.paneKey ? { paneKey: params.paneKey } : {})
+    ...(params.paneKey ? { paneKey: params.paneKey } : {}),
+    ...(params.sessionId ? { sessionId: params.sessionId } : {})
   }
 }
 
@@ -199,8 +204,8 @@ function agentLaunchFailureCode(error: unknown): string {
 
 /**
  * Only a typed refusal raised before anything was created proves the claimed launch had no effects.
- * A live reserved pane proves it only for an existing workspace; on create-worktree the workspace
- * already exists by the time the terminal is refused.
+ * A live reserved pane or an existing reserved session proves it only for an existing workspace; on
+ * create-worktree the workspace already exists by the time the surface is refused.
  */
 function launchFailureWithoutEffectsCode(
   error: unknown,
@@ -211,6 +216,9 @@ function launchFailureWithoutEffectsCode(
   }
   if (error instanceof AgentLaunchPaneAlreadyLiveError && targetKind === 'existing') {
     return AGENT_LAUNCH_PANE_ALREADY_LIVE_CODE
+  }
+  if (error instanceof AgentLaunchSessionAlreadyExistsError && targetKind === 'existing') {
+    return AGENT_LAUNCH_SESSION_ALREADY_EXISTS_CODE
   }
   return null
 }
