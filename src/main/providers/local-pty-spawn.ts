@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { win32 as pathWin32 } from 'node:path'
 import { mkdir } from 'node:fs/promises'
 import { JCODE_RUNTIME_DIR_ENV_KEY } from '../../shared/jcode-runtime-dir'
+import { prewarmJcodeDaemon } from '../jcode/daemon-prewarm'
 import { SessionNotFoundError } from '../daemon/daemon-errors'
 import { prepareMacosTccLoginShell } from './macos-tcc-login-shell'
 import { finalizeLocalPtySpawnEnvironment } from './local-pty-finalize-environment'
@@ -49,6 +50,15 @@ export async function spawnLocalPty(
   const jcodeRuntimeDir = args.env?.[JCODE_RUNTIME_DIR_ENV_KEY]
   if (jcodeRuntimeDir) {
     await mkdir(jcodeRuntimeDir, { recursive: true })
+    // Why here and not earlier: the dir must exist before the daemon binds its
+    // socket in it, and this is the last point before the shell starts — the
+    // head start the client's 5s ready budget needs on a cold runtime dir.
+    prewarmJcodeDaemon({
+      launchAgent: args.launchAgent,
+      runtimeDir: jcodeRuntimeDir,
+      cwd: args.cwd,
+      env: args.env
+    })
   }
   const id = allocatePtyId(reattachId ?? undefined)
   return runCancelableLocalPtySpawn(id, async (throwIfCanceled, cancellation) => {
