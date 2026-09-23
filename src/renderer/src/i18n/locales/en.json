@@ -14967,8 +14967,6 @@
           "10ed04a685": "Notebook cells execute local Python on this machine from the notebook folder. Only run cells from files you trust.",
           "9e06ae5d36": "Run Notebook Code?",
           "d6f37a640b": "Empty notebook",
-          "8c3b21369a": "nbformat",
-          "329764e9fc": "BETA",
           "15ec40a735": "Save notebook",
           "07e7d96612": "cells",
           "c1601b23b2": "Unable to render notebook",
@@ -14983,8 +14981,8 @@
           "3e4cbf15ea": "Raw",
           "1833dbbc43": "Markdown",
           "7005960d73": "Code",
-          "59b6cd874b": "code",
-          "ba149053d5": "markdown"
+          "8dbe39a152": "More cell actions",
+          "fa8fd99cf1": "Cell type"
         },
         "MarkdownPreview": {
           "e4683f70c4": "Cancel",
