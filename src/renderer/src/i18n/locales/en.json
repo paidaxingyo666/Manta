@@ -5674,6 +5674,7 @@
           "76865d827f": "Move to group",
           "503ec0f8e6": "New group from project",
           "3350101edb": "Copy Path",
+          "copyWorktreeName": "Copy Worktree Name",
           "f4475537d8": "Delete",
           "f5ac91531d": "Remove Project from Manta",
           "b42391d8bf": "Deleting…",
