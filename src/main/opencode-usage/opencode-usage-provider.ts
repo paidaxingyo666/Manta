@@ -6,8 +6,8 @@ import type {
   OpenCodeUsageSession
 } from './types'
 
-// Why: v3 includes cache-read tokens in totals; older caches undercount usage.
-export const OPENCODE_USAGE_SCHEMA_VERSION = 3
+// Why: v4 reads OpenCode 2's `session_v2` table; v3 caches miss every v2 session.
+export const OPENCODE_USAGE_SCHEMA_VERSION = 4
 
 export const openCodeUsageProvider = {
   id: 'opencode',
