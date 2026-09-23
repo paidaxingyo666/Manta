@@ -7185,7 +7185,16 @@
             "structuredToggleLabel": "Toggle updated structured native chat",
             "resumeTitle": "Resume working chats automatically after a restart",
             "resumeCopy": "When Manta quits or installs an update, chats that were mid-turn are automatically resumed when Manta is reopened.",
-            "resumeToggleLabel": "Toggle automatic resume after a restart"
+            "resumeToggleLabel": "Toggle automatic resume after a restart",
+            "shellEnvNamesLabel": "Variables to pass from your shell",
+            "shellEnvNamePlaceholder": "Variable name",
+            "shellEnvNameAdd": "Add",
+            "shellEnvNameRemove": "Remove {{value0}}",
+            "shellEnvNamesEmpty": "No variables added yet.",
+            "shellEnvNamesAlwaysPassed": "PATH, locale, and SSH_AUTH_SOCK are always passed. Applies the next time a chat starts or resumes.",
+            "shellEnvTitle": "Use your shell environment",
+            "shellEnvCopy": "Codex and Claude chats start with every variable your login shell exports, the same as a terminal. Turn off to choose which ones they get.",
+            "shellEnvToggleLabel": "Toggle using your shell environment"
           },
           "agentDashboard": {
             "title": "Agent Dashboard",
