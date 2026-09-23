@@ -17399,7 +17399,27 @@
         "runToolOne": "Used 1 tool",
         "runToolMany": "Used {{value0}} tools",
         "runPair": "{{value0}} and {{value1}}",
-        "runList": "{{value0}}, and {{value1}}"
+        "runList": "{{value0}}, and {{value1}}",
+        "runLiveReadOne": "Reading 1 file",
+        "runLiveReadMany": "Reading {{value0}} files",
+        "runLiveSearchOne": "Searching 1 time",
+        "runLiveSearchMany": "Searching {{value0}} times",
+        "runLiveListFilesOne": "Listing 1 directory",
+        "runLiveListFilesMany": "Listing {{value0}} directories",
+        "runLiveCommandOne": "Running 1 command",
+        "runLiveCommandMany": "Running {{value0}} commands",
+        "runLiveFileChangeOne": "Editing 1 file",
+        "runLiveFileChangeMany": "Editing {{value0}} files",
+        "runLiveWebSearchOne": "Searching the web 1 time",
+        "runLiveWebSearchMany": "Searching the web {{value0}} times",
+        "runLiveIntegrationOne": "Using 1 integration",
+        "runLiveIntegrationMany": "Using {{value0}} integrations",
+        "runLiveAgentOne": "Running 1 agent",
+        "runLiveAgentMany": "Running {{value0}} agents",
+        "runLivePlanOne": "Updating the plan",
+        "runLivePlanMany": "Updating the plan {{value0}} times",
+        "runLiveToolOne": "Using 1 tool",
+        "runLiveToolMany": "Using {{value0}} tools"
       },
       "providerFrame": {
         "byteLength": "{{value0}} bytes"
