@@ -182,11 +182,13 @@ Register C30 alone as migration-only, configure the director with `cell-ids` set
 regional rehome is paused, then promote it alone. Promotion requires C27-C29 to be general and takes
 no input evidence. It runs the same five-minute production control and splice canary C27 ran, on
 C30: the evidence must show the canary control was placed on C30, read C30's own runtime metrics,
-and bind the selector generation, and any failure returns C30 to migration-only. Until then the
-same-cap job lists C30 as a migration-only cell, so a same-cap roll hands it back isolated rather
-than activating it. The follow-up after promotion adds C30 to the shadow gate's fleet pool list and
-moves it to the same-cap general list together. Any later Asia cell follows the same pattern as its
-own reviewed wave.
+and bind the selector generation, and any failure returns C30 to migration-only. The SQL-failure and
+database-pool rules read C30's own metrics only. Director values are recorded under
+`director`-prefixed names but do not fail the canary, because directors show a steady baseline of
+`relay_cells` lock refusals and pool waits unrelated to C30. Until then the same-cap job lists C30
+as a migration-only cell, so a same-cap roll hands it back isolated rather than activating it. The
+follow-up after promotion adds C30 to the shadow gate's fleet pool list and moves it to the same-cap
+general list together. Any later Asia cell follows the same pattern as its own reviewed wave.
 Rollback returns
 Asia cells to migration-only; it does not destroy the network or use
 existing-only. The production topology dispatch remains unavailable until the
