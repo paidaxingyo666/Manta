@@ -412,8 +412,14 @@ const MERMAID_PACKAGE = 'node_modules/mermaid/'
  *
  *   modules        4213 -> 4214   (+1)
  *   local modules  1027 -> 1028   (+1)
+ *
+ * Muse's worker launch preferences then added `src/shared/agent-session-option-catalog-muse.ts`,
+ * which the option catalog this route already reaches imports. One local module, measured.
+ *
+ *   modules        4214 -> 4215   (+1)
+ *   local modules  1028 -> 1029   (+1)
  */
-const SESSION_ROUTE_MODULES = 4214
+const SESSION_ROUTE_MODULES = 4215
 
 /** What the page enters this route through once the route is a switch with a `.web.tsx` sibling. */
 const ROUTE_ENTRY = [
