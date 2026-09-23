@@ -17614,6 +17614,11 @@
         "blocked": "Goal blocked",
         "limited": "Goal limited",
         "attachmentsUnsupported": "Remove attachments before setting a goal."
+      },
+      "fileLinks": {
+        "notFound": "File not found: {{value0}}",
+        "unverifiable": "Couldn't check {{value0}}: {{value1}}",
+        "unresolved": "Couldn't resolve {{value0}} in this workspace"
       }
     },
     "tab": {
