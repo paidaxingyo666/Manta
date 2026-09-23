@@ -14,6 +14,10 @@ const JCODE_JOURNAL_CHUNK_BYTES = 64 * 1024
 const JCODE_JSON_DOC_MAX_PARSE_BYTES = 8 * 1024 * 1024
 const EMPTY_REGION = Buffer.alloc(0)
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
 export function resolveJcodeSessionsDir(
   env: NodeJS.ProcessEnv = process.env,
   homeDir: string = homedir()
@@ -58,11 +62,8 @@ function messageText(message: Record<string, unknown>): string | null {
       parts.push(block)
       continue
     }
-    if (block && typeof block === 'object') {
-      const text = (block as Record<string, unknown>).text
-      if (typeof text === 'string') {
-        parts.push(text)
-      }
+    if (isRecord(block) && typeof block.text === 'string') {
+      parts.push(block.text)
     }
   }
   const joined = parts.join(' ').replace(/\s+/g, ' ').trim()
@@ -99,19 +100,18 @@ function readLastUserMessageFromJournalLines(
     } catch {
       continue
     }
-    if (typeof entry !== 'object' || entry === null) {
+    if (!isRecord(entry)) {
       continue
     }
-    const appendMessages = (entry as Record<string, unknown>).append_messages
+    const appendMessages = entry.append_messages
     if (!Array.isArray(appendMessages)) {
       continue
     }
     for (let messageIndex = appendMessages.length - 1; messageIndex >= 0; messageIndex -= 1) {
-      const message = appendMessages[messageIndex]
-      if (typeof message !== 'object' || message === null) {
+      const record = appendMessages[messageIndex]
+      if (!isRecord(record)) {
         continue
       }
-      const record = message as Record<string, unknown>
       if (record.role !== 'user' || isInjectedContextMessage(record)) {
         continue
       }
@@ -214,20 +214,19 @@ function readLastUserMessageFromJson(
     return null
   }
   try {
-    const parsed = JSON.parse(readFileSync(jsonPath, 'utf8')) as unknown
-    if (typeof parsed !== 'object' || parsed === null) {
+    const parsed: unknown = JSON.parse(readFileSync(jsonPath, 'utf8'))
+    if (!isRecord(parsed)) {
       return null
     }
-    const messages = (parsed as Record<string, unknown>).messages
+    const messages = parsed.messages
     if (!Array.isArray(messages)) {
       return null
     }
     for (let index = messages.length - 1; index >= 0; index -= 1) {
-      const message = messages[index]
-      if (typeof message !== 'object' || message === null) {
+      const record = messages[index]
+      if (!isRecord(record)) {
         continue
       }
-      const record = message as Record<string, unknown>
       if (record.role !== 'user' || isInjectedContextMessage(record)) {
         continue
       }

@@ -8,7 +8,7 @@ const { homedirMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('os', async () => {
-  const actual = (await vi.importActual('os')) as Record<string, unknown>
+  const actual = await vi.importActual<typeof import('os')>('os') // eslint-disable-line @typescript-eslint/consistent-type-imports -- vi.importActual requires inline import()
   return { ...actual, homedir: homedirMock }
 })
 

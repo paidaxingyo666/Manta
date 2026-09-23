@@ -11,13 +11,11 @@ export function cleanGeneratedCommitMessage(raw: string): string {
   // answer field when the output is such an envelope.
   if (text.startsWith('{')) {
     try {
-      const parsed = JSON.parse(text) as unknown
-      if (
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        typeof (parsed as Record<string, unknown>).text === 'string'
-      ) {
-        text = (parsed as Record<string, string>).text.trim()
+      const parsed: unknown = JSON.parse(text)
+      const answer: unknown =
+        typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'text') : undefined
+      if (typeof answer === 'string') {
+        text = answer.trim()
       }
     } catch {
       // not a JSON envelope; fall through to the plain-text cleanup

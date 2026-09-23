@@ -215,7 +215,7 @@ export function installPtyInputRecovery(session: ConnectPanePtySession): void {
     sixelSupported: () =>
       resolveTerminalInlineImagesEnabled(useAppStore.getState().settings?.terminalInlineImages) &&
       terminalRendersInlineImages(session.pane.terminal),
-    skipOscColorQueryReplies: !session.shouldAnswerPaneOscColorQueries(),
+    skipOscColorQueryReplies: () => !session.shouldAnswerPaneOscColorQueries(),
     ...(session.isNativeWindowsConpty ? { da1Response: CONPTY_DA1_RESPONSE } : {})
   })
   session.respondToTerminalPixelSizeQueries = createTerminalPixelSizeQueryResponder(

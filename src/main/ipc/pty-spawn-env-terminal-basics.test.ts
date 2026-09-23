@@ -345,6 +345,7 @@ describe('registerPtyHandlers', () => {
       const tabId = 'tab-1'
       const paneKey = makePaneKey(tabId, leafId)
       handlers.clear()
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the suite's mock BrowserWindow, widened the same way every other registerPtyHandlers call in this file does; the handler only touches webContents.send.
       registerPtyHandlers(mainWindow as never)
       await handlers.get('pty:spawn')!(null, {
         cols: 80,
@@ -354,12 +355,13 @@ describe('registerPtyHandlers', () => {
         leafId,
         worktreeId: 'wt-1'
       })
-      const spawnOptions = spawnMock.mock.calls.at(-1)![2] as { env: Record<string, string> }
+      const spawnedEnv: Record<string, string | undefined> =
+        spawnMock.mock.calls.at(-1)?.[2]?.env ?? {}
       // Why: buildJcodeRuntimeDirEnv intentionally omits the var on win32.
       if (shouldInjectJcodeRuntimeDir(process.platform)) {
-        expect(spawnOptions.env.JCODE_RUNTIME_DIR).toBe(buildJcodeRuntimeDir(paneKey))
+        expect(spawnedEnv.JCODE_RUNTIME_DIR).toBe(buildJcodeRuntimeDir(paneKey))
       } else {
-        expect(spawnOptions.env.JCODE_RUNTIME_DIR).toBeUndefined()
+        expect(spawnedEnv.JCODE_RUNTIME_DIR).toBeUndefined()
       }
     })
     it('strips inherited Claude child-session stamps from a local spawn env', async () => {

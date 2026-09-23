@@ -173,7 +173,7 @@ describe('installTerminalCapabilityReplyHandlers', () => {
       parser: term.parser,
       sendInput,
       isReplaying: () => false,
-      skipOscColorQueryReplies: true
+      skipOscColorQueryReplies: () => true
     })
 
     try {

@@ -16,19 +16,26 @@ export function resetJcodeDaemonPrewarmForTests(): void {
   prewarmedRuntimeDirs.clear()
 }
 
+/** The runtime dir to warm, or null when this pane is not a local jcode launch. */
+export function resolveJcodePrewarmRuntimeDir(args: {
+  launchAgent?: string
+  runtimeDir?: string
+  platform?: NodeJS.Platform
+}): string | null {
+  // Why non-Windows only: the runtime dir is a unix-socket directory, and Manta
+  // only stamps it off Windows (see shouldInjectJcodeRuntimeDir).
+  if (args.launchAgent !== 'jcode' || (args.platform ?? process.platform) === 'win32') {
+    return null
+  }
+  return args.runtimeDir !== undefined && args.runtimeDir.length > 0 ? args.runtimeDir : null
+}
+
 export function shouldPrewarmJcodeDaemon(args: {
   launchAgent?: string
   runtimeDir?: string
   platform?: NodeJS.Platform
 }): boolean {
-  // Why non-Windows only: the runtime dir is a unix-socket directory, and Manta
-  // only stamps it off Windows (see shouldInjectJcodeRuntimeDir).
-  return (
-    args.launchAgent === 'jcode' &&
-    typeof args.runtimeDir === 'string' &&
-    args.runtimeDir.length > 0 &&
-    (args.platform ?? process.platform) !== 'win32'
-  )
+  return resolveJcodePrewarmRuntimeDir(args) !== null
 }
 
 /**
@@ -45,10 +52,10 @@ export function prewarmJcodeDaemon(args: {
   env?: Record<string, string>
   platform?: NodeJS.Platform
 }): boolean {
-  if (!shouldPrewarmJcodeDaemon(args) || prewarmedRuntimeDirs.has(args.runtimeDir as string)) {
+  const runtimeDir = resolveJcodePrewarmRuntimeDir(args)
+  if (runtimeDir === null || prewarmedRuntimeDirs.has(runtimeDir)) {
     return false
   }
-  const runtimeDir = args.runtimeDir as string
   prewarmedRuntimeDirs.add(runtimeDir)
   try {
     const child = spawnProcess({

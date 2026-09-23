@@ -39,7 +39,7 @@ function readJcodeIntent(toolInput: unknown): string | undefined {
   if (typeof toolInput !== 'object' || toolInput === null) {
     return undefined
   }
-  const intent = (toolInput as Record<string, unknown>).intent
+  const intent: unknown = Reflect.get(toolInput, 'intent')
   return typeof intent === 'string' && intent.trim().length > 0 ? intent : undefined
 }
 
