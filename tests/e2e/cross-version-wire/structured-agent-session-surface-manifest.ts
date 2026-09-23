@@ -85,6 +85,11 @@ export const STRUCTURED_CALLS: {
     result: { ok: true, replayed: false }
   },
   {
+    method: 'agentSession.threadGoal',
+    hostMethod: 'changeThreadGoal',
+    result: { ok: true, replayed: false }
+  },
+  {
     method: 'agentSession.requestHandoff',
     hostMethod: 'requestHandoff',
     result: { status: { owner: 'native' } }
@@ -256,6 +261,10 @@ export function paramsFor(method: string): unknown {
     }
     case 'agentSession.setOption': {
       const fields = { key: 'model', value: 'gpt-5' }
+      return { envelope: envelope({ method, fields, fence }), ...fields }
+    }
+    case 'agentSession.threadGoal': {
+      const fields = { change: { kind: 'set', objective: 'Ship the parser' } }
       return { envelope: envelope({ method, fields, fence }), ...fields }
     }
     case 'agentSession.history':

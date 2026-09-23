@@ -3,7 +3,12 @@ import {
   normalizeOptionalField,
   normalizePromptField
 } from './agent-status-field-normalization'
-import type { AgentJournalRenderItem, AgentJournalSubmission } from './agent-session-journal-types'
+import {
+  AGENT_JOURNAL_MESSAGE_SEND_MODES,
+  type AgentJournalMessageSendMode,
+  type AgentJournalRenderItem,
+  type AgentJournalSubmission
+} from './agent-session-journal-types'
 import { isRootAgentJournalItem } from './agent-session-journal-producer'
 import {
   AGENT_STATUS_TOOL_INPUT_MAX_LENGTH,
@@ -123,6 +128,10 @@ function itemBlocks(item: AgentJournalRenderItem): {
   }
 }
 
+function isAgentJournalMessageSendMode(value: string): value is AgentJournalMessageSendMode {
+  return AGENT_JOURNAL_MESSAGE_SEND_MODES.some((mode) => mode === value)
+}
+
 const projectedItems = new WeakMap<AgentJournalRenderItem, NativeChatMessage | null>()
 
 /** Deliberately NOT scoped by producer: the transcript shows every agent's
@@ -151,13 +160,16 @@ export function projectStructuredItemToNativeChat(
   }
   // Reducer updates replace journal items, so unchanged rows keep their render caches.
   const projected = itemBlocks(item)
+  const sentAs = item.body.kind === 'message' ? item.body.sentAs : undefined
   const message: NativeChatMessage | null = projected
     ? {
         id: item.itemId,
         role: projected.role,
         blocks: projected.blocks,
         timestamp: item.observedAt,
-        source: 'transcript'
+        source: 'transcript',
+        // A send mode this build cannot name renders as an ordinary message.
+        ...(sentAs !== undefined && isAgentJournalMessageSendMode(sentAs) ? { sentAs } : {})
       }
     : null
   projectedItems.set(item, message)

@@ -4,7 +4,8 @@ import { normalizeExecutionHostId } from '../execution-host'
 import {
   AGENT_SESSION_ID_MAX_LENGTH,
   AGENT_SESSION_HISTORY_DIRECTIONS,
-  AGENT_SESSION_HISTORY_MAX_LIMIT
+  AGENT_SESSION_HISTORY_MAX_LIMIT,
+  AGENT_SESSION_THREAD_GOAL_OBJECTIVE_MAX_LENGTH
 } from '../agent-session-wire'
 
 export const MAX_ID_LENGTH = AGENT_SESSION_ID_MAX_LENGTH
@@ -220,6 +221,25 @@ export const ConversationCommandParams = z
   .object({
     envelope: MutationEnvelope,
     command: z.enum(['clear', 'compact'])
+  })
+  .strict()
+
+export const ThreadGoalParams = z
+  .object({
+    envelope: MutationEnvelope,
+    change: z.discriminatedUnion('kind', [
+      z
+        .object({
+          kind: z.literal('set'),
+          objective: z
+            .string()
+            .max(AGENT_SESSION_THREAD_GOAL_OBJECTIVE_MAX_LENGTH)
+            .refine((value) => value.trim().length > 0, 'Objective is empty')
+        })
+        .strict(),
+      z.object({ kind: z.literal('status'), status: z.enum(['active', 'paused']) }).strict(),
+      z.object({ kind: z.literal('clear') }).strict()
+    ])
   })
   .strict()
 

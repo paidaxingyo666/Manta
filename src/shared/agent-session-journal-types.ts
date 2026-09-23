@@ -85,10 +85,19 @@ export type AgentJournalBoundedPayload = {
 
 // ─── Render-model items ─────────────────────────────────────────────────────
 
+/** How a user message reached the provider when it was not an ordinary turn
+ *  input. Persisted and open for growth: a reader that cannot place a value
+ *  renders an ordinary message. */
+export const AGENT_JOURNAL_MESSAGE_SEND_MODES = ['goal'] as const
+export type AgentJournalMessageSendMode = (typeof AGENT_JOURNAL_MESSAGE_SEND_MODES)[number]
+
 export type AgentJournalMessageItem = {
   kind: 'message'
   role: NativeChatRole
   blocks: NativeChatBlock[]
+  /** Absent ⇒ an ordinary turn input. `goal` ⇒ the text was set as the thread
+   *  goal's objective, and the provider pursues it without a turn of its own. */
+  sentAs?: AgentJournalMessageSendMode
 }
 
 export type AgentJournalToolCallState = 'running' | 'completed' | 'failed'
@@ -213,6 +222,35 @@ export type AgentJournalTurnLifecycle = {
   durationMs?: number
 }
 
+/** Provider thread-goal lifecycle. Open like other persisted vocabularies: a
+ *  status a newer provider reports must not turn a row malformed. */
+export const AGENT_JOURNAL_THREAD_GOAL_STATUSES = [
+  'active',
+  'paused',
+  'blocked',
+  'usageLimited',
+  'budgetLimited',
+  'complete'
+] as const
+export type AgentJournalThreadGoalStatus = (typeof AGENT_JOURNAL_THREAD_GOAL_STATUSES)[number]
+
+/** The provider's goal as last journaled. Timestamps are epoch ms on the
+ *  provider's clock; counters are as of `updatedAt`. */
+export type AgentJournalThreadGoal = {
+  objective: string
+  status: AgentJournalThreadGoalStatus
+  tokenBudget: number | null
+  tokensUsed: number
+  timeUsedSeconds: number
+  createdAt: number
+  updatedAt: number
+}
+
+/** A goal transition in typed form, so readers never parse a bounded frame head. */
+export type AgentJournalThreadGoalState =
+  | { state: 'set'; goal: AgentJournalThreadGoal }
+  | { state: 'cleared' }
+
 export type AgentJournalStatusItem = {
   kind: 'status'
   text: string
@@ -230,6 +268,8 @@ export type AgentJournalStatusItem = {
     kind: string
     payload: AgentJournalBoundedPayload
   }
+  /** Present on thread-goal transitions; absent on rows from older hosts. */
+  threadGoal?: AgentJournalThreadGoalState
 }
 
 /** The durable record of one root turn. `running` exposes cancellation while

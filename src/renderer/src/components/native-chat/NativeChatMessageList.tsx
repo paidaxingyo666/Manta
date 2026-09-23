@@ -9,6 +9,7 @@ import { nativeChatTaskListState } from './native-chat-task-list-state'
 import { nativeChatTaskListPredecessors } from './native-chat-task-list-history'
 import { NativeChatTaskList } from './NativeChatTaskList'
 import { projectNativeChatTaskListFrames } from './native-chat-task-list-frames'
+import { omitNativeChatThreadGoalRows } from './native-chat-thread-goal-rows'
 import { shouldShowNativeChatTypingIndicator } from './native-chat-typing-indicator'
 import { useNativeChatTurnStatus } from './use-native-chat-turn-status'
 import { NativeChatTypingIndicatorRow } from './NativeChatTypingIndicatorRow'
@@ -134,10 +135,11 @@ export function NativeChatMessageList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [session.agent, session.sessionId]
   )
-  const messages = useMemo(
-    () => projectNativeChatTaskListFrames(projectMessages(session.messages)),
-    [projectMessages, session.messages]
-  )
+  const messages = useMemo(() => {
+    const projected = projectNativeChatTaskListFrames(projectMessages(session.messages))
+    // Structured sessions show goal state in the banner above the composer.
+    return journalItems ? omitNativeChatThreadGoalRows(projected) : projected
+  }, [journalItems, projectMessages, session.messages])
   const taskListPredecessors = useMemo(() => nativeChatTaskListPredecessors(messages), [messages])
   const taskListState = useMemo(() => nativeChatTaskListState(messages), [messages])
   const showTypingIndicator = showTurnStatus

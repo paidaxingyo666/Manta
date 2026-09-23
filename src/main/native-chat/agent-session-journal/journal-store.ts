@@ -8,10 +8,12 @@ import type {
   AgentJournalItemIdentity,
   AgentJournalSnapshot,
   AgentJournalSubmission,
+  AgentJournalThreadGoal,
   AgentJournalTurnLifecycle,
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
+import { currentAgentSessionThreadGoalBySequence } from '../../../shared/agent-session-thread-goal'
 import {
   activeStructuredAgentSessionTurnIdBySequence,
   newestStructuredAgentSessionTurnBySequence
@@ -184,6 +186,10 @@ export class AgentSessionJournal {
   /** The newest turn record whatever state it settled in, for readers that need the outcome. */
   newestTurn = (): AgentJournalTurnLifecycle | null =>
     newestStructuredAgentSessionTurnBySequence(this.state.items.values())
+
+  /** The latest goal the whole journal records, not only a client's loaded page. */
+  threadGoal = (): AgentJournalThreadGoal | null =>
+    currentAgentSessionThreadGoalBySequence(this.state.items.values()) ?? null
 
   /** Includes revisions and completion tombstones, whose timestamps disappear from render items. */
   lastActivityAt = (): number => this.state.lastActivityAt

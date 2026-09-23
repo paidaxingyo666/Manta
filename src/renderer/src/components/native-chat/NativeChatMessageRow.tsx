@@ -1,4 +1,5 @@
 import { memo, useCallback, useRef } from 'react'
+import { Goal } from 'lucide-react'
 import CommentMarkdown, {
   type CommentMarkdownLinkClickHandler
 } from '@/components/sidebar/CommentMarkdown'
@@ -148,6 +149,12 @@ export const MessageRow = memo(function MessageRow({
             />
           )}
         </div>
+        {message.sentAs === 'goal' ? (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Goal className="size-3" aria-hidden />
+            <span>{translate('components.native-chat.goal.sentAsGoal', 'Sent as goal')}</span>
+          </div>
+        ) : null}
         <NativeChatMessageTimestamp
           timestamp={message.timestamp}
           focusable
