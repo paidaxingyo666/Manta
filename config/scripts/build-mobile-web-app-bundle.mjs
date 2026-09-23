@@ -93,6 +93,13 @@ export const MOBILE_WEB_APP_SHIMS = [
       options.alias?.['@react-native-async-storage/async-storage'] === PAGE_ASYNC_STORAGE_MODULE
   },
   {
+    // react-native-web pins StyleSheet.hairlineWidth to 1 CSS px, three device px on a phone.
+    // Native's value is one device px, so the page paints native's count at that assignment.
+    name: 'hairline-device-pixel',
+    appliesTo: (options) =>
+      options.plugins?.some((plugin) => plugin.name === HAIRLINE_PLUGIN_NAME) === true
+  },
+  {
     // esbuild has no require.context, so the route tree is generated and injected.
     name: 'route-manifest',
     appliesTo: (options) =>
@@ -123,6 +130,17 @@ export const MOBILE_WEB_APP_SHIMS = [
 export const MOBILE_WEB_APP_ROOT_RESET =
   '<style id="expo-reset">html,body{height:100%}body{overflow:hidden}' +
   '#root{display:flex;height:100%;flex:1}</style>'
+
+/**
+ * Rules that make the page paint what the native app paints where the browser's defaults differ.
+ * Native is the reference. Zero specificity (`:where`), so a component's own style still wins.
+ *
+ * Inputs and textareas: Chromium rings a focused one (`:focus-visible` matches every focused
+ * text field); no native TextInput paints one, and the caret and the IME already mark focus.
+ * Those only: a button reached by a hardware keyboard keeps the browser's ring.
+ */
+export const MOBILE_WEB_APP_NATIVE_PARITY_STYLE =
+  '<style id="manta-native-parity">:where(input:focus,textarea:focus){outline:none}</style>'
 
 const PAGE_ASYNC_STORAGE_MODULE = join(
   mobileDir,
@@ -173,6 +191,7 @@ const ZOD_JITLESS_BANNER =
 
 const ROUTE_MANIFEST_PLUGIN_NAME = 'orca-route-manifest'
 const LUCIDE_PLUGIN_NAME = 'orca-lucide-barrel-provider'
+const HAIRLINE_PLUGIN_NAME = 'orca-hairline-device-pixel'
 
 /** The entry output's name, so classifying the outputs never has to guess which one it is. */
 const ENTRY_CHUNK_NAME = 'entry'
@@ -203,6 +222,37 @@ export const lucideBarrelPlugin = {
       contents: `${await readFile(args.path, 'utf8')}\nexport const LucideProvider = ({ children }) => children;\n`,
       loader: 'js'
     }))
+  }
+}
+
+// react-native-web's own assignment, matched whole so an upgrade that moves it fails the build.
+const RNW_HAIRLINE_ASSIGNMENT = 'StyleSheet.hairlineWidth = 1;'
+// React Native's device-pixel count (roundToNearestPixel(0.4), else one) over the ratio, rounded up
+// to the 1/64 CSS px both engines lay out in. WebKit stores an exact 1/3 as 21/64, under one device
+// pixel at 3, and paints nothing; 22/64 is the smallest step that paints. Any width above 1/ratio
+// can still straddle two rows at some offsets; the smallest such step does so least.
+const DEVICE_PIXEL_HAIRLINE_ASSIGNMENT =
+  'StyleSheet.hairlineWidth = (function (ratio) {' +
+  ' return Math.ceil((64 * (Math.round(0.4 * ratio) || 1)) / ratio) / 64; })' +
+  "(typeof window !== 'undefined' && window.devicePixelRatio > 0 ? window.devicePixelRatio : 1);"
+
+const hairlineDevicePixelPlugin = {
+  name: HAIRLINE_PLUGIN_NAME,
+  setup(build) {
+    build.onLoad(
+      // Both builds: once a dependency requires it, esbuild resolves every importer to cjs.
+      { filter: /react-native-web[\\/]dist[\\/](cjs[\\/])?exports[\\/]StyleSheet[\\/]index\.js$/ },
+      async (args) => {
+        const source = await readFile(args.path, 'utf8')
+        if (!source.includes(RNW_HAIRLINE_ASSIGNMENT)) {
+          throw new Error(`${HAIRLINE_PLUGIN_NAME}: ${args.path} no longer assigns hairlineWidth`)
+        }
+        return {
+          contents: source.replace(RNW_HAIRLINE_ASSIGNMENT, DEVICE_PIXEL_HAIRLINE_ASSIGNMENT),
+          loader: 'js'
+        }
+      }
+    )
   }
 }
 
@@ -247,7 +297,11 @@ export function mobileWebAppBuildOptions(routes) {
       '@react-native-async-storage/async-storage': PAGE_ASYNC_STORAGE_MODULE,
       zod: MOBILE_ZOD_PACKAGE
     },
-    plugins: [routeManifestPlugin(renderMobileWebAppRouteManifest(routes)), lucideBarrelPlugin],
+    plugins: [
+      routeManifestPlugin(renderMobileWebAppRouteManifest(routes)),
+      lucideBarrelPlugin,
+      hairlineDevicePixelPlugin
+    ],
     resolveExtensions: [
       '.web.tsx',
       '.web.ts',
@@ -567,7 +621,7 @@ export async function buildMobileWebAppBundle({
     // answers 403, the path being in no manifest. Empty rather than an asset: a WebView document
     // has no tab for an icon, and the bundle's images are route assets named by their own bytes.
     '<link rel="icon" href="data:," />\n' +
-    `<title>Manta</title>\n${MOBILE_WEB_APP_ROOT_RESET}\n</head>\n<body>\n<div id="root"></div>\n` +
+    `<title>Manta</title>\n${MOBILE_WEB_APP_ROOT_RESET}\n${MOBILE_WEB_APP_NATIVE_PARITY_STYLE}\n</head>\n<body>\n<div id="root"></div>\n` +
     `<script type="module" src="/${scriptAsset.path}"></script>\n</body>\n</html>\n`
   const indexBytes = Buffer.from(html, 'utf8')
   const indexAsset = {
