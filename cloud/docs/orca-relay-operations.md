@@ -496,6 +496,15 @@ cannot override this check. Director and cell deployments are separate operation
 a desktop whose region probe flips: without it the host would be dragged back across the ocean on
 every flip, since the preference age never expires while the host keeps reconnecting.
 
+Rehome is currently inflow-only into Asia. The director only picks source cells in its own region,
+which is the database's region (US): hosts move from US cells to Asia cells, and a host already on
+an Asia cell stays there. Asia cells remain valid targets. The source cell runs the rehome commit,
+and an Asia source pays a cross-ocean round trip per statement while holding row locks every cell
+needs, which stalled the fleet's database. The preview reports those hosts as
+`source-outside-director-region`, and the poll summary line reports the skipped Asia cells as
+`skippedOffRegionSourceCells`. This is a temporary stopgap: it is removed once the rehome commit
+no longer holds those locks across round trips. Deploy or remove it only while rehome is paused.
+
 ## Game-day matrix
 
 Run and record each scenario in staging before launch:

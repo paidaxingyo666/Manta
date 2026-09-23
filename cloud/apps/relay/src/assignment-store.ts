@@ -119,6 +119,8 @@ type CellRegionalRehomeStatus = {
 
 type RelayAssignmentStoreOptions = {
   regionalRehomeCohortPercent?: number
+  // Rehome selection only uses source cells in this region; see `rehomeSourceRegionAllowed`.
+  regionalRehomeDirectorRegion?: RelayRegion
   requireLiveCells?: boolean
   heartbeatTtlMs?: number
   recordControlRenewal?: (durationMs: number, outcome: ControlRenewalOutcome) => void
@@ -492,6 +494,7 @@ const ABORTABLE_EXPIRED_MIGRATION = `(
 
 export class RelayAssignmentStore {
   private readonly regionalRehomeCohortPercent: number
+  private readonly regionalRehomeDirectorRegion?: RelayRegion
   private readonly requireLiveCells: boolean
   private readonly heartbeatTtlMs: number
   // Poisoned attempts never complete or abort and stay the oldest rows, so
@@ -520,6 +523,7 @@ export class RelayAssignmentStore {
       this.regionalRehomeCohortPercent > 100
     )
       throw new Error('invalid_regional_rehome_cohort')
+    this.regionalRehomeDirectorRegion = options.regionalRehomeDirectorRegion
     this.requireLiveCells = options.requireLiveCells ?? false
     this.heartbeatTtlMs = options.heartbeatTtlMs ?? 45_000
     this.recordControlRenewal = options.recordControlRenewal
@@ -3554,6 +3558,7 @@ export class RelayAssignmentStore {
       preferenceMaxAgeMs: Number(control.preference_max_age_ms),
       hostCooldownMs: Number(control.host_cooldown_ms),
       cursor: this.idleRegionalCandidateCursor,
+      directorRegion: this.regionalRehomeDirectorRegion,
       connectionHeadroom: await this.connectionHeadroomByCell(this.database),
       cellIsClean: regionalRehomeCellSafetyIsClean
     })
@@ -3562,7 +3567,8 @@ export class RelayAssignmentStore {
       now,
       gate: 'open',
       candidates: selection.candidates.length,
-      selectionMs: performance.now() - startedAt
+      selectionMs: performance.now() - startedAt,
+      skippedOffRegionSourceCells: selection.skippedOffRegionSourceCells
     })
     return selection.candidates
   }
@@ -3695,6 +3701,7 @@ export class RelayAssignmentStore {
       globalSafetyFailure: processSafety
         ? regionalRehomeFleetSafetyFailure(processSafety, fleetSafety, now)
         : 'process-safety-unavailable',
+      directorRegion: this.regionalRehomeDirectorRegion,
       connectionHeadroom: await this.connectionHeadroomByCell(this.database),
       cellIsClean: regionalRehomeCellSafetyIsClean
     })
