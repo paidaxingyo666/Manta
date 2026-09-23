@@ -69,6 +69,8 @@ export type TerminalCreateOptions = {
   surfaceOwner?: false
   tabId?: string
   leafId?: string
+  /** Refuse, rather than attach, when `tabId`/`leafId` name a pane whose PTY is already live. */
+  requireFreshPane?: boolean
   sessionId?: string
   isNewSession?: boolean
   preAllocatedHandle?: string

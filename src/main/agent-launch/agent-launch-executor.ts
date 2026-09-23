@@ -77,9 +77,14 @@ export type AgentLaunchSurfaceFactory = {
     cwd?: string
     /** The one member of the `agent_started` triple the host cannot derive for itself. */
     launchSource?: string
-    /** `paneKey` names the pane this create minted, for a caller that presents its own tabs; a
-     *  factory whose runtime does not report one omits it rather than inventing a key. */
-  }): Promise<{ handle: string; paneKey?: string; warning?: string }>
+    /** The caller-minted pane to create; refused with `AgentLaunchPaneAlreadyLiveError` if live. */
+    paneKey?: string
+  }): Promise<{
+    handle: string
+    /** The pane this create minted; a factory whose runtime reports none omits it, never invents. */
+    paneKey?: string
+    warning?: string
+  }>
   /**
    * Commits the launch text as the session's first turn, answering with the transcript row's id.
    *
@@ -139,6 +144,7 @@ export type AgentLaunchWorkspaceFactory = {
     agentArgs?: string | null
     cwd?: string
     launchSource?: string
+    paneKey?: string
   }): Promise<{
     worktreeId: string
     startupTerminalHandle: string | undefined
@@ -304,7 +310,8 @@ async function resolveWorkspace(
       : {
           ...(intent.agentArgs !== undefined ? { agentArgs: intent.agentArgs } : {}),
           ...(intent.cwd ? { cwd: intent.cwd } : {}),
-          ...(intent.launchSource ? { launchSource: intent.launchSource } : {})
+          ...(intent.launchSource ? { launchSource: intent.launchSource } : {}),
+          ...(intent.paneKey ? { paneKey: intent.paneKey } : {})
         })
   })
   // Only when a startup terminal actually came back: a create that produced none ran no command,
@@ -386,7 +393,8 @@ async function createTerminalSurface(
     // `null` is a value the caller meant, so this tests for absence rather than falsiness.
     ...(intent.agentArgs !== undefined ? { agentArgs: intent.agentArgs } : {}),
     ...(intent.cwd ? { cwd: intent.cwd } : {}),
-    ...(intent.launchSource ? { launchSource: intent.launchSource } : {})
+    ...(intent.launchSource ? { launchSource: intent.launchSource } : {}),
+    ...(intent.paneKey ? { paneKey: intent.paneKey } : {})
   })
   return {
     outcome: {

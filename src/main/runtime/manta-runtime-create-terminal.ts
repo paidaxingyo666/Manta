@@ -180,7 +180,8 @@ export class MantaRuntimeWithCreateTerminal extends MantaRuntimeWithTerminalCrea
         if (!result.stablePaneOwner) {
           reportPtySpawnCommitted()
         }
-        const adoptedStablePane = Boolean(result.stablePaneOwner)
+        // Why here: refused before a handle, snapshot or reveal could pose the live PTY as new.
+        const adoptedStablePane = dependencies.admitStablePaneAdoption(result, launchOpts)
         if (result.agentSessionEnsure) {
           const canonicalSurface = result.agentSessionEnsure.owner.surface
           preAllocatedHandle = canonicalSurface.terminalHandle

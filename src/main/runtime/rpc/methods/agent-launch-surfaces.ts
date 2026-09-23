@@ -32,6 +32,7 @@ import { structuredCallerFor } from './structured-agent-session-gate'
 import { createStructuredAgentSessionForWorktree } from './structured-agent-session-create'
 import { commitStructuredAgentSessionLaunchPrompt } from './agent-launch-structured-prompt'
 import { deliverTerminalAgentLaunchPrompt } from './agent-launch-terminal-prompt'
+import { paneIdentity } from '../../runtime-terminal-pane-identity'
 
 /** Replay-safe launches keep the nested attach in the same stable caller namespace as the launch. */
 export function agentLaunchSurfaceFactory(
@@ -96,7 +97,8 @@ export function agentLaunchSurfaceFactory(
       startupPrompt,
       agentArgs,
       cwd,
-      launchSource
+      launchSource,
+      paneKey
     }) => {
       const terminal = await context.runtime.createTerminal(`id:${worktreeId}`, {
         // The agent id is not a shell command — `cursor` is the desktop app, its CLI is
@@ -107,6 +109,8 @@ export function agentLaunchSurfaceFactory(
         ...(startupPrompt ? { startupPrompt } : {}),
         ...(agentArgs !== undefined ? { agentArgs } : {}),
         ...(cwd ? { cwd } : {}),
+        // A live reserved pane would be attached, not launched into, so the runtime refuses it.
+        ...(paneKey ? { ...paneIdentity(paneKey), requireFreshPane: true } : {}),
         ...agentLaunchTelemetry(agent, launchSource)
       })
       return {

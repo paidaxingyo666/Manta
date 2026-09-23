@@ -8,6 +8,7 @@ export {
 export { isValidHostTerminalTabId } from '../../shared/terminal-tab-id'
 export { isTerminalLeafId, makePaneKey } from '../../shared/stable-pane-id'
 export { randomUUID } from 'node:crypto'
+export { admitStablePaneAdoption } from './runtime-terminal-pane-identity'
 export {
   copySleepingAgentLaunchConfig,
   inferCapturedClaudeAgentTeamsMode,
