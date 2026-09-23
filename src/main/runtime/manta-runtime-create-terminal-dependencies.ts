@@ -24,3 +24,10 @@ export type { RuntimePtyController } from './runtime-pty-controller-contract'
 export { agentSessionPtyWriteGate } from './agent-session-pty-write-gate'
 export { getRuntimeDesktopSurface } from './runtime-desktop-surface'
 export type { IpcMainEvent } from 'electron'
+
+// Why initiallyHidden: no renderer pane exists yet, so main must answer startup queries — Muse
+// exits silently when its startup cursor-position query goes unanswered.
+export const BACKGROUND_TERMINAL_SPAWN_FLAGS = {
+  initiallyHidden: true,
+  persistHostSessionBinding: true
+} as const
