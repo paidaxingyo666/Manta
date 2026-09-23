@@ -21,6 +21,7 @@ let faulted = false
 
 function wrap(transaction: RelayDatabase): RelayDatabase {
   return {
+    dialect: transaction.dialect,
     query: async (sql, params) => {
       if (pattern && !faulted && sql.includes(pattern)) {
         faulted = true
@@ -47,7 +48,7 @@ const now = clockFile
 const { server, sessions, assignments } = createRelayServer(config, database, { now })
 await reconcileCellAdmissionAtStartup(config, assignments)
 server.listen(config.port, () => {
-  console.log(`[manta-relay] listening on ${config.publicUrl} (port ${config.port})`)
+  console.log(`[orca-relay] listening on ${config.publicUrl} (port ${config.port})`)
 })
 
 const shutdown = (): void => {
