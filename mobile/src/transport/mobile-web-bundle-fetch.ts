@@ -12,9 +12,9 @@ import { MobileWebBundleFetchError } from './mobile-web-bundle-fetch-refusal'
 import { runRpcOperation } from './rpc-operation'
 
 /** The host refuses the fifth concurrent read on one connection with `mobile_web_bundle_read_limited`,
- *  so the client never offers a fifth. Paging inside one asset stays sequential: the next offset is
- *  only known to be wanted once the previous reply says it is not the last. */
-const MAX_CONCURRENT_ASSET_READS = 4
+ *  so the client never offers a fifth. The four are chunk reads across the whole manifest, not one
+ *  asset each: paging a large asset alone would put every one of its chunks on the critical path. */
+const MAX_CONCURRENT_CHUNK_READS = 4
 
 export type MobileWebBundleFetchProgress = {
   readonly completedAssets: number
@@ -30,6 +30,14 @@ export type MobileWebBundleFetchResult = {
   readonly elapsedMs: number
 }
 
+type AssetReassembly = {
+  readonly entry: MobileWebBundleAssetRead
+  readonly whole: Uint8Array
+  outstandingChunks: number
+}
+
+type ChunkRead = { readonly asset: AssetReassembly; readonly offset: number }
+
 /**
  * Reads the manifest, pages every asset, and returns the verified bytes.
  *
@@ -44,107 +52,134 @@ export async function fetchMobileWebBundle(args: {
 }): Promise<MobileWebBundleFetchResult> {
   const startedAt = Date.now()
   const stopped = new AbortController()
-  throwIfStopped(args.signal, stopped.signal)
+  throwIfCallerAborted(args.signal)
   const opened = await runRpcOperation(args.client, mobileWebBundleManifestRead, null)
   const manifest = opened.manifest
-  const pending = [...manifest.assets]
+  const queue = planChunkReads(manifest.assets, opened.chunkBytes)
   const assets = new Map<string, Uint8Array>()
   let receivedBytes = 0
 
+  const readChunk = async ({ asset, offset }: ChunkRead): Promise<void> => {
+    const reply = await runRpcOperation(args.client, mobileWebBundleChunkRead, {
+      buildId: manifest.buildId,
+      path: asset.entry.path,
+      offset
+    })
+    // A sibling already failed the fetch; this reply is not worth checking, hashing or reporting.
+    if (stopped.signal.aborted) {
+      return
+    }
+    assertChunkDescribesAsset(reply, asset.entry, manifest.buildId, offset)
+    const bytes = decodeBase64(reply.dataBase64)
+    assertChunkFillsItsSlot(asset.entry, offset, bytes.byteLength, reply.eof, opened.chunkBytes)
+    asset.whole.set(bytes, offset)
+    asset.outstandingChunks -= 1
+    if (asset.outstandingChunks === 0) {
+      assets.set(asset.entry.path, verifyReassembledAsset(asset))
+    }
+    // Per chunk, not per asset: the largest asset goes first, so asset completions bunch at the end.
+    receivedBytes += bytes.byteLength
+    args.onProgress?.({
+      completedAssets: assets.size,
+      totalAssets: manifest.assets.length,
+      receivedBytes,
+      totalBytes: manifest.totalBytes
+    })
+  }
+
   const worker = async (): Promise<void> => {
     try {
-      for (let asset = pending.shift(); asset !== undefined; asset = pending.shift()) {
-        const bytes = await readBundleAsset({
-          client: args.client,
-          asset,
-          buildId: manifest.buildId,
-          chunkBytes: opened.chunkBytes,
-          signal: args.signal,
-          stopped: stopped.signal
-        })
-        assets.set(asset.path, bytes)
-        receivedBytes += bytes.byteLength
-        args.onProgress?.({
-          completedAssets: assets.size,
-          totalAssets: manifest.assets.length,
-          receivedBytes,
-          totalBytes: manifest.totalBytes
-        })
+      while (!stopped.signal.aborted) {
+        const read = queue.shift()
+        if (read === undefined) {
+          return
+        }
+        throwIfCallerAborted(args.signal)
+        await readChunk(read)
       }
     } catch (error) {
-      // One failed asset stops the other three mid-asset, not just between assets: every chunk they
-      // would still ask for holds one of the host's four read slots against the caller's retry.
+      // One failed chunk stops every other read: each read a worker would still send holds one of
+      // the host's four slots against the caller's retry.
       stopped.abort()
       throw error
     }
   }
 
-  const workers = Math.min(MAX_CONCURRENT_ASSET_READS, pending.length)
+  const workers = Math.min(MAX_CONCURRENT_CHUNK_READS, queue.length)
   await Promise.all(Array.from({ length: workers }, () => worker()))
+  // The final window sends nothing after its last reply, so no worker would see this abort.
+  throwIfCallerAborted(args.signal)
   return { manifest, assets, totalBytes: receivedBytes, elapsedMs: Date.now() - startedAt }
 }
 
-async function readBundleAsset(args: {
-  client: RpcClient
-  asset: MobileWebBundleAssetRead
-  buildId: string
+/** Largest asset first, so the biggest script's tail is never the last read left in flight. Offsets
+ *  are the host's chunk grid, so every read is known up front; `eof` still comes from the reply. */
+function planChunkReads(
+  entries: readonly MobileWebBundleAssetRead[],
   chunkBytes: number
-  signal?: AbortSignal
-  stopped: AbortSignal
-}): Promise<Uint8Array> {
-  // Before the buffer, not after: an asset can be a tenth of the total ceiling, and a worker that
-  // picked one up after a sibling failed would otherwise allocate it only to drop it.
-  throwIfStopped(args.signal, args.stopped)
-  const whole = new Uint8Array(args.asset.byteLength)
-  let offset = 0
-  for (;;) {
-    throwIfStopped(args.signal, args.stopped)
-    const chunk = await runRpcOperation(args.client, mobileWebBundleChunkRead, {
-      buildId: args.buildId,
-      path: args.asset.path,
-      offset
-    })
-    assertChunkDescribesAsset(chunk, args.asset, args.buildId, offset)
-    const bytes = decodeBase64(chunk.dataBase64)
-    if (bytes.byteLength > args.chunkBytes) {
-      throw new MobileWebBundleFetchError(
-        'chunk-oversize',
-        `bundle chunk for ${args.asset.path} at ${offset} is ${bytes.byteLength} bytes, over the host's ${args.chunkBytes}`
-      )
+): ChunkRead[] {
+  const largestFirst = [...entries].sort((left, right) => right.byteLength - left.byteLength)
+  return largestFirst.flatMap((entry) => {
+    const count = Math.max(1, Math.ceil(entry.byteLength / chunkBytes))
+    const asset: AssetReassembly = {
+      entry,
+      whole: new Uint8Array(entry.byteLength),
+      outstandingChunks: count
     }
-    if (offset + bytes.byteLength > whole.byteLength) {
-      throw new MobileWebBundleFetchError(
-        'asset-overlong',
-        `bundle asset ${args.asset.path} is longer than the manifest declares`
-      )
-    }
-    whole.set(bytes, offset)
-    offset += bytes.byteLength
-    if (chunk.eof) {
-      break
-    }
-    // Without this a host that keeps answering an unchanged offset with no bytes pages forever.
-    if (bytes.byteLength === 0) {
-      throw new MobileWebBundleFetchError(
-        'asset-no-progress',
-        `bundle asset ${args.asset.path} made no progress at ${offset}`
-      )
-    }
+    return Array.from({ length: count }, (_, index) => ({ asset, offset: index * chunkBytes }))
+  })
+}
+
+/** Offsets are planned, so a reply is accepted only if it fills exactly its slot of the grid. */
+function assertChunkFillsItsSlot(
+  entry: MobileWebBundleAssetRead,
+  offset: number,
+  byteLength: number,
+  eof: boolean,
+  chunkBytes: number
+): void {
+  const { path, byteLength: declared } = entry
+  const expected = Math.min(chunkBytes, declared - offset)
+  if (byteLength === expected && eof === offset + chunkBytes >= declared) {
+    return
   }
-  if (offset !== whole.byteLength) {
+  const end = offset + byteLength
+  if (byteLength > chunkBytes) {
     throw new MobileWebBundleFetchError(
-      'asset-short',
-      `bundle asset ${args.asset.path} ended at ${offset} of ${whole.byteLength} declared bytes`
+      'chunk-oversize',
+      `bundle chunk for ${path} at ${offset} is ${byteLength} bytes, over the host's ${chunkBytes}`
     )
   }
-  const digest = toHex(sha256(whole))
-  if (digest !== args.asset.sha256) {
+  if (byteLength > expected || (byteLength > 0 && !eof && end >= declared)) {
+    throw new MobileWebBundleFetchError(
+      'asset-overlong',
+      `bundle asset ${path} is longer than the manifest declares`
+    )
+  }
+  if (!eof && byteLength === 0) {
+    throw new MobileWebBundleFetchError(
+      'asset-no-progress',
+      `bundle asset ${path} made no progress at ${offset}`
+    )
+  }
+  throw new MobileWebBundleFetchError(
+    'asset-short',
+    eof
+      ? `bundle asset ${path} ended at ${end} of ${declared} declared bytes`
+      : `bundle chunk for ${path} at ${offset} carried ${byteLength} of ${expected} bytes without ending the asset`
+  )
+}
+
+/** Every slot was accepted exactly once, so only the hash is left to say the bytes are right. */
+function verifyReassembledAsset(asset: AssetReassembly): Uint8Array {
+  const digest = toHex(sha256(asset.whole))
+  if (digest !== asset.entry.sha256) {
     throw new MobileWebBundleFetchError(
       'asset-checksum-mismatch',
-      `bundle asset ${args.asset.path} hashed ${digest}, not ${args.asset.sha256}`
+      `bundle asset ${asset.entry.path} hashed ${digest}, not ${asset.entry.sha256}`
     )
   }
-  return whole
+  return asset.whole
 }
 
 /**
@@ -154,7 +189,7 @@ async function readBundleAsset(args: {
  * different build, and nothing else in the reply would say so.
  */
 function assertChunkDescribesAsset(
-  chunk: {
+  reply: {
     buildId: string
     path: string
     offset: number
@@ -165,19 +200,19 @@ function assertChunkDescribesAsset(
   buildId: string,
   offset: number
 ): void {
-  if (chunk.buildId !== buildId) {
+  if (reply.buildId !== buildId) {
     throw new MobileWebBundleFetchError(
       'build-changed-mid-fetch',
-      `bundle build changed mid-fetch: asked ${buildId}, served ${chunk.buildId}`
+      `bundle build changed mid-fetch: asked ${buildId}, served ${reply.buildId}`
     )
   }
-  if (chunk.path !== asset.path || chunk.offset !== offset) {
+  if (reply.path !== asset.path || reply.offset !== offset) {
     throw new MobileWebBundleFetchError(
       'chunk-misrouted',
-      `bundle chunk answered ${chunk.path} at ${chunk.offset}, not ${asset.path} at ${offset}`
+      `bundle chunk answered ${reply.path} at ${reply.offset}, not ${asset.path} at ${offset}`
     )
   }
-  if (chunk.sha256 !== asset.sha256 || chunk.assetByteLength !== asset.byteLength) {
+  if (reply.sha256 !== asset.sha256 || reply.assetByteLength !== asset.byteLength) {
     throw new MobileWebBundleFetchError(
       'asset-entry-changed',
       `bundle asset ${asset.path} no longer matches the manifest entry`
@@ -185,17 +220,11 @@ function assertChunkDescribesAsset(
   }
 }
 
-/** The caller's abort is what it asked for; the internal one never leaves this module, because the
- *  asset that failed rejects first and is what `Promise.all` reports. */
-function throwIfStopped(caller: AbortSignal | undefined, stopped: AbortSignal): void {
+/** Only the caller's abort surfaces as `fetch-stopped`; an internal stop rejects with the failure
+ *  that caused it. */
+function throwIfCallerAborted(caller: AbortSignal | undefined): void {
   if (caller?.aborted === true) {
     throw new MobileWebBundleFetchError('fetch-stopped', 'mobile web bundle fetch aborted')
-  }
-  if (stopped.aborted) {
-    throw new MobileWebBundleFetchError(
-      'fetch-stopped',
-      'mobile web bundle fetch stopped after an earlier asset failed'
-    )
   }
 }
 
