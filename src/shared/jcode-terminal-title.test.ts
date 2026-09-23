@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isJcodeIdentityTerminalTitle, stripJcodeTitleMetrics } from './jcode-terminal-title'
+import { isJcodeIdentityTerminalTitle, stripJcodeTitleStatus } from './jcode-terminal-title'
 
 // Every title below was captured from a real jcode 0.87.1 TUI session; see
 // docs/reference/jcode-hook-events.md.
@@ -19,11 +19,11 @@ const CAPTURED_TITLES = [
 
 describe('jcode terminal titles', () => {
   it('strips the live diff and duration segments', () => {
-    expect(stripJcodeTitleMetrics('jcode Puppy · +3 -0 · last ~23s')).toBe('jcode Puppy')
-    expect(stripJcodeTitleMetrics('🌐 jcode Puppy · +3 -0 · last ~23s')).toBe('jcode Puppy')
-    expect(stripJcodeTitleMetrics('jcode Snake · work ~6s')).toBe('jcode Snake')
-    expect(stripJcodeTitleMetrics('jcode Snake · last ~1m02s')).toBe('jcode Snake')
-    expect(stripJcodeTitleMetrics('jcode Snake · work ~2h05m')).toBe('jcode Snake')
+    expect(stripJcodeTitleStatus('jcode Puppy · +3 -0 · last ~23s')).toBe('jcode Puppy')
+    expect(stripJcodeTitleStatus('🌐 jcode Puppy · +3 -0 · last ~23s')).toBe('jcode Puppy')
+    expect(stripJcodeTitleStatus('jcode Snake · work ~6s')).toBe('jcode Snake')
+    expect(stripJcodeTitleStatus('jcode Snake · last ~1m02s')).toBe('jcode Snake')
+    expect(stripJcodeTitleStatus('jcode Snake · work ~2h05m')).toBe('jcode Snake')
   })
 
   it.each(CAPTURED_TITLES)('treats %j as identity, not a conversation name', (title) => {

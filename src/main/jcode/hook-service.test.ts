@@ -60,7 +60,7 @@ describe('JcodeHookService', () => {
     expect(script).toContain('payload@-')
     // Why: the payload is jcode's own JCODE_HOOK_PAYLOAD, forwarded verbatim.
     expect(script).toContain('$JCODE_HOOK_PAYLOAD')
-    expect(script).toContain('hook_event_name=${JCODE_HOOK_EVENT}')
+    expect(script).toContain('payload="$JCODE_HOOK_PAYLOAD"')
   })
 
   it('preserves unrelated config tables when installing hooks', () => {

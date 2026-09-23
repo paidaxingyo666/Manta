@@ -105,10 +105,10 @@ describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs i
       const script = readFileSync(scriptPath, 'utf8')
       const gateBranch = script.slice(script.indexOf('if [ "$JCODE_HOOK_EVENT" = pre_tool ]'))
       expect(gateBranch).toContain('orca_post_jcode_event >/dev/null 2>&1 &')
-      // The observer path keeps the plain call, so a slow POST cannot be lost to
-      // a script that exited first.
+      // The observer path keeps the foreground call, so a slow POST cannot be lost
+      // to a script that exited first.
+      expect(gateBranch).toContain('orca_post_jcode_event >/dev/null 2>&1 || :')
       expect(script.trimEnd().endsWith('exit 0')).toBe(true)
-      expect(script).toContain('\norca_post_jcode_event\n')
     } finally {
       cleanup()
     }

@@ -7,16 +7,15 @@ import {
   toolUpdate
 } from '../tool-input-preview'
 
-// Why: jcode has no per-tool approval prompt — its safety model denies or asks
-// the model to reflect, both inside the tool. The one tool a *human* answers is
-// ambient mode's `request_permission` (crates/jcode-app-core/src/tool/ambient.rs),
-// resolved out of band with `jcode permissions`. Matching by exact name keeps a
-// future rename visible instead of silently widening to unrelated tools; the
-// aliases are the names jcode has shipped for the same surface.
-const JCODE_USER_INPUT_TOOLS = new Set(['request_permission', 'ask_user', 'ask_question'])
-
+/** True for the one jcode tool a *human* answers.
+ *
+ *  jcode has no per-tool approval prompt — its safety model denies or asks the model
+ *  to reflect, both inside the tool. `request_permission`
+ *  (crates/jcode-app-core/src/tool/ambient.rs) is the only surface that waits on a
+ *  person, resolved out of band with `jcode permissions`. Matched by exact name so a
+ *  rename fails loudly here rather than silently widening to unrelated tools. */
 export function isJcodeUserInputTool(toolName: string | undefined): boolean {
-  return toolName !== undefined && JCODE_USER_INPUT_TOOLS.has(toolName)
+  return toolName === 'request_permission'
 }
 
 /** jcode's `tool_input` field is the tool's argument JSON as a string. */

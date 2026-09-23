@@ -7,6 +7,7 @@ import {
   writeManagedScript
 } from '../agent-hooks/installer-utils'
 import { refreshManagedScriptIfPresent } from '../agent-hooks/managed-hook-script-refresh'
+import { buildPosixAgentHookPostCommand } from '../agent-hooks/hook-post-command'
 import {
   readTextFileRemote,
   writeManagedScriptRemote,
@@ -58,43 +59,31 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',
     '  . "$MANTA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
-    // Why: pre_tool is jcode's gate. It writes the tool input to our stdin and
-    // waits for us, so drain stdin before any exit — a tool input larger than
-    // the pipe buffer would otherwise stall the agent mid-write.
+    // Why before the env guard: pre_tool is jcode's gate — it writes the tool input to
+    // our stdin and waits for us, so stdin must be drained before ANY exit path or a
+    // tool input larger than the pipe buffer stalls the agent mid-write.
     'if [ "$JCODE_HOOK_EVENT" = pre_tool ]; then',
     `  ${POSIX_HOOK_STDIN_DRAIN_COMMAND}`,
     'fi',
     'if [ -z "$MANTA_AGENT_HOOK_PORT" ] || [ -z "$MANTA_AGENT_HOOK_TOKEN" ] || [ -z "$MANTA_PANE_KEY" ]; then',
     '  exit 0',
     'fi',
-    // Why: jcode already supplies JCODE_HOOK_PAYLOAD as a JSON object (capped
-    // at 16 KB), so Manta forwards it verbatim instead of hand-building JSON in
-    // shell (unsafe for arbitrary text). The event name is also posted as a
-    // top-level form field for old payloads that omit it.
+    // Why the env var rather than a stdin capture: jcode hands the hook its payload as
+    // a ready JSON object (capped at 16 KB), so Manta forwards it verbatim instead of
+    // hand-building JSON in shell, which is unsafe for arbitrary text.
+    'payload="$JCODE_HOOK_PAYLOAD"',
     'orca_post_jcode_event() {',
-    '  printf \'%s\' "$JCODE_HOOK_PAYLOAD" | curl -sS -X POST "http://127.0.0.1:${MANTA_AGENT_HOOK_PORT}/hook/jcode" \\',
-    '    --connect-timeout 0.5 --max-time 1.5 \\',
-    '    -H "Content-Type: application/x-www-form-urlencoded" \\',
-    '    -H "X-Manta-Agent-Hook-Token: ${MANTA_AGENT_HOOK_TOKEN}" \\',
-    '    --data-urlencode "paneKey=${MANTA_PANE_KEY}" \\',
-    '    --data-urlencode "tabId=${MANTA_TAB_ID}" \\',
-    '    --data-urlencode "launchToken=${MANTA_AGENT_LAUNCH_TOKEN}" \\',
-    '    --data-urlencode "worktreeId=${MANTA_WORKTREE_ID}" \\',
-    '    --data-urlencode "env=${MANTA_AGENT_HOOK_ENV}" \\',
-    '    --data-urlencode "version=${MANTA_AGENT_HOOK_VERSION}" \\',
-    '    --data-urlencode "hook_event_name=${JCODE_HOOK_EVENT}" \\',
-    '    --data-urlencode "session_id=${JCODE_HOOK_SESSION_ID}" \\',
-    '    --data-urlencode "cwd=${JCODE_HOOK_CWD}" \\',
-    '    --data-urlencode "payload@-" >/dev/null 2>&1 || true',
+    ...buildPosixAgentHookPostCommand('jcode').map((line) => `  ${line}`),
     '}',
-    // Why: jcode reads this gate's stderr to EOF before releasing the tool call, so
-    // the POST runs detached with both pipes closed. Manta observes the tool live and
-    // adds no latency; the gate always allows (Manta never blocks a jcode tool).
+    // Why detached on the gate: jcode reads this script's stderr to EOF before it
+    // releases the tool call, so an inherited pipe would hold the tool open for as long
+    // as the POST ran. Manta observes the tool live and adds no latency; the gate always
+    // allows, because Manta never blocks a jcode tool.
     'if [ "$JCODE_HOOK_EVENT" = pre_tool ]; then',
     '  orca_post_jcode_event >/dev/null 2>&1 &',
-    '  exit 0',
+    'else',
+    '  orca_post_jcode_event >/dev/null 2>&1 || :',
     'fi',
-    'orca_post_jcode_event',
     'exit 0',
     ''
   ].join('\n')

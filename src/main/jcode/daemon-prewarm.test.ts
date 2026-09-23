@@ -3,11 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 const { spawnProcessMock } = vi.hoisted(() => ({ spawnProcessMock: vi.fn() }))
 vi.mock('../../shared/child-process/run-process', () => ({ spawnProcess: spawnProcessMock }))
 
-import {
-  prewarmJcodeDaemon,
-  resetJcodeDaemonPrewarmForTests,
-  shouldPrewarmJcodeDaemon
-} from './daemon-prewarm'
+import { prewarmJcodeDaemon, resetJcodeDaemonPrewarmForTests } from './daemon-prewarm'
 
 function stubChild() {
   return { unref: vi.fn(), on: vi.fn() }
@@ -59,12 +55,13 @@ describe('jcode daemon pre-warm', () => {
 
   it('stays out of the way on Windows, which has no runtime dir', () => {
     expect(
-      shouldPrewarmJcodeDaemon({
+      prewarmJcodeDaemon({
         launchAgent: 'jcode',
         runtimeDir: 'C:/tmp/orca-jcode/abc',
         platform: 'win32'
       })
     ).toBe(false)
+    expect(spawnProcessMock).not.toHaveBeenCalled()
   })
 
   it('reports failure instead of throwing when the binary is missing', () => {

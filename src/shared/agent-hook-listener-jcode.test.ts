@@ -211,6 +211,22 @@ describe('shared agent-hook-listener: jcode', () => {
     expect(event?.providerSession).toEqual({ key: 'session_id', id: 'session_jc_5' })
   })
 
+  it('reads the lifecycle point from jcode\u2019s own `event` key', () => {
+    // Why this matters: the managed script posts JCODE_HOOK_PAYLOAD verbatim through
+    // the shared hook transport, so nothing re-states the event as a form field —
+    // jcode names it `event`, and the listener has to accept that.
+    const event = normalizeHookPayload(
+      state,
+      'jcode',
+      {
+        paneKey: PANE_KEY,
+        payload: { event: 'turn_start', session_id: 'session_jc_7', model: 'claude-haiku-4-5' }
+      },
+      'production'
+    )
+    expect(event?.payload).toMatchObject({ agentType: 'jcode', state: 'working' })
+  })
+
   it('does not count a direct jcode prompt without journal evidence as explicit', () => {
     // Why: regression — a prompt field on a hook event has no journal backing, so
     // it must not set hasExplicitPrompt.

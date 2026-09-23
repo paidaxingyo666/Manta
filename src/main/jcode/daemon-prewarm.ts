@@ -9,33 +9,27 @@
 import { spawnProcess } from '../../shared/child-process/run-process'
 import { getTuiAgentLaunchCommand, TUI_AGENT_CONFIG } from '../../shared/tui-agent-config'
 
-/** Runtime dirs already pre-warmed in this Manta process; the daemon outlives one pane. */
-const prewarmedRuntimeDirs = new Set<string>()
+export type JcodeDaemonPrewarm = {
+  launchAgent?: string
+  runtimeDir?: string
+  cwd?: string
+  env?: Record<string, string>
+  platform?: NodeJS.Platform
+}
+
+/** Runtime dirs already warmed in this Manta process; the daemon outlives one pane. */
+const warmed = new Set<string>()
 
 export function resetJcodeDaemonPrewarmForTests(): void {
-  prewarmedRuntimeDirs.clear()
+  warmed.clear()
 }
 
-/** The runtime dir to warm, or null when this pane is not a local jcode launch. */
-export function resolveJcodePrewarmRuntimeDir(args: {
-  launchAgent?: string
-  runtimeDir?: string
-  platform?: NodeJS.Platform
-}): string | null {
-  // Why non-Windows only: the runtime dir is a unix-socket directory, and Manta
-  // only stamps it off Windows (see shouldInjectJcodeRuntimeDir).
-  if (args.launchAgent !== 'jcode' || (args.platform ?? process.platform) === 'win32') {
-    return null
-  }
-  return args.runtimeDir !== undefined && args.runtimeDir.length > 0 ? args.runtimeDir : null
-}
-
-export function shouldPrewarmJcodeDaemon(args: {
-  launchAgent?: string
-  runtimeDir?: string
-  platform?: NodeJS.Platform
-}): boolean {
-  return resolveJcodePrewarmRuntimeDir(args) !== null
+/** The runtime dir to warm, or null when this pane is not a local jcode launch.
+ *  Why non-Windows only: the runtime dir is a unix-socket directory, and Manta only
+ *  stamps it off Windows (see shouldInjectJcodeRuntimeDir). */
+function prewarmTarget({ launchAgent, runtimeDir, platform }: JcodeDaemonPrewarm): string | null {
+  const unsupported = launchAgent !== 'jcode' || (platform ?? process.platform) === 'win32'
+  return unsupported || !runtimeDir ? null : runtimeDir
 }
 
 /**
@@ -45,39 +39,31 @@ export function shouldPrewarmJcodeDaemon(args: {
  * listening, so a pre-warm that fails costs nothing beyond the cold start Manta
  * already had. Never throws, and never blocks the spawn path.
  */
-export function prewarmJcodeDaemon(args: {
-  launchAgent?: string
-  runtimeDir?: string
-  cwd?: string
-  env?: Record<string, string>
-  platform?: NodeJS.Platform
-}): boolean {
-  const runtimeDir = resolveJcodePrewarmRuntimeDir(args)
-  if (runtimeDir === null || prewarmedRuntimeDirs.has(runtimeDir)) {
+export function prewarmJcodeDaemon(args: JcodeDaemonPrewarm): boolean {
+  const runtimeDir = prewarmTarget(args)
+  if (runtimeDir === null || warmed.has(runtimeDir)) {
     return false
   }
-  prewarmedRuntimeDirs.add(runtimeDir)
+  warmed.add(runtimeDir)
+  // A missing binary or a spawn refusal just means no head start; forget the dir so
+  // the next pane on it can try again.
+  const giveUp = (): boolean => (warmed.delete(runtimeDir), false)
   try {
     const child = spawnProcess({
       program: getTuiAgentLaunchCommand(TUI_AGENT_CONFIG.jcode, args.platform ?? process.platform),
-      // Why --no-update: an update check on the pre-warm path would delay the very
-      // socket the client is about to wait on.
+      // Why --no-update: an update check here would delay the very socket the client
+      // is about to wait on. Why stdio ignore + unref: the daemon is jcode's to own
+      // and must outlive this spawn, so Manta keeps no handle on it.
       args: ['--no-update', 'serve'],
       cwd: args.cwd,
       env: { ...args.env, JCODE_RUNTIME_DIR: runtimeDir },
       detached: true,
       stdio: 'ignore'
     })
-    // Why unref: the daemon is jcode's to own and must outlive this spawn; keeping a
-    // handle would tie Manta's event loop to it.
     child.unref()
-    child.on('error', () => {
-      // A missing binary or a spawn refusal just means no head start.
-      prewarmedRuntimeDirs.delete(runtimeDir)
-    })
+    child.on('error', giveUp)
     return true
   } catch {
-    prewarmedRuntimeDirs.delete(runtimeDir)
-    return false
+    return giveUp()
   }
 }

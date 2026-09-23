@@ -27,15 +27,12 @@ export function resolvePaneLaunchAgentCandidate(
   state: PaneLaunchAgentStoreSlice,
   pane: PaneLaunchAgentPaneSlice
 ): string | undefined {
-  const tab = (state.tabsByWorktree[pane.worktreeId] ?? []).find(
-    (candidate) => candidate.id === pane.tabId
-  )
-  const registeredLaunchAgent = state.agentLaunchConfigByPaneKey[pane.paneKey]?.identity?.agentType
+  const registered = state.agentLaunchConfigByPaneKey[pane.paneKey]?.identity?.agentType
   return (
-    tab?.launchAgent ??
+    state.tabsByWorktree[pane.worktreeId]?.find((tab) => tab.id === pane.tabId)?.launchAgent ??
     pane.startup?.launchAgent ??
     pane.startup?.initialAgentStatus?.agent ??
-    (isTuiAgent(registeredLaunchAgent) ? registeredLaunchAgent : undefined)
+    (isTuiAgent(registered) ? registered : undefined)
   )
 }
 

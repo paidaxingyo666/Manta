@@ -4,15 +4,15 @@
 // consolidated `session_*.json` document. Bounded like the Grok/Command Code
 // transcript readers so hook events stay cheap on multi-megabyte sessions.
 import { createHash } from 'node:crypto'
-import { closeSync, openSync, readFileSync, readSync, statSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
+import { scanFileRegionsBackward } from './agent-hook-listener/reverse-file-region-scan'
 
 const JCODE_SESSION_ID_MAX_LENGTH = 512
 const JCODE_SESSION_SCAN_BYTES = 4 * 1024 * 1024
 const JCODE_JOURNAL_CHUNK_BYTES = 64 * 1024
 const JCODE_JSON_DOC_MAX_PARSE_BYTES = 8 * 1024 * 1024
-const EMPTY_REGION = Buffer.alloc(0)
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -136,68 +136,15 @@ function readLastUserMessageFromJournal(
   journalPath: string,
   sessionId: string
 ): JcodeUserPromptEvidence | null {
-  let stats: ReturnType<typeof statSync>
-  try {
-    stats = statSync(journalPath)
-  } catch {
-    return null
-  }
-  if (stats.size <= 0) {
-    return null
-  }
-  try {
-    const fd = openSync(journalPath, 'r')
-    try {
-      // Why backward scan: the last user message is near EOF; the first hit
-      // returns instead of parsing a multi-megabyte log from the top.
-      let carryChunks: Buffer[] = []
-      let bytesRead = 0
-      let scanEnd = stats.size
-      while (scanEnd > 0 && bytesRead < JCODE_SESSION_SCAN_BYTES) {
-        const chunkSize = Math.min(
-          scanEnd,
-          JCODE_JOURNAL_CHUNK_BYTES,
-          JCODE_SESSION_SCAN_BYTES - bytesRead
-        )
-        const position = scanEnd - chunkSize
-        const buffer = Buffer.alloc(chunkSize)
-        const filled = readSync(fd, buffer, 0, chunkSize, position)
-        if (filled < chunkSize) {
-          break
-        }
-        bytesRead += filled
-        scanEnd = position
-        const firstNewline = buffer.indexOf(0x0a)
-        const atStart = position === 0
-        let completeRegion: Buffer
-        if (atStart) {
-          completeRegion =
-            carryChunks.length === 0 ? buffer : Buffer.concat([buffer, ...carryChunks])
-          carryChunks = []
-        } else if (firstNewline === -1) {
-          completeRegion = EMPTY_REGION
-          carryChunks.unshift(buffer)
-        } else {
-          const afterNewline = buffer.subarray(firstNewline + 1)
-          completeRegion =
-            carryChunks.length === 0 ? afterNewline : Buffer.concat([afterNewline, ...carryChunks])
-          carryChunks = [buffer.subarray(0, firstNewline)]
-        }
-        if (completeRegion.length > 0) {
-          const lines = completeRegion.toString('utf8').split('\n')
-          const found = readLastUserMessageFromJournalLines(lines, sessionId)
-          if (found) {
-            return found
-          }
-        }
-      }
-      return null
-    } finally {
-      closeSync(fd)
-    }
-  } catch {
-    return null
-  }
+  return (
+    scanFileRegionsBackward(
+      journalPath,
+      { chunkBytes: JCODE_JOURNAL_CHUNK_BYTES, maxScanBytes: JCODE_SESSION_SCAN_BYTES },
+      (region) =>
+        readLastUserMessageFromJournalLines(region.toString('utf8').split('\n'), sessionId) ??
+        undefined
+    ) ?? null
+  )
 }
 
 function readLastUserMessageFromJson(

@@ -1,5 +1,6 @@
 import {
   normalizeAgentStatusPayload,
+  type AgentStatusState,
   type ParsedAgentStatusPayload
 } from '../../agent-status-types'
 import { clearPaneTurnCacheState, type HookListenerState } from '../listener-state'
@@ -8,9 +9,14 @@ import { extractToolFields, isNewTurnEvent } from '../provider-event-routing'
 import { readString } from '../tool-input-preview'
 import { isJcodeUserInputTool } from './jcode-tool-fields'
 
-/** Text jcode reports for a failed turn or tool, preferred over a stale reply. */
-function readJcodeErrorText(hookPayload: Record<string, unknown>): string | undefined {
-  return hookPayload.status === 'error' ? readString(hookPayload, 'error') : undefined
+// jcode's six lifecycle points, mapped the way docs/reference/jcode-hook-events.md
+// records them. `session_start` is absent on purpose: it returns early below.
+const JCODE_EVENT_STATES: Record<string, AgentStatusState> = {
+  turn_start: 'working',
+  pre_tool: 'working',
+  post_tool: 'working',
+  turn_end: 'done',
+  session_end: 'done'
 }
 
 export function normalizeJcodeEvent(
@@ -27,34 +33,29 @@ export function normalizeJcodeEvent(
     return null
   }
 
-  const toolName = readString(hookPayload, 'tool_name')
-  // Why: only the pre_tool gate can report a pending question — post_tool fires
-  // after the human already answered it.
-  const isPendingUserInput = eventName === 'pre_tool' && isJcodeUserInputTool(toolName)
-  const stateName = isPendingUserInput
-    ? 'waiting'
-    : eventName === 'turn_start' || eventName === 'pre_tool' || eventName === 'post_tool'
-      ? 'working'
-      : eventName === 'turn_end' || eventName === 'session_end'
-        ? 'done'
-        : null
-
+  // Why the gate only: post_tool for the same tool fires after the human already
+  // answered, so it must not re-open the question.
+  const stateName =
+    eventName === 'pre_tool' && isJcodeUserInputTool(readString(hookPayload, 'tool_name'))
+      ? 'waiting'
+      : JCODE_EVENT_STATES[String(eventName)]
   if (!stateName) {
     return null
   }
 
+  const resetOnNewTurn = isNewTurnEvent('jcode', eventName)
   const snapshot = resolveToolState(
     state,
     paneKey,
     extractToolFields('jcode', eventName, hookPayload),
-    { resetOnNewTurn: isNewTurnEvent('jcode', eventName) }
+    { resetOnNewTurn }
   )
+  // Why the error text first: a failed turn's own message beats the reply it never replaced.
+  const errorText = hookPayload.status === 'error' ? readString(hookPayload, 'error') : undefined
 
   return normalizeAgentStatusPayload({
     state: stateName,
-    prompt: resolvePrompt(state, paneKey, promptText, {
-      resetOnNewTurn: isNewTurnEvent('jcode', eventName)
-    }),
+    prompt: resolvePrompt(state, paneKey, promptText, { resetOnNewTurn }),
     agentType: 'jcode',
     // Why: jcode stamps the live model on session_start/turn_start/turn_end, so
     // the row keeps naming the right model after an in-session `/model` switch.
@@ -62,6 +63,6 @@ export function normalizeJcodeEvent(
     toolName: snapshot.toolName,
     toolInput: snapshot.toolInput,
     interactivePrompt: snapshot.interactivePrompt,
-    lastAssistantMessage: readJcodeErrorText(hookPayload) ?? snapshot.lastAssistantMessage
+    lastAssistantMessage: errorText ?? snapshot.lastAssistantMessage
   })
 }
