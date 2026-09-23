@@ -258,15 +258,15 @@ describe('buildArgs (Jcode)', () => {
   const spec = getCommitMessageAgentSpec('jcode')!
 
   it('builds a jcode run argv with the model and prompt', () => {
-    const args = spec.buildArgs({ prompt: 'name this branch', model: 'claude-sonnet-4' })
+    const args = spec.buildArgs({ prompt: 'name this branch', model: 'claude-haiku-4-5' })
     expect(args).toEqual([
       '--no-update',
       '--quiet',
       '--no-selfdev',
+      '--model',
+      'claude-haiku-4-5',
       'run',
       '--json',
-      '--model',
-      'claude-sonnet-4',
       'name this branch'
     ])
   })
@@ -280,6 +280,31 @@ describe('buildArgs (Jcode)', () => {
       'run',
       '--json',
       'name this branch'
+    ])
+  })
+
+  it('keeps every jcode flag ahead of the subcommand', () => {
+    // Why: --no-update/--quiet/--no-selfdev are jcode global options; clap only
+    // accepts them before `run`, and --model rides the same position so the argv
+    // has one shape rather than two.
+    const args = spec.buildArgs({ prompt: 'name this branch', model: 'claude-haiku-4-5' })
+    const runIndex = args.indexOf('run')
+    expect(runIndex).toBeGreaterThan(0)
+    expect(args.slice(0, runIndex).every((arg) => arg.startsWith('--') || arg !== 'run')).toBe(true)
+    expect(args.slice(runIndex)).toEqual(['run', '--json', 'name this branch'])
+  })
+
+  it('discovers models from `jcode model list`', () => {
+    expect(spec.modelSource).toBe('dynamic')
+    expect(spec.modelDiscovery?.binary).toBe('jcode')
+    expect(spec.modelDiscovery?.args).toEqual(['--no-update', '--quiet', 'model', 'list'])
+    // Real `jcode model list` output: one bare id per line.
+    expect(
+      spec.modelDiscovery?.parse('claude-opus-5-5\nclaude-haiku-4-5\ngemini-2.5-pro\n')
+    ).toEqual([
+      { id: 'claude-opus-5-5', label: 'Claude Opus 5 5' },
+      { id: 'claude-haiku-4-5', label: 'Claude Haiku 4 5' },
+      { id: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' }
     ])
   })
 

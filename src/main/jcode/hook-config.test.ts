@@ -84,6 +84,41 @@ session_start = "~/bin/mine"
     expect(result.content).toContain('session_start = "~/bin/mine"')
   })
 
+  it('keeps every table declared after [hooks] when removing managed entries', () => {
+    // Why: `remote` rebuilds the file from the lines it keeps, so an early exit at
+    // the next table header silently truncated the rest of a user's config.
+    const source = `[hooks]
+turn_end = ${tomlQuoteString(MANAGED_COMMAND)}
+pre_tool_timeout_ms = 5000
+
+[terminal]
+preferred = "ghostty"
+
+[ui]
+theme = "dark"
+`
+    const result = removeJcodeManagedHooks(source, 'jcode-hook.sh')
+    expect(result.changed).toBe(true)
+    expect(result.content).not.toContain(MANAGED_COMMAND)
+    expect(result.content).toContain('pre_tool_timeout_ms = 5000')
+    expect(result.content).toContain('[terminal]')
+    expect(result.content).toContain('preferred = "ghostty"')
+    expect(result.content).toContain('[ui]')
+    expect(result.content).toContain('theme = "dark"')
+  })
+
+  it('does not touch a managed-looking command outside the [hooks] table', () => {
+    const source = `[terminal]
+spawn_hook = ${tomlQuoteString(MANAGED_COMMAND)}
+
+[hooks]
+turn_end = ${tomlQuoteString(MANAGED_COMMAND)}
+`
+    const result = removeJcodeManagedHooks(source, 'jcode-hook.sh')
+    expect(result.content).toContain(`spawn_hook = ${tomlQuoteString(MANAGED_COMMAND)}`)
+    expect(result.content).not.toContain(`turn_end = ${tomlQuoteString(MANAGED_COMMAND)}`)
+  })
+
   it('keeps CRLF line endings when editing a Windows-owned config', () => {
     const source = '[hooks]\r\nturn_end = "~/bin/mine"\r\n'
     const result = applyJcodeManagedHooks(source, EVENTS, MANAGED_COMMAND, 'jcode-hook.sh')

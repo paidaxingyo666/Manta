@@ -6,7 +6,19 @@ import {
 import { normalizeHookPayload } from './agent-hook-listener'
 import { PANE_KEY } from './agent-hook-listener-test-harness'
 
-describe('shared agent-hook-listener', () => {
+// Payloads below are jcode 0.87.1's own `JCODE_HOOK_PAYLOAD` objects, captured by
+// pointing every `[hooks]` entry at a logging script; see
+// docs/reference/jcode-hook-events.md.
+function ingest(state: HookListenerState, payload: Record<string, unknown>) {
+  return normalizeHookPayload(
+    state,
+    'jcode',
+    { paneKey: PANE_KEY, payload: { hook_event_name: payload.event, ...payload } },
+    'production'
+  )
+}
+
+describe('shared agent-hook-listener: jcode', () => {
   let state: HookListenerState
 
   beforeEach(() => {
@@ -17,66 +29,114 @@ describe('shared agent-hook-listener', () => {
     vi.unstubAllEnvs()
   })
 
-  it('maps jcode post_tool to working with the tool name', () => {
-    const event = normalizeHookPayload(
-      state,
-      'jcode',
-      {
-        paneKey: PANE_KEY,
-        payload: {
-          hook_event_name: 'post_tool',
-          event: 'post_tool',
-          session_id: 'session_jc_1',
-          tool_name: 'read_file'
-        }
-      },
-      'production'
-    )
+  it('maps turn_start to working before any tool has run', () => {
+    const event = ingest(state, {
+      event: 'turn_start',
+      session_id: 'session_jc_1',
+      model: 'claude-haiku-4-5',
+      source: 'chat'
+    })
     expect(event?.payload).toMatchObject({
       agentType: 'jcode',
       state: 'working',
-      toolName: 'read_file'
+      model: 'claude-haiku-4-5'
+    })
+    expect(event?.payload?.toolName).toBeUndefined()
+  })
+
+  it('reports the live tool from pre_tool, before the tool has finished', () => {
+    const event = ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_1',
+      tool_name: 'read',
+      tool_input: '{"file_path":"sample.txt","intent":"Read sample.txt to get its contents"}'
+    })
+    expect(event?.payload).toMatchObject({
+      agentType: 'jcode',
+      state: 'working',
+      toolName: 'read',
+      toolInput: 'sample.txt'
     })
   })
 
-  it('maps jcode user-input tools to waiting', () => {
-    const event = normalizeHookPayload(
-      state,
-      'jcode',
-      {
-        paneKey: PANE_KEY,
-        payload: {
-          hook_event_name: 'post_tool',
-          event: 'post_tool',
-          session_id: 'session_jc_2',
-          tool_name: 'ask_user'
-        }
-      },
-      'production'
-    )
+  it('falls back to the tool intent when no tool-specific key matches', () => {
+    const event = ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_1',
+      tool_name: 'swarm',
+      tool_input: '{"action":"status","intent":"Check on the workers"}'
+    })
+    expect(event?.payload).toMatchObject({ toolName: 'swarm', toolInput: 'Check on the workers' })
+  })
+
+  it('keeps the pre_tool input visible when post_tool reports completion', () => {
+    ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_1',
+      tool_name: 'bash',
+      tool_input: '{"command":"pnpm test","intent":"Run the suite"}'
+    })
+    const event = ingest(state, {
+      event: 'post_tool',
+      session_id: 'session_jc_1',
+      tool_name: 'bash',
+      status: 'ok',
+      duration_ms: '9',
+      output_bytes: '137'
+    })
+    expect(event?.payload).toMatchObject({
+      state: 'working',
+      toolName: 'bash',
+      toolInput: 'pnpm test'
+    })
+  })
+
+  it('maps a pending request_permission to waiting with the full question', () => {
+    const event = ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_2',
+      tool_name: 'request_permission',
+      tool_input: '{"action":"delete the staging bucket","reason":"Why this needs approval"}'
+    })
     expect(event?.payload).toMatchObject({
       agentType: 'jcode',
       state: 'waiting',
-      toolName: 'ask_user'
+      toolName: 'request_permission'
+    })
+    expect(JSON.parse(event?.payload?.interactivePrompt ?? '{}')).toMatchObject({
+      action: 'delete the staging bucket'
     })
   })
 
-  it('maps jcode turn_end to done with the last assistant message', () => {
-    const event = normalizeHookPayload(
-      state,
-      'jcode',
-      {
-        paneKey: PANE_KEY,
-        payload: {
-          hook_event_name: 'turn_end',
-          event: 'turn_end',
-          session_id: 'session_jc_3',
-          status: 'ok',
-          last_assistant_message: 'Done.'
-        }
-      },
-      'production'
-    )
+  it('does not re-open a question on post_tool, which fires after the answer', () => {
+    const event = ingest(state, {
+      event: 'post_tool',
+      session_id: 'session_jc_2',
+      tool_name: 'request_permission',
+      status: 'ok'
+    })
+    expect(event?.payload).toMatchObject({ state: 'working' })
+  })
+
+  it('leaves unrelated tool names working even when they read like a question', () => {
+    const event = ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_2',
+      tool_name: 'conversation_search',
+      tool_input: '{"query":"what did we confirm about the ask flow"}'
+    })
+    expect(event?.payload).toMatchObject({ state: 'working', toolName: 'conversation_search' })
+  })
+
+  it('maps turn_end to done with the last assistant text', () => {
+    const event = ingest(state, {
+      event: 'turn_end',
+      session_id: 'session_jc_3',
+      status: 'ok',
+      duration_ms: '6868',
+      model: 'claude-haiku-4-5',
+      last_assistant_text: 'Done.'
+    })
     expect(event?.payload).toMatchObject({
       agentType: 'jcode',
       state: 'done',
@@ -84,42 +144,56 @@ describe('shared agent-hook-listener', () => {
     })
   })
 
-  it('treats jcode session_start as identity-only (no status row)', () => {
-    const event = normalizeHookPayload(
-      state,
-      'jcode',
-      {
-        paneKey: PANE_KEY,
-        payload: {
-          hook_event_name: 'session_start',
-          event: 'session_start',
-          session_id: 'session_jc_4',
-          source: 'create'
-        }
-      },
-      'production'
-    )
+  it('surfaces the turn error instead of a stale reply when a turn fails', () => {
+    const event = ingest(state, {
+      event: 'turn_end',
+      session_id: 'session_jc_3',
+      status: 'error',
+      model: 'claude-haiku-4-5',
+      error: 'Anthropic API error (503 Service Unavailable)'
+    })
+    expect(event?.payload).toMatchObject({
+      state: 'done',
+      lastAssistantMessage: 'Anthropic API error (503 Service Unavailable)'
+    })
+  })
+
+  it('clears the previous turn tool when a new turn starts', () => {
+    ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_4',
+      tool_name: 'bash',
+      tool_input: '{"command":"pnpm lint"}'
+    })
+    const event = ingest(state, {
+      event: 'turn_start',
+      session_id: 'session_jc_4',
+      model: 'claude-haiku-4-5',
+      source: 'chat'
+    })
+    expect(event?.payload?.toolName).toBeUndefined()
+    expect(event?.payload?.toolInput).toBeUndefined()
+  })
+
+  it('treats session_start as identity-only (no status row)', () => {
+    const event = ingest(state, {
+      event: 'session_start',
+      session_id: 'session_jc_5',
+      model: 'claude-haiku-4-5',
+      source: 'create'
+    })
     expect(event?.payload).toMatchObject({ agentType: 'jcode', state: 'done' })
-    expect(event?.providerSession).toEqual({ key: 'session_id', id: 'session_jc_4' })
+    expect(event?.providerSession).toEqual({ key: 'session_id', id: 'session_jc_5' })
   })
 
   it('does not count a direct jcode prompt without journal evidence as explicit', () => {
-    // Why: regression — a post_tool/turn_end prompt without a usable session id
-    // has no journal backing, so it must not set hasExplicitPrompt.
-    const event = normalizeHookPayload(
-      state,
-      'jcode',
-      {
-        paneKey: PANE_KEY,
-        payload: {
-          hook_event_name: 'post_tool',
-          event: 'post_tool',
-          tool_name: 'read_file',
-          prompt: 'fix the bug'
-        }
-      },
-      'production'
-    )
+    // Why: regression — a prompt field on a hook event has no journal backing, so
+    // it must not set hasExplicitPrompt.
+    const event = ingest(state, {
+      event: 'post_tool',
+      tool_name: 'read',
+      prompt: 'fix the bug'
+    })
     expect(event?.payload).toMatchObject({ agentType: 'jcode', state: 'working' })
     expect(event?.hasExplicitPrompt).toBeFalsy()
   })

@@ -6,6 +6,7 @@ import {
   buildWindowsAgentHookPostCommand,
   writeManagedScript
 } from '../agent-hooks/installer-utils'
+import { refreshManagedScriptIfPresent } from '../agent-hooks/managed-hook-script-refresh'
 import {
   readTextFileRemote,
   writeManagedScriptRemote,
@@ -13,7 +14,9 @@ import {
 } from '../agent-hooks/installer-utils-remote'
 import {
   buildWindowsHookEnvironmentGuardLines,
-  buildWindowsHookStdinDrainEpilogue
+  buildWindowsHookStdinDrainEpilogue,
+  POSIX_HOOK_STDIN_DRAIN_COMMAND,
+  WINDOWS_HOOK_STDIN_DRAIN_COMMAND
 } from '../agent-hooks/hook-stdin-contract'
 import {
   applyJcodeManagedHooks,
@@ -37,6 +40,10 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       // Why: endpoint file holds the live port/token; a PTY that outlives a Manta restart carries stale env, so `call` it to refresh (else PTY env).
       'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
+      // Why: pre_tool is jcode's gate — it writes the tool input to our stdin and
+      // waits for us. Drain it first so a tool input larger than the pipe buffer
+      // can never stall the agent mid-write.
+      `if "%JCODE_HOOK_EVENT%"=="pre_tool" ${WINDOWS_HOOK_STDIN_DRAIN_COMMAND}`,
       buildWindowsAgentHookPostCommand('jcode'),
       'exit /b 0',
       ...buildWindowsHookStdinDrainEpilogue(),
@@ -51,6 +58,12 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     'if [ -n "$MANTA_AGENT_HOOK_ENDPOINT" ] && [ -r "$MANTA_AGENT_HOOK_ENDPOINT" ]; then',
     '  . "$MANTA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
+    // Why: pre_tool is jcode's gate. It writes the tool input to our stdin and
+    // waits for us, so drain stdin before any exit — a tool input larger than
+    // the pipe buffer would otherwise stall the agent mid-write.
+    'if [ "$JCODE_HOOK_EVENT" = pre_tool ]; then',
+    `  ${POSIX_HOOK_STDIN_DRAIN_COMMAND}`,
+    'fi',
     'if [ -z "$MANTA_AGENT_HOOK_PORT" ] || [ -z "$MANTA_AGENT_HOOK_TOKEN" ] || [ -z "$MANTA_PANE_KEY" ]; then',
     '  exit 0',
     'fi',
@@ -58,20 +71,30 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     // at 16 KB), so Manta forwards it verbatim instead of hand-building JSON in
     // shell (unsafe for arbitrary text). The event name is also posted as a
     // top-level form field for old payloads that omit it.
-    'printf \'%s\' "$JCODE_HOOK_PAYLOAD" | curl -sS -X POST "http://127.0.0.1:${MANTA_AGENT_HOOK_PORT}/hook/jcode" \\',
-    '  --connect-timeout 0.5 --max-time 1.5 \\',
-    '  -H "Content-Type: application/x-www-form-urlencoded" \\',
-    '  -H "X-Manta-Agent-Hook-Token: ${MANTA_AGENT_HOOK_TOKEN}" \\',
-    '  --data-urlencode "paneKey=${MANTA_PANE_KEY}" \\',
-    '  --data-urlencode "tabId=${MANTA_TAB_ID}" \\',
-    '  --data-urlencode "launchToken=${MANTA_AGENT_LAUNCH_TOKEN}" \\',
-    '  --data-urlencode "worktreeId=${MANTA_WORKTREE_ID}" \\',
-    '  --data-urlencode "env=${MANTA_AGENT_HOOK_ENV}" \\',
-    '  --data-urlencode "version=${MANTA_AGENT_HOOK_VERSION}" \\',
-    '  --data-urlencode "hook_event_name=${JCODE_HOOK_EVENT}" \\',
-    '  --data-urlencode "session_id=${JCODE_HOOK_SESSION_ID}" \\',
-    '  --data-urlencode "cwd=${JCODE_HOOK_CWD}" \\',
-    '  --data-urlencode "payload@-" >/dev/null 2>&1 || true',
+    'orca_post_jcode_event() {',
+    '  printf \'%s\' "$JCODE_HOOK_PAYLOAD" | curl -sS -X POST "http://127.0.0.1:${MANTA_AGENT_HOOK_PORT}/hook/jcode" \\',
+    '    --connect-timeout 0.5 --max-time 1.5 \\',
+    '    -H "Content-Type: application/x-www-form-urlencoded" \\',
+    '    -H "X-Manta-Agent-Hook-Token: ${MANTA_AGENT_HOOK_TOKEN}" \\',
+    '    --data-urlencode "paneKey=${MANTA_PANE_KEY}" \\',
+    '    --data-urlencode "tabId=${MANTA_TAB_ID}" \\',
+    '    --data-urlencode "launchToken=${MANTA_AGENT_LAUNCH_TOKEN}" \\',
+    '    --data-urlencode "worktreeId=${MANTA_WORKTREE_ID}" \\',
+    '    --data-urlencode "env=${MANTA_AGENT_HOOK_ENV}" \\',
+    '    --data-urlencode "version=${MANTA_AGENT_HOOK_VERSION}" \\',
+    '    --data-urlencode "hook_event_name=${JCODE_HOOK_EVENT}" \\',
+    '    --data-urlencode "session_id=${JCODE_HOOK_SESSION_ID}" \\',
+    '    --data-urlencode "cwd=${JCODE_HOOK_CWD}" \\',
+    '    --data-urlencode "payload@-" >/dev/null 2>&1 || true',
+    '}',
+    // Why: jcode reads this gate's stderr to EOF before releasing the tool call, so
+    // the POST runs detached with both pipes closed. Manta observes the tool live and
+    // adds no latency; the gate always allows (Manta never blocks a jcode tool).
+    'if [ "$JCODE_HOOK_EVENT" = pre_tool ]; then',
+    '  orca_post_jcode_event >/dev/null 2>&1 &',
+    '  exit 0',
+    'fi',
+    'orca_post_jcode_event',
     'exit 0',
     ''
   ].join('\n')
@@ -152,6 +175,12 @@ export class JcodeHookService {
     )
     writeConfigContent(configPath, edited.content)
     return this.getStatus()
+  }
+
+  // Why: jcode invokes the script path recorded in its own config.toml, so a Manta
+  // upgrade that changes the script body must rewrite the file the user already has.
+  async refreshManagedScripts(): Promise<void> {
+    await refreshManagedScriptIfPresent(getJcodeManagedScriptPath(), getManagedScript())
   }
 
   async installRemote(sftp: SFTPWrapper, remoteHome: string): Promise<AgentHookInstallStatus> {

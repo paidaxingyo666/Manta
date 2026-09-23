@@ -178,12 +178,10 @@ export function removeJcodeManagedHooks(
     }
     const header = getTomlTableHeader(line)
     if (header) {
-      if (inHooksTable) {
-        break
-      }
-      if (parseTomlTablePath(header)?.join('.') === 'hooks') {
-        inHooksTable = true
-      }
+      // Why: leaving the table stops the removal, but the rest of the file must
+      // still be copied out — `kept` is the whole result, so breaking here once
+      // truncated every table declared after [hooks].
+      inHooksTable = parseTomlTablePath(header)?.join('.') === 'hooks'
       kept.push(line)
       state = updateTomlLineScanState(state, line)
       continue

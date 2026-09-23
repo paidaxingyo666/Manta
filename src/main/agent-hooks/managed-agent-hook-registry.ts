@@ -93,7 +93,8 @@ export const MANAGED_AGENT_HOOK_SCRIPT_REFRESHERS: readonly ManagedAgentHookScri
   ['kimi', () => kimiHookService.refreshManagedScripts()],
   ['muse', () => museHookService.refreshManagedScripts()],
   ['zcode', () => zcodeHookService.refreshManagedScripts()],
-  ['dsh', () => dshHookService.refreshManagedScripts()]
+  ['dsh', () => dshHookService.refreshManagedScripts()],
+  ['jcode', () => jcodeHookService.refreshManagedScripts()]
 ]
 
 export const MANAGED_AGENT_HOOK_REMOVERS: readonly ManagedAgentHookRemover[] = [

@@ -83,8 +83,10 @@ export function isNewTurnEvent(source: AgentHookSource, eventName: unknown): boo
       // Why: SessionStart is handled by an early return in normalizeDevinEvent, so UserPromptSubmit is Devin's real new-turn boundary here.
       return eventName === 'UserPromptSubmit'
     case 'jcode':
-      // Why: jcode hooks carry no UserPromptSubmit; a fresh/attached session_start is the only durable turn boundary.
-      return eventName === 'session_start'
+      // Why: jcode has no UserPromptSubmit, but turn_start fires once per submitted
+      // prompt before the model generates — its real turn boundary. session_start
+      // returns early in normalizeJcodeEvent and clears the cache itself.
+      return eventName === 'turn_start'
   }
 }
 
@@ -113,7 +115,10 @@ export function hasExplicitUserPrompt(
   }
   if (
     source === 'jcode' &&
-    (eventName === 'post_tool' || eventName === 'turn_end') &&
+    (eventName === 'turn_start' ||
+      eventName === 'pre_tool' ||
+      eventName === 'post_tool' ||
+      eventName === 'turn_end') &&
     hasTranscriptPromptEvidence &&
     resolvedPromptText.trim().length > 0
   ) {
