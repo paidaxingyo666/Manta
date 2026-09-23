@@ -70,11 +70,12 @@ export function NativeChatThreadGoalBanner(props: {
   return (
     // Pulled over the composer's top padding so the strip sits on the input box.
     <div
-      className="relative -mb-2 shrink-0 px-3 sm:px-4"
+      className="group/goal relative -mb-2 shrink-0 px-3 sm:px-4"
       data-native-chat-thread-goal={goal.status}
     >
       <div className="mx-auto w-full max-w-4xl px-2">
-        <div className="flex items-start gap-2 rounded-t-md border border-b-0 border-border bg-muted/30 py-1 pr-1 pl-3 text-xs text-muted-foreground">
+        {/* Right after the task strip, that strip's bottom border is this tab's top edge. */}
+        <div className="flex items-start gap-2 rounded-t-md border border-b-0 border-border bg-muted/30 py-1 pr-1 pl-3 text-xs text-muted-foreground group-[[data-native-chat-background-tasks]+&]/goal:rounded-t-none group-[[data-native-chat-background-tasks]+&]/goal:border-t-0">
           <Goal aria-hidden className="mt-1 size-3.5 shrink-0" />
           <p className={cn('min-w-0 flex-1 py-0.5', expanded ? 'break-words' : 'truncate')}>
             <span className="font-semibold text-foreground">{label}</span>{' '}
