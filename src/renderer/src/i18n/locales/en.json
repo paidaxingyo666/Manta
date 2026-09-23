@@ -648,7 +648,8 @@
           "mimo_code_label": "MiMo Code",
           "opencode2_label": "OpenCode 2",
           "codebuddy_label": "CodeBuddy",
-          "qoder_cn_label": "Qoder CLI China"
+          "qoder_cn_label": "Qoder CLI China",
+          "jcode_label": "Jcode"
         },
         "skill": {
           "cli": {

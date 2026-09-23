@@ -350,6 +350,13 @@ export const getAgentCatalog = createLocalizedCatalog((): AgentCatalogEntry[] =>
     cmd: 'codebuddy',
     faviconDomain: 'codebuddy.ai',
     homepageUrl: 'https://www.codebuddy.ai/cli'
+  },
+  {
+    id: 'jcode',
+    label: translate('auto.lib.agent.catalog.jcode_label', 'Jcode'),
+    cmd: 'jcode',
+    faviconDomain: 'jcode.sh',
+    homepageUrl: 'https://github.com/1jehuang/jcode'
   }
 ])
 

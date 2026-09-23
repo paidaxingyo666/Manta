@@ -47,4 +47,5 @@ export const MOBILE_AGENT_ICON_ASSETS: Partial<Record<TuiAgent, ImageSourcePropT
   dsh: require('../../../src/shared/agent-icons/dsh.png'),
   zcode: require('../../../src/shared/agent-icons/zcode.png'),
   openclaw: require('../../../src/shared/agent-icons/openclaw.png')
+  jcode: require('../../../src/shared/agent-icons/jcode.png')
 }

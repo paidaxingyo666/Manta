@@ -25,6 +25,13 @@ function isAgentLaunch(args: {
   return recognizeAgentProcessFromCommandLine(command) !== null
 }
 
+// Why: jcode paints its own theme and fires its OSC 10/11 burst before its TUI
+// input loop is ready, so the cooked reply (`10;rgb:…`) lands in the composer as
+// pre-typed text (same class as #12112, which fixed opencode).
+export function agentSkipsStartupOscColorQueryReplies(launchAgent: unknown): boolean {
+  return launchAgent === 'jcode'
+}
+
 export function getStartupTerminalIngressIntent(args: {
   launchAgent?: unknown
   telemetry?: { agent_kind?: unknown } | undefined
@@ -35,9 +42,12 @@ export function getStartupTerminalIngressIntent(args: {
 }) {
   // Why colours for every PTY: an agent typed into a plain shell later queries too, and these
   // seed an owner that has not been pushed the host's viewer colours yet.
+  const colors = agentSkipsStartupOscColorQueryReplies(args.launchAgent)
+    ? {}
+    : (normalizeColorQueryReplyColors(args.terminalColorQueryReplies) ?? {})
   return parsePtyStartupIngressIntent({
-    colors: normalizeColorQueryReplyColors(args.terminalColorQueryReplies) ?? {},
     kittyKeyboardProtocol: args.terminalKittyKeyboardProtocol === true && isAgentLaunch(args),
+    colors,
     deadlineMs: 5_000
   })
 }

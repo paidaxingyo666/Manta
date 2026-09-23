@@ -211,6 +211,9 @@ function computeAgentLabel(title: string): string | null {
   if (titleHasAgentName(title, 'devin')) {
     return 'Devin'
   }
+  if (titleHasAgentName(title, 'jcode')) {
+    return 'Jcode'
+  }
   if (titleHasAgentName(title, 'antigravity') || AGY_AGENT_NAME_RE.test(title)) {
     return 'Antigravity'
   }
@@ -264,6 +267,7 @@ const TITLE_LABEL_TO_AGENT: Partial<Record<string, TuiAgent>> = {
   'GitHub Copilot': 'copilot',
   Grok: 'grok',
   Devin: 'devin',
+  Jcode: 'jcode',
   Antigravity: 'antigravity',
   OpenCode: 'opencode',
   'OpenCode 2': 'opencode2',

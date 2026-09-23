@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { win32 as pathWin32 } from 'node:path'
+import { mkdir } from 'node:fs/promises'
+import { JCODE_RUNTIME_DIR_ENV_KEY } from '../../shared/jcode-runtime-dir'
 import { SessionNotFoundError } from '../daemon/daemon-errors'
 import { prepareMacosTccLoginShell } from './macos-tcc-login-shell'
 import { finalizeLocalPtySpawnEnvironment } from './local-pty-finalize-environment'
@@ -39,6 +41,14 @@ export async function spawnLocalPty(
   }
   if (args.attachOnly) {
     throw new SessionNotFoundError(args.sessionId ?? '')
+  }
+  // Why: the jcode runtime dir is stamped into the spawn env by the pty:spawn
+  // handler and the runtime env builder; create it async here at the provider
+  // chokepoint both paths pass through, keeping the sync spawn path free of
+  // filesystem syscalls.
+  const jcodeRuntimeDir = args.env?.[JCODE_RUNTIME_DIR_ENV_KEY]
+  if (jcodeRuntimeDir) {
+    await mkdir(jcodeRuntimeDir, { recursive: true })
   }
   const id = allocatePtyId(reattachId ?? undefined)
   return runCancelableLocalPtySpawn(id, async (throwIfCanceled, cancellation) => {

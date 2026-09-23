@@ -37,3 +37,17 @@ it('seeds the creating viewer colours for every PTY, not only agent launches', (
     })
   ).toBeUndefined()
 })
+
+it('does not answer jcode startup color queries but keeps keyboard support', () => {
+  const colors = { foreground: '#ffffff', background: '#282c34' }
+  expect(
+    getStartupTerminalIngressIntent({
+      launchAgent: 'jcode',
+      terminalColorQueryReplies: colors,
+      terminalKittyKeyboardProtocol: true
+    })
+  ).toEqual({ colors: {}, kittyKeyboardProtocol: true, deadlineMs: 5000 })
+  expect(
+    getStartupTerminalIngressIntent({ launchAgent: 'jcode', terminalColorQueryReplies: colors })
+  ).toBeUndefined()
+})

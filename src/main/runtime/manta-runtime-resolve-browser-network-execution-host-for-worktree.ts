@@ -19,6 +19,7 @@ import type { TerminalWorkspaceLaunchScope } from './runtime-legacy-worker-termi
 import { resolveTerminalStartupCwd } from '../../shared/terminal-startup-cwd'
 import type { ResolvedTerminalWorkspaceLaunchTarget } from './manta-runtime-core'
 import { AGENT_HOOK_RUNTIME_ENV_KEYS } from './manta-runtime-core'
+import { ensureJcodeRuntimeDir } from '../../shared/jcode-runtime-dir'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../shared/constants'
 import { homedir } from 'node:os'
 import { getExplicitWorktreeIdSelector } from './runtime-worktree-selection'
@@ -161,21 +162,26 @@ export class MantaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree exten
     }
   }
 
-  protected buildTerminalWorkspaceEnv(
+  protected async buildTerminalWorkspaceEnv(
     scope: TerminalWorkspaceLaunchScope,
     baseEnv: Record<string, string>,
     paneKey: string,
     tabId: string,
     agentTeamsEnv?: Record<string, string>
-  ): Record<string, string> {
+  ): Promise<Record<string, string>> {
     const cleanBaseEnv = { ...baseEnv }
     for (const key of AGENT_HOOK_RUNTIME_ENV_KEYS) {
       delete cleanBaseEnv[key]
     }
+    const jcodeRuntimeDirEnv =
+      scope.connectionId === null ? await ensureJcodeRuntimeDir(paneKey) : undefined
     const env = {
       ...cleanBaseEnv,
       ...agentTeamsEnv,
       ...this.buildAgentHookPtyEnv?.(),
+      // Why: the runtime dir is a local unix-socket path; remote (SSH)
+      // terminals must keep jcode on its own guest-side default daemon.
+      ...jcodeRuntimeDirEnv,
       MANTA_PANE_KEY: paneKey,
       MANTA_TAB_ID: tabId,
       MANTA_WORKTREE_ID: scope.id

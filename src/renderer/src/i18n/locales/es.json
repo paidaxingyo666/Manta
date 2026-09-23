@@ -392,7 +392,8 @@
           "mimo_code_label": "MiMo Code",
           "muse_label": "Muse",
           "zcode_label": "ZCode",
-          "codebuddy_label": "CodeBuddy"
+          "codebuddy_label": "CodeBuddy",
+          "jcode_label": "Jcode"
         },
         "skill": {
           "cli": {
