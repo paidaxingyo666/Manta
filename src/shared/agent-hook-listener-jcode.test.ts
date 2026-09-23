@@ -158,6 +158,31 @@ describe('shared agent-hook-listener: jcode', () => {
     })
   })
 
+  it('keeps the finished turn detail a completion notification needs', () => {
+    // Why: the desktop banner only fires when the done row carries a reply, a tool
+    // name, or a tool input (hasAgentNotificationDetail). A turn that ends with no
+    // assistant prose must therefore still carry its last tool.
+    ingest(state, {
+      event: 'turn_start',
+      session_id: 'session_jc_6',
+      model: 'claude-haiku-4-5',
+      source: 'chat'
+    })
+    ingest(state, {
+      event: 'pre_tool',
+      session_id: 'session_jc_6',
+      tool_name: 'write',
+      tool_input: '{"file_path":"SUMMARY.md","content":"# Summary"}'
+    })
+    const event = ingest(state, {
+      event: 'turn_end',
+      session_id: 'session_jc_6',
+      status: 'ok',
+      duration_ms: '18000'
+    })
+    expect(event?.payload).toMatchObject({ state: 'done', toolName: 'write' })
+  })
+
   it('clears the previous turn tool when a new turn starts', () => {
     ingest(state, {
       event: 'pre_tool',

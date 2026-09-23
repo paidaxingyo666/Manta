@@ -75,19 +75,14 @@ export function extractJcodeToolFields(
     // matching pre_tool preview survive the tool's completion instead of blanking.
     return toolUpdate({ toolName, toolInput: undefined }, { hasToolInputField: false })
   }
-  if (eventName === 'turn_start') {
-    // Why: a new turn starts with no tool; clearing both fields stops the previous
-    // turn's last tool from being shown as this turn's live work.
-    return toolUpdate({ toolName: undefined, toolInput: undefined }, { hasToolInputField: true })
-  }
   if (eventName === 'turn_end') {
+    // Why no tool clearing here: `turn_start` already resets the pane's tool cache
+    // for the next turn, and the completion notification needs the finished turn's
+    // detail (tool or reply) to be worth showing at all — same shape as Claude's Stop.
     const message =
       readString(hookPayload, 'last_assistant_text') ??
       readString(hookPayload, 'last_assistant_message')
-    return {
-      ...(message ? { lastAssistantMessage: message } : { clearLastAssistantMessage: true }),
-      ...toolUpdate({ toolName: undefined, toolInput: undefined }, { hasToolInputField: true })
-    }
+    return message ? { lastAssistantMessage: message } : {}
   }
   return {}
 }
