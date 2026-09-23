@@ -13,11 +13,7 @@ vi.mock('os', async () => {
 })
 
 import { JcodeHookService } from './hook-service'
-import {
-  getJcodeConfigPath,
-  getJcodeManagedScriptPath,
-  JCODE_HOOK_EVENTS
-} from './hook-settings'
+import { getJcodeConfigPath, getJcodeManagedScriptPath, JCODE_HOOK_EVENTS } from './hook-settings'
 import { tomlQuoteString } from './hook-config'
 
 describe('JcodeHookService', () => {
