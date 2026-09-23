@@ -16,7 +16,7 @@ const membership = {
 function argumentsFor(mode, confirmation) {
   return [
     '--mode', mode,
-    '--director-origin', 'https://relay.manta.sh.cn',
+    '--director-origin', 'https://relay.onorca.dev',
     '--expected-selector-generation', '11',
     '--expected-existing-only-cells', membership.existingOnly.join(','),
     '--expected-migration-only-cells', membership.migrationOnly.join(','),
@@ -97,6 +97,30 @@ test('parses exact selector and typed control confirmation', () => {
     ),
     /inspect cannot/
   )
+})
+
+test('accepts every one- and two-digit production cell and rejects malformed membership', () => {
+  const parseGeneral = (general) => parseRegionalRehomeArguments(
+    argumentsFor('inspect').map((value, index, all) =>
+      all[index - 1] === '--expected-general-cells' ? general : value
+    ),
+    { ORCA_RELAY_ADMIN_ID_TOKEN: 'token' }
+  ).expectedMembership.general
+  assert.deepEqual(
+    parseGeneral('production-gce-c30,production-gce-c9,production-gce-c29'),
+    ['production-gce-c29', 'production-gce-c30', 'production-gce-c9']
+  )
+  assert.deepEqual(parseGeneral('production-gce-c99'), ['production-gce-c99'])
+  for (const general of [
+    'production-gce-c0',
+    'production-gce-c100',
+    'production-gce-c09',
+    'production-gce-c30,production-gce-c30',
+    'staging-gce-c30',
+    ','
+  ]) {
+    assert.throws(() => parseGeneral(general), /selector membership is invalid/, general)
+  }
 })
 
 test('binds enable to exact selector and durable control generations', async () => {
@@ -326,7 +350,7 @@ test('failed-enable recovery rejects an unchanged pre-existing enabled state', a
 test('parses recovery without depending on selector diagnostics', () => {
   const recoveryArguments = [
     '--mode', 'recover-enable',
-    '--director-origin', 'https://relay.manta.sh.cn',
+    '--director-origin', 'https://relay.onorca.dev',
     '--expected-control-generation', '4',
     '--confirmation', 'RECOVER_FAILED_REGIONAL_REHOME_ENABLE'
   ]
@@ -350,7 +374,7 @@ test('main executes recovery mode and emits verified disabled control', async ()
   let output = ''
   await main([
     '--mode', 'recover-enable',
-    '--director-origin', 'https://relay.manta.sh.cn',
+    '--director-origin', 'https://relay.onorca.dev',
     '--expected-control-generation', '4',
     '--confirmation', 'RECOVER_FAILED_REGIONAL_REHOME_ENABLE'
   ], { ORCA_RELAY_ADMIN_ID_TOKEN: 'token' }, {
