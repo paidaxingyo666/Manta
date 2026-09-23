@@ -9,11 +9,11 @@ import {
   projectStructuredItemToNativeChat,
   projectStructuredItemsToNativeChat,
   latestStructuredAgentSessionAssistantMessage,
-  activeStructuredAgentSessionToolCall,
   projectStructuredAgentSessionStatus,
   projectStructuredAgentSessionStatusSummary,
   structuredAgentSessionPaneKey
 } from './structured-agent-session-projection'
+import { statusStructuredAgentSessionToolCall } from './structured-agent-session-live-turn'
 
 function item(
   itemId: string,
@@ -74,6 +74,10 @@ describe('structured agent session status projection', () => {
       timestamp: 2000,
       blocks: [{ type: 'tool-call' }, { type: 'tool-result', output: '@@\n+second' }]
     })
+    expect(second?.blocks).toEqual([
+      { type: 'tool-call', name: 'Diff', input: { path: 'a.ts' } },
+      { type: 'tool-result', output: '@@\n+second' }
+    ])
     const pending = item('approval', 2, {
       kind: 'approval',
       title: 'Allow?',
@@ -560,7 +564,7 @@ describe("producer linkage — a subagent's output never speaks for the parent",
 
   it("shows the parent's own prose and its own running call, not the child's newer ones", () => {
     expect(latestStructuredAgentSessionAssistantMessage(items)).toBe('delegating')
-    expect(activeStructuredAgentSessionToolCall(items)?.name).toBe('Task')
+    expect(statusStructuredAgentSessionToolCall(items)?.name).toBe('Task')
   })
 
   it("publishes the parent's own line and call on the summary the sidebar reads", () => {
@@ -571,6 +575,25 @@ describe("producer linkage — a subagent's output never speaks for the parent",
     // The row does not go blank while a child runs: the spawn call is still the
     // parent's own live work.
     expect(summary.toolInput).toBeTruthy()
+  })
+
+  it("names the parent's own settled call, not a child's newer settled one", () => {
+    const parentRead = item('root-read', 4, {
+      kind: 'tool-call',
+      name: 'Read',
+      input: { file_path: '/repo/a.ts' },
+      state: 'completed'
+    })
+    const childFailed = childItem('child-grep', 6, {
+      kind: 'tool-call',
+      name: 'Grep',
+      input: { pattern: 'x' },
+      state: 'failed'
+    })
+    expect(
+      projectStructuredAgentSessionStatusSummary([userAsk, turnRunning, parentRead, childFailed])
+        .toolName
+    ).toBe('Read')
   })
 
   it("still renders the child's output in the transcript", () => {
@@ -603,7 +626,7 @@ describe("producer linkage — a subagent's output never speaks for the parent",
     // reachable today — the point is that the rule does not rely on that.)
     const windowed = [childProse, childCall]
     expect(latestStructuredAgentSessionAssistantMessage(windowed)).toBe('')
-    expect(activeStructuredAgentSessionToolCall(windowed)).toBeNull()
+    expect(statusStructuredAgentSessionToolCall(windowed)).toBeNull()
   })
 
   it("does not quote a subagent's own user-role prompt as the session's", () => {

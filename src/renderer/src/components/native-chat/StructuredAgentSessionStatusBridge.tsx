@@ -70,7 +70,7 @@ function projectStatus(
     prompt: summary.latestPrompt,
     agentType: tab.agentSessionAgent,
     // The host projects these from the journal so the row reads like a hook-reported one:
-    // the running tool while a turn is live, the agent's last words once it settles.
+    // the turn's running or latest tool while it is live, the agent's last words once it settles.
     ...(summary.model ? { model: summary.model } : {}),
     ...(summary.toolName ? { toolName: summary.toolName } : {}),
     ...(summary.toolInput ? { toolInput: summary.toolInput } : {}),

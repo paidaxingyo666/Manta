@@ -11,16 +11,19 @@ import {
 } from './agent-status-types'
 import { describeToolInput } from './native-chat-tool-summary'
 import {
-  activeStructuredAgentSessionToolCall,
-  activeStructuredAgentSessionTurnId
+  activeStructuredAgentSessionTurnId,
+  statusStructuredAgentSessionToolCall
 } from './structured-agent-session-live-turn'
+import {
+  isStructuredAgentSessionToolAction,
+  structuredAgentSessionToolCallBlock
+} from './structured-agent-session-tool-call-block'
 
 import type { NativeChatBlock, NativeChatMessage } from './native-chat-types'
 import { sha256 } from './sha256'
 
 // Re-exported so the live-turn readers' existing consumers keep one import site.
 export {
-  activeStructuredAgentSessionToolCall,
   activeStructuredAgentSessionTurnId,
   newestStructuredAgentSessionTurn
 } from './structured-agent-session-live-turn'
@@ -53,23 +56,18 @@ function itemBlocks(item: AgentJournalRenderItem): {
   if (body.kind === 'message') {
     return { role: body.role, blocks: body.blocks }
   }
-  if (body.kind === 'tool-call') {
+  if (isStructuredAgentSessionToolAction(body)) {
+    const call = structuredAgentSessionToolCallBlock(body)
+    if (body.kind === 'diff') {
+      return {
+        role: 'assistant',
+        blocks: [call, { type: 'tool-result', output: boundedText(body.patch) }]
+      }
+    }
     return {
       role: 'assistant',
       blocks: [
-        {
-          type: 'tool-call',
-          name: body.name,
-          input: body.input,
-          state: body.state,
-          ...(body.callId !== undefined ? { callId: body.callId } : {}),
-          ...(body.mcpIdentity !== undefined ? { mcpIdentity: body.mcpIdentity } : {}),
-          ...(body.exitCode !== undefined ? { exitCode: body.exitCode } : {}),
-          ...(body.durationMs !== undefined ? { durationMs: body.durationMs } : {}),
-          ...(body.webSearchResults !== undefined
-            ? { webSearchResults: body.webSearchResults }
-            : {})
-        },
+        call,
         ...(body.output
           ? [
               {
@@ -79,15 +77,6 @@ function itemBlocks(item: AgentJournalRenderItem): {
               }
             ]
           : [])
-      ]
-    }
-  }
-  if (body.kind === 'diff') {
-    return {
-      role: 'assistant',
-      blocks: [
-        { type: 'tool-call', name: 'Diff', input: { path: body.path } },
-        { type: 'tool-result', output: boundedText(body.patch) }
       ]
     }
   }
@@ -329,13 +318,13 @@ export function projectStructuredAgentSessionStatusSummary(
     return { status: null, latestPrompt: '' }
   }
   const status = projectStructuredAgentSessionStatus(items, submissions, currentFence)
-  const activeToolCall = status === 'working' ? activeStructuredAgentSessionToolCall(items) : null
-  const toolName = activeToolCall
-    ? normalizeOptionalField(activeToolCall.name, AGENT_STATUS_TOOL_NAME_MAX_LENGTH)
+  const statusToolCall = status === 'working' ? statusStructuredAgentSessionToolCall(items) : null
+  const toolName = statusToolCall
+    ? normalizeOptionalField(statusToolCall.name, AGENT_STATUS_TOOL_NAME_MAX_LENGTH)
     : undefined
-  const toolInput = activeToolCall
+  const toolInput = statusToolCall
     ? normalizeOptionalField(
-        describeToolInput(activeToolCall.input),
+        describeToolInput(statusToolCall.input),
         AGENT_STATUS_TOOL_INPUT_MAX_LENGTH
       )
     : undefined

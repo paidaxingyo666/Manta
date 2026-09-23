@@ -212,7 +212,8 @@ export type AgentSessionStatusSummary = {
   latestPrompt: string
   /** Provider model in force for the next turn; absent until the host has read the options. */
   model?: string
-  /** The tool the running turn is inside. Absent unless `status` is 'working'. */
+  /** The tool the running turn is inside, else the last one it used. Absent unless `status`
+   *  is 'working'. */
   toolName?: string
   toolInput?: string
   /** Preview of the newest assistant prose, so a settled row says what the agent said. */
