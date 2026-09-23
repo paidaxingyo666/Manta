@@ -31,14 +31,21 @@ function parseJcodeToolInput(hookPayload: Record<string, unknown>): unknown {
   }
 }
 
+/** The one field of a jcode tool input this module reads directly. */
+type JcodeToolIntent = { intent?: unknown }
+
+function hasIntentField(toolInput: unknown): toolInput is JcodeToolIntent {
+  return typeof toolInput === 'object' && toolInput !== null && 'intent' in toolInput
+}
+
 // Why: every jcode tool schema carries an `intent` string the model fills in with
 // what it is doing, which reads better than a bare path when the tool-specific
 // key (file_path, command, …) is missing.
 function readJcodeIntent(toolInput: unknown): string | undefined {
-  if (typeof toolInput !== 'object' || toolInput === null) {
+  if (!hasIntentField(toolInput)) {
     return undefined
   }
-  const intent: unknown = Reflect.get(toolInput, 'intent')
+  const { intent } = toolInput
   return typeof intent === 'string' && intent.trim().length > 0 ? intent : undefined
 }
 

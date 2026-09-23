@@ -40,10 +40,15 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       'setlocal',
       // Why: endpoint file holds the live port/token; a PTY that outlives a Manta restart carries stale env, so `call` it to refresh (else PTY env).
       'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
+      // Why the guard comes first here, unlike the POSIX script: on Windows a hook
+      // that owns stdin outside a Manta pane can hang forever, because the caller
+      // abandons the pipe rather than closing it (#11549). A jcode gate that exits
+      // without draining costs at most jcode's own 5s pre_tool timeout, which fails
+      // open; a hung hook process costs a stranded window per event.
       ...buildWindowsHookEnvironmentGuardLines(),
-      // Why: pre_tool is jcode's gate — it writes the tool input to our stdin and
-      // waits for us. Drain it first so a tool input larger than the pipe buffer
-      // can never stall the agent mid-write.
+      // Why: inside a Manta pane, pre_tool is jcode's gate — it writes the tool input
+      // to our stdin and waits for us, so drain it before the POST or a tool input
+      // larger than the pipe buffer stalls the agent mid-write.
       `if "%JCODE_HOOK_EVENT%"=="pre_tool" ${WINDOWS_HOOK_STDIN_DRAIN_COMMAND}`,
       buildWindowsAgentHookPostCommand('jcode'),
       'exit /b 0',

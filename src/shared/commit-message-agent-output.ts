@@ -1,3 +1,10 @@
+/** jcode's `run --json` envelope, narrowed to the field the answer lives in. */
+type JcodeJsonResult = { text?: unknown }
+
+function isJcodeJsonResult(value: unknown): value is JcodeJsonResult {
+  return typeof value === 'object' && value !== null && 'text' in value
+}
+
 /** Strips noise around the agent's output: surrounding whitespace, a single
  *  enclosing fenced code block, lone "Generating…" preamble lines some CLIs
  *  print before the real answer, and a reasoning block the output opens with. */
@@ -12,10 +19,8 @@ export function cleanGeneratedCommitMessage(raw: string): string {
   if (text.startsWith('{')) {
     try {
       const parsed: unknown = JSON.parse(text)
-      const answer: unknown =
-        typeof parsed === 'object' && parsed !== null ? Reflect.get(parsed, 'text') : undefined
-      if (typeof answer === 'string') {
-        text = answer.trim()
+      if (isJcodeJsonResult(parsed) && typeof parsed.text === 'string') {
+        text = parsed.text.trim()
       }
     } catch {
       // not a JSON envelope; fall through to the plain-text cleanup

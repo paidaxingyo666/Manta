@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { execFileSync } from 'node:child_process'
 import { createServer, type Server } from 'node:net'
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -112,6 +112,45 @@ describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs i
     } finally {
       cleanup()
     }
+  })
+})
+
+describe('the Windows managed hook', () => {
+  // Why these run everywhere: Windows is the platform this PR could not exercise on
+  // real hardware, so the generated script's shape is pinned from any host.
+  afterEach(() => vi.restoreAllMocks())
+
+  function windowsScript(): string {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+    const { scriptPath, cleanup } = installManagedScript()
+    try {
+      return readFileSync(scriptPath, 'utf8')
+    } finally {
+      cleanup()
+    }
+  }
+
+  it('drains the gate stdin, but only after the Manta environment check', () => {
+    const script = windowsScript()
+    const guardIndex = script.indexOf('if "%MANTA_PANE_KEY%"==""')
+    const drainIndex = script.indexOf('if "%JCODE_HOOK_EVENT%"=="pre_tool"')
+    expect(guardIndex).toBeGreaterThan(-1)
+    expect(drainIndex).toBeGreaterThan(guardIndex)
+    // Why this order is inverted from the POSIX script: outside a Manta pane the
+    // caller abandons stdin instead of closing it, so a hook that reads it hangs
+    // forever and strands a console window (#11549). Exiting early instead costs
+    // only jcode's own 5s pre_tool timeout, which fails open.
+    expect(script).toContain('more.com')
+  })
+
+  it('is a CRLF batch file that always exits 0', () => {
+    const script = windowsScript()
+    expect(script.startsWith('@echo off\r\n')).toBe(true)
+    expect(script.includes('\r\n')).toBe(true)
+    expect(script).toContain('exit /b 0')
+    // Why: jcode parses the hook command shell-style but executes it directly, so
+    // the file has to be runnable on its own.
+    expect(script).not.toContain('#!/bin/sh')
   })
 })
 
