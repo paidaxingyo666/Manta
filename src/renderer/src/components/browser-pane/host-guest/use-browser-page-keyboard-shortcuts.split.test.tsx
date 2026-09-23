@@ -50,7 +50,7 @@ function PaneHarness({
   scope,
   spies
 }: {
-  id: 'a' | 'b'
+  id: 'a' | 'b' | 'floating'
   scope: BrowserChromeShortcutScope
   spies: PaneSpies
 }): React.JSX.Element {
@@ -81,6 +81,20 @@ function PaneHarness({
       </button>
     </div>
   )
+}
+
+function renderFloatingOverSplit() {
+  const split = createSpies()
+  const floating = createSpies()
+  render(
+    <>
+      <PaneHarness id="a" scope="focused" spies={split} />
+      <div data-floating-terminal-panel>
+        <PaneHarness id="floating" scope="owned-target" spies={floating} />
+      </div>
+    </>
+  )
+  return { split, floating }
 }
 
 function renderSplit(scopeA: BrowserChromeShortcutScope, scopeB: BrowserChromeShortcutScope) {
@@ -207,5 +221,35 @@ describe('useBrowserPageKeyboardShortcuts in a split of two active browser panes
 
     expect(a.startGrabIntent).not.toHaveBeenCalled()
     expect(b.startGrabIntent).not.toHaveBeenCalled()
+  })
+
+  it('answers a floating browser chord only in the floating panel', () => {
+    const { split, floating } = renderFloatingOverSplit()
+
+    press(byTestId('toolbar-floating'), { key: '[', code: 'BracketLeft' })
+    press(byTestId('toolbar-floating'), { key: 'r', code: 'KeyR' })
+    press(byTestId('toolbar-floating'), { key: 'c', code: 'KeyC' })
+
+    expect(floating.webview.goBack).toHaveBeenCalledTimes(1)
+    expect(floating.reload).toHaveBeenCalledWith(false)
+    expect(floating.startGrabIntent).toHaveBeenCalledWith('copy')
+    expect(split.webview.goBack).not.toHaveBeenCalled()
+    expect(split.reload).not.toHaveBeenCalled()
+    expect(split.startGrabIntent).not.toHaveBeenCalled()
+  })
+
+  it('leaves the floating browser alone for a chord aimed at the focused split', () => {
+    const { split, floating } = renderFloatingOverSplit()
+
+    press(byTestId('toolbar-a'), { key: '[', code: 'BracketLeft' })
+    press(byTestId('toolbar-a'), { key: 'r', code: 'KeyR' })
+    press(byTestId('toolbar-a'), { key: 'c', code: 'KeyC' })
+
+    expect(split.webview.goBack).toHaveBeenCalledTimes(1)
+    expect(split.reload).toHaveBeenCalledWith(false)
+    expect(split.startGrabIntent).toHaveBeenCalledWith('copy')
+    expect(floating.webview.goBack).not.toHaveBeenCalled()
+    expect(floating.reload).not.toHaveBeenCalled()
+    expect(floating.startGrabIntent).not.toHaveBeenCalled()
   })
 })

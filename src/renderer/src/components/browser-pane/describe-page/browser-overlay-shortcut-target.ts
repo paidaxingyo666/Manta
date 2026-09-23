@@ -1,3 +1,4 @@
+import { isEventTargetInsideFloatingWorkspacePanel } from '@/lib/floating-workspace-terminal-actions'
 import type { BrowserChromeShortcutScope } from './browser-page-types'
 
 export function browserOverlayOwnsShortcutTarget(
@@ -20,7 +21,9 @@ export function browserChromeShortcutOwnsEvent(
   workspaceId: string
 ): boolean {
   return (
-    chromeShortcutScope === 'focused' ||
+    // Why: the floating panel sits over the focused split, so its chords belong to its own browser.
+    (chromeShortcutScope === 'focused' &&
+      !isEventTargetInsideFloatingWorkspacePanel(event.target)) ||
     (chromeShortcutScope === 'owned-target' &&
       browserOverlayOwnsShortcutTarget(event.target, workspaceId))
   )
