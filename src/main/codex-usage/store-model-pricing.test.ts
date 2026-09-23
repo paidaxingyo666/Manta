@@ -34,7 +34,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 250,
           reasoningOutputTokens: 100,
           totalTokens: 1250,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
@@ -62,7 +65,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 3_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -77,7 +83,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 3_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -92,7 +101,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 3_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -107,7 +119,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 3_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
@@ -115,15 +130,15 @@ describe('CodexUsageStore', () => {
     const summary = await store.getSummary('manta', '30d')
     const breakdown = await store.getBreakdown('manta', '30d', 'model')
 
-    expect(summary.estimatedCostUsd).toBeCloseTo(107.486)
+    expect(summary.estimatedCostUsd).toBeCloseTo(85.1)
     expect(breakdown.find((row) => row.key === 'gpt-5.2-codex')?.estimatedCostUsd).toBeCloseTo(
       15.925
     )
     expect(breakdown.find((row) => row.key === 'gpt-5.3-codex')?.estimatedCostUsd).toBeCloseTo(
       15.925
     )
-    expect(breakdown.find((row) => row.key === 'gpt-5.4')?.estimatedCostUsd).toBeCloseTo(25.212)
-    expect(breakdown.find((row) => row.key === 'gpt-5.5')?.estimatedCostUsd).toBeCloseTo(50.424)
+    expect(breakdown.find((row) => row.key === 'gpt-5.4')?.estimatedCostUsd).toBeCloseTo(17.75)
+    expect(breakdown.find((row) => row.key === 'gpt-5.5')?.estimatedCostUsd).toBeCloseTo(35.5)
   })
 
   it('prices GPT-5.6 sol, terra, and luna with current OpenAI rates', async () => {
@@ -141,23 +156,20 @@ describe('CodexUsageStore', () => {
         outputTokens: 1_000_000,
         reasoningOutputTokens: 100_000,
         totalTokens: 3_000_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
     const summary = await store.getSummary('manta', '30d')
     const breakdown = await store.getBreakdown('manta', '30d', 'model')
 
-    expect(summary.estimatedCostUsd).toBeCloseTo(57.06976)
-    expect(breakdown.find((row) => row.key === 'gpt-5.6-sol')?.estimatedCostUsd).toBeCloseTo(
-      34.8832
-    )
-    expect(breakdown.find((row) => row.key === 'gpt-5.6-terra')?.estimatedCostUsd).toBeCloseTo(
-      20.1696
-    )
-    expect(breakdown.find((row) => row.key === 'gpt-5.6-luna')?.estimatedCostUsd).toBeCloseTo(
-      2.01696
-    )
+    expect(summary.estimatedCostUsd).toBeCloseTo(40.02)
+    expect(breakdown.find((row) => row.key === 'gpt-5.6-sol')?.estimatedCostUsd).toBeCloseTo(24.4)
+    expect(breakdown.find((row) => row.key === 'gpt-5.6-terra')?.estimatedCostUsd).toBeCloseTo(14.2)
+    expect(breakdown.find((row) => row.key === 'gpt-5.6-luna')?.estimatedCostUsd).toBeCloseTo(1.42)
   })
 
   it('normalizes GPT-5.6 reasoning suffixes before pricing', async () => {
@@ -175,7 +187,10 @@ describe('CodexUsageStore', () => {
         outputTokens: 25_000,
         reasoningOutputTokens: 5_000,
         totalTokens: 125_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
@@ -204,7 +219,10 @@ describe('CodexUsageStore', () => {
         outputTokens: 25_000,
         reasoningOutputTokens: 5_000,
         totalTokens: 125_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
@@ -230,14 +248,17 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 3_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
 
     const breakdown = await store.getBreakdown('manta', '30d', 'model')
 
-    expect(breakdown.find((row) => row.key === 'gpt-6-astra')?.estimatedCostUsd).toBeCloseTo(87.208)
+    expect(breakdown.find((row) => row.key === 'gpt-6-astra')?.estimatedCostUsd).toBeCloseTo(61)
   })
 
   it('normalizes GPT-6 Astra reasoning suffixes and snapshot IDs before pricing', async () => {
@@ -255,7 +276,10 @@ describe('CodexUsageStore', () => {
         outputTokens: 25_000,
         reasoningOutputTokens: 5_000,
         totalTokens: 125_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
@@ -284,7 +308,10 @@ describe('CodexUsageStore', () => {
         outputTokens: 1_000_000,
         reasoningOutputTokens: 100_000,
         totalTokens: 3_000_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
@@ -292,8 +319,8 @@ describe('CodexUsageStore', () => {
     const breakdown = await store.getBreakdown('manta', '30d', 'model')
 
     expect(summary.hasUnpricedModels).toBe(false)
-    expect(breakdown.find((row) => row.key === 'gpt-6-sol')?.estimatedCostUsd).toBeCloseTo(17.4416)
-    expect(breakdown.find((row) => row.key === 'gpt-6-luna')?.estimatedCostUsd).toBeCloseTo(0.87208)
+    expect(breakdown.find((row) => row.key === 'gpt-6-sol')?.estimatedCostUsd).toBeCloseTo(12.2)
+    expect(breakdown.find((row) => row.key === 'gpt-6-luna')?.estimatedCostUsd).toBeCloseTo(0.61)
   })
 
   it('normalizes GPT-6 Sol and Luna reasoning suffixes before pricing', async () => {
@@ -311,7 +338,10 @@ describe('CodexUsageStore', () => {
         outputTokens: 25_000,
         reasoningOutputTokens: 5_000,
         totalTokens: 125_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
@@ -340,7 +370,10 @@ describe('CodexUsageStore', () => {
         outputTokens: 25_000,
         reasoningOutputTokens: 5_000,
         totalTokens: 125_000,
-        hasInferredPricing: false
+        hasInferredPricing: false,
+        longContextInputTokens: 0,
+        longContextCachedInputTokens: 0,
+        longContextOutputTokens: 0
       }))
     })
 
@@ -373,7 +406,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 250,
           reasoningOutputTokens: 100,
           totalTokens: 1250,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -388,7 +424,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 5_000_000,
           reasoningOutputTokens: 0,
           totalTokens: 10_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
@@ -416,7 +455,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 250,
           reasoningOutputTokens: 100,
           totalTokens: 1250,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -431,7 +473,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 500,
           reasoningOutputTokens: 0,
           totalTokens: 1500,
-          hasInferredPricing: true
+          hasInferredPricing: true,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
@@ -457,7 +502,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 2_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -472,7 +520,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_000_000,
           reasoningOutputTokens: 100_000,
           totalTokens: 3_000_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         },
         {
           day: '2026-04-09',
@@ -487,7 +538,10 @@ describe('CodexUsageStore', () => {
           outputTokens: 25_000,
           reasoningOutputTokens: 5_000,
           totalTokens: 125_000,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
@@ -521,13 +575,16 @@ describe('CodexUsageStore', () => {
           outputTokens: 1_944_952,
           reasoningOutputTokens: 551_764,
           totalTokens: 492_998_466,
-          hasInferredPricing: false
+          hasInferredPricing: false,
+          longContextInputTokens: 0,
+          longContextCachedInputTokens: 0,
+          longContextOutputTokens: 0
         }
       ]
     })
 
     const summary = await store.getSummary('manta', '30d')
 
-    expect(summary.estimatedCostUsd).toBeCloseTo(858.929724)
+    expect(summary.estimatedCostUsd).toBeCloseTo(446.840002)
   })
 })

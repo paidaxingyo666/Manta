@@ -1,14 +1,12 @@
-export type TieredPrice = { threshold: number; price: number }
-export type CodexModelPricing = {
-  input: number
-  cachedInput: number
-  output: number
-  inputTiers?: TieredPrice[]
-  cachedInputTiers?: TieredPrice[]
-  outputTiers?: TieredPrice[]
+type CodexTokenRates = { input: number; cachedInput: number; output: number }
+export type CodexModelPricing = CodexTokenRates & {
+  /** Rates for a request whose prompt exceeds LONG_CONTEXT_THRESHOLD_TOKENS; they apply to that
+   *  whole request's input, cached input and output. */
+  longContext?: CodexTokenRates
 }
 
-const LONG_CONTEXT_THRESHOLD_TOKENS = 272_000
+/** OpenAI: "Prompts with more than 272K input tokens" — strictly greater, decimal thousands. */
+export const LONG_CONTEXT_THRESHOLD_TOKENS = 272_000
 
 export const MODEL_PRICING: Record<string, CodexModelPricing> = {
   'gpt-5': { input: 1.25, cachedInput: 0.125, output: 10 },
@@ -27,82 +25,62 @@ export const MODEL_PRICING: Record<string, CodexModelPricing> = {
     input: 30,
     cachedInput: 30,
     output: 180,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 60 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 60 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 270 }]
+    longContext: { input: 60, cachedInput: 60, output: 270 }
   },
   'gpt-5.4': {
     input: 2.5,
     cachedInput: 0.25,
     output: 15,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 5 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.5 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 22.5 }]
+    longContext: { input: 5, cachedInput: 0.5, output: 22.5 }
   },
   'gpt-5.5-pro': {
     input: 30,
     cachedInput: 30,
     output: 180,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 60 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 60 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 270 }]
+    longContext: { input: 60, cachedInput: 60, output: 270 }
   },
   'gpt-5.5': {
     input: 5,
     cachedInput: 0.5,
     output: 30,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 10 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 1 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 45 }]
+    longContext: { input: 10, cachedInput: 1, output: 45 }
   },
   // Why: Sol's $4/$20 is OpenAI's promotional rate, listed through at least 2026-11-21.
   'gpt-5.6-sol': {
     input: 4,
     cachedInput: 0.4,
     output: 20,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 8 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.8 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 30 }]
+    longContext: { input: 8, cachedInput: 0.8, output: 30 }
   },
   'gpt-5.6-terra': {
     input: 2,
     cachedInput: 0.2,
     output: 12,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 4 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.4 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 18 }]
+    longContext: { input: 4, cachedInput: 0.4, output: 18 }
   },
   'gpt-5.6-luna': {
     input: 0.2,
     cachedInput: 0.02,
     output: 1.2,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.4 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.04 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 1.8 }]
+    longContext: { input: 0.4, cachedInput: 0.04, output: 1.8 }
   },
   'gpt-6-astra': {
     input: 10,
     cachedInput: 1,
     output: 50,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 20 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 2 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 75 }]
+    longContext: { input: 20, cachedInput: 2, output: 75 }
   },
   'gpt-6-sol': {
     input: 2,
     cachedInput: 0.2,
     output: 10,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 4 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.4 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 15 }]
+    longContext: { input: 4, cachedInput: 0.4, output: 15 }
   },
   'gpt-6-luna': {
     input: 0.1,
     cachedInput: 0.01,
     output: 0.5,
-    inputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.2 }],
-    cachedInputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.02 }],
-    outputTiers: [{ threshold: LONG_CONTEXT_THRESHOLD_TOKENS, price: 0.75 }]
+    longContext: { input: 0.2, cachedInput: 0.02, output: 0.75 }
   }
 }
 
