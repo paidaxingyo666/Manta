@@ -90,7 +90,7 @@ test('uploads one sanitized machine-readable admission result', () => {
   assert.match(upload, /retention-days: 7/)
   assert.ok(
     workflow.indexOf('Upload sanitized admission result') >
-      workflow.indexOf('Upload immutable C27 canary evidence')
+      workflow.indexOf('Upload immutable canary evidence')
   )
 })
 
@@ -100,7 +100,7 @@ test('binds selector operations and director configuration to reviewed implement
   assert.match(workflow, /deploy-relay-blue-green\.mjs/)
   assert.match(workflow, /--prune-revisions false/)
   assert.doesNotMatch(workflow, /gcloud secrets versions add/)
-  assert.match(workflow, /manta-cloud-relay-regional-placement-enabled/)
+  assert.match(workflow, /orca-cloud-relay-regional-placement-enabled/)
   assert.match(workflow, /\.valueSource\.secretKeyRef/)
   assert.match(workflow, /jq -er --arg secret "\$\{REGIONAL_PLACEMENT_SECRET\}"/)
   assert.doesNotMatch(workflow, /jq -e --arg secret "\$\{REGIONAL_PLACEMENT_SECRET\}"/)
@@ -109,7 +109,7 @@ test('binds selector operations and director configuration to reviewed implement
   assert.doesNotMatch(workflow, /dns/i)
 })
 
-test('requires immutable staged evidence and a timed C27 canary before expansion', () => {
+test('requires immutable staged evidence and a timed production canary before expansion', () => {
   assert.match(workflow, /actions: read/)
   assert.match(workflow, /actions\/download-artifact@v4/)
   assert.match(workflow, /relay-asia-staging-\$\{EVIDENCE_RUN_ID\}-\$\{EVIDENCE_RUN_ATTEMPT\}/)
@@ -122,25 +122,26 @@ test('requires immutable staged evidence and a timed C27 canary before expansion
   assert.match(workflow, /--duration-seconds 300/)
   assert.match(workflow, /--required-lease-horizons 2/)
   assert.match(workflow, /pnpm\/action-setup@v4/)
-  assert.match(workflow, /Install exact C27 canary dependencies/)
+  assert.match(workflow, /Install exact canary dependencies/)
   assert.match(workflow, /pnpm install --frozen-lockfile/)
-  assert.match(workflow, /pnpm --filter @manta-cloud\/relay-contract build/)
+  assert.match(workflow, /pnpm --filter @orca-cloud\/relay-contract build/)
   assert.ok(
-    workflow.indexOf('Build the C27 canary Relay contract') <
-      workflow.indexOf('Run a real five-minute C27 control and splice canary')
+    workflow.indexOf('Build the canary Relay contract') <
+      workflow.indexOf('Run a real five-minute canary control and splice')
   )
-  assert.match(workflow, /--load-report "\$\{RUNNER_TEMP\}\/relay-asia-c27-load\.json"/)
-  assert.match(workflow, /states\["production-gce-c28"\].*= migration-only/)
-  assert.match(workflow, /states\["production-gce-c29"\].*= migration-only/)
-  assert.match(workflow, /relay-asia-c27-canary-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/)
-  assert.match(workflow, /id: c27-evidence-upload/)
-  assert.match(workflow, /Return an unproven C27 canary to migration-only/)
-  assert.match(workflow, /steps\.c27-evidence-upload\.outcome != 'success'/)
+  assert.match(workflow, /--load-report "\$\{RUNNER_TEMP\}\/relay-asia-canary-load\.json"/)
+  assert.match(workflow, /"production-gce-c28":"migration-only","production-gce-c29":"migration-only"/)
+  // C28/C29 promotion downloads C27's canary under exactly this name.
+  assert.match(workflow, /relay-asia-\$\{\{ steps\.inputs\.outputs\.canary_hostname \}\}-canary-\$\{\{ github\.run_id \}\}-\$\{\{ github\.run_attempt \}\}/)
+  assert.match(workflow, /echo "canary_hostname=\$\{canary_cell##\*-\}"/)
+  assert.match(workflow, /id: canary-evidence-upload/)
+  assert.match(workflow, /Return an unproven canary cell to migration-only/)
+  assert.match(workflow, /steps\.canary-evidence-upload\.outcome != 'success'/)
   assert.match(workflow, /--mode recover-promotion[\s\S]*?--attempt-id "\$\{SELECTOR_ATTEMPT_ID\}"/)
   assert.match(workflow, /--attempt-id "\$\{SELECTOR_ATTEMPT_ID\}-rollback"/)
   assert.match(workflow, /evidence_kind=c27/)
-  assert.match(workflow, /manta_relay_runtime_metrics/)
-  assert.match(workflow, /relay-asia-rollout-evidence\.mjs create-c27/)
+  assert.match(workflow, /orca_relay_runtime_metrics/)
+  assert.match(workflow, /relay-asia-rollout-evidence\.mjs create-canary \\\n\s+--cell-id "\$\{CANARY_CELL\}"/)
   assert.match(workflow, /retention-days: 7/)
   assert.match(workflow, /Require the exact director image before promotion/)
   assert.match(workflow, /DIRECTOR_ORIGIN.*\/v1\/admin\/runtime-status/)
@@ -153,12 +154,63 @@ test('requires immutable staged evidence and a timed C27 canary before expansion
   assert.doesNotMatch(provenance, /--commit-sha "\$\{GITHUB_SHA\}"/)
 })
 
+test('binds each production promotion wave to its exact evidence and canary', () => {
+  const cases = /case "\$\{TARGET_CELL_IDS\}" in\n([\s\S]*?)\n\s*esac/.exec(workflow)?.[1]
+  assert.ok(cases)
+  const waves = Object.fromEntries(
+    [...cases.matchAll(/^ {14}([a-z0-9,-]+)\)\n([\s\S]*?);;/gm)].map((match) => [match[1], {
+      evidence: /evidence_kind=([a-z0-9]+)/.exec(match[2])?.[1] ?? 'none',
+      canary: /canary_cell=([a-z0-9-]+)/.exec(match[2])?.[1] ?? 'none'
+    }])
+  )
+  assert.deepEqual(waves, {
+    'production-gce-c27': { evidence: 'staging', canary: 'production-gce-c27' },
+    'production-gce-c28,production-gce-c29': { evidence: 'c27', canary: 'none' },
+    'production-gce-c30': { evidence: 'none', canary: 'production-gce-c30' }
+  })
+  assert.match(cases, /\*\) echo "production promotion wave is not reviewed" >&2; exit 1 ;;/)
+  assert.match(workflow, /if test "\$\{evidence_kind\}" = none; then\n\s+test -z "\$\{EVIDENCE_RUN_ID\}"/)
+  assert.doesNotMatch(workflow, /inputs\.cell-ids == /)
+})
+
+test('runs the timed canary and its automatic rollback for C27 and C30 alike', () => {
+  const steps = workflow.split(/\n(?=      - )/)
+  const named = (name) => steps.find((step) => step.includes(`name: ${name}`))
+  for (const name of [
+    'Install exact canary dependencies',
+    'Build the canary Relay contract',
+    'Verify the canary cell state and start the timed canary',
+    'Run a real five-minute canary control and splice',
+    'Collect regional, Relay SQL, and Cloud SQL canary evidence',
+    'Upload immutable canary evidence'
+  ]) {
+    assert.match(named(name), /if: \$\{\{ steps\.inputs\.outputs\.canary == 'true' \}\}/, name)
+  }
+  assert.match(
+    workflow,
+    /if: \$\{\{ inputs\.mode == 'configure' \|\| steps\.inputs\.outputs\.canary == 'true' \}\}/
+  )
+  const rollback = named('Return an unproven canary cell to migration-only')
+  assert.match(
+    rollback,
+    /if: \$\{\{ always\(\) && steps\.inputs\.outputs\.canary == 'true' && steps\.admission-operation\.outcome != 'skipped' && steps\.canary-evidence-upload\.outcome != 'success' \}\}/
+  )
+  assert.match(rollback, /CANARY_CELL: \$\{\{ steps\.inputs\.outputs\.canary_cell \}\}/)
+  assert.match(rollback, /--mode recover-promotion \\\n\s+--cell-ids "\$\{CANARY_CELL\}"/)
+  assert.match(rollback, /--mode rollback \\\n\s+--cell-ids "\$\{CANARY_CELL\}"/)
+  assert.match(rollback, /'\.states\[\$cell\]' <<< "\$\{result\}"\)" = migration-only/)
+  const start = named('Verify the canary cell state and start the timed canary')
+  assert.match(start, /production-gce-c30\)\n\s+verify_cells=production-gce-c30\n\s+expected_states='\{"production-gce-c30":"general"\}'/)
+  assert.match(start, /test "\$\(jq -cS '\.states' <<< "\$\{result\}"\)" = "\$\(jq -cS '\.' <<< "\$\{expected_states\}"\)"/)
+  assert.match(named('Run a real five-minute canary control and splice'), /--duration-seconds 300/)
+})
+
 test('creates staging evidence only after the bounded launch-path load and rollback', () => {
   assert.match(stagingProof, /runs-on: \[self-hosted, linux, x64, relay-asia-east2-load\]/)
   assert.doesNotMatch(stagingProof, /group: relay-asia-east2-load/)
   assert.match(stagingProof, /pnpm\/action-setup@v4/)
   assert.match(stagingProof, /pnpm install --frozen-lockfile/)
-  assert.match(stagingProof, /pnpm --filter @manta-cloud\/relay-contract build/)
+  assert.match(stagingProof, /pnpm --filter @orca-cloud\/relay-contract build/)
   assert.match(stagingProof, /run_phase launch 5 5/)
   assert.doesNotMatch(stagingProof, /run_phase control|run_phase mixed/)
   assert.match(stagingProof, /--aggregate-controls "\$\(\(controls \* 4\)\)"/)
@@ -273,7 +325,7 @@ test('keeps the production US-first switch in durable Secret Manager state', () 
   assert.match(directorWorkflow, /preserve\) desired="\$\{current\}"/)
   assert.match(directorWorkflow, /--regional-placement-secret-version "\$\{target_version\}"/)
   assert.match(directorWorkflow, /test "\$\{CEILING\}" = "\$\{DIRECTOR_MAX_INSTANCES\}"/)
-  assert.match(directorWorkflow, /manta-cloud-relay-regional-placement-enabled/)
+  assert.match(directorWorkflow, /orca-cloud-relay-regional-placement-enabled/)
   assert.match(directorWorkflow, /\.valueSource\.secretKeyRef \/\/ \.valueFrom\.secretKeyRef/)
   assert.match(directorWorkflow, /\.version \/\/ \.key/)
   assert.match(directorWorkflow, /\.secret \/\/ \.name/)
