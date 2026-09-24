@@ -86,7 +86,7 @@ export function NativeChatStructuredSession(
       ...(controller.error ? { error: controller.error } : {}),
       hasMore: controller.hasOlder,
       loadingEarlier: controller.loadingOlder,
-      loadEarlier: () => void controller.loadOlder(),
+      loadEarlier: controller.loadOlder,
       readPhase:
         controller.status === 'loading'
           ? 'loading'
@@ -230,6 +230,7 @@ export function NativeChatStructuredSession(
           <NativeChatMessageList
             session={session}
             journalItems={controller.journalItems}
+            railOutline={controller.railOutline}
             isVisible={props.isVisible}
             isWorking={controller.isWorking}
             expandSignal={false}

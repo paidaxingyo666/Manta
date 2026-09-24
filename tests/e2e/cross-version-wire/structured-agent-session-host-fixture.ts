@@ -74,6 +74,12 @@ export function structuredHostStub(
     readOptions: vi.fn(async () => ({ models: [], current: { model: 'gpt-live' } })),
     readCommands: vi.fn(() => ({ commands: [{ name: 'clear', kind: 'command' as const }] })),
     history: vi.fn(() => ({ ok: true, page: { items: [] } })),
+    journalSnapshot: vi.fn(() => ({
+      sessionId,
+      cursor: { epoch: 'epoch-a', sequence: 0 },
+      items: [],
+      submissions: []
+    })),
     subscribe: vi.fn(() => () => undefined),
     subscribeStatus: vi.fn((subscriber: { emit: (event: unknown) => void }) => {
       subscriber.emit({ type: 'snapshot', sessions: [] })

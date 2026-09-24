@@ -9,7 +9,7 @@ import type {
   NativeChatMessage,
   NativeChatToolCallBlock
 } from '../../../../shared/native-chat-types'
-import { deriveNativeChatRowContent } from './native-chat-row-content'
+import { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
 import { NativeChatToolRun } from './NativeChatToolRun'
 import { NativeChatCodeBlock } from './NativeChatCodeBlock'
 import { NativeChatNoticeRow } from './NativeChatNoticeRow'

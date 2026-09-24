@@ -206,6 +206,12 @@ export function hostStub(): StructuredAgentSessionHost {
       current: { model: 'gpt-live' }
     })),
     history: vi.fn(() => ({ ok: true, page: { items: [] } })),
+    journalSnapshot: vi.fn((sessionId: string) => ({
+      sessionId,
+      cursor: { epoch: 'epoch-a', sequence: 0 },
+      items: [],
+      submissions: []
+    })),
     subscribe: vi.fn(() => () => undefined),
     // A real feed, so the snapshot this method hands back is a genuine projection rather
     // than a shape the stub restated.

@@ -80,6 +80,7 @@ export const ADMISSION_METHODS = [
   { method: 'agentSession.handoffStatus', params: { sessionId: SESSION } },
   { method: 'agentSession.options', params: { sessionId: SESSION } },
   { method: 'agentSession.history', params: { sessionId: SESSION, direction: 'tail' } },
+  { method: 'agentSession.conversationOutline', params: { sessionId: SESSION } },
   { method: 'agentSession.subscribe', params: { sessionId: SESSION } },
   { method: 'agentSession.hold', params: { sessionId: SESSION, holderId: 'surface-1' } },
   { method: 'agentSession.reveal', params: { sessionId: SESSION } },

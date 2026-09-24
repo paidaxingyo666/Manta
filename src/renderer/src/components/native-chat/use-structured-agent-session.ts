@@ -18,6 +18,7 @@ import { useStructuredAgentSessionTransportState } from './use-structured-agent-
 import { useStructuredAgentSessionTransport } from './use-structured-agent-session-transport'
 import { useStructuredAgentSessionOptions } from './use-structured-agent-session-options'
 import { useStructuredAgentSessionThreadGoal } from './use-structured-agent-session-thread-goal'
+import { useStructuredAgentSessionRailOutline } from './use-structured-agent-session-rail-outline'
 
 export type { StructuredPromptItem } from './structured-agent-session-message-projection'
 
@@ -69,6 +70,13 @@ export function useStructuredAgentSession(args: {
     mutate
   })
 
+  const railOutline = useStructuredAgentSessionRailOutline({
+    sessionId,
+    target,
+    state,
+    enabled: providerVisible
+  })
+
   const prompts = pendingStructuredSessionPrompts(transportState.journalItems)
   const { outbox } = outboxController
   const messages = useStructuredAgentSessionMessages(
@@ -102,6 +110,7 @@ export function useStructuredAgentSession(args: {
       ? (state.error ?? writeError ?? outboxController.error)
       : outboxController.error,
     hasOlder: transportEnabled && state.hasOlder,
+    railOutline: transportEnabled ? railOutline : null,
     loadingOlder: transportEnabled && loadingOlder,
     loadOlder,
     prompts,

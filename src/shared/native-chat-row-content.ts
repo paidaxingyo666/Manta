@@ -6,19 +6,13 @@
 // Cached on the block array itself, so a streaming turn re-deriving on every frame
 // pays once per revision rather than once per consumer.
 
-import {
-  backgroundTaskBlocks,
-  claimBackgroundTaskTwins
-} from '../../../../shared/native-chat-background-task-row'
-import {
-  isSubagentGroupFallbackText,
-  subagentGroupBlocks
-} from '../../../../shared/native-chat-subagent-summary'
+import { backgroundTaskBlocks, claimBackgroundTaskTwins } from './native-chat-background-task-row'
+import { isSubagentGroupFallbackText, subagentGroupBlocks } from './native-chat-subagent-summary'
 import {
   isBackgroundTaskBlock,
   isSubagentGroupBlock,
   type NativeChatBlock
-} from '../../../../shared/native-chat-types'
+} from './native-chat-types'
 import { splitNativeChatBlocks } from './native-chat-tool-fold'
 import { nativeChatProseToMarkdown } from './native-chat-prose'
 
