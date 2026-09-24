@@ -26,10 +26,12 @@ import {
 } from './hook-config'
 import {
   getJcodeConfigPath,
+  getJcodeManagedCommand,
   getJcodeManagedScriptFileName,
   getJcodeManagedScriptPath,
   getJcodePosixManagedScriptFileName,
   getJcodeRemoteConfigPath,
+  getJcodeRemoteManagedCommand,
   JCODE_HOOK_EVENTS
 } from './hook-settings'
 
@@ -124,13 +126,15 @@ export class JcodeHookService {
       }
     }
     const scriptPresent = existsSync(scriptPath)
-    const managedCommand = scriptPath
+    const managedCommand = getJcodeManagedCommand(scriptPath)
     const missing: string[] = []
     const userOwned: string[] = []
     let managedCount = 0
     for (const event of JCODE_HOOK_EVENTS) {
       const value = table[event]
-      if (value === managedCommand) {
+      // Why both forms: installs before the quoting fix stored the bare path, and
+      // install() repoints those — reporting them user-owned would hide the repair.
+      if (value === managedCommand || value === scriptPath) {
         managedCount += 1
       } else if (value === undefined) {
         missing.push(event)
@@ -179,7 +183,7 @@ export class JcodeHookService {
     const edited = applyJcodeManagedHooks(
       content,
       JCODE_HOOK_EVENTS,
-      scriptPath,
+      getJcodeManagedCommand(scriptPath),
       getJcodeManagedScriptFileName()
     )
     writeConfigContent(configPath, edited.content)
@@ -215,7 +219,7 @@ export class JcodeHookService {
       const edited = applyJcodeManagedHooks(
         content,
         JCODE_HOOK_EVENTS,
-        remoteScriptPath,
+        getJcodeRemoteManagedCommand(remoteScriptPath),
         remoteScriptFileName
       )
       await writeTextFileRemoteAtomic(sftp, remoteConfigPath, edited.content)

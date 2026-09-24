@@ -52,17 +52,27 @@ export function getSharedJcodeScriptPath(scriptFileName: string): string {
   return join(homedir(), '.manta', 'agent-hooks', scriptFileName)
 }
 
-// Why: jcode executes hook commands directly (not through a shell), so the
-// managed value must be the bare script path — no `if [ -f … ]` wrapper. Paths
-// with spaces are handled by jcode's shell-style command parsing.
+// Why quoted: jcode executes hook commands directly (no shell), but it tokenizes the
+// configured string shell-style first — parse_hook_command in jcode-terminal-launch
+// splits on unquoted whitespace AND consumes every unquoted backslash as an escape, so
+// a bare `C:\Users\me\.manta\agent-hooks\jcode-hook.cmd` reaches exec as
+// `C:Usersme.orcaagent-hooksjcode-hook.cmd` and no Windows hook ever fires. Single
+// quotes pass the path through verbatim (backslashes are literal inside them); a path
+// that itself contains one falls back to double quotes, where \ and " are the escapes.
 export function getJcodeManagedCommand(scriptPath: string): string {
-  return scriptPath
+  return scriptPath.includes("'")
+    ? `"${scriptPath.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`
+    : `'${scriptPath}'`
 }
 
 export function getJcodeRemoteManagedCommand(scriptPath: string): string {
-  return scriptPath
+  return getJcodeManagedCommand(scriptPath)
 }
 
+// Why the separator normalize: the stored command is a native path, so on Windows it
+// carries backslashes and a `/`-only needle never matches its own managed entry.
 export function isJcodeManagedCommand(command: string | null | undefined): boolean {
-  return typeof command === 'string' && command.includes('agent-hooks/jcode-hook')
+  return (
+    typeof command === 'string' && command.replaceAll('\\', '/').includes('agent-hooks/jcode-hook')
+  )
 }

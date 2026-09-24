@@ -263,6 +263,8 @@ describe('buildArgs (Jcode)', () => {
       '--no-update',
       '--quiet',
       '--no-selfdev',
+      '--tool-profile',
+      'none',
       '--model',
       'claude-haiku-4-5',
       'run',
@@ -277,10 +279,23 @@ describe('buildArgs (Jcode)', () => {
       '--no-update',
       '--quiet',
       '--no-selfdev',
+      '--tool-profile',
+      'none',
       'run',
       '--json',
       'name this branch'
     ])
+  })
+
+  it('exposes no tools to a prompt that is a staged patch', () => {
+    // Why: the prompt is attacker-influenced text, and jcode's default profile exposes
+    // shell/read/write/MCP. Every sibling generator is already read-only.
+    const args = spec.buildArgs({ prompt: 'name this branch', model: 'default' })
+    expect(args.slice(args.indexOf('--tool-profile'), args.indexOf('--tool-profile') + 2)).toEqual([
+      '--tool-profile',
+      'none'
+    ])
+    expect(args.indexOf('--tool-profile')).toBeLessThan(args.indexOf('run'))
   })
 
   it('keeps every jcode flag ahead of the subcommand', () => {

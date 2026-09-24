@@ -13,7 +13,12 @@ vi.mock('os', async () => {
 })
 
 import { JcodeHookService } from './hook-service'
-import { getJcodeConfigPath, getJcodeManagedScriptPath, JCODE_HOOK_EVENTS } from './hook-settings'
+import {
+  getJcodeConfigPath,
+  getJcodeManagedCommand,
+  getJcodeManagedScriptPath,
+  JCODE_HOOK_EVENTS
+} from './hook-settings'
 import { tomlQuoteString } from './hook-config'
 
 describe('JcodeHookService', () => {
@@ -51,9 +56,12 @@ describe('JcodeHookService', () => {
 
     const config = readFileSync(getJcodeConfigPath(), 'utf8')
     for (const event of JCODE_HOOK_EVENTS) {
-      // Why: tomlQuoteString doubles backslashes, so the serialized value (not
-      // the raw path) is what appears in the config.
-      expect(config).toContain(`${event} = ${tomlQuoteString(getJcodeManagedScriptPath())}`)
+      // Why both wrappers: the value is shell-quoted for jcode's hook tokenizer and
+      // then TOML-quoted for the file, so neither the raw path nor the shell-quoted
+      // string appears on its own.
+      expect(config).toContain(
+        `${event} = ${tomlQuoteString(getJcodeManagedCommand(getJcodeManagedScriptPath()))}`
+      )
     }
     const script = readFileSync(getJcodeManagedScriptPath(), 'utf8')
     expect(script).toContain('/hook/jcode')

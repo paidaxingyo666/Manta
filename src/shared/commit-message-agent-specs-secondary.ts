@@ -292,6 +292,13 @@ export function buildSecondaryCommitMessageAgentSpecs({
         '--no-update',
         '--quiet',
         '--no-selfdev',
+        // Why: the prompt here IS a staged patch, i.e. attacker-influenced text, and
+        // jcode would otherwise expose shell/read/write/MCP to it. `none` resolves to
+        // an empty allowed-tool set in jcode's config (tools.rs `base_allowed_tools`),
+        // which drops `mcp` too since MCP is exposed as a tool. Matches the read-only
+        // posture the other generators already take (claude plan, codex read-only).
+        '--tool-profile',
+        'none',
         ...(model && model !== 'default' ? ['--model', model] : []),
         'run',
         '--json',
