@@ -189,7 +189,8 @@ describe.skipIf(!claudeAuthenticated)('real Claude TUI resume proof', () => {
         claudeConfigDir,
         providerSessionId,
         resumeLeafUuid: null,
-        resumed: false
+        resumesTranscript: false,
+        continuesChain: false
       }),
       onEvent: (event) => events.push(event),
       onDispatchSettledLate: (settlement) => settlements.push(settlement),

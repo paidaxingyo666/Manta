@@ -30,6 +30,7 @@ import type {
   AgentSessionThreadGoalChange,
   AgentSessionWireRefusalCode
 } from '../../../shared/agent-session-wire'
+import { isAgentSessionWireRefusalCode } from '../../../shared/agent-session-wire-refusals'
 import type { ProviderHistoryWindow } from '../agent-session-journal/journal-submission-reconciler'
 import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import type { AgentSessionCreatePhaseRecorder } from '../../observability/agent-session-instrumentation'
@@ -65,6 +66,15 @@ export class AgentSessionAcquisitionRootExitObservedError extends Error {
   }
 }
 
+/** The provider child failed and cleanup proved its whole tree gone. As with a root exit, the
+ *  provider's own diagnostic is the message. */
+export class AgentSessionAcquisitionExitProvenError extends Error {
+  constructor(cause: unknown) {
+    super(cause instanceof Error ? cause.message : String(cause), { cause })
+    this.name = 'AgentSessionAcquisitionExitProvenError'
+  }
+}
+
 export class AgentSessionAcquisitionExitUnprovenError extends Error {
   constructor(cause: unknown) {
     super('agent_session_acquisition_exit_unproven', { cause })
@@ -80,6 +90,8 @@ export type AgentSessionAcquisition = {
   /** Host-local identity for this exact provider child, distinct even when the durable fence is
    *  reused by a superseding acquisition. */
   acquisitionGeneration?: string
+  /** Absent means `ready`: the adapter proved startup before answering. */
+  providerChildPhase?: StructuredAgentSessionProviderChildPhase
 }
 
 /** Acquisition failed with first-hand proof that no provider process existed. */
@@ -108,7 +120,7 @@ export type AgentSessionDispatchOutcome =
   /** The call did not settle. Never re-send on the user's behalf. */
   | { state: 'unknown'; reason: string }
 
-export type StructuredAgentSessionLifecycleEvent = {
+export type StructuredAgentSessionEndedEvent = {
   type: 'ended'
   sessionId: string
   reason: string
@@ -119,7 +131,31 @@ export type StructuredAgentSessionLifecycleEvent = {
   observedAt?: number
   /** Translator could not admit terminal rows; host recovery must append its bounded fallback. */
   settlementRetryRequired?: boolean
+  /** The provider ended before it finished starting, so resuming it would repeat the failure. */
+  startupUnproven?: true
 }
+
+/** The child a publish-first acquire handed over has now proven its start: startup facts applied
+ *  and saved options restored. What it reports from here on is fact, not a catalog guess. */
+export type StructuredAgentSessionStartedEvent = {
+  type: 'started'
+  sessionId: string
+  fence: number
+  acquisitionGeneration: string
+  /** What the child proved, snapshotted by the adapter from what startup already read. The host
+   *  handles this inside the session's serialized step, so it must not ask the CLI. */
+  reportedOptions: AgentSessionOptionsResult['current']
+  /** Saved options the restore could not apply; the host drops them rather than persist them. */
+  restoreSkippedOptions: readonly string[]
+}
+
+export type StructuredAgentSessionLifecycleEvent =
+  | StructuredAgentSessionEndedEvent
+  | StructuredAgentSessionStartedEvent
+
+/** Whether the provider child behind an acquisition has proven its start. A publish-first
+ *  acquire hands over a `starting` child and the `started` lifecycle event flips it. */
+export type StructuredAgentSessionProviderChildPhase = 'starting' | 'ready'
 
 export type StructuredAgentSessionAcquireInput = {
   identity: AgentSessionJournalIdentity
@@ -286,7 +322,19 @@ export async function rethrowAfterAgentSessionAcquisitionCleanup(
         )
   }
   if (released) {
-    throw cause
+    throw provenExitAcquisitionFailure(cause)
   }
   throw new AgentSessionAcquisitionExitUnprovenError(cause)
+}
+
+/** A failure whose child cleanup proved gone. One that already names its own verdict — a
+ *  refusal, a typed exit proof, or a host store code — keeps it. */
+function provenExitAcquisitionFailure(cause: unknown): unknown {
+  const classified =
+    cause instanceof AgentSessionAcquisitionRefusal ||
+    cause instanceof AgentSessionAcquisitionRootExitObservedError ||
+    cause instanceof AgentSessionAcquisitionExitUnprovenError ||
+    isAgentSessionPreSpawnError(cause) ||
+    (cause instanceof Error && isAgentSessionWireRefusalCode(cause.message))
+  return classified ? cause : new AgentSessionAcquisitionExitProvenError(cause)
 }

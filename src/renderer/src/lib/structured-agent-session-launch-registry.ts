@@ -25,6 +25,8 @@ export type StructuredLaunchState = StructuredLaunchRecoveryState & {
   /** Fixed by the caller that opened this launch so coalesced prompts use one delivery mode. */
   promptDelivery: StructuredAgentLaunchOptions['promptDelivery']
   callers: StructuredLaunchCallerGroup
+  /** Why the last attempt failed, shown beside Retry; the toast stays generic. */
+  failureReason?: string
 }
 
 export type StructuredAgentLaunchStatus = 'idle' | 'pending' | 'unknown'
@@ -161,6 +163,29 @@ export function getStructuredAgentSessionLaunchLifecycle(
     return launchStateLifecycle(state)
   }
   return getPersistedStructuredAgentLaunchRecord(sessionId)?.lifecycle ?? null
+}
+
+export function getStructuredAgentSessionLaunchFailureReason(
+  worktreeId: string,
+  sessionId: string
+): string | null {
+  const state = getStructuredLaunchStateBySessionId(sessionId)
+  return state &&
+    matchesLaunchWorktree(state, worktreeId) &&
+    launchStateLifecycle(state) === 'failed'
+    ? (state.failureReason ?? null)
+    : null
+}
+
+export function useStructuredAgentSessionLaunchFailureReason(
+  worktreeId: string,
+  sessionId: string
+): string | null {
+  return useSyncExternalStore(
+    subscribeStructuredAgentLaunchStatus,
+    () => getStructuredAgentSessionLaunchFailureReason(worktreeId, sessionId),
+    () => null
+  )
 }
 
 export function useStructuredAgentSessionLaunchLifecycle(

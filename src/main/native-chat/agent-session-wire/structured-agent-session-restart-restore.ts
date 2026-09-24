@@ -53,24 +53,36 @@ export async function restoreOneStructuredAgentSessionRead(
     // A session latched in recovery exits here at startup, without waiting for a client.
     await input.resolveRecovery(sessionId)
   }
-  await input.serialize(sessionId, async () => {
-    if (input.hasSession(sessionId)) {
-      // A surface that took a hold mid-restore already attached this one.
-      await input.restoreHandoff(sessionId)
-      return
-    }
-    const restored = await restoreStructuredAgentSessionRead(
-      input.store,
-      input.journalRoot,
-      sessionId
-    )
-    if (!restored) {
-      return
-    }
-    input.onReadable(sessionId, restored)
-    await input.retrySettlement(sessionId, restored.params)
+  await input.serialize(sessionId, () =>
+    restoreOneStructuredAgentSessionReadUnderSerialize(input, sessionId)
+  )
+}
+
+/** The serialized half of the restore, for a caller already inside the session's serialize — a
+ *  send replaying into a session this host has closed, which needs the journal and no child. */
+export async function restoreOneStructuredAgentSessionReadUnderSerialize(
+  input: Pick<
+    StructuredAgentSessionReadRestoreDeps,
+    'store' | 'journalRoot' | 'hasSession' | 'onReadable' | 'retrySettlement' | 'restoreHandoff'
+  >,
+  sessionId: string
+): Promise<void> {
+  if (input.hasSession(sessionId)) {
+    // A surface that took a hold mid-restore already attached this one.
     await input.restoreHandoff(sessionId)
-  })
+    return
+  }
+  const restored = await restoreStructuredAgentSessionRead(
+    input.store,
+    input.journalRoot,
+    sessionId
+  )
+  if (!restored) {
+    return
+  }
+  input.onReadable(sessionId, restored)
+  await input.retrySettlement(sessionId, restored.params)
+  await input.restoreHandoff(sessionId)
 }
 
 export async function restoreStructuredAgentSessionsOnRestart(

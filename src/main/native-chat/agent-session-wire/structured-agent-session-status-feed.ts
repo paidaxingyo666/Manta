@@ -22,6 +22,7 @@ import {
 } from '../../../shared/agent-session-wire'
 import { projectStructuredAgentSessionStatusSummary } from '../../../shared/structured-agent-session-projection'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
+import type { StructuredAgentSessionProviderChildPhase } from './structured-agent-session-adapter'
 import { structuredAgentSessionProviderSessionMetadata } from './structured-agent-session-history-result'
 import {
   StructuredAgentSessionStatusOwnership,
@@ -39,6 +40,7 @@ type StatusFeedSession = {
   journal: AgentSessionJournal
   params: { location: AgentSessionRecord['location']; provider: AgentSessionRecord['provider'] }
   hasProviderChild?: boolean
+  providerChildPhase?: StructuredAgentSessionProviderChildPhase
   fence?: number
 }
 
@@ -63,6 +65,7 @@ function summariesEqual(a: AgentSessionStatusSummary, b: AgentSessionStatusSumma
     a.agent === b.agent &&
     a.status === b.status &&
     a.hostExecutionOwned === b.hostExecutionOwned &&
+    a.hostExecutionPhase === b.hostExecutionPhase &&
     a.rewindBlockedReason === b.rewindBlockedReason &&
     // Settled activity changes ranking; streaming active turns must stay quiet.
     (a.status !== 'idle' || a.updatedAt === b.updatedAt) &&
@@ -254,7 +257,14 @@ export class StructuredAgentSessionStatusFeed {
       sessionId,
       workspaceId: session.params.location.workspaceId,
       agent: session.params.provider,
-      ...(session.hasProviderChild ? { hostExecutionOwned: true as const } : {}),
+      ...(session.hasProviderChild
+        ? {
+            hostExecutionOwned: true as const,
+            ...(session.providerChildPhase
+              ? { hostExecutionPhase: session.providerChildPhase }
+              : {})
+          }
+        : {}),
       ...projection.summary,
       ...(record?.rewind?.phase === 'prepared' || record?.rewind?.phase === 'provider-succeeded'
         ? { rewindBlockedReason: 'outcome-unknown' as const }

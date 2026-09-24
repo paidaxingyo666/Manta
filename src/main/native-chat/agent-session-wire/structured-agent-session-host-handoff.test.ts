@@ -10,13 +10,17 @@ import type { AgentSessionHandoffStatus } from '../../../shared/agent-session-wi
 import { LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
-import { createDeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
+import {
+  createDeferredStructuredAgentSessionEventSink,
+  type DeferredStructuredAgentSessionEventSink
+} from './structured-agent-session-event-sink'
 import type { StructuredAgentSessionHostDeps } from './structured-agent-session-host-types'
 import {
-  acquireNativeHandoffOwner,
   createStructuredAgentSessionHostHandoff,
   structuredTuiTranscriptImportOptions
 } from './structured-agent-session-host-handoff'
+import { acquireNativeHandoffOwner } from './structured-agent-session-native-handoff-acquisition'
+import { AgentSessionSubscribers } from './structured-agent-session-subscribers'
 
 const journals = createTrackedJournalOpener()
 
@@ -28,6 +32,19 @@ function importRecord(provider: 'claude' | 'codex', accountHome: string): AgentS
       path: accountHome
     }
   } as AgentSessionRecord
+}
+
+/** The session's sink is `current`; a native acquire's attempt gets its own. */
+function sinksOver(current: DeferredStructuredAgentSessionEventSink) {
+  return {
+    eventSinkFor: () => current,
+    mintEventSink: () => createDeferredStructuredAgentSessionEventSink(),
+    adoptEventSink: () => undefined
+  }
+}
+
+function unreachableSink(): never {
+  throw new Error('unreachable: publishing reads no sink')
 }
 
 describe('structured TUI transcript import roots', () => {
@@ -165,7 +182,10 @@ describe('native handoff acquisition', () => {
       },
       fence: reserved.record.lease.runtimeFence,
       hasProviderChild: false,
-      acquisitionGeneration: null
+      providerChildPhase: 'ready' as const,
+      acquisitionGeneration: null,
+      // Left by a restart before the handoff; a writer current as of it is not current now.
+      resumedFromFence: 1
     }
     const acquiring = acquireNativeHandoffOwner(
       {
@@ -177,7 +197,7 @@ describe('native handoff acquisition', () => {
       {
         session: () => session,
         findSession: () => session,
-        eventSink: () => eventSink,
+        eventSinks: sinksOver(eventSink),
         flush: async () => undefined,
         serialize: async (_session, task) => task(),
         subscribers: {
@@ -202,6 +222,8 @@ describe('native handoff acquisition', () => {
     await acquiring
 
     expect(order).toEqual(['append-entered', 'append-complete', 'unbind', 'acquire'])
+    // The handoff moved the fence, not a restart: nothing is rebased across it.
+    expect(session.resumedFromFence).toBeUndefined()
   })
 
   it('refuses an unsupported adapter before unbinding the TUI owner', async () => {
@@ -262,6 +284,7 @@ describe('native handoff acquisition', () => {
       },
       fence: reserved.record.lease.runtimeFence,
       hasProviderChild: false,
+      providerChildPhase: 'ready' as const,
       acquisitionGeneration: null
     }
 
@@ -276,7 +299,7 @@ describe('native handoff acquisition', () => {
         {
           session: () => session,
           findSession: () => session,
-          eventSink: () => eventSink,
+          eventSinks: sinksOver(eventSink),
           flush: async () => undefined,
           serialize: async (_sessionId, task) => task(),
           subscribers: {
@@ -356,6 +379,7 @@ describe('native handoff acquisition', () => {
       },
       fence: reserved.record.lease.runtimeFence,
       hasProviderChild: false,
+      providerChildPhase: 'ready' as const,
       acquisitionGeneration: null
     }
 
@@ -370,7 +394,7 @@ describe('native handoff acquisition', () => {
         {
           session: () => session,
           findSession: () => session,
-          eventSink: () => eventSink,
+          eventSinks: sinksOver(eventSink),
           flush: async () => undefined,
           serialize: async (_sessionId, task) => task(),
           subscribers: {
@@ -387,6 +411,103 @@ describe('native handoff acquisition', () => {
     expect(supportsLocation).toHaveBeenCalledTimes(2)
     expect(unbind).toHaveBeenCalledOnce()
     expect(acquire).not.toHaveBeenCalled()
+  })
+
+  it("takes a failed native child's queued rows with it, leaving the session sink drainable", async () => {
+    const sessionId = 'session-handoff-failed'
+    const location: AgentSessionExecutionLocation = {
+      executionHostId: LOCAL_EXECUTION_HOST_ID,
+      wslDistro: null,
+      workspaceId: 'workspace-failed',
+      workspaceKind: 'folder'
+    }
+    const operationId = `${now}-00000000000000000000000000000031`
+    const reserved = await store.reserveOwner({
+      sessionId,
+      location,
+      provider: 'codex',
+      accountHome: { variable: 'CODEX_HOME', path: join(root, 'codex-home') },
+      runtimeKind: 'native',
+      expectedFence: null,
+      spawnToken: 'failed-spawn',
+      claimKeyId: 'key-1',
+      handoffOperationId: operationId,
+      probe: { outcome: 'reservation-unused' },
+      operation: { callerKey: 'test', operationId, fingerprint: 'failed' },
+      now
+    })
+    const journal = await journals.open({
+      identity: {
+        sessionId,
+        workspaceId: location.workspaceId,
+        hostId: location.executionHostId,
+        agent: 'codex',
+        providerHandle: { kind: 'codex', threadId: 'failed-thread' }
+      },
+      journalDir: join(root, 'failed-journal')
+    })
+    const current = createDeferredStructuredAgentSessionEventSink()
+    current.bind({ journal, fence: reserved.record.lease.runtimeFence, publish: () => undefined })
+    const attempt = createDeferredStructuredAgentSessionEventSink()
+    const acquire = vi.fn<NonNullable<StructuredAgentSessionHostDeps['adapter']['acquire']>>(
+      async ({ events }) => {
+        // The child wrote before it died, into whatever sink it was handed.
+        events?.setActivity?.(null)
+        throw new Error('codex app-server exited (code 1)')
+      }
+    )
+    const session = {
+      journal,
+      params: {
+        envelope: {
+          sessionId,
+          clientOperationId: `${now}-00000000000000000000000000000032`,
+          expectedRuntimeFence: reserved.record.lease.runtimeFence,
+          payloadFingerprint: 'failed'
+        },
+        location,
+        provider: 'codex' as const,
+        agent: 'codex' as const,
+        accountHome: { variable: 'CODEX_HOME' as const, path: join(root, 'codex-home') },
+        runtimeKind: 'native' as const,
+        providerHandle: { kind: 'codex' as const, threadId: 'failed-thread' }
+      },
+      fence: reserved.record.lease.runtimeFence,
+      hasProviderChild: false,
+      providerChildPhase: 'ready' as const,
+      acquisitionGeneration: null
+    }
+
+    await expect(
+      acquireNativeHandoffOwner(
+        {
+          store,
+          adapter: {
+            acquire,
+            dispatch: vi.fn(async () => ({ state: 'admitted' as const })),
+            cancelTurn: vi.fn(async () => ({ cancelled: true })),
+            answerPrompt: vi.fn(async () => undefined),
+            setOption: vi.fn(async () => undefined)
+          },
+          journalRoot: root,
+          claimKeyId: 'key-1'
+        },
+        {
+          session: () => session,
+          findSession: () => session,
+          eventSinks: { ...sinksOver(current), mintEventSink: () => attempt },
+          flush: async () => undefined,
+          serialize: async (_sessionId, task) => task(),
+          subscribers: new AgentSessionSubscribers(),
+          now: () => now
+        },
+        { sessionId, fence: reserved.record.lease.runtimeFence, spawnToken: 'failed-spawn' }
+      )
+    ).rejects.toThrow('codex app-server exited')
+    // The next attach drains the session's sink before acquiring; nothing may be stranded there.
+    expect(current.state().queuedOperations).toBe(0)
+    await expect(current.drained()).resolves.toEqual({ ok: true })
+    expect(attempt.sink.tryPublish?.()).toEqual({ accepted: false, reason: 'closed' })
   })
 })
 
@@ -421,8 +542,10 @@ describe('handoff status published for a session the host no longer holds', () =
           throw new Error('agent_session_ownership_unknown')
         },
         findSession: () => undefined,
-        eventSink: () => {
-          throw new Error('unreachable: publishing reads no sink')
+        eventSinks: {
+          eventSinkFor: unreachableSink,
+          mintEventSink: unreachableSink,
+          adoptEventSink: unreachableSink
         },
         flush: async () => undefined,
         serialize: async (_sessionId, task) => task(),

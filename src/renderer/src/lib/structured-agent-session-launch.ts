@@ -49,6 +49,7 @@ export {
   retireStructuredAgentSessionLaunchCancellationTombstone,
   shouldRetainStructuredAgentSessionLaunchTab,
   subscribeStructuredAgentLaunchStatus,
+  useStructuredAgentSessionLaunchFailureReason,
   useStructuredAgentSessionLaunchLifecycle,
   type StructuredAgentLaunchStatus,
   type StructuredAgentSessionLaunchLifecycle
@@ -134,6 +135,7 @@ function trackLaunchSettlement(
         }
         return
       }
+      state.failureReason = error instanceof Error ? error.message : String(error)
       if (error instanceof StructuredAgentSessionCreateRefusalError) {
         settleStructuredLaunchRefusal(state)
       } else if (!state.visibilityUnknown) {
@@ -158,6 +160,7 @@ function restartStructuredLaunchState(state: StructuredLaunchState): void {
     state.intent = retryStructuredAgentSessionLaunchIntent(state.intent)
   }
   resetStructuredLaunchCallers(state)
+  delete state.failureReason
   state.callers.outcome = 'pending'
   state.promise = wasVisibilityUnknown ? reconcileUnknownLaunch(state) : launchAndReconcile(state)
   trackLaunchSettlement(state, state.promise)

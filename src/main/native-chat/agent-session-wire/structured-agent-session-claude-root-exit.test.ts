@@ -106,6 +106,7 @@ describe('Claude root-exit eviction', () => {
           params,
           fence,
           hasProviderChild: true,
+          providerChildPhase: 'ready',
           acquisitionGeneration: acquisition.acquisitionGeneration ?? null
         }
       ]

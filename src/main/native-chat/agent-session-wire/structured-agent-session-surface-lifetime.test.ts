@@ -431,6 +431,17 @@ describe('a session with a turn in flight', () => {
 
     await waitForEviction()
   })
+
+  // Codex settles an admitted send only on its echo, which may never come; eviction retires it.
+  it('is evicted with an admitted send outstanding once no turn runs', async () => {
+    await attach()
+    await host.hold(SESSION, SURFACE)
+    await sendPending('admitted, never echoed')
+
+    host.release(SESSION, SURFACE)
+
+    await waitForEviction()
+  })
 })
 
 describe('startup', () => {

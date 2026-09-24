@@ -138,13 +138,16 @@ describe('attach', () => {
     })
     const params = attachParams()
 
-    await expect(host.attach(CALLER, params)).rejects.toThrow(
-      'agent_session_provider_handle_stale_fence'
-    )
-    expect(await host.attach(CALLER, params)).toMatchObject({
+    const refused = {
       ok: false,
-      refusal: { code: 'agent_session_operation_invalid' }
-    })
+      refusal: {
+        code: 'agent_session_operation_invalid',
+        message: 'agent_session_provider_handle_stale_fence',
+        ownerVerdict: 'exited'
+      }
+    }
+    expect(await host.attach(CALLER, params)).toEqual(refused)
+    expect(await host.attach(CALLER, params)).toEqual(refused)
     const releasedFence = store.getRecord(SESSION)?.lease.runtimeFence ?? 0
     expect(await host.attach(CALLER, ensureParams(releasedFence))).toMatchObject({ ok: true })
     expect(acquire).toHaveBeenCalledTimes(2)
@@ -155,7 +158,10 @@ describe('attach', () => {
   it('reaps an acquisition when process identity commit fails', async () => {
     vi.spyOn(store, 'commitProcessIdentity').mockRejectedValueOnce(new Error('commit failed'))
 
-    await expect(host.attach(CALLER, attachParams())).rejects.toThrow('commit failed')
+    await expect(host.attach(CALLER, attachParams())).resolves.toMatchObject({
+      ok: false,
+      refusal: { message: 'commit failed', ownerVerdict: 'exited' }
+    })
 
     expect(releaseAcquisition).toHaveBeenCalledWith({ sessionId: SESSION })
   })

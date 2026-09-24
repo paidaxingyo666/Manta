@@ -280,8 +280,9 @@ export async function launchStructuredAgentSession(
     throw error
   }
   if (!result.ok) {
-    const { code, message } = result.refusal
-    if (!isDefinitiveAgentSessionCreateRefusal(code)) {
+    const { code, message, ownerVerdict } = result.refusal
+    // A failed operation whose provider is proven gone is a failure a new operation may retry.
+    if (!isDefinitiveAgentSessionCreateRefusal(code) && ownerVerdict !== 'exited') {
       // Keep the focus intent: the session may exist, and recovery still has to adopt it.
       throw new StructuredAgentSessionCreateUnknownOutcomeError(message, code)
     }

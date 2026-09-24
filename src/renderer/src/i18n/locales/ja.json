@@ -17090,6 +17090,9 @@
             "failed": "チャットを開始できませんでした。",
             "unknown": "チャット接続が確認できませんでした。",
             "retry": "再試行"
+          },
+          "NativeChatStructuredSessionStatus": {
+            "starting": "{{value0}} はまだ起動中です。準備ができるまでメッセージは待機します。中止するには、このチャットを閉じてください。"
           }
         }
       },

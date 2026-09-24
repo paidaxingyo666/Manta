@@ -104,6 +104,7 @@ function createCatchup(input: Awaited<ReturnType<typeof createCatchupFixture>>) 
     store,
     session: () => ({
       hasProviderChild: false,
+      providerChildPhase: 'ready',
       journal: input.journal,
       params: {} as never,
       fence: input.fence,

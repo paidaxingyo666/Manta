@@ -17,6 +17,7 @@ import {
   type AgentSessionOperationRow
 } from '../../shared/agent-session-operation-ledger'
 import {
+  agentSessionLeaseOwnerVerdict,
   evaluateAgentSessionAcquisition,
   type AgentSessionOwnerProbe
 } from '../../shared/agent-session-lease-adjudication'
@@ -186,7 +187,13 @@ export function applyAgentSessionReservation(
     // Why: location, provider, and account are the session identity; changing one is a fork.
     throw new Error('agent_session_conflict')
   }
-  if (request.expectedFence === null) {
+  // A create may take over only a record that never bound a conversation and whose last
+  // attempt is proven gone: that is the same as creating it fresh, under a fresh provider id.
+  const recreatable =
+    existing.providerHandleChain.length === 0 &&
+    !request.adoptedHandleLink &&
+    agentSessionLeaseOwnerVerdict(existing.lease) === 'exited'
+  if (request.expectedFence === null && !recreatable) {
     throw new Error('agent_session_conflict')
   }
   const pinned = {
@@ -196,7 +203,7 @@ export function applyAgentSessionReservation(
   }
   return reserveAgentSessionOwner({
     record: pinned,
-    expectedFence: request.expectedFence,
+    expectedFence: request.expectedFence ?? existing.lease.runtimeFence,
     probe: request.probe,
     reservation
   })

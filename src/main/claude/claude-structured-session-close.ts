@@ -19,6 +19,14 @@ import { closeProcessRegistry } from '../../shared/child-process/close-process-r
 import { retireClaudeDispatchWaiters } from './claude-structured-dispatch'
 import { settledClaudeTurnEndLeaf } from './claude-structured-resume-point'
 
+/** The root's own exit was seen first-hand; only its descendants went unverified. */
+export function claudeRootExitObserved(
+  connection: ClaudeStreamJsonConnection | null | undefined
+): boolean {
+  const verdict = connection?.exitVerdict
+  return verdict?.root === 'exited' && verdict.tree === 'unverifiable'
+}
+
 export function claudeAcquisitionCleanupError(
   connection: ClaudeStreamJsonConnection | null | undefined,
   cause: unknown
@@ -27,7 +35,7 @@ export function claudeAcquisitionCleanupError(
   if (verdict?.root === 'processless') {
     return new AgentSessionPreSpawnError(cause)
   }
-  return verdict?.root === 'exited' && verdict.tree === 'unverifiable'
+  return claudeRootExitObserved(connection)
     ? new AgentSessionAcquisitionRootExitObservedError(cause)
     : new AgentSessionAcquisitionExitUnprovenError(cause)
 }

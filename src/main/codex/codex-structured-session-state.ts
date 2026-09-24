@@ -14,7 +14,7 @@ import type { AgentSessionBackgroundTaskState } from '../../shared/agent-session
 import type { CodexBackgroundTaskTracker } from './codex-background-task-tracker'
 import type { CodexJournalTranslator } from './codex-structured-journal-translation'
 import type { CodexTurnProcessSnapshot } from './codex-structured-turn-processes'
-import type { StructuredAgentSessionLifecycleEvent } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
+import type { StructuredAgentSessionEndedEvent } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 import type { CodexStructuredPermissionPolicy } from './codex-structured-permission-policy'
 
 export type CodexStructuredLaunch = {
@@ -51,7 +51,7 @@ export type CodexStructuredSessionEvent =
       codexItemId: string
       promptKey: string
     }
-  | StructuredAgentSessionLifecycleEvent
+  | StructuredAgentSessionEndedEvent
   /** Translator-only compatibility for callers that do not participate in host recovery. */
   | { type: 'ended'; sessionId: string; reason: string; observedAt?: number }
 

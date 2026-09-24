@@ -17090,6 +17090,9 @@
             "failed": "无法开始聊天。",
             "unknown": "无法确认聊天连接。",
             "retry": "重试"
+          },
+          "NativeChatStructuredSessionStatus": {
+            "starting": "{{value0}} 仍在启动中。消息会等它就绪后再发送；关闭此聊天即可放弃。"
           }
         }
       },

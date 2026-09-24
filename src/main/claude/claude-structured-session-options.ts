@@ -202,10 +202,23 @@ export async function readClaudeStructuredSessionOptions(
   timeoutMs: number | undefined
 ): Promise<AgentSessionOptionsResult> {
   const readMutationSequence = session.optionMutationSequence
-  const [catalog, settings] = await Promise.all([
-    session.connection.supportedModels({ timeoutMs }).catch(() => null),
-    session.connection.getSettings({ timeoutMs }).catch(() => null)
-  ])
+  // Before startup both requests would wait on initialize; answer from the saved options.
+  const [catalog, settings] =
+    session.startup.state === 'proven'
+      ? await Promise.all([
+          session.connection.supportedModels({ timeoutMs }).catch(() => null),
+          session.connection.getSettings({ timeoutMs }).catch(() => null)
+        ])
+      : [null, null]
+  observeClaudeSettingsReadback(session, settings, readMutationSequence)
+  return claudeStructuredSessionOptionsFrom(session, catalog, readMutationSequence)
+}
+
+function observeClaudeSettingsReadback(
+  session: ClaudeSession,
+  settings: unknown,
+  readMutationSequence: number
+): void {
   if (settings !== null && readMutationSequence === session.optionMutationSequence) {
     const effort = readClaudeSettingsEffort(settings)
     const fastMode = readClaudeSettingsFastMode(settings)
@@ -224,6 +237,17 @@ export async function readClaudeStructuredSessionOptions(
       session.fastModePerSessionOptIn = perSessionOptIn
     }
   }
+}
+
+/** The options as main already holds them, over `catalog`; asks the CLI nothing. Startup's
+ *  settings readback and restore's confirmations are applied by the time a start proves, and
+ *  the SDK answers `list_models` from its initialize result, so a started session's snapshot
+ *  passes that result here rather than paying two round trips for what it already read. */
+export function claudeStructuredSessionOptionsFrom(
+  session: ClaudeSession,
+  catalog: unknown[] | null,
+  readMutationSequence = session.optionMutationSequence
+): AgentSessionOptionsResult {
   const discovered = listedModels(catalog ? { models: catalog } : null)
   const models = discovered.length > 0 ? discovered : seedModels()
   const current = readClaudeCurrentModel(session)
