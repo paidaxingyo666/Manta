@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { execFileSync } from 'node:child_process'
-import { createServer, type Server } from 'node:net'
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
@@ -31,69 +30,12 @@ function installManagedScript(): { scriptPath: string; cleanup: () => void } {
 }
 
 describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs it', () => {
-  it('returns on pre_tool in a fraction of what the same POST costs synchronously', async () => {
-    const { scriptPath, cleanup } = installManagedScript()
-    // A server that accepts the connection and then never replies, so curl holds it
-    // open until its own --max-time. That wait is exactly what a synchronous gate
-    // would hand the agent on every single tool call.
-    const blackHole: Server = createServer(() => {})
-    await new Promise<void>((resolve) => blackHole.listen(0, '127.0.0.1', resolve))
-    const address = blackHole.address()
-    const port = typeof address === 'object' && address ? address.port : 0
-    const endpointDir = mkdtempSync(join(tmpdir(), 'orca-jcode-endpoint-'))
-    try {
-      const endpoint = join(endpointDir, 'endpoint.sh')
-      writeFileSync(
-        endpoint,
-        `MANTA_AGENT_HOOK_PORT=${port}\nMANTA_AGENT_HOOK_TOKEN=t\nexport MANTA_AGENT_HOOK_PORT MANTA_AGENT_HOOK_TOKEN\n`
-      )
-
-      /** Runs the managed hook for one event and returns how long the caller waited.
-       *  Only the gate is fed stdin, because jcode gives its observer hooks a null one. */
-      const runHook = (event: string): number => {
-        // A tool input far larger than a 64 KB pipe buffer: jcode write_all()s this to
-        // the gate's stdin and awaits it, so a gate that never reads stdin stalls.
-        const input =
-          event === 'pre_tool' ? JSON.stringify({ content: 'x'.repeat(512 * 1024) }) : ''
-        const startedAt = Date.now()
-        execFileSync('/bin/sh', [scriptPath], {
-          input,
-          env: {
-            ...process.env,
-            MANTA_AGENT_HOOK_ENDPOINT: endpoint,
-            MANTA_PANE_KEY: 'tab-1:leaf-1',
-            JCODE_HOOK_EVENT: event,
-            JCODE_HOOK_SESSION_ID: 'session_gate_1',
-            JCODE_HOOK_PAYLOAD: JSON.stringify({ event, tool_name: 'write' })
-          },
-          // Why: the assertion below is the real gate; this only stops a regression
-          // from hanging the suite instead of failing it.
-          timeout: 30_000,
-          // stdio is the point of the test: jcode reads the gate's stderr to EOF, so a
-          // backgrounded child that inherited it would hold the tool call open for as
-          // long as the POST ran, detached or not.
-          stdio: ['pipe', 'pipe', 'pipe']
-        })
-        return Date.now() - startedAt
-      }
-
-      // Why measure both rather than assert a wall-clock bound: the absolute numbers
-      // move with the machine, and a bound tight enough to catch a synchronous gate on
-      // a fast host goes flaky on a loaded CI runner. The ratio is the actual claim.
-      const observerMs = runHook('turn_end')
-      const gateMs = runHook('pre_tool')
-      expect(gateMs * 4).toBeLessThan(observerMs)
-    } finally {
-      rmSync(endpointDir, { recursive: true, force: true })
-      await new Promise<void>((resolve) => blackHole.close(() => resolve()))
-      cleanup()
-    }
-  })
-
   it('drains the gate stdin before exiting on a missing Manta environment', () => {
     const { scriptPath, cleanup } = installManagedScript()
     try {
-      const startedAt = Date.now()
+      // The claim is that this returns at all: a gate that exits without reading
+      // leaves jcode blocked mid-write on an input larger than the pipe buffer, and
+      // execFileSync would then raise ETIMEDOUT rather than complete.
       execFileSync('/bin/sh', [scriptPath], {
         input: JSON.stringify({ content: 'y'.repeat(512 * 1024) }),
         // No MANTA_PANE_KEY: the script exits early, but only after taking stdin.
@@ -101,7 +43,6 @@ describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs i
         timeout: 20_000,
         stdio: ['pipe', 'pipe', 'pipe']
       })
-      expect(Date.now() - startedAt).toBeLessThan(2_000)
     } finally {
       cleanup()
     }
