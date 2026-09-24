@@ -44,12 +44,6 @@ export class AgentSessionAcquisitionRefusal extends Error {
   }
 }
 
-export class AgentSessionRewindRefusal extends AgentSessionAcquisitionRefusal {
-  constructor(readonly rewindReason: AgentSessionRewindReason) {
-    super(`agent_session_rewind:${rewindReason}`)
-  }
-}
-
 export class AgentSessionPromptUnavailableError extends Error {
   constructor(itemId: string) {
     super(`The provider is no longer waiting on ${itemId}.`)
@@ -129,14 +123,6 @@ export type StructuredAgentSessionLifecycleEvent = {
 
 export type StructuredAgentSessionAcquireInput = {
   identity: AgentSessionJournalIdentity
-  rewind?: {
-    targetUuid: string
-    previousLeafUuid: string
-    dropsTurn?: string
-    onProved?: (leafUuid: string) => Promise<void>
-  }
-  /** Recovery restores an unproved rewind's original cursor with ordinary branch proof. */
-  rewindRecovery?: { leafUuid: string; onProved: () => Promise<void> }
   fence: number
   spawnToken: string
   options?: Readonly<Record<string, string>>

@@ -5,10 +5,9 @@
 // into different eligibility or different double-fire protection.
 //
 // Resume itself acquires a provider child, not a new send. The first resume-capable hold on a
-// childless session
-// re-acquires the provider at the cursor the record already proved — Claude's `resume` +
-// `resumeSessionAt`, Codex's thread id — which is native continuation. Nothing re-sends the user's
-// prompt: that is what makes an agent redo work it already finished.
+// childless session re-acquires the provider's own conversation — Claude's `resume` by session id,
+// Codex's thread id — which is native continuation. Nothing re-sends the user's prompt: that is
+// what makes an agent redo work it already finished.
 
 import { forEachWithConcurrency } from '../../../shared/map-with-concurrency'
 import type { StructuredAgentSessionResumeCandidate } from './structured-agent-session-restart-resume-set'

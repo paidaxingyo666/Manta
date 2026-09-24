@@ -760,29 +760,34 @@ describe('a structured Claude session over agentSession.*', () => {
         }
       }
     }
+    // A completed turn advances the durable resume point in place while the owner is live.
     expect(host.deps.store.getRecord(SESSION).providerHandleChain.at(-1)?.handle).toMatchObject({
       provider: 'claude',
-      leafUuid: null
+      leafUuid: 'assistant-leaf'
     })
+    // Claude's marker names a hook row after a turn; close must never adopt it.
+    readClaudeTranscriptLeafUuid.mockClear().mockResolvedValue('stop-hook-summary-row')
     const old = claude.live()
     const resumed = await ok<{ fence: number }>('agentSession.ensure', ensureParams(created.fence))
     expect(resumed.fence).toBe(created.fence + 1)
     expect(old.closed).toBe(true)
-    expect(resolveSessionFilePath).toHaveBeenCalledWith('claude', PROVIDER_SESSION, {
-      claudeProjectsDir: join(root, 'claude-home', 'projects')
-    })
-    expect(claude.live().launch.options).toMatchObject({
-      resume: PROVIDER_SESSION,
-      resumeSessionAt: 'provider-opened-assistant'
-    })
-    expect(host.deps.store.getRecord(SESSION).providerHandleChain.at(-1)).toMatchObject({
-      handle: {
-        provider: 'claude',
-        sessionId: PROVIDER_SESSION,
-        leafUuid: 'provider-opened-assistant'
-      },
+    // Claude owns where the conversation continues; the stored leaf is the last completed turn.
+    expect(claude.live().launch.options).toMatchObject({ resume: PROVIDER_SESSION })
+    expect(claude.live().launch.options).not.toHaveProperty('resumeSessionAt')
+    const lastCompletedTurn = {
+      handle: { provider: 'claude', sessionId: PROVIDER_SESSION, leafUuid: 'assistant-leaf' },
       origin: 'resumed'
-    })
+    }
+    expect(host.deps.store.getRecord(SESSION).providerHandleChain.at(-1)).toMatchObject(
+      lastCompletedTurn
+    )
+    // Open, close, open with no turn in between keeps that leaf and never reads the transcript.
+    const reopened = await ok<{ fence: number }>('agentSession.ensure', ensureParams(resumed.fence))
+    expect(reopened.fence).toBe(resumed.fence + 1)
+    expect(host.deps.store.getRecord(SESSION).providerHandleChain.at(-1)).toMatchObject(
+      lastCompletedTurn
+    )
+    expect(readClaudeTranscriptLeafUuid).not.toHaveBeenCalled()
   })
 
   it('completes a scripted native to TUI to native cycle with provider-history rehydration', async () => {

@@ -130,7 +130,7 @@ describe('claude structured launch resolution', () => {
     expect(first.env).toMatchObject({ [CLAUDE_SESSION_STATE_EVENTS_ENV]: '1' })
   })
 
-  it('resumes the session and leaf at the durable chain head', async () => {
+  it('resumes the durable chain head by session id and carries its leaf as bookkeeping', async () => {
     const launch = await resolverFor(
       record({
         providerHandleChain: [
@@ -152,7 +152,8 @@ describe('claude structured launch resolution', () => {
       resumed: true
     })
     expect(launch.options.resume).toBe('provider-current')
-    expect(launch.options.resumeSessionAt).toBe('leaf-current')
+    // Claude owns where the conversation continues; a stored leaf would cut or branch it.
+    expect(launch.options).not.toHaveProperty('resumeSessionAt')
     expect(launch.options.sessionId).toBeUndefined()
   })
 
@@ -164,24 +165,22 @@ describe('claude structured launch resolution', () => {
     expect(launch.env).toMatchObject({ [CLAUDE_SESSION_STATE_EVENTS_ENV]: '1' })
   })
 
-  it('refuses a durable journal leaf that diverged before resume resolution', async () => {
-    const resolve = resolverFor(
-      record({
-        providerHandleChain: [
-          {
-            handle: {
-              provider: 'claude',
-              sessionId: 'provider-current',
-              leafUuid: 'leaf-current'
-            }
-          }
-        ] as AgentSessionRecord['providerHandleChain']
-      })
-    )
+  it('launches when only the bookkeeping leaf moved, and refuses a changed session', async () => {
+    const resolve = resolverFor(RESUMABLE)
 
-    await expect(resolve({ identity: identityAt('leaf-stale') })).rejects.toThrow(
-      'durable resume identity changed before spawn'
-    )
+    // A failed turn-end or exit write leaves the identity's leaf behind the record's.
+    await expect(resolve({ identity: identityAt('leaf-stale') })).resolves.toMatchObject({
+      providerSessionId: 'provider-current',
+      resumeLeafUuid: 'leaf-current'
+    })
+    await expect(
+      resolve({
+        identity: {
+          ...IDENTITY,
+          providerHandle: { kind: 'claude', sessionId: 'provider-other', leafUuid: 'leaf-current' }
+        }
+      })
+    ).rejects.toThrow('durable resume identity changed before spawn')
   })
 
   it('keeps session-only resume when the durable handle has no leaf', async () => {
@@ -200,7 +199,7 @@ describe('claude structured launch resolution', () => {
     )({ identity: identityAt(null) })
 
     expect(launch.options.resume).toBe('provider-current')
-    expect(launch.options.resumeSessionAt).toBeUndefined()
+    expect(launch.options).not.toHaveProperty('resumeSessionAt')
   })
 
   // Agent Permissions is stored as the bypass flag inside the launch arguments, so presence of

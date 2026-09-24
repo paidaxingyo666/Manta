@@ -44,8 +44,6 @@ export type ClaudeStructuredSdkOptions = Pick<
   | 'allowDangerouslySkipPermissions'
   | 'sessionId'
   | 'resume'
-  | 'resumeSessionAt'
-  | 'resumeDropsTurn'
 >
 
 /**
@@ -95,6 +93,7 @@ export type ClaudeStructuredLaunch = {
   env?: Record<string, string>
   claudeConfigDir: string
   providerSessionId: string
+  /** The previous head leaf, carried into the publication link; never a resume argument. */
   resumeLeafUuid: string | null
   resumed: boolean
 }
@@ -186,8 +185,7 @@ export function createClaudeStructuredLaunchResolver(
     if (
       head?.handle.provider === 'claude' &&
       (identity.providerHandle.kind !== 'claude' ||
-        identity.providerHandle.sessionId !== head.handle.sessionId ||
-        identity.providerHandle.leafUuid !== head.handle.leafUuid)
+        identity.providerHandle.sessionId !== head.handle.sessionId)
     ) {
       throw new Error('claude durable resume identity changed before spawn')
     }
@@ -244,11 +242,9 @@ export function createClaudeStructuredLaunchResolver(
         ...CLAUDE_STRUCTURED_BASE_OPTIONS,
         ...permission,
         extraArgs: { ...CLAUDE_STRUCTURED_BASE_OPTIONS.extraArgs, ...permission.extraArgs },
+        // Claude owns where a resumed conversation continues; the stored leaf is Manta's bookkeeping.
         ...(head?.handle.provider === 'claude'
-          ? {
-              resume: providerSessionId,
-              ...(head.handle.leafUuid === null ? {} : { resumeSessionAt: head.handle.leafUuid })
-            }
+          ? { resume: providerSessionId }
           : { sessionId: providerSessionId })
       },
       cwd: await deps.resolveWorkspacePath(record.location.workspaceId),
