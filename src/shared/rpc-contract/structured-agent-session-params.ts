@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isAgentSessionSurfaceTabId } from '../agent-session-surface-tab-id'
 import { isAgentSessionId } from '../agent-session-record'
 import { normalizeExecutionHostId } from '../execution-host'
 import {
@@ -114,7 +115,16 @@ export const CreateIntentParams = z
     envelope: MutationEnvelope,
     worktree: Identifier('Invalid worktree selector'),
     agent: z.enum(['claude', 'codex']),
-    resumeFrom: ResumeSource.optional()
+    resumeFrom: ResumeSource.optional(),
+    /**
+     * The tab id the client reserved for this chat, so it can place the tab before the reply. The
+     * host owns the id from here: it is persisted on the session record and is what the host's tab
+     * snapshot will publish, so it must be a host tab id, as `agent.launch` requires of `paneKey`.
+     *
+     * This object is strict, so an older host refuses a payload carrying it. A client sends it
+     * only after `AGENT_SESSION_CREATE_TAB_ID_RUNTIME_CAPABILITY` is advertised.
+     */
+    tabId: z.string().refine(isAgentSessionSurfaceTabId, 'Invalid chat tab ID').optional()
   })
   .strict()
 

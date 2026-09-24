@@ -254,7 +254,8 @@ export async function performAttach(
       sessionId,
       fence,
       page: readAgentSessionHydrationPage(attached.journal, fence),
-      unconfirmedClientMessageIds: attached.unconfirmedClientMessageIds
+      unconfirmedClientMessageIds: attached.unconfirmedClientMessageIds,
+      ...(record.surfaceTabId ? { tabId: record.surfaceTabId } : {})
     }
   }
 }

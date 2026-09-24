@@ -20,6 +20,7 @@ import {
   isAgentSessionRecord,
   type AgentSessionRecord
 } from '../../shared/agent-session-record'
+import { structuredAgentSessionTabId } from '../../shared/structured-agent-session-projection'
 import { agentSessionStoreBackupPath as backupPath } from './agent-session-record-store-write'
 export { saveAgentSessionStore } from './agent-session-record-store-write'
 import { parseVisibleSessionIds } from './agent-session-visible-tab-index'
@@ -71,6 +72,28 @@ function emptyState(hostId: string): AgentSessionStoreState {
     visibleSessionIds: new Set(),
     visibleSessionIdsIndexPresent: false
   }
+}
+
+/**
+ * Gives every record written before the host owned a chat's tab id the string clients derived for
+ * it, so read state, notification ids and worker rows keyed by that id stay valid on upgrade.
+ *
+ * Runs once per open, after the disk revision is taken and before the load rewrite: it is not part
+ * of parsing, because a parsed state must hash to what is on disk or every transaction would read
+ * the file as externally changed. Returns how many records it filled.
+ */
+export function backfillAgentSessionSurfaceTabIds(state: AgentSessionStoreState): number {
+  let filled = 0
+  for (const [sessionId, record] of state.records) {
+    if (record.surfaceTabId === undefined) {
+      state.records.set(sessionId, {
+        ...record,
+        surfaceTabId: structuredAgentSessionTabId(sessionId)
+      })
+      filled += 1
+    }
+  }
+  return filled
 }
 
 export function agentSessionStoreRevision(state: AgentSessionStoreState): string {

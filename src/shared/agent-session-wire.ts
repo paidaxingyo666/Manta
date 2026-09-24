@@ -317,6 +317,8 @@ export type AgentSessionAttachResult = {
   page: AgentSessionHistoryPage
   /** Submissions the crash boundary settled as `unknown` while attaching. */
   unconfirmedClientMessageIds: string[]
+  /** The host-owned id of the tab that shows this chat. Absent from hosts that predate it. */
+  tabId?: string
 }
 
 export type AgentSessionSendResult = {

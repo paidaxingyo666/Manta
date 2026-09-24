@@ -25,6 +25,7 @@
  * injected as a factory instead of branched on here.
  */
 
+import { parsePaneKey } from '../../shared/stable-pane-id'
 import type {
   AgentLaunchIntent,
   AgentLaunchResult,
@@ -237,14 +238,22 @@ async function createSurface(
 ): Promise<CreatedSurface> {
   const { intent, surfaces } = execution
   if (settled.mode === 'structured' && isStructuredProvider(intent.agent)) {
+    // One reservation serves either route: the tab half of the reserved pane is the chat's tab.
+    const reservedTabId = intent.paneKey ? parsePaneKey(intent.paneKey)?.tabId : undefined
     const session = await surfaces.createStructuredSession({
       worktreeId,
       agent: intent.agent,
       ...(intent.sessionOptions ? { options: intent.sessionOptions } : {}),
-      ...(intent.sessionId ? { sessionId: intent.sessionId } : {})
+      ...(intent.sessionId ? { sessionId: intent.sessionId } : {}),
+      ...(reservedTabId ? { tabId: reservedTabId } : {})
     })
     return {
-      outcome: { kind: 'structured', sessionId: session.sessionId, handle: session.handle },
+      outcome: {
+        kind: 'structured',
+        sessionId: session.sessionId,
+        handle: session.handle,
+        ...(session.tabId ? { tabId: session.tabId } : {})
+      },
       structured: session,
       ...ignoredStructuredAgentArgsWarning(intent)
     }

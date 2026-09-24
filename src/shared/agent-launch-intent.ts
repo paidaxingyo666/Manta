@@ -94,7 +94,15 @@ export type AgentLaunchIntent = {
 
 /** The surface the host actually created. */
 export type AgentLaunchOutcome =
-  | { kind: 'structured'; sessionId: string; handle: string }
+  | {
+      kind: 'structured'
+      sessionId: string
+      handle: string
+      /** The host-owned id of the tab that shows this chat: the tab half of the reserved `paneKey`
+       *  when one was sent, else the one the host recorded. Identity, not placement, like the
+       *  terminal arm's `paneKey`. Absent from hosts that predate it. */
+      tabId?: string
+    }
   | {
       kind: 'terminal'
       handle: string
@@ -241,6 +249,7 @@ function isAgentLaunchOutcome(value: unknown): value is AgentLaunchOutcome {
     handle?: unknown
     sessionId?: unknown
     paneKey?: unknown
+    tabId?: unknown
   }
   if (typeof outcome.handle !== 'string' || outcome.handle.length === 0) {
     return false
@@ -252,7 +261,9 @@ function isAgentLaunchOutcome(value: unknown): value is AgentLaunchOutcome {
       outcome.paneKey === undefined || typeof outcome.paneKey === 'string'
     : outcome.kind === 'structured' &&
         typeof outcome.sessionId === 'string' &&
-        outcome.sessionId.length > 0
+        outcome.sessionId.length > 0 &&
+        // Optional on the same terms as the terminal arm's `paneKey`.
+        (outcome.tabId === undefined || typeof outcome.tabId === 'string')
 }
 
 function isAgentLaunchModeReceipt(value: unknown): value is AgentLaunchModeReceipt {

@@ -305,7 +305,13 @@ export const ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES = [
 export const ANTIGRAVITY_CONFIGURED_MODEL_RUNTIME_CAPABILITY =
   'git.antigravity-configured-model.v1' as const
 
+// Why: `agentSession.create` is a strict object, so an older host refuses a payload carrying the
+// reserved `tabId` rather than ignoring it. A client sends the field only to a host advertising this.
+export const AGENT_SESSION_CREATE_TAB_ID_RUNTIME_CAPABILITY =
+  'agentSession.create.tab-id.v1' as const
+
 export const RUNTIME_CAPABILITIES = [
+  AGENT_SESSION_CREATE_TAB_ID_RUNTIME_CAPABILITY,
   ANTIGRAVITY_CONFIGURED_MODEL_RUNTIME_CAPABILITY,
   'files.pathsExist',
   'runtime.status.compat.v1',

@@ -23,7 +23,6 @@ import {
 import {
   AGENT_SESSION_RECORD_SCHEMA_VERSION,
   agentSessionExecutionLocationsEqual,
-  isAgentSessionLaunchArgs,
   isAgentSessionLaunchEnv,
   isAgentSessionOptions,
   type AgentSessionAccountHome,
@@ -32,6 +31,8 @@ import {
   type AgentSessionLaunchEnv,
   type AgentSessionRecord
 } from '../../shared/agent-session-record'
+import { isAgentSessionLaunchArgs } from '../../shared/agent-session-launch-args'
+import { isAgentSessionSurfaceTabId } from '../../shared/agent-session-surface-tab-id'
 import {
   agentSessionProviderHandleRoot,
   type AgentSessionHandleProvider,
@@ -54,6 +55,9 @@ export type AgentSessionReserveRequest = {
   launchEnv?: AgentSessionLaunchEnv
   /** Initial provider options persisted before the first process is acquired. */
   options?: Readonly<Record<string, string>>
+  /** The tab id this conversation shows under. Pinned on first reservation; a later reservation of
+   *  an existing record keeps the record's own. Refused when another record already holds it. */
+  surfaceTabId?: string
   /** Set only when this create adopts an existing provider conversation. Seeds the handle chain so
    *  the adapter resumes; without it a new record has never proved a thread and starts a fresh one. */
   adoptedHandleLink?: AgentSessionProviderHandleLink
@@ -170,6 +174,7 @@ export function applyAgentSessionReservation(
     if (request.expectedFence !== null) {
       throw new Error('agent_session_checkpoint_stale')
     }
+    assertSurfaceTabIdUnheld(state, request)
     return { record: createAgentSessionRecord(request, reservation), disposition: 'created' }
   }
   if (
@@ -232,6 +237,25 @@ function assertAdoptedConversationUnowned(
   }
 }
 
+/** A tab id names one conversation. Two records under one id would give two chats one tab, one
+ *  read-state key and one notification id, so the second reservation is refused as a conflict. */
+function assertSurfaceTabIdUnheld(
+  state: AgentSessionStoreState,
+  request: AgentSessionReserveRequest
+): void {
+  if (request.surfaceTabId === undefined) {
+    return
+  }
+  if (!isAgentSessionSurfaceTabId(request.surfaceTabId)) {
+    throw new Error('agent_session_operation_invalid')
+  }
+  for (const record of state.records.values()) {
+    if (record.sessionId !== request.sessionId && record.surfaceTabId === request.surfaceTabId) {
+      throw new Error('agent_session_conflict')
+    }
+  }
+}
+
 function createAgentSessionRecord(
   request: AgentSessionReserveRequest,
   reservation: AgentSessionReservation
@@ -247,6 +271,7 @@ function createAgentSessionRecord(
     accountHome: request.accountHome,
     ...(request.options ? { options: { ...request.options } } : {}),
     ...(request.launchArgs ? { launchArgs: [...request.launchArgs] } : {}),
+    ...(request.surfaceTabId ? { surfaceTabId: request.surfaceTabId } : {}),
     createdAt: request.now,
     updatedAt: request.now,
     lease: {
