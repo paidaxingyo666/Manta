@@ -11854,7 +11854,7 @@
           "allowPublishingDescription": "URL이 있는 사람은 누구나 열 수 있는 링크로 HTML 및 Markdown 파일을 게시하세요. 기존 링크는 아티팩트에서 삭제할 때까지 유지됩니다.",
           "howToDescriptionDisabled": "HTML 또는 Markdown 파일을 공개 링크로 게시하려면 위에서 아티팩트 공유를 활성화하세요.",
           "allowPublishingSearchDescription": "Manta가 HTML 및 Markdown 파일을 공개 링크로 게시하도록 허용합니다.",
-          "keywordArtifacts": "인공물",
+          "keywordArtifacts": "아티팩트",
           "keywordShare": "공유",
           "keywordPublish": "출판하다",
           "keywordPublic": "공공의",
