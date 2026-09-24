@@ -358,6 +358,46 @@ describe('respondToPrompt', () => {
     expect(answerPrompt).toHaveBeenCalledTimes(1)
   })
 
+  it("keeps a subagent's approval the subagent's once the user answers it", async () => {
+    // The answer revises the row without naming a producer, so it keeps the asker's.
+    await attach()
+    const child = { agentId: 'thread-child', producerKind: 'agent' as const }
+    const identity = {
+      provider: 'codex' as const,
+      threadId: 'thread-child',
+      turnId: 'c',
+      ordinal: 1
+    }
+    acquire.mock.calls.at(-1)?.[0].events?.appendItem(
+      identity,
+      {
+        kind: 'approval',
+        title: 'Run ls?',
+        detail: null,
+        options: [{ id: 'allow', label: 'Allow' }],
+        resolution: { state: 'pending', selectedOptionId: null, resolvedBy: null, resolvedAt: null }
+      },
+      child
+    )
+    await host.flushStreamedEvents(SESSION)
+    const itemId = agentJournalItemKey(identity)
+    const fields = { itemId, expectedRevision: 1, optionId: 'allow' }
+
+    await host.respondToPrompt(CALLER, {
+      envelope: envelope('agentSession.respondTo:approval', fields),
+      kind: 'approval',
+      ...fields
+    })
+
+    const page = host.history({ sessionId: SESSION, direction: 'tail' })
+    const answered = page.ok ? page.page.items.find((item) => item.itemId === itemId) : null
+    expect(answered).toMatchObject({
+      revision: 2,
+      body: { resolution: { state: 'resolved' } },
+      ...child
+    })
+  })
+
   it('refuses a second answer to one prompt and says which answer won', async () => {
     await attach()
     const prompt = await seedApproval()

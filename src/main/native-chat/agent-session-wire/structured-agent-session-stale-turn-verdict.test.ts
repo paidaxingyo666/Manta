@@ -1,7 +1,11 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
 import type { AgentJournalRenderItem } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
 import {
   runningTurnLifecycleRevisions,
   settleStaleSessionStateOnAcquire,
@@ -255,6 +259,52 @@ describe('stale session state on a cold acquire', () => {
         }
       ]
     })
+  })
+
+  it("cancels a subagent's lost prompt as the subagent's, and the session's own as its own", async () => {
+    // The sweep names no producer, so each cancelled row keeps the one it had.
+    const root = await mkdtemp(join(tmpdir(), 'orca-stale-session-'))
+    const journals = createTrackedJournalOpener()
+    try {
+      const journal = await journals.open({
+        identity: {
+          sessionId: 'session-1',
+          workspaceId: 'workspace-1',
+          hostId: 'local',
+          agent: 'codex',
+          providerHandle: { kind: 'codex', threadId: THREAD }
+        },
+        journalDir: root,
+        now: () => 1_000
+      })
+      const child = { agentId: 'thread-child', producerKind: 'agent' as const }
+      const { body } = promptItem('pending', 1)
+      const prompt = (threadId: string) => ({
+        provider: 'codex' as const,
+        threadId,
+        turnId: 'turn-1',
+        ordinal: 1
+      })
+      await journal.appendItem(prompt('thread-child'), body, { fence: 1, ...child })
+      await journal.appendItem(prompt(THREAD), body, { fence: 1 })
+
+      await settleStaleSessionStateOnAcquire({
+        journal,
+        sessionId: 'session-1',
+        fence: 2,
+        acquisitionGeneration: 'generation-2'
+      })
+
+      expect(
+        journal.snapshot().items.map((item) => [item.body.kind, item.revision, item.agentId])
+      ).toEqual([
+        ['approval', 2, 'thread-child'],
+        ['approval', 2, undefined]
+      ])
+    } finally {
+      await journals.closeAll()
+      await rm(root, { recursive: true, force: true })
+    }
   })
 
   it('writes nothing when no turn is running and keys on the journal position without a generation', async () => {

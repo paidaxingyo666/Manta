@@ -248,6 +248,85 @@ describe('dead structured-session generation settlement', () => {
       })
     ])
   })
+
+  it("keeps a subagent's settled rows the subagent's, in one batch and after a reopen", async () => {
+    // One batch settles rows several agents wrote and names none of them. Each
+    // row keeps the producer its first write named, including after a replay.
+    const child = { agentId: 'thread-child', producerKind: 'agent' as const }
+    const childCall = {
+      provider: 'codex' as const,
+      threadId: 'thread-child',
+      turnId: 'c',
+      ordinal: 1
+    }
+    const childAsk = {
+      provider: 'codex' as const,
+      threadId: 'thread-child',
+      turnId: 'c',
+      ordinal: 2
+    }
+    await seedUnfinishedWork()
+    await journal.appendItem(
+      childCall,
+      { kind: 'tool-call', name: 'shell', input: { command: 'ls' }, state: 'running' },
+      { fence: 7, ...child }
+    )
+    await journal.appendItem(
+      childAsk,
+      {
+        kind: 'approval',
+        title: 'Run ls?',
+        detail: null,
+        options: [{ id: 'yes', label: 'Allow' }],
+        resolution: { state: 'pending', selectedOptionId: null, resolvedBy: null, resolvedAt: null }
+      },
+      { fence: 7, ...child }
+    )
+
+    await settleStructuredAgentSessionDeadGeneration({
+      journal,
+      sessionId: SESSION,
+      fence: 8,
+      settlementId: `restart-eviction:${SESSION}:8`,
+      pendingSubmissionReason: 'provider_exited_before_acknowledgement',
+      verdict: { state: 'unverifiable' },
+      showUnexpectedExitOutcome: false
+    })
+    const settledProducers = (): [string, number, string | undefined][] =>
+      journal
+        .snapshot()
+        .items.map((item): [string, number, string | undefined] => [
+          item.body.kind,
+          item.revision,
+          item.agentId
+        ])
+
+    const settled = settledProducers()
+    // Every seeded row was revised by the batch, so these are revision-2 producers.
+    expect(settled).toEqual([
+      ['message', 0, undefined],
+      ['tool-call', 2, undefined],
+      ['approval', 2, undefined],
+      ['question', 2, undefined],
+      ['turn', 2, undefined],
+      ['tool-call', 2, 'thread-child'],
+      ['approval', 2, 'thread-child']
+    ])
+
+    await journal.close()
+    journal = await openAgentSessionJournal({
+      identity: {
+        sessionId: SESSION,
+        workspaceId: 'workspace-1',
+        hostId: 'local',
+        agent: 'codex',
+        providerHandle: { kind: 'codex', threadId: THREAD }
+      },
+      journalDir: root,
+      now: () => 1_000
+    })
+    expect(settledProducers()).toEqual(settled)
+  })
 })
 
 describe('whether a dead generation interrupted anything', () => {
