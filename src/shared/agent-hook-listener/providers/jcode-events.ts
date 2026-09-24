@@ -52,6 +52,9 @@ export function normalizeJcodeEvent(
   )
   // Why the error text first: a failed turn's own message beats the reply it never replaced.
   const errorText = hookPayload.status === 'error' ? readString(hookPayload, 'error') : undefined
+  // Why flag it: an unmarked message reads as assistant prose downstream, so a failed
+  // tool's stderr would render as jcode's reply in native chat.
+  const errorIsToolOutput = errorText !== undefined && eventName === 'post_tool'
 
   return normalizeAgentStatusPayload({
     state: stateName,
@@ -63,6 +66,9 @@ export function normalizeJcodeEvent(
     toolName: snapshot.toolName,
     toolInput: snapshot.toolInput,
     interactivePrompt: snapshot.interactivePrompt,
-    lastAssistantMessage: errorText ?? snapshot.lastAssistantMessage
+    lastAssistantMessage: errorText ?? snapshot.lastAssistantMessage,
+    lastAssistantMessageIsToolOutput: errorIsToolOutput
+      ? true
+      : snapshot.lastAssistantMessageIsToolOutput
   })
 }

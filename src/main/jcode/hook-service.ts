@@ -35,9 +35,17 @@ import {
 
 function getManagedScript(target: 'local' | 'posix' = 'local'): string {
   if (target === 'local' && process.platform === 'win32') {
+    // Why a temp file rather than stdin: the shared builder posts `payload@-`, and on
+    // Windows jcode's payload never reaches stdin — the pre_tool gate has already
+    // drained it, and observer hooks are given a null stdin. Without this the server
+    // sees no event name and normalizeJcodeEvent drops every event, so a Windows pane
+    // would show no jcode status at all.
+    const payloadFile = '%ORCA_JCODE_PAYLOAD_FILE%'
     return [
       '@echo off',
-      'setlocal',
+      // EnableDelayedExpansion so `!JCODE_HOOK_PAYLOAD!` is written verbatim: plain
+      // `%VAR%` expansion re-parses the JSON's quotes and `&` as batch syntax.
+      'setlocal EnableDelayedExpansion',
       // Why: endpoint file holds the live port/token; a PTY that outlives a Manta restart carries stale env, so `call` it to refresh (else PTY env).
       'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
       // Why the guard comes first here, unlike the POSIX script: on Windows a hook
@@ -50,7 +58,14 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       // to our stdin and waits for us, so drain it before the POST or a tool input
       // larger than the pipe buffer stalls the agent mid-write.
       `if "%JCODE_HOOK_EVENT%"=="pre_tool" ${WINDOWS_HOOK_STDIN_DRAIN_COMMAND}`,
-      buildWindowsAgentHookPostCommand('jcode'),
+      `set "ORCA_JCODE_PAYLOAD_FILE=%TEMP%\\orca-jcode-hook-%RANDOM%%RANDOM%.json"`,
+      `>"${payloadFile}" echo(!JCODE_HOOK_PAYLOAD!`,
+      `type "${payloadFile}" | ${buildWindowsAgentHookPostCommand('jcode', [
+        '  --data-urlencode "hook_event_name=%JCODE_HOOK_EVENT%" ^',
+        '  --data-urlencode "session_id=%JCODE_HOOK_SESSION_ID%" ^',
+        '  --data-urlencode "cwd=%JCODE_HOOK_CWD%" ^'
+      ])}`,
+      `del "${payloadFile}" 2>nul`,
       'exit /b 0',
       ...buildWindowsHookStdinDrainEpilogue(),
       ''

@@ -119,6 +119,39 @@ turn_end = ${tomlQuoteString(MANAGED_COMMAND)}
     expect(result.content).not.toContain(`turn_end = ${tomlQuoteString(MANAGED_COMMAND)}`)
   })
 
+  it('never deletes a user hook whose comment merely mentions the managed script', () => {
+    // Why: matching the raw line treated the comment as the value — real config loss.
+    const source = `[hooks]
+turn_end = "~/bin/mine" # replaces agent-hooks/jcode-hook.sh
+`
+    const removed = removeJcodeManagedHooks(source, 'jcode-hook.sh')
+    expect(removed.changed).toBe(false)
+    expect(removed.content).toContain('~/bin/mine')
+    const applied = applyJcodeManagedHooks(source, EVENTS, MANAGED_COMMAND, 'jcode-hook.sh')
+    expect(applied.userOwnedEvents).toContain('turn_end')
+  })
+
+  it('repoints a managed entry left behind by a copied home or a platform switch', () => {
+    // Why: isManaged matches any agent-hooks/jcode-hook path, but getStatus demands
+    // the exact script path — a stale entry stuck the install on `partial` forever
+    // with no Manta action able to repair it.
+    const stale = '/Users/old/.manta/agent-hooks/jcode-hook.sh'
+    const source = `[hooks]\nturn_end = ${tomlQuoteString(stale)}\n`
+    const result = applyJcodeManagedHooks(source, EVENTS, MANAGED_COMMAND, 'jcode-hook.sh')
+    expect(result.userOwnedEvents).toEqual([])
+    expect(result.content).toContain(`turn_end = ${tomlQuoteString(MANAGED_COMMAND)}`)
+    expect(result.content).not.toContain(stale)
+  })
+
+  it('accepts a quoted hooks table and a commented scalar', () => {
+    const source = `['hooks']\npre_tool_timeout_ms = 5000 # ms\n`
+    expect(parseJcodeHooksTable(source)).toEqual({})
+    const result = applyJcodeManagedHooks(source, EVENTS, MANAGED_COMMAND, 'jcode-hook.sh')
+    // Why: a second [hooks] table makes jcode reject the whole config.
+    expect(result.content.match(/^\[?'?hooks/gm)?.length).toBe(1)
+    expect(result.content).toContain('pre_tool_timeout_ms = 5000 # ms')
+  })
+
   it('keeps CRLF line endings when editing a Windows-owned config', () => {
     const source = '[hooks]\r\nturn_end = "~/bin/mine"\r\n'
     const result = applyJcodeManagedHooks(source, EVENTS, MANAGED_COMMAND, 'jcode-hook.sh')

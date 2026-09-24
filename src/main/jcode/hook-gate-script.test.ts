@@ -40,7 +40,9 @@ describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs i
         input: JSON.stringify({ content: 'y'.repeat(512 * 1024) }),
         // No MANTA_PANE_KEY: the script exits early, but only after taking stdin.
         env: { ...process.env, JCODE_HOOK_EVENT: 'pre_tool', MANTA_PANE_KEY: '' },
-        timeout: 20_000,
+        // Generous on purpose: the claim is "does not hang", not "is fast", and a
+        // tight bound here is the same flake the dropped latency test had.
+        timeout: 60_000,
         stdio: ['pipe', 'pipe', 'pipe']
       })
     } finally {
@@ -90,6 +92,18 @@ describe('the Windows managed hook', () => {
     // forever and strands a console window (#11549). Exiting early instead costs
     // only jcode's own 5s pre_tool timeout, which fails open.
     expect(script).toContain('more.com')
+  })
+
+  it('posts jcode\u2019s payload, which never reaches stdin on Windows', () => {
+    const script = windowsScript()
+    // Why: the shared builder reads `payload@-`, but the gate has already drained
+    // stdin and observer hooks get a null one — so the payload has to come from the
+    // env var via a temp file, or the server sees no event name and drops everything.
+    expect(script).toContain('setlocal EnableDelayedExpansion')
+    expect(script).toContain('echo(!JCODE_HOOK_PAYLOAD!')
+    expect(script).toMatch(/type "%ORCA_JCODE_PAYLOAD_FILE%" \| .*curl\.exe/)
+    expect(script).toContain('hook_event_name=%JCODE_HOOK_EVENT%')
+    expect(script).toContain('del "%ORCA_JCODE_PAYLOAD_FILE%"')
   })
 
   it('is a CRLF batch file that always exits 0', () => {

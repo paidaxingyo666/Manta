@@ -17,6 +17,7 @@ import {
   extractString,
   normalizeTitleText
 } from './session-scanner-values'
+import { numberValue } from './session-scanner-token-values'
 
 type ParserSessionOptions = {
   executionHostId?: ExecutionHostId
@@ -31,9 +32,27 @@ const PREVIEW_ROLE_BY_MESSAGE_ROLE: Record<string, 'user' | 'assistant' | 'tool'
   tool: 'tool'
 }
 
-/** jcode marks injected session-context envelopes with role user + display_role system. */
+/** Messages jcode itself renders as internal rather than conversation.
+ *
+ *  `display_role` is `System | BackgroundTask` (StoredDisplayRole in
+ *  crates/jcode-session-types/src/lib.rs), and a scheduled run opens with a
+ *  `[Scheduled task]` user turn. Counting either inflates the message count and can
+ *  take over the title and preview. */
 function isInjectedContextMessage(message: Record<string, unknown>): boolean {
-  return message.display_role === 'system' || message.role === 'system'
+  if (message.display_role === 'system' || message.display_role === 'background_task') {
+    return true
+  }
+  if (message.role === 'system') {
+    return true
+  }
+  const text = extractContentText(message.content) ?? ''
+  return text.startsWith('[Scheduled task]') || text.startsWith('<system-reminder>')
+}
+
+/** Sum of a stored message's usage, matching the other parsers' input+output total. */
+function jcodeMessageTokens(message: Record<string, unknown>): number {
+  const usage = asRecord(message.token_usage)
+  return usage ? numberValue(usage.input_tokens) + numberValue(usage.output_tokens) : 0
 }
 
 export async function parseJcodeSessionFile(
@@ -75,6 +94,12 @@ export function parseJcodeSessionContent(
     messages: options.messages
   })
   accumulator.model = extractString(record.model)
+  // Why before the message walk: a session the user named keeps that name, rather
+  // than being retitled from whatever its first prompt happened to say.
+  accumulator.title =
+    normalizeTitleText(extractString(record.custom_title) ?? '') ||
+    normalizeTitleText(extractString(record.title) ?? '') ||
+    null
   accumulator.cwd = extractString(record.working_dir) ?? extractString(record.working_directory)
   updateTimeline(accumulator, record.created_at)
   updateTimeline(accumulator, record.updated_at)
@@ -108,5 +133,6 @@ function consumeJcodeMessage(
     }
   }
   accumulator.messageCount++
+  accumulator.totalTokens += jcodeMessageTokens(messageRecord)
   addPreviewContent(accumulator, role, content, messageRecord.timestamp)
 }

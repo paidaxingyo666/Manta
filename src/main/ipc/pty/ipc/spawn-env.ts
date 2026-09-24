@@ -17,6 +17,7 @@ import {
   CLAUDE_AUTH_SWITCH_IN_PROGRESS_MESSAGE,
   hasClaudeAuthEnvConflict
 } from '../../../claude-accounts/environment'
+import { prewarmJcodeDaemon } from '../../../jcode/daemon-prewarm'
 import { LocalPtyProvider } from '../../../providers/local-pty-provider'
 import { resolvePathEnvKey } from '../../../pty/windows-environment-path'
 import { routesFreshSpawnsToLocalProvider } from '../host-env/fresh-spawn-routing'
@@ -153,10 +154,31 @@ export async function assemblePtyIpcSpawnEnv(ctx: PtyIpcSpawnState): Promise<voi
       // Why: LocalPtyProvider.spawn creates the dir async; daemon-host spawns
       // skip that provider, so ensure sync here — an extra await before
       // provider.spawn would reorder the pane-spawn reservation race.
+      let runtimeDirReady = true
       if (ctx.isDaemonHostSpawn) {
-        mkdirSync(jcodeEnv[JCODE_RUNTIME_DIR_ENV_KEY], { recursive: true })
+        try {
+          mkdirSync(jcodeEnv[JCODE_RUNTIME_DIR_ENV_KEY], { recursive: true })
+        } catch {
+          // Why non-fatal: this dir is stamped on every local pane, so an EACCES on
+          // a shared /tmp/orca-jcode or a read-only TMPDIR would stop a plain shell
+          // from opening. Without it jcode falls back to its own default daemon.
+          runtimeDirReady = false
+        }
       }
-      Object.assign(ctx.baseEnv, jcodeEnv)
+      if (runtimeDirReady) {
+        Object.assign(ctx.baseEnv, jcodeEnv)
+        // Why here too: daemon-host spawns never reach LocalPtyProvider.spawn, so
+        // without this the pre-warm — the whole point of which is to beat jcode's
+        // 5s socket budget on a cold runtime dir — would not fire for those panes.
+        if (ctx.isDaemonHostSpawn) {
+          prewarmJcodeDaemon({
+            launchAgent: args.launchAgent,
+            runtimeDir: jcodeEnv[JCODE_RUNTIME_DIR_ENV_KEY],
+            cwd: args.cwd,
+            env: ctx.baseEnv
+          })
+        }
+      }
     }
   }
   ctx.validatedPaneKey = ctx.stablePaneKey

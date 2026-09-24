@@ -10,7 +10,7 @@ import {
   updateTomlLineScanState,
   parseTomlSingleLineStringValue
 } from '../codex/config-toml-line-scan'
-import { parseTomlKeyPath } from '../codex/config-toml-key-path'
+import { parseTomlKeyPath, parseTomlTableHeaderPath } from '../codex/config-toml-key-path'
 import { createManagedCommandMatcher } from '../agent-hooks/installer-utils'
 
 export type JcodeHooksTable = Record<string, string>
@@ -27,7 +27,7 @@ export function parseJcodeHooksTable(content: string): JcodeHooksTable | null {
     }
     const header = getTomlTableHeader(line)
     if (header) {
-      inHooksTable = parseTomlTablePath(header)?.join('.') === 'hooks'
+      inHooksTable = isHooksTableHeader(header)
       state = updateTomlLineScanState(state, line)
       continue
     }
@@ -59,18 +59,21 @@ export function parseJcodeHooksTable(content: string): JcodeHooksTable | null {
   return hooks
 }
 
-const TOML_SCALAR_VALUE_RE = /^\s*(?:true|false|[-+]?\d[\d_]*(?:\.[\d_]+)?(?:[eE][-+]?\d+)?)\s*$/
+// Why the comment tail: jcode ships `pre_tool_timeout_ms = 5000` and a user may
+// annotate it. Rejecting that set parseError, which made install() and getStatus()
+// report `error` and blocked the whole integration over one ordinary comment.
+const TOML_SCALAR_VALUE_RE =
+  /^\s*(?:true|false|[-+]?\d[\d_]*(?:\.[\d_]+)?(?:[eE][-+]?\d+)?)\s*(?:#.*)?\r?$/
 
 function isTomlScalarValue(line: string, offset: number): boolean {
   return TOML_SCALAR_VALUE_RE.test(line.slice(offset))
 }
 
-function parseTomlTablePath(header: string): string[] | null {
-  const trimmed = header.trim().replace(/^\[+|\]+$/g, '')
-  if (trimmed.length === 0) {
-    return null
-  }
-  return trimmed.split('.').map((segment) => segment.trim().replace(/^"|"$/g, ''))
+// Why the shared parser: it already handles quoted (`['hooks']`) and dotted keys.
+// Rolling our own missed those spellings, so apply() appended a SECOND [hooks]
+// table and jcode then failed to parse the whole config.
+function isHooksTableHeader(header: string): boolean {
+  return parseTomlTableHeaderPath(header)?.segments.join('.') === 'hooks'
 }
 
 export function tomlQuoteString(value: string): string {
@@ -99,6 +102,7 @@ export function applyJcodeManagedHooks(
   let inHooksTable = false
   let hooksHeaderIndex = -1
   const existingKeyIndexes = new Map<string, number>()
+  const staleKeyIndexes = new Map<string, number>()
   const userOwnedEvents: string[] = []
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index] ?? ''
@@ -111,7 +115,7 @@ export function applyJcodeManagedHooks(
       if (inHooksTable) {
         break
       }
-      if (parseTomlTablePath(header)?.join('.') === 'hooks') {
+      if (isHooksTableHeader(header)) {
         inHooksTable = true
         hooksHeaderIndex = index
       }
@@ -123,10 +127,20 @@ export function applyJcodeManagedHooks(
       if (parsed && line[parsed.end] === '=' && parsed.segments.length === 1) {
         const key = parsed.segments[0]
         if (events.includes(key)) {
-          if (isManaged(line)) {
+          // Why the parsed value and not the raw line: a user-owned command whose
+          // trailing comment merely mentions the managed script would otherwise read
+          // as managed, and on Windows tomlQuoteString escapes `\` so the raw line
+          // never matched Manta's own value at all.
+          const value = parseTomlSingleLineStringValue(line, parsed.end + 1)?.value
+          if (!isManaged(value)) {
+            userOwnedEvents.push(key)
+          } else if (value === managedCommand) {
             existingKeyIndexes.set(key, index)
           } else {
-            userOwnedEvents.push(key)
+            // A managed entry pointing at a script that no longer exists — a copied
+            // ~/.jcode, or a platform switch between .sh and .cmd. Rewrite it, or the
+            // hooks stay broken with no Manta action able to repair them.
+            staleKeyIndexes.set(key, index)
           }
         }
       }
@@ -135,20 +149,27 @@ export function applyJcodeManagedHooks(
   }
 
   const missing = events.filter(
-    (event) => !existingKeyIndexes.has(event) && !userOwnedEvents.includes(event)
+    (event) =>
+      !existingKeyIndexes.has(event) &&
+      !staleKeyIndexes.has(event) &&
+      !userOwnedEvents.includes(event)
   )
   const insertions: string[] = []
   for (const event of missing) {
     insertions.push(`${event} = ${tomlQuoteString(managedCommand)}`)
   }
-  let result = content
+  const repointed = [...lines]
+  for (const [event, index] of staleKeyIndexes) {
+    repointed[index] = `${event} = ${tomlQuoteString(managedCommand)}`
+  }
+  let result = staleKeyIndexes.size > 0 ? repointed.join(eol) : content
   if (insertions.length > 0) {
     if (hooksHeaderIndex === -1) {
       // Why: append a new [hooks] table at the end; jcode re-reads config on
       // reload, so placement at EOF is safe.
       result = `${result.endsWith('\n') || result.length === 0 ? result : `${result}\n`}[hooks]${eol}${insertions.join(eol)}${eol}`
     } else {
-      const insertionLines = [...lines]
+      const insertionLines = [...repointed]
       insertionLines.splice(hooksHeaderIndex + 1, 0, ...insertions)
       result = insertionLines.join(eol)
     }
@@ -181,14 +202,18 @@ export function removeJcodeManagedHooks(
       // Why: leaving the table stops the removal, but the rest of the file must
       // still be copied out — `kept` is the whole result, so breaking here once
       // truncated every table declared after [hooks].
-      inHooksTable = parseTomlTablePath(header)?.join('.') === 'hooks'
+      inHooksTable = isHooksTableHeader(header)
       kept.push(line)
       state = updateTomlLineScanState(state, line)
       continue
     }
     if (inHooksTable) {
       const parsed = parseTomlKeyPath(line)
-      if (parsed && line[parsed.end] === '=' && parsed.segments.length === 1 && isManaged(line)) {
+      const value =
+        parsed && line[parsed.end] === '=' && parsed.segments.length === 1
+          ? parseTomlSingleLineStringValue(line, parsed.end + 1)?.value
+          : undefined
+      if (value !== undefined && isManaged(value)) {
         changed = true
         state = updateTomlLineScanState(state, line)
         continue

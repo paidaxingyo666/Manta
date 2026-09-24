@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { parseJcodeSessionFile } from './session-scanner-jcode-parser'
+import { parseJcodeSessionContent, parseJcodeSessionFile } from './session-scanner-jcode-parser'
 
 let tempDirs: string[] = []
 
@@ -92,4 +92,40 @@ describe('parseJcodeSessionFile', () => {
     expect(session?.sessionId).toBe('session_orphan_9')
     expect(session?.messageCount).toBe(0)
   })
+})
+
+it('keeps the session\u2019s stored name, counts tokens, and skips internal turns', () => {
+  const session = parseJcodeSessionContent(
+    {
+      path: '/home/u/.jcode/sessions/session_x.json',
+      mtimeMs: 1,
+      modifiedAt: '2026-05-01T10:12:00.000Z'
+    },
+    JSON.stringify({
+      id: 'session_x',
+      title: 'Release prep',
+      model: 'claude-haiku-4-5',
+      messages: [
+        // display_role background_task is StoredDisplayRole::BackgroundTask.
+        { id: 'm0', role: 'user', display_role: 'background_task', content: 'internal' },
+        { id: 'm1', role: 'user', content: '[Scheduled task] nightly sweep' },
+        {
+          id: 'm2',
+          role: 'user',
+          content: 'Fix the greet helper',
+          token_usage: { input_tokens: 10, output_tokens: 4 }
+        },
+        {
+          id: 'm3',
+          role: 'assistant',
+          content: 'Done.',
+          token_usage: { input_tokens: 2, output_tokens: 6 }
+        }
+      ]
+    }),
+    'linux'
+  )
+  expect(session?.title).toBe('Release prep')
+  expect(session?.messageCount).toBe(2)
+  expect(session?.totalTokens).toBe(22)
 })
