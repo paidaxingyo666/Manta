@@ -60,6 +60,20 @@ export function isAgentStatusHeldOpenByChildWork(row: {
   return row.mainAgent?.state === 'done' && row.state !== 'done'
 }
 
+/**
+ * The stats question, "does this row accrue agent time": a `working` row accrues unless it is a watch
+ * loop. The fold emits `monitoring` only for a settled main agent, so this is the main agent's turn or
+ * its live agent child work; a row waiting on the user accrues nothing, whoever raised the prompt.
+ * Reads only the combined row, so an old host that publishes no `mainAgent` is read the same way.
+ * Not a liveness gate: a watch loop is still live work that lifecycle gates must keep honoring.
+ */
+export function isAgentTimeAccruing(row: {
+  state: AgentStatusState
+  workingMode?: AgentWorkingMode
+}): boolean {
+  return row.state === 'working' && row.workingMode !== 'monitoring'
+}
+
 /** The main agent's clock follows the same continuity rule as the row's: an unchanged main agent state
  *  keeps the instant it first appeared, a changed one starts at `now`. A caller that knows
  *  the real instant (a restored stash, a journal record) passes it and wins. */

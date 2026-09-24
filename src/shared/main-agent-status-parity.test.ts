@@ -123,9 +123,7 @@ const STORIES: Story[] = [
         { hookEventName: 'user_prompt_submit', prompt: 'go' },
         { hookEventName: 'stop', reason: 'end_turn', backgroundTasks: [RUNNING_AGENT] }
       ],
-      // Grok reports no task kind the roster can classify as agent work, so its live subagent
-      // reads as watch work. Today's label, kept on purpose; a Grok-specific follow-up.
-      expect: { state: 'working', workingMode: 'monitoring', mainAgent: { state: 'done' } }
+      expect: { state: 'working', mainAgent: { state: 'done' } }
     },
     codex: {
       // A root Stop with no transcript-tracked children clears the roster (Codex 0.144 could omit
@@ -434,14 +432,23 @@ describe('mainAgent status parity across lanes', () => {
       const payload = drive('grok', lane.events)
       const row = published(payload)
       expect(row).toEqual(lane.expect)
-      // Grok's child evidence lives only on its final plain `stop`: a finite task or an active
-      // stop hook is watch work, and nothing else ever holds the pane.
+      // Grok's child evidence lives only on its final plain `stop`: a listed subagent is agent
+      // work, a shell or an active stop hook is watch work, and nothing else ever holds the pane.
       const last = lane.events.at(-1) ?? {}
-      const tasks = Array.isArray(last.backgroundTasks) ? last.backgroundTasks : []
+      const tasks: unknown[] = Array.isArray(last.backgroundTasks) ? last.backgroundTasks : []
+      const hasType = (type: string) =>
+        tasks.some(
+          (task) =>
+            typeof task === 'object' && task !== null && 'type' in task && task.type === type
+        )
       const liveness: AgentChildWorkLiveness =
-        last.hookEventName === 'stop' && (tasks.length > 0 || last.stopHookActive === true)
-          ? 'monitoring'
-          : null
+        last.hookEventName !== 'stop'
+          ? null
+          : hasType('subagent')
+            ? 'working'
+            : hasType('shell') || last.stopHookActive === true
+              ? 'monitoring'
+              : null
       expect(row).toEqual(refold(row.mainAgent, liveness))
     })
   })

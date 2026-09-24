@@ -3,6 +3,7 @@ import {
   continueMainAgentStatus,
   mainAgentTurnInterrupted,
   foldAgentLeadStatus,
+  isAgentTimeAccruing,
   isAgentStatusHeldOpenByChildWork
 } from './agent-lead-status-fold'
 
@@ -91,6 +92,45 @@ describe('isAgentStatusHeldOpenByChildWork', () => {
     ).toBe(false)
     // No main agent fact means no claim: an old host's row is never read as child-held.
     expect(isAgentStatusHeldOpenByChildWork({ state: 'working' })).toBe(false)
+  })
+})
+
+describe('isAgentTimeAccruing', () => {
+  it('accrues while the row works for the main agent or its live agent child work', () => {
+    expect(isAgentTimeAccruing({ state: 'working' })).toBe(true)
+  })
+
+  it('pauses while the row waits on the user, whoever raised the prompt', () => {
+    expect(isAgentTimeAccruing({ state: 'waiting' })).toBe(false)
+    expect(isAgentTimeAccruing({ state: 'blocked' })).toBe(false)
+  })
+
+  it('does not accrue for a watch loop or a settled row', () => {
+    expect(isAgentTimeAccruing({ state: 'working', workingMode: 'monitoring' })).toBe(false)
+    expect(isAgentTimeAccruing({ state: 'done' })).toBe(false)
+  })
+
+  it('relies on the fold emitting monitoring only for a settled main agent', () => {
+    // Every lane folds through here (Codex never emits monitoring), so a monitoring row can never
+    // hide a running main agent turn from the stats.
+    const leadStates = ['working', 'waiting', 'blocked', 'done'] as const
+    const liveness = ['waiting', 'working', 'monitoring', null] as const
+    for (const leadState of leadStates) {
+      for (const interrupted of [false, true]) {
+        for (const childWorkLiveness of liveness) {
+          const folded = foldAgentLeadStatus({ leadState, interrupted, childWorkLiveness })
+          const accrues = isAgentTimeAccruing({
+            state: folded.stateName,
+            workingMode: folded.workingMode
+          })
+          // A child waiting on a human pauses the row, whatever the main agent is doing.
+          expect(accrues).toBe(
+            childWorkLiveness !== 'waiting' &&
+              (leadState === 'working' || (leadState === 'done' && childWorkLiveness === 'working'))
+          )
+        }
+      }
+    }
   })
 })
 
