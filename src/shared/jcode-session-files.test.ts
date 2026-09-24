@@ -88,6 +88,39 @@ describe('shared jcode-session-files', () => {
     expect(readLastJcodeUserPromptFromHookPayload({ session_id: 'session_c_3' })).toBeNull()
   })
 
+  it('keys a prompt by its place in the file, so appends do not remint the key', () => {
+    // Why: the backward scan windows the file from EOF, so appending shifts every window
+    // boundary and a region-local line index reminted the key for a prompt that never
+    // moved. A repeated turn_end would then slip past the same-hash dedupe as a second
+    // done event with duplicate agent_prompt_sent telemetry.
+    const journalPath = join(sessionsDir, 'session_d_4.journal.jsonl')
+    const filler = (index: number) =>
+      JSON.stringify({
+        meta: { id: 'session_d_4' },
+        append_messages: [],
+        index,
+        pad: 'x'.repeat(400)
+      })
+    const prompt = JSON.stringify({
+      meta: { id: 'session_d_4' },
+      append_messages: [{ id: 'm1', role: 'user', content: [{ type: 'text', text: 'keep me' }] }]
+    })
+    // 200 lines before and 100 after put the prompt in the second 64 KiB window, far
+    // enough from that window's start that a shifted boundary changes its line index.
+    const before = Array.from({ length: 200 }, (_, index) => filler(index))
+    const after = Array.from({ length: 100 }, (_, index) => filler(1000 + index))
+
+    writeFileSync(journalPath, [...before, prompt, ...after].join('\n'))
+    const firstRead = readLastJcodeUserPromptFromHookPayload({ session_id: 'session_d_4' })
+
+    writeFileSync(journalPath, [...before, prompt, ...after, filler(9999)].join('\n'))
+    const afterAppend = readLastJcodeUserPromptFromHookPayload({ session_id: 'session_d_4' })
+
+    expect(firstRead?.text).toBe('keep me')
+    expect(afterAppend?.text).toBe('keep me')
+    expect(afterAppend?.interactionKey).toBe(firstRead?.interactionKey)
+  })
+
   it('rejects unsafe session ids before touching the filesystem', () => {
     expect(readLastJcodeUserPromptFromHookPayload({ session_id: '../../etc/passwd' })).toBeNull()
     expect(readLastJcodeUserPromptFromHookPayload({})).toBeNull()

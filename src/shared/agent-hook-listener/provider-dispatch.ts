@@ -9,7 +9,7 @@ import type { HookListenerState } from './listener-state'
 import type { ExtractedPromptText } from './prompt-fields'
 import { isNewTurnEvent } from './provider-event-routing'
 import { readLastUserPromptFromTranscript } from './transcript-lines'
-import { readLastJcodeUserPromptFromHookPayload } from '../jcode-session-files'
+import { readJcodeTurnPrompt } from './providers/jcode-turn-prompt'
 import { normalizeAntigravityEvent } from './providers/antigravity-events'
 import { normalizeAmpEvent } from './providers/amp-events'
 import { normalizeClaudeEvent } from './providers/claude-events'
@@ -196,7 +196,7 @@ export function normalizeProviderEvent(input: {
       payload = normalizeZCodeEvent(state, eventName, promptText, paneKey, hookPayload)
       break
     case 'jcode': {
-      const transcriptPrompt = readLastJcodeUserPromptFromHookPayload(hookPayload)
+      const transcriptPrompt = readJcodeTurnPrompt(state, eventName, paneKey, hookPayload)
       // Why: the reader returns null (not undefined) when no journal prompt is
       // recoverable; only a real transcript hit counts as prompt evidence.
       hasTranscriptPromptEvidence = transcriptPrompt !== null

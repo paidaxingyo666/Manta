@@ -9,6 +9,13 @@ function stubChild() {
   return { unref: vi.fn(), on: vi.fn() }
 }
 
+/** Why the default: every case but the Windows one asserts POSIX behaviour, and the
+ *  pre-warm is a no-op off POSIX — unpinned, they would all pass vacuously on a
+ *  Windows runner. */
+function prewarm(args: Parameters<typeof prewarmJcodeDaemon>[0]): boolean {
+  return prewarmJcodeDaemon({ platform: 'darwin', ...args })
+}
+
 describe('jcode daemon pre-warm', () => {
   beforeEach(() => {
     resetJcodeDaemonPrewarmForTests()
@@ -19,11 +26,10 @@ describe('jcode daemon pre-warm', () => {
 
   it('starts one detached daemon for a jcode pane', () => {
     expect(
-      prewarmJcodeDaemon({
+      prewarm({
         launchAgent: 'jcode',
         runtimeDir: '/tmp/orca-jcode/abc',
-        cwd: '/repo',
-        platform: 'darwin'
+        cwd: '/repo'
       })
     ).toBe(true)
     expect(spawnProcessMock).toHaveBeenCalledTimes(1)
@@ -39,23 +45,21 @@ describe('jcode daemon pre-warm', () => {
   it('never spawns a daemon for a pane that is not jcode', () => {
     // Why: Manta stamps JCODE_RUNTIME_DIR on every local pane, so gating on the dir
     // alone would start a jcode server behind every plain shell the user opens.
-    expect(prewarmJcodeDaemon({ launchAgent: 'claude', runtimeDir: '/tmp/orca-jcode/abc' })).toBe(
-      false
-    )
-    expect(prewarmJcodeDaemon({ runtimeDir: '/tmp/orca-jcode/abc' })).toBe(false)
+    expect(prewarm({ launchAgent: 'claude', runtimeDir: '/tmp/orca-jcode/abc' })).toBe(false)
+    expect(prewarm({ runtimeDir: '/tmp/orca-jcode/abc' })).toBe(false)
     expect(spawnProcessMock).not.toHaveBeenCalled()
   })
 
   it('warms each runtime dir at most once', () => {
-    prewarmJcodeDaemon({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/abc' })
-    prewarmJcodeDaemon({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/abc' })
-    prewarmJcodeDaemon({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/def' })
+    prewarm({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/abc' })
+    prewarm({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/abc' })
+    prewarm({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/def' })
     expect(spawnProcessMock).toHaveBeenCalledTimes(2)
   })
 
   it('stays out of the way on Windows, which has no runtime dir', () => {
     expect(
-      prewarmJcodeDaemon({
+      prewarm({
         launchAgent: 'jcode',
         runtimeDir: 'C:/tmp/orca-jcode/abc',
         platform: 'win32'
@@ -70,18 +74,16 @@ describe('jcode daemon pre-warm', () => {
     })
     // Why fail-open: jcode's client starts its own server when none is listening,
     // so a failed pre-warm costs only the cold start Manta already had.
-    expect(prewarmJcodeDaemon({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/xyz' })).toBe(
-      false
-    )
+    expect(prewarm({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/xyz' })).toBe(false)
   })
 
   it('retries a runtime dir whose daemon failed to start', () => {
     const child = stubChild()
     spawnProcessMock.mockReturnValue(child)
-    prewarmJcodeDaemon({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/retry' })
+    prewarm({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/retry' })
     const errorHandler = child.on.mock.calls.find(([event]) => event === 'error')?.[1]
     errorHandler?.(new Error('spawn failed'))
-    prewarmJcodeDaemon({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/retry' })
+    prewarm({ launchAgent: 'jcode', runtimeDir: '/tmp/orca-jcode/retry' })
     expect(spawnProcessMock).toHaveBeenCalledTimes(2)
   })
 })

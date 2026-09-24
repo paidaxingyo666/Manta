@@ -89,9 +89,21 @@ function buildInteractionKey(source: 'journal' | 'json', sessionId: string, salt
   ].join('-')
 }
 
+/** Absolute byte offset of `lines[index]`. Why not the region-local index: the scan
+ *  window slides as the journal grows, so the same record would key differently on a
+ *  later read and a repeated turn_end would slip past the same-hash dedupe. */
+function lineByteOffset(lines: readonly string[], index: number, regionPosition: number): number {
+  let offset = regionPosition
+  for (let i = 0; i < index; i += 1) {
+    offset += Buffer.byteLength(lines[i] ?? '', 'utf8') + 1
+  }
+  return offset
+}
+
 function readLastUserMessageFromJournalLines(
   lines: readonly string[],
-  sessionId: string
+  sessionId: string,
+  regionPosition: number
 ): JcodeUserPromptEvidence | null {
   for (let index = lines.length - 1; index >= 0; index -= 1) {
     let entry: unknown
@@ -124,7 +136,7 @@ function readLastUserMessageFromJournalLines(
         interactionKey: buildInteractionKey(
           'journal',
           sessionId,
-          `${index}:${messageIndex}:${text}`
+          `${lineByteOffset(lines, index, regionPosition)}:${messageIndex}:${text}`
         )
       }
     }
@@ -140,9 +152,12 @@ function readLastUserMessageFromJournal(
     scanFileRegionsBackward(
       journalPath,
       { chunkBytes: JCODE_JOURNAL_CHUNK_BYTES, maxScanBytes: JCODE_SESSION_SCAN_BYTES },
-      (region) =>
-        readLastUserMessageFromJournalLines(region.toString('utf8').split('\n'), sessionId) ??
-        undefined
+      (region, regionPosition) =>
+        readLastUserMessageFromJournalLines(
+          region.toString('utf8').split('\n'),
+          sessionId,
+          regionPosition
+        ) ?? undefined
     ) ?? null
   )
 }
