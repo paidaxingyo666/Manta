@@ -17482,6 +17482,7 @@
       "scrollMessageToTop": "Revenir au début du message",
       "loadingEarlier": "Chargement…",
       "loadEarlier": "Charger les messages précédents",
+      "loadingEarlierMessages": "Chargement des messages précédents…",
       "question": {
         "step": "Étape {{value0}}",
         "other": "Autre…",

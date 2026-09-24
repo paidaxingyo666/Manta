@@ -14818,6 +14818,7 @@
       "scrollMessageToTop": "Desplazar este mensaje hacia arriba",
       "loadingEarlier": "Cargando…",
       "loadEarlier": "Cargar mensajes anteriores",
+      "loadingEarlierMessages": "Cargando mensajes anteriores…",
       "question": {
         "step": "Paso {{value0}}",
         "other": "Otro…",
