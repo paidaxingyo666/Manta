@@ -1,5 +1,5 @@
 import type { AgentChildWorkLiveness } from './agent-status-child-work-liveness'
-import type { AgentStatusState, AgentWorkingMode } from './agent-status-types'
+import type { AgentMainAgentStatus, AgentStatusState, AgentWorkingMode } from './agent-status-types'
 
 export type AgentLeadStatusFoldInput = {
   /** The lead's own turn state. Anything but `done` wins outright. */
@@ -32,4 +32,35 @@ export function foldAgentLeadStatus(input: AgentLeadStatusFoldInput): AgentLeadS
     return { stateName: 'working', workingMode: 'monitoring' }
   }
   return { stateName: 'done' }
+}
+
+/** The main agent settled and live child work is the only thing holding the row open. Derived,
+ *  never stored: a stored copy could disagree with the two facts it is made of. */
+export function isAgentStatusHeldOpenByChildWork(row: {
+  state: AgentStatusState
+  mainAgent?: Pick<AgentMainAgentStatus, 'state'>
+}): boolean {
+  return row.mainAgent?.state === 'done' && row.state !== 'done'
+}
+
+/** The main agent's clock follows the same continuity rule as the row's: an unchanged main agent state
+ *  keeps the instant it first appeared, a changed one starts at `now`. A caller that knows
+ *  the real instant (a restored stash, a journal record) passes it and wins. */
+export function continueMainAgentStatus(
+  previous: Pick<AgentMainAgentStatus, 'state' | 'stateStartedAt'> | undefined,
+  next: {
+    state: AgentStatusState
+    outcome?: AgentMainAgentStatus['outcome']
+    stateStartedAt?: number
+  },
+  now: number
+): AgentMainAgentStatus {
+  const stateStartedAt =
+    next.stateStartedAt ??
+    (previous && previous.state === next.state ? previous.stateStartedAt : now)
+  return {
+    state: next.state,
+    ...(next.state === 'done' && next.outcome ? { outcome: next.outcome } : {}),
+    stateStartedAt
+  }
 }

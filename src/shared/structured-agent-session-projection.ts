@@ -7,9 +7,11 @@ import {
   AGENT_JOURNAL_MESSAGE_SEND_MODES,
   type AgentJournalMessageSendMode,
   type AgentJournalRenderItem,
-  type AgentJournalSubmission
+  type AgentJournalSubmission,
+  type AgentJournalTurnOutcome
 } from './agent-session-journal-types'
 import { isRootAgentJournalItem } from './agent-session-journal-producer'
+import { readAgentJournalTurnOutcome } from './agent-session-turn-record'
 import {
   AGENT_STATUS_TOOL_INPUT_MAX_LENGTH,
   AGENT_STATUS_TOOL_NAME_MAX_LENGTH
@@ -17,6 +19,7 @@ import {
 import { describeToolInput } from './native-chat-tool-summary'
 import {
   activeStructuredAgentSessionTurnId,
+  newestStructuredAgentSessionTurn,
   statusStructuredAgentSessionToolCall
 } from './structured-agent-session-live-turn'
 import {
@@ -308,6 +311,8 @@ export type StructuredAgentSessionStatusProjection = {
   toolName?: string
   toolInput?: string
   lastAssistantMessage?: string
+  /** The newest settled turn's provider verdict; present only while `status` is idle. */
+  turnOutcome?: AgentJournalTurnOutcome
 }
 
 /** One projection shared by host and client: null status means "no turn yet", not idle.
@@ -344,12 +349,17 @@ export function projectStructuredAgentSessionStatusSummary(
     latestStructuredAgentSessionAssistantMessage(items),
     AGENT_STATUS_MAX_FIELD_LENGTH
   )
+  // A verdict is a fact about a finished turn: only an idle session has one to report, and
+  // `readAgentJournalTurnOutcome` already answers null for anything it cannot place.
+  const turnOutcome =
+    status === 'idle' ? readAgentJournalTurnOutcome(newestStructuredAgentSessionTurn(items)) : null
   return {
     status,
     latestPrompt: normalizePromptField(latestStructuredAgentSessionPrompt(items)),
     ...(toolName ? { toolName } : {}),
     ...(toolInput ? { toolInput } : {}),
-    ...(lastAssistantMessage ? { lastAssistantMessage } : {})
+    ...(lastAssistantMessage ? { lastAssistantMessage } : {}),
+    ...(turnOutcome ? { turnOutcome } : {})
   }
 }
 

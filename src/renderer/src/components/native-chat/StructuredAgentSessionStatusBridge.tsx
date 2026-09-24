@@ -6,7 +6,11 @@ import {
   agentChildWorkProjectionCandidateFromBackgroundTask,
   projectAgentChildWorkLegacySubagents
 } from '../../../../shared/agent-status-child-work-projection'
-import { agentSubagentsEqual } from '../../../../shared/agent-status-types'
+import {
+  continueMainAgentStatus,
+  isAgentStatusHeldOpenByChildWork
+} from '../../../../shared/agent-lead-status-fold'
+import { mainAgentStatusEqual, agentSubagentsEqual } from '../../../../shared/agent-status-types'
 import { structuredAgentSessionPaneKey } from '../../../../shared/structured-agent-session-projection'
 import { structuredAgentSessionAgentStatus } from '../../../../shared/structured-agent-session-agent-status'
 import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
@@ -62,11 +66,20 @@ function projectStatus(
   // Shared with `worktree ps`, so the CLI and this row cannot disagree about one session.
   const agentStatus = structuredAgentSessionAgentStatus({
     status: summary.status,
-    backgroundTasks: summary.backgroundTasks
+    backgroundTasks: summary.backgroundTasks,
+    turnOutcome: summary.turnOutcome
   })
+  const current = store.agentStatusByPaneKey?.[paneKey]
+  // Same continuity rule as the host ingest, on the main agent's own clock.
+  const mainAgent = continueMainAgentStatus(
+    current?.mainAgent,
+    agentStatus.mainAgent,
+    summary.updatedAt
+  )
   const desired = {
     state: agentStatus.state,
     ...(agentStatus.workingMode ? { workingMode: agentStatus.workingMode } : {}),
+    mainAgent,
     prompt: summary.latestPrompt,
     agentType: tab.agentSessionAgent,
     // The host projects these from the journal so the row reads like a hook-reported one:
@@ -78,10 +91,10 @@ function projectStatus(
     ...(subagents ? { subagents, subagentObservation: observation } : {}),
     sessionBoundary: false
   } as const
-  const current = store.agentStatusByPaneKey?.[paneKey]
   if (
     current?.state === desired.state &&
     current.workingMode === desired.workingMode &&
+    mainAgentStatusEqual(current.mainAgent, desired.mainAgent) &&
     current.prompt === desired.prompt &&
     current.agentType === desired.agentType &&
     // A row keeps the last model it was told about, so only a reported one can differ.
@@ -124,7 +137,7 @@ function projectStatus(
           : summary.updatedAt,
       // Same rule as the host ingest: the journal clock stopped when the lead's turn did, so a
       // row held open by child work alone is dated by when this client saw it instead.
-      evidenceObservedAt: agentStatus.fromChildWork ? Date.now() : summary.updatedAt
+      evidenceObservedAt: isAgentStatusHeldOpenByChildWork(desired) ? Date.now() : summary.updatedAt
     },
     { tabId: tab.id, worktreeId: tab.worktreeId },
     {
