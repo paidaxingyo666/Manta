@@ -29,7 +29,6 @@ import { createBrowserFramePacer } from './browser-frame-pacer'
 import { useMobileBrowserRequest } from './use-mobile-browser-request'
 
 type MobileBrowserStreamArgs = {
-  appActive: boolean
   binaryScreencastGranted: boolean
   browserViewMode: MobileBrowserViewMode
   busyRef: { current: boolean }
@@ -37,6 +36,8 @@ type MobileBrowserStreamArgs = {
   client: RpcClient | null
   frameMetadata: BrowserScreencastFrameMetadata | null
   frameMetadataRef: { current: BrowserScreencastFrameMetadata | null }
+  /** Null while the app is away; each return to the foreground is a new value. */
+  foregroundVisit: number | null
   initialFrameUri: string | null
   lastStreamCacheKeyRef: { current: string | null }
   lastZoomResetUrlRef: { current: string }
@@ -57,7 +58,6 @@ type MobileBrowserStreamArgs = {
 
 export function useMobileBrowserStream(args: MobileBrowserStreamArgs) {
   const {
-    appActive,
     binaryScreencastGranted,
     browserViewMode,
     busyRef,
@@ -65,6 +65,7 @@ export function useMobileBrowserStream(args: MobileBrowserStreamArgs) {
     client,
     frameMetadata,
     frameMetadataRef,
+    foregroundVisit,
     initialFrameUri,
     lastStreamCacheKeyRef,
     lastZoomResetUrlRef,
@@ -155,7 +156,6 @@ export function useMobileBrowserStream(args: MobileBrowserStreamArgs) {
       frameMetadataRef.current = cachedFrame?.metadata ?? null
       setFrameMetadata(cachedFrame?.metadata ?? null)
     }
-    busyRef.current = false
     setDialog(null)
     setError(null)
     if (
@@ -163,7 +163,7 @@ export function useMobileBrowserStream(args: MobileBrowserStreamArgs) {
       !binaryScreencastGranted ||
       screencastSupported !== true ||
       !tab.browserPageId ||
-      !appActive ||
+      foregroundVisit === null ||
       !streamRequest
     ) {
       busyRef.current = false
@@ -238,9 +238,9 @@ export function useMobileBrowserStream(args: MobileBrowserStreamArgs) {
       unsubscribe()
     }
   }, [
-    appActive,
     binaryScreencastGranted,
     client,
+    foregroundVisit,
     framePacer,
     resetBrowserZoomState,
     screencastSupported,

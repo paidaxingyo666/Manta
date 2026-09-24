@@ -92,7 +92,11 @@ export function MobileBrowserPane({
   const [pointerModifiers, setPointerModifiers] = useState<BrowserPointerModifier[]>([])
   const [zoom, setZoom] = useState<BrowserZoomState>(DEFAULT_ZOOM)
   const [layout, setLayout] = useState<BrowserTouchLayout | null>(null)
-  const [appActive, setAppActive] = useState(AppState.currentState === 'active')
+  // Why: a new id per return, so a leave and return that React batches into one render still restart the stream.
+  const [foregroundVisit, setForegroundVisit] = useState<number | null>(
+    AppState.currentState === 'active' ? 0 : null
+  )
+  const foregroundVisitCountRef = useRef(0)
   const streamGenerationRef = useRef(0)
   const layoutRef = useRef<BrowserTouchLayout | null>(null)
   const frameMetadataRef = useRef<BrowserScreencastFrameMetadata | null>(
@@ -139,11 +143,13 @@ export function MobileBrowserPane({
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
-      const active = nextState === 'active'
-      if (!active) {
+      if (nextState !== 'active') {
         clearCachedBrowserFramesForWorktree(worktreeId)
+        setForegroundVisit(null)
+        return
       }
-      setAppActive(active)
+      foregroundVisitCountRef.current += 1
+      setForegroundVisit(foregroundVisitCountRef.current)
     })
     return () => {
       subscription.remove()
@@ -185,7 +191,6 @@ export function MobileBrowserPane({
 
   const { frameGeometry, frameLayers, pageParams, renderedFrameSource, sendBrowserRequest } =
     useMobileBrowserStream({
-      appActive,
       binaryScreencastGranted,
       browserViewMode,
       busyRef,
@@ -193,6 +198,7 @@ export function MobileBrowserPane({
       client,
       frameMetadata,
       frameMetadataRef,
+      foregroundVisit,
       initialFrameUri: cachedInitialFrame?.uri ?? null,
       lastStreamCacheKeyRef,
       lastZoomResetUrlRef,
