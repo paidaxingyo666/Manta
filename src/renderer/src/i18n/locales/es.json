@@ -8610,6 +8610,20 @@
             }
           }
         },
+        "machine": {
+          "name": {
+            "search": {
+              "title": "Nombre del equipo",
+              "description": "Elige el nombre con el que otros dispositivos y hosts muestran este equipo.",
+              "machineName": "nombre del equipo",
+              "machine": "máquina",
+              "hostname": "hostname",
+              "computer": "equipo",
+              "rename": "renombrar",
+              "name": "nombre"
+            }
+          }
+        },
         "mobile": {
           "emulator": {
             "search": {
@@ -9910,6 +9924,12 @@
           "step2LocalDescription": "El teléfono debe poder alcanzar esta dirección por Tailscale o Wi‑Fi.",
           "step2RelayDescription": "Opcional. Elige la dirección Wi‑Fi o Tailscale que el teléfono usará cuando esté cerca — suele ser más rápido que Relay. Relay sigue funcionando cuando estás fuera.",
           "step2RelayDisclosure": "También usar una ruta local más rápida"
+        },
+        "MachineNameField": {
+          "label": "Nombre del equipo",
+          "description": "Otros dispositivos y hosts ven “{{name}}”. Déjalo en blanco para usar el nombre propio del equipo.",
+          "pending": "Otros dispositivos y hosts ven este nombre. Déjalo en blanco para usar el nombre detectado del equipo.",
+          "placeholder": "Detectado automáticamente"
         },
         "MobileRelayBetaAvailability": {
           "about": "Acerca de la beta de Manta Relay",

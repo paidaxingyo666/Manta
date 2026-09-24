@@ -9434,6 +9434,20 @@
             }
           }
         },
+        "machine": {
+          "name": {
+            "search": {
+              "title": "Nom de la machine",
+              "description": "Choisissez le nom sous lequel les autres appareils et hôtes affichent cet ordinateur.",
+              "machineName": "nom de la machine",
+              "machine": "machine",
+              "hostname": "hostname",
+              "computer": "ordinateur",
+              "rename": "renommer",
+              "name": "nom"
+            }
+          }
+        },
         "mobile": {
           "emulator": {
             "search": {
@@ -10693,6 +10707,12 @@
           "refresh": "Actualiser les interfaces réseau",
           "step2RelayDescription": "Facultatif. Choisissez l'adresse Wi‑Fi ou Tailscale que votre téléphone utilisera à proximité — généralement plus rapide que Relay. Relay reste fonctionnel quand vous êtes loin.",
           "step2RelayDisclosure": "Utiliser aussi un chemin local plus rapide"
+        },
+        "MachineNameField": {
+          "label": "Nom de la machine",
+          "description": "Les autres appareils et hôtes voient « {{name}} ». Laissez vide pour utiliser le nom de l’ordinateur.",
+          "pending": "Les autres appareils et hôtes voient ce nom. Laissez vide pour utiliser le nom d’ordinateur détecté.",
+          "placeholder": "Détecté automatiquement"
         },
         "MobileRelayBetaAvailability": {
           "about": "À propos de la bêta d'Manta Relay",

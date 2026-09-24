@@ -8632,6 +8632,20 @@
             }
           }
         },
+        "machine": {
+          "name": {
+            "search": {
+              "title": "マシン名",
+              "description": "他のデバイスやホストでこのコンピューターを表示する名前を選びます。",
+              "machineName": "マシン名",
+              "machine": "マシン",
+              "hostname": "ホスト名",
+              "computer": "コンピューター",
+              "rename": "名前変更",
+              "name": "名前"
+            }
+          }
+        },
         "mobile": {
           "emulator": {
             "search": {
@@ -9910,6 +9924,12 @@
           "step2LocalDescription": "スマートフォンが Tailscale または Wi‑Fi でこのアドレスに到達できる必要があります。",
           "step2RelayDescription": "任意。近く（同じ Wi‑Fi または Tailscale）にいるときにスマホが使うアドレスを選びます。通常は Relay より高速です。外出中は引き続き Relay が使われます。",
           "step2RelayDisclosure": "より速いローカル経路も使う"
+        },
+        "MachineNameField": {
+          "label": "マシン名",
+          "description": "他のデバイスやホストには「{{name}}」と表示されます。空欄にするとコンピューター自身の名前を使います。",
+          "pending": "他のデバイスやホストにはこの名前が表示されます。空欄にすると検出されたコンピューター名を使います。",
+          "placeholder": "自動検出"
         },
         "MobileRelayBetaAvailability": {
           "about": "Manta Relay ベータについて",

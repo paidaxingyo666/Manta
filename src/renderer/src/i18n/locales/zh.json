@@ -8665,6 +8665,20 @@
             }
           }
         },
+        "machine": {
+          "name": {
+            "search": {
+              "title": "机器名称",
+              "description": "选择其他设备和主机用来显示这台电脑的名称。",
+              "machineName": "机器名称",
+              "machine": "机器",
+              "hostname": "主机名",
+              "computer": "电脑",
+              "rename": "重命名",
+              "name": "名称"
+            }
+          }
+        },
         "mobile": {
           "emulator": {
             "search": {
@@ -9980,6 +9994,12 @@
           "step2LocalDescription": "手机必须能通过 Tailscale 或 Wi‑Fi 访问此地址。",
           "step2RelayDescription": "可选。选择手机在附近（同一 Wi‑Fi 或 Tailscale）时使用的地址，通常比 Relay 更快。外出时仍走 Relay。",
           "step2RelayDisclosure": "也可使用更快的本地连接"
+        },
+        "MachineNameField": {
+          "label": "机器名称",
+          "description": "其他设备和主机会看到“{{name}}”。留空则使用这台电脑自己的名称。",
+          "pending": "其他设备和主机会看到此名称。留空则使用检测到的电脑名称。",
+          "placeholder": "自动检测"
         },
         "MobileRelayBetaAvailability": {
           "about": "关于 Manta Relay 测试版",

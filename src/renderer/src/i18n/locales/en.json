@@ -9998,6 +9998,20 @@
             }
           }
         },
+        "machine": {
+          "name": {
+            "search": {
+              "title": "Machine name",
+              "description": "Choose the name other devices and hosts list this computer under.",
+              "machineName": "machine name",
+              "machine": "machine",
+              "hostname": "hostname",
+              "computer": "computer",
+              "rename": "rename",
+              "name": "name"
+            }
+          }
+        },
         "mobile": {
           "emulator": {
             "search": {
@@ -11331,6 +11345,12 @@
           "refresh": "Refresh network interfaces",
           "step2RelayDescription": "Optional. Pick the Wi‑Fi or Tailscale address your phone should use when nearby — usually faster than Relay. Relay still works when you’re away.",
           "step2RelayDisclosure": "Also use a faster local path"
+        },
+        "MachineNameField": {
+          "label": "Machine name",
+          "description": "Other devices and hosts see “{{name}}”. Leave this blank to use the computer’s own name.",
+          "pending": "Other devices and hosts see this name. Leave it blank to use the detected computer name.",
+          "placeholder": "Detected automatically"
         },
         "MobileRelayBetaAvailability": {
           "about": "About the Manta Relay beta",

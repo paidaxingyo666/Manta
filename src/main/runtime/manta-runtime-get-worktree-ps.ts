@@ -24,7 +24,6 @@ import { nativeChatShellEnvironmentPolicy } from '../../shared/native-chat-shell
 import { claudeStructuredPermissionModeForSettings } from '../claude/claude-structured-permission-mode'
 import { codexStructuredPermissionPolicyForSettings } from '../codex/codex-structured-permission-policy'
 import type { StructuredAgentSessionHandoffTransport } from '../native-chat/agent-session-wire/structured-agent-session-handoff-types'
-import { hostname } from 'node:os'
 import { claudeStructuredAuthPolicyForSettings } from '../claude-accounts/claude-structured-auth-policy'
 import { probeAgentSessionProcessIdentity } from './agent-session-process-identity-probe'
 import { structuredAgentSessionTabId } from '../../shared/structured-agent-session-projection'
@@ -180,8 +179,13 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStructuredAge
   }
 
   protected createStructuredAgentSessionHandoffTransport(): StructuredAgentSessionHandoffTransport {
+    const machineName = this.machineName
     return {
-      hostLabel: hostname(),
+      // Why a getter: "Agent is open in terminal on X" must name this host the way paired devices
+      // see it, including a Settings rename after the transport was built.
+      get hostLabel() {
+        return machineName.read()
+      },
       launchTui: this.createStructuredAgentSessionLaunchTuiCallback(),
       waitForTuiExit: async (owner) => {
         await this.waitForStructuredTuiOwnerExit(owner)
