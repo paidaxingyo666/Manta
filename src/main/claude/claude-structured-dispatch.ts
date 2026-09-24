@@ -246,6 +246,8 @@ export async function dispatchClaudeTurn(
   const sentUuid = randomUUID()
   const arm = () => {
     ++session.dispatchSequence
+    // A context report asked for before this send may land after it and misstate the context.
+    session.translator?.markContextActivity()
     return waitForReplay(
       session,
       acceptsResult,

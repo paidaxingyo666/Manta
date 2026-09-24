@@ -55,6 +55,7 @@ vi.mock('./use-structured-agent-session', async () => {
         submissions: mocks.submissions as never
       })
       return {
+        journalItems: [],
         messages:
           mocks.mode === 'outbox'
             ? []

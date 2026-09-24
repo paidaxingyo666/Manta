@@ -97,6 +97,9 @@ export class StructuredAgentSessionAdapterRouter implements StructuredAgentSessi
   supportsThreadGoal = (sessionId: string): boolean =>
     this.liveOwnerOrNull(sessionId)?.supportsThreadGoal?.(sessionId) ?? false
 
+  recordsContextUsage = (sessionId: string): boolean =>
+    this.liveOwnerOrNull(sessionId)?.recordsContextUsage?.(sessionId) ?? false
+
   stopBackgroundTasks: NonNullable<StructuredAgentSessionAdapter['stopBackgroundTasks']> = (
     input
   ) => {

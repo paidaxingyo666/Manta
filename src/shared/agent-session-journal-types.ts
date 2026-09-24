@@ -10,6 +10,7 @@
 import type { AgentType } from './agent-status-types'
 import type { AgentJournalTurnOutcome } from './agent-turn-outcome'
 import type { NativeChatToolMetadata } from './native-chat-tool-identity'
+import type { AgentSessionContextUsage } from './agent-session-context-usage'
 import type { NativeChatBlock, NativeChatRole } from './native-chat-types'
 
 export { type AgentType }
@@ -218,6 +219,9 @@ export type AgentJournalTurnLifecycle = {
   completedAt?: number
   /** The provider's own measured turn duration, preferred over the host interval. */
   durationMs?: number
+  /** What the provider said about its context window during or after this turn.
+   *  Usually written by a later revision, since the provider answers after the end. */
+  contextUsage?: AgentSessionContextUsage
 }
 
 /** Provider thread-goal lifecycle. Open like other persisted vocabularies: a

@@ -87,7 +87,8 @@ function fastModeSession(supportsFastMode: boolean | undefined) {
       }
     ],
     applyFlagSettings,
-    getSettings: async () => ({ effective: { fastMode: reportedFastMode } })
+    getSettings: async () => ({ effective: { fastMode: reportedFastMode } }),
+    getContextUsage: async () => ({})
   } as ClaudeSession['connection']
   return { session, applyFlagSettings }
 }

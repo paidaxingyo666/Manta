@@ -93,6 +93,7 @@ export function createStructuredSessionMocks() {
             submissions: mocks.submissions as never
           })
           return {
+            journalItems: [],
             messages:
               mocks.messages ??
               (mocks.mode === 'outbox'

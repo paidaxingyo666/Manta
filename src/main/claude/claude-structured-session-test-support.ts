@@ -54,6 +54,8 @@ export function fakeClaude(
     initProof?: 'init' | 'session-start' | 'none'
     initAccount?: unknown
     initCommands?: unknown
+    /** What `get_context_usage` answers; defaults to an empty, unusable report. */
+    contextUsage?: unknown
     exitBeforeInit?: string
     settings?: unknown
     replayUuid?: string | null
@@ -118,6 +120,10 @@ export function fakeClaude(
           ...(options.initCommands === undefined ? {} : { commands: options.initCommands }),
           ...(options.initAccount === undefined ? {} : { account: options.initAccount })
         }
+      },
+      getContextUsage: async () => {
+        connection.calls.push({ subtype: 'get_context_usage' })
+        return options.contextUsage ?? {}
       },
       getSettings: async () => {
         connection.calls.push({ subtype: 'get_settings' })

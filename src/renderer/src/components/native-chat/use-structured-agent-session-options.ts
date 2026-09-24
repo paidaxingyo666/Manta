@@ -21,6 +21,10 @@ import { callStructuredAgentSession } from '@/runtime/structured-agent-session-c
 import { enqueueSessionOptionSettingsWrite } from './native-chat-session-option-settings-write'
 import { encodeStructuredAgentSessionOptionValue } from '../../../../shared/structured-agent-session-option-codec'
 import type { StructuredAgentSessionMutate } from './use-structured-agent-session-mutate'
+import {
+  createCoalescedPollRunner,
+  type CoalescedPollRunner
+} from '../right-sidebar/coalesced-poll-runner'
 
 export function useStructuredAgentSessionOptions(args: {
   agent: AgentType
@@ -30,6 +34,7 @@ export function useStructuredAgentSessionOptions(args: {
   providerVisible: boolean
   fence: number | null
   turnId: string | null
+  unloadedTurnRevisions: number | undefined
   mutate: StructuredAgentSessionMutate
 }) {
   const { agent, fence, mutate, providerVisible, sessionId, target, transportEnabled, turnId } =
@@ -38,7 +43,10 @@ export function useStructuredAgentSessionOptions(args: {
     sessionId: string
     commands: readonly AgentSessionConversationCommand[]
     threadGoal: AgentSessionOptionsResult['threadGoal']
+    contextUsage: AgentSessionOptionsResult['contextUsage']
   } | null>(null)
+  // A revision the loaded window dropped can move the host's whole-journal context facts.
+  const contextRefresh = conversationSupport?.contextUsage ? (args.unloadedTurnRevisions ?? 0) : 0
   const [optionState, setOptionState] = useState(() =>
     createStructuredAgentSessionOptionState(agent)
   )
@@ -65,35 +73,51 @@ export function useStructuredAgentSessionOptions(args: {
     setOptionState(next)
   }, [agent, fence, sessionId, transportEnabled])
 
+  const optionsReadRef = useRef<CoalescedPollRunner | null>(null)
   // Refresh options each turn to confirm which model the provider actually selected.
   useEffect(() => {
     if (!providerVisible || !optionCatalog) {
       return
     }
     let stale = false
-    const readGeneration = optionMutationGeneration.current
-    void callStructuredAgentSession<AgentSessionOptionsResult>(target, 'agentSession.options', {
-      sessionId
+    const runner = createCoalescedPollRunner(async () => {
+      const readGeneration = optionMutationGeneration.current
+      const result = await callStructuredAgentSession<AgentSessionOptionsResult>(
+        target,
+        'agentSession.options',
+        { sessionId }
+      )
+      if (!stale && optionMutationGeneration.current === readGeneration) {
+        setConversationSupport({
+          sessionId,
+          commands: result.conversationCommands ?? [],
+          threadGoal: result.threadGoal,
+          contextUsage: result.contextUsage
+        })
+        updateOptionState((current) =>
+          current.record === activeOptionRecordRef.current
+            ? applyStructuredAgentSessionOptions(current, optionCatalog, result)
+            : current
+        )
+      }
     })
-      .then((result) => {
-        if (!stale && optionMutationGeneration.current === readGeneration) {
-          setConversationSupport({
-            sessionId,
-            commands: result.conversationCommands ?? [],
-            threadGoal: result.threadGoal
-          })
-          updateOptionState((current) =>
-            current.record === activeOptionRecordRef.current
-              ? applyStructuredAgentSessionOptions(current, optionCatalog, result)
-              : current
-          )
-        }
-      })
-      .catch(() => {})
+    optionsReadRef.current = runner
+    runner.run()
     return () => {
       stale = true
+      runner.dispose()
     }
   }, [fence, optionCatalog, providerVisible, sessionId, target, turnId, updateOptionState])
+
+  // Reads share the session's host queue with sends and interrupts, so a burst of
+  // missed revisions keeps one read in flight and at most one behind it.
+  const seenContextRefresh = useRef(contextRefresh)
+  useEffect(() => {
+    if (contextRefresh !== seenContextRefresh.current) {
+      seenContextRefresh.current = contextRefresh
+      optionsReadRef.current?.run()
+    }
+  }, [contextRefresh])
 
   const optionSnapshot = useMemo(
     () => structuredAgentSessionOptionSnapshot(optionState),
@@ -206,6 +230,11 @@ export function useStructuredAgentSessionOptions(args: {
     threadGoal:
       transportEnabled && conversationSupport?.sessionId === sessionId
         ? conversationSupport.threadGoal
+        : undefined,
+    /** Absent from a host that predates it or a session that writes no context facts. */
+    contextUsage:
+      transportEnabled && conversationSupport?.sessionId === sessionId
+        ? conversationSupport.contextUsage
         : undefined,
     optionSnapshot: visibleOptionSnapshot,
     optionSurface,

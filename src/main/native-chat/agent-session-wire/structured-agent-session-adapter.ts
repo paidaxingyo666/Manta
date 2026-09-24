@@ -216,6 +216,8 @@ export type StructuredAgentSessionAdapter = {
   }): Promise<{ ok: true } | { ok: false; rejected: string }>
   /** Whether this live session can change its goal. */
   supportsThreadGoal?(sessionId: string): boolean
+  /** Whether this live session writes context facts to its turn rows. */
+  recordsContextUsage?(sessionId: string): boolean
   stopBackgroundTasks?(input: {
     sessionId: string
     fence: number

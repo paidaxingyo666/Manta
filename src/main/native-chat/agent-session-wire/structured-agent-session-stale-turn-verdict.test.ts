@@ -5,7 +5,8 @@ import type { AgentSessionJournal } from '../agent-session-journal/journal-store
 import {
   runningTurnLifecycleRevisions,
   settleStaleSessionStateOnAcquire,
-  turnVerdictFromDeathEvidence
+  turnVerdictFromDeathEvidence,
+  UNVERIFIABLE_TURN_VERDICT
 } from './structured-agent-session-stale-turn-verdict'
 
 const THREAD = 'thread-1'
@@ -111,6 +112,50 @@ describe('running turn lifecycle revisions', () => {
         body: { kind: 'turn', turnId: 'turn-2', state: 'unverifiable', startedAt: 30 }
       })
     ])
+  })
+
+  it('keeps every field it does not own when the host settles a running row', () => {
+    const contextUsage = {
+      used: {
+        kind: 'estimate' as const,
+        usage: {
+          inputTokens: 1,
+          cacheCreationInputTokens: 0,
+          cacheReadInputTokens: 90_000,
+          outputTokens: 5
+        },
+        capturedAt: 35
+      }
+    }
+    const running = lifecycleItem('turn-2', 'running', 2, { startedAt: 30 })
+    const body = {
+      ...running.body,
+      requestedAt: 29,
+      userItemId: 'user-2',
+      contextUsage,
+      // A field a newer build wrote: the verdict does not own it, so it survives.
+      laterField: { kept: true },
+      outcome: 'success' as const,
+      durationMs: 7
+    }
+    const items: AgentJournalRenderItem[] = [{ ...running, body }]
+    const kept = {
+      kind: 'turn',
+      turnId: 'turn-2',
+      startedAt: 30,
+      requestedAt: 29,
+      userItemId: 'user-2',
+      contextUsage,
+      laterField: { kept: true }
+    }
+    expect(
+      runningTurnLifecycleRevisions(items, { state: 'interrupted', completedAt: 40 })[0]
+    ).toMatchObject({ body: { ...kept, state: 'interrupted', completedAt: 40 } })
+    const unverifiable = runningTurnLifecycleRevisions(items, UNVERIFIABLE_TURN_VERDICT)[0]
+    expect(unverifiable?.kind === 'item' ? unverifiable.body : null).toEqual({
+      ...kept,
+      state: 'unverifiable'
+    })
   })
 
   it('revises a legacy status-form running row from an older host into a typed turn', () => {

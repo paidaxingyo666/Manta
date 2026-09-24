@@ -5,13 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../shared/agent-session-mutation-envelope'
 import type { AgentJournalRenderItem } from '../../shared/agent-session-journal-types'
 import type { AgentSessionSubscribeEvent } from '../../shared/agent-session-wire'
-import { STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY } from '../../shared/protocol-version'
-import type {
-  ClaudeStreamJsonConnection,
-  ClaudeStreamJsonConnectionHandlers,
-  ClaudeStreamJsonLaunch,
-  openClaudeStreamJsonConnection
-} from '../claude/claude-stream-json-connection'
+import {
+  AGENT_SESSION_TURN_ITEM_CAPABILITY,
+  STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY
+} from '../../shared/protocol-version'
+import { fakeClaude } from './claude-structured-fake-connection-test-fixture'
 import { claudeSessionIdForOrcaSession } from '../claude/claude-structured-launch-resolution'
 import {
   CLAUDE_SPAWN_TOKEN_ENV,
@@ -56,108 +54,6 @@ vi.mock('../native-chat/session-file-resolver', () => ({
   readClaudeTranscriptLeafUuid,
   resolveSessionFilePath
 }))
-
-type FakeClaudeConnection = Omit<ClaudeStreamJsonConnection, 'closed' | 'exitVerdict'> & {
-  closed: boolean
-  exitVerdict: ClaudeStreamJsonConnection['exitVerdict']
-  launch: ClaudeStreamJsonLaunch
-  handlers: ClaudeStreamJsonConnectionHandlers
-  calls: { subtype: string; params?: Record<string, unknown> }[]
-  sent: Record<string, unknown>[]
-}
-
-function fakeClaude() {
-  const connections: FakeClaudeConnection[] = []
-  let initializeAccount: unknown
-  /** A child that dies during start, with the close verdict its ladder observed. */
-  let selfExit: { message: string; exitVerdict: ClaudeStreamJsonConnection['exitVerdict'] } | null =
-    null
-  const openConnection = (async (launch, handlers = {}) => {
-    const connection: FakeClaudeConnection = {
-      launch,
-      handlers,
-      calls: [],
-      sent: [],
-      pid: 4321 + connections.length,
-      closed: false,
-      initializationResult: async () => {
-        connection.calls.push({ subtype: 'initialize' })
-        if (selfExit) {
-          handlers.onExit?.(new Error(selfExit.message))
-          return { models: [] }
-        }
-        handlers.onMessage?.({
-          type: 'system',
-          subtype: 'init',
-          session_id: PROVIDER_SESSION,
-          ...(connections.length === 0 ? { uuid: 'init-leaf' } : {}),
-          model: 'claude-sonnet-5',
-          apiKeySource: 'none'
-        })
-        return {
-          models: [{ value: 'sonnet', displayName: 'Sonnet' }],
-          ...(initializeAccount === undefined ? {} : { account: initializeAccount })
-        }
-      },
-      getSettings: async () => {
-        connection.calls.push({ subtype: 'get_settings' })
-        return { env: {} }
-      },
-      supportedModels: async () => {
-        connection.calls.push({ subtype: 'list_models' })
-        return [{ value: 'sonnet', displayName: 'Sonnet' }]
-      },
-      setModel: async (model) => {
-        connection.calls.push({ subtype: 'set_model', params: { model } })
-      },
-      setPermissionMode: async (mode) => {
-        connection.calls.push({ subtype: 'set_permission_mode', params: { mode } })
-      },
-      applyFlagSettings: async (settings) => {
-        connection.calls.push({ subtype: 'apply_flag_settings', params: { settings } })
-      },
-      interrupt: async () => {
-        connection.calls.push({ subtype: 'interrupt', params: {} })
-        return undefined
-      },
-      cancelAsyncMessage: async () => {},
-      stopTask: async (taskId) => {
-        connection.calls.push({ subtype: 'stop_task', params: { taskId } })
-      },
-      send: async (message) => {
-        connection.sent.push(message)
-        if (message.type === 'user') {
-          handlers.onMessage?.({ ...message, uuid: 'user-1' })
-        }
-      },
-      exitVerdict: selfExit?.exitVerdict ?? { root: 'live', tree: 'unverifiable' },
-      close: async () => {
-        connection.closed = true
-        return selfExit === null
-      }
-    }
-    connections.push(connection)
-    return connection
-  }) as typeof openClaudeStreamJsonConnection
-  const live = (): FakeClaudeConnection => {
-    const connection = connections.at(-1)
-    if (!connection) {
-      throw new Error('no Claude connection')
-    }
-    return connection
-  }
-  return {
-    connections,
-    openConnection,
-    live,
-    setInitializeAccount: (account: unknown) => {
-      initializeAccount = account
-    },
-    setSelfExit: (exit: typeof selfExit) => {
-      selfExit = exit
-    }
-  }
-}
 
 let operations = 0
 // Keep IDs unique without making each assertion depend on a wall-clock tick.
@@ -276,7 +172,9 @@ async function ok<T>(method: string, params: unknown): Promise<T> {
   return result.value as T
 }
 
-async function subscribe(): Promise<AgentSessionSubscribeEvent[]> {
+async function subscribe(
+  client: { clientKind: 'runtime'; clientCapabilities: string[] } = CLIENT
+): Promise<AgentSessionSubscribeEvent[]> {
   const frames: AgentSessionSubscribeEvent[] = []
   await dispatcher.dispatchStreaming(
     {
@@ -291,7 +189,7 @@ async function subscribe(): Promise<AgentSessionSubscribeEvent[]> {
         frames.push(response.result)
       }
     },
-    CLIENT
+    client
   )
   return frames
 }
@@ -339,7 +237,7 @@ beforeEach(async () => {
     async (_path: string, _providerSessionId: string, previousLeafUuid?: string | null) =>
       previousLeafUuid ?? 'init-leaf'
   )
-  claude = fakeClaude()
+  claude = fakeClaude(PROVIDER_SESSION)
   tuiOwner = null
   cleanups = new Map()
   const handoffTransport: StructuredAgentSessionHandoffTransport = {
@@ -788,6 +686,47 @@ describe('a structured Claude session over agentSession.*', () => {
       lastCompletedTurn
     )
     expect(readClaudeTranscriptLeafUuid).not.toHaveBeenCalled()
+  })
+
+  it('delivers the breakdown a settled turn asks for with no later frame to carry it', async () => {
+    const answers: ((value: unknown) => void)[] = []
+    claude.setContextUsage(() => new Promise((resolve) => answers.push(resolve)))
+    const created = await ok<{ fence: number }>('agentSession.create', createIntentParams())
+    const stream = await subscribe({
+      ...CLIENT,
+      clientCapabilities: [...CLIENT.clientCapabilities, AGENT_SESSION_TURN_ITEM_CAPABILITY]
+    })
+    const body = { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'Hi' }] }
+    await ok('agentSession.send', {
+      envelope: envelope('agentSession.send', { body }, created.fence),
+      body
+    })
+    claude.live().handlers.onMessage?.({
+      type: 'result',
+      subtype: 'success',
+      session_id: PROVIDER_SESSION,
+      uuid: 'result-frame-uuid'
+    })
+    await getStructuredAgentSessionHost()?.flushStreamedEvents(SESSION)
+    const turnRow = () => itemsOf(stream).find((item) => item.body?.kind === 'turn')
+    expect(turnRow()?.body).toMatchObject({ state: 'completed' })
+
+    answers.at(-1)?.({
+      model: 'claude-sonnet-5',
+      totalTokens: 18_600,
+      rawMaxTokens: 200_000,
+      categories: [{ name: 'Messages', tokens: 12_000 }]
+    })
+    // The answer is the last event of the turn: only its own publication can reach the client.
+    await vi.waitFor(async () => {
+      await getStructuredAgentSessionHost()?.flushStreamedEvents(SESSION)
+      const turn = turnRow()?.body
+      expect(turn?.kind === 'turn' ? turn.contextUsage?.used : undefined).toMatchObject({
+        kind: 'report',
+        usedTokens: 18_600,
+        categories: [{ name: 'Messages', tokens: 12_000 }]
+      })
+    })
   })
 
   it('completes a scripted native to TUI to native cycle with provider-history rehydration', async () => {

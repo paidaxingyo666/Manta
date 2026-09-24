@@ -17,6 +17,7 @@ import {
   isAdmissibleAgentJournalItemBody,
   isAdmissibleAgentJournalMessageBody
 } from '../../../shared/agent-session-journal-schemas'
+import { isAdmissibleAgentSessionContextUsage } from '../../../shared/agent-session-context-usage-schema'
 
 /** Producer linkage rides the row BASE rather than the body: the two nested
  *  prompt shapes are `.strict()`, so an unknown key on a body would make the
@@ -158,6 +159,7 @@ export function parseJournalRow(line: string): JournalRowParse {
   }
   const upcast = upcastRow(record, version)
   dropUnusableProducerLinkage(upcast)
+  dropUnusableContextUsage(upcast)
   return isJournalRow(upcast) ? { ok: true, row: upcast } : { ok: false, unreadable: false }
 }
 
@@ -179,6 +181,28 @@ function dropUnusableProducerLinkage(record: Record<string, unknown>): void {
   }
   if (record.attempt !== undefined && !Number.isInteger(record.attempt)) {
     delete record.attempt
+  }
+}
+
+/** Context facts this build cannot read, removed from the turn row that carries
+ *  them. Same reasoning as linkage: they are an annotation on the turn, and
+ *  rejecting the row for them would truncate the journal from that row on. */
+function dropUnusableContextUsage(record: Record<string, unknown>): void {
+  const bodies = [
+    record.kind === 'item' ? record.body : undefined,
+    ...(record.kind === 'lifecycle-batch' && Array.isArray(record.mutations)
+      ? record.mutations.map((mutation) => (isPlainObject(mutation) ? mutation.body : undefined))
+      : [])
+  ]
+  for (const body of bodies) {
+    if (
+      isPlainObject(body) &&
+      body.kind === 'turn' &&
+      body.contextUsage !== undefined &&
+      !isAdmissibleAgentSessionContextUsage(body.contextUsage)
+    ) {
+      delete body.contextUsage
+    }
   }
 }
 

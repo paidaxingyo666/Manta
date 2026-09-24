@@ -1,3 +1,7 @@
+import {
+  bindClaudeContextUsageCapture,
+  type ClaudeContextUsageCaptureOptions
+} from './claude-context-usage'
 import type { StructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import type { ClaudeStreamJsonConnection } from './claude-stream-json-connection'
 import type { ClaudeJournalTranslator } from './claude-structured-journal-translation'
@@ -50,4 +54,28 @@ export function bindClaudeJournalReadingControl(
       }
     }
   })
+}
+
+/**
+ * Every binding an acquisition makes between the connection and the journal:
+ * reading control, and the `/context` breakdown the translator asks for. One
+ * release covers both.
+ */
+export function bindClaudeConnectionJournalControls(
+  sink: StructuredAgentSessionEventSink | undefined,
+  connection: ClaudeStreamJsonConnection,
+  translator: ClaudeJournalTranslator | null,
+  capture: ClaudeContextUsageCaptureOptions
+): (() => void) | undefined {
+  const unbinds = [
+    bindClaudeJournalReadingControl(sink, connection, translator),
+    bindClaudeContextUsageCapture(connection, translator, capture)
+  ].filter((unbind): unbind is () => void => unbind !== undefined)
+  return unbinds.length === 0
+    ? undefined
+    : () => {
+        for (const unbind of unbinds) {
+          unbind()
+        }
+      }
 }

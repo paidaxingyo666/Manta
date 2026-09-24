@@ -13,6 +13,7 @@ import type {
 } from './agent-session-wire'
 import { backgroundTaskStatesEqual } from './agent-session-background-task-state-equality'
 import { agentJournalSubmissionKey } from './agent-session-journal-item-key'
+import { readAgentJournalTurn } from './agent-session-turn-record'
 
 /** The last host clock sample: `hostNow - receivedAt` is the client's skew from the host,
  *  which is what lets a client attaching mid-turn anchor its live counter on the real start. */
@@ -38,6 +39,9 @@ export type StructuredAgentSessionState = {
   activity?: AgentSessionTurnActivity | null
   /** Absent until a frame from a host that stamps `hostNow` has been applied. */
   hostClock?: StructuredAgentHostClock
+  /** Bumped per live batch that leaves a turn row's newest revision outside the window
+   *  (dropped or trimmed), so a whole-journal answer derived from turn rows is asked for again. */
+  unloadedTurnRevisions?: number
 }
 
 export type StructuredAgentSessionAction =
@@ -263,6 +267,13 @@ export function reduceStructuredAgentSession(
     ? state.items
     : mergeItems(state.items, liveItems, event.batch.removedItemIds)
   const items = trimRetainedItems(merged, state.retainedItemLimit)
+  const outsideWindow = [
+    ...(liveItems.length < event.batch.items.length
+      ? event.batch.items.filter((item) => !liveItems.includes(item))
+      : []),
+    ...merged.slice(0, merged.length - items.length)
+  ]
+  const lostTurnRow = outsideWindow.some((item) => readAgentJournalTurn(item.body) !== null)
   return {
     ...state,
     cursor: event.batch.cursor,
@@ -280,6 +291,7 @@ export function reduceStructuredAgentSession(
     commands: event.commands !== undefined ? event.commands : state.commands,
     ...(backgroundTasks !== undefined ? { backgroundTasks } : {}),
     ...(activity !== undefined ? { activity } : {}),
+    ...(lostTurnRow ? { unloadedTurnRevisions: (state.unloadedTurnRevisions ?? 0) + 1 } : {}),
     ...hostClockField(event.hostNow, receivedAt, state.hostClock)
   }
 }
