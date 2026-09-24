@@ -31,11 +31,11 @@ function installManagedScript(): { scriptPath: string; cleanup: () => void } {
 }
 
 describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs it', () => {
-  it('returns immediately on pre_tool even when the hook server never answers', async () => {
+  it('returns on pre_tool in a fraction of what the same POST costs synchronously', async () => {
     const { scriptPath, cleanup } = installManagedScript()
-    // A server that accepts the connection and then never replies: curl holds it
-    // open until its own --max-time 1.5, which is what a synchronous gate would
-    // hand straight to the agent on every single tool call.
+    // A server that accepts the connection and then never replies, so curl holds it
+    // open until its own --max-time. That wait is exactly what a synchronous gate
+    // would hand the agent on every single tool call.
     const blackHole: Server = createServer(() => {})
     await new Promise<void>((resolve) => blackHole.listen(0, '127.0.0.1', resolve))
     const address = blackHole.address()
@@ -48,33 +48,41 @@ describe.runIf(process.platform !== 'win32')('jcode managed hook as jcode runs i
         `MANTA_AGENT_HOOK_PORT=${port}\nMANTA_AGENT_HOOK_TOKEN=t\nexport MANTA_AGENT_HOOK_PORT MANTA_AGENT_HOOK_TOKEN\n`
       )
 
-      // A tool input far larger than a 64 KB pipe buffer: jcode write_all()s this
-      // to the gate's stdin and awaits it, so a gate that never reads stdin stalls.
-      const bigToolInput = JSON.stringify({ content: 'x'.repeat(512 * 1024) })
-      const startedAt = Date.now()
-      execFileSync('/bin/sh', [scriptPath], {
-        input: bigToolInput,
-        env: {
-          ...process.env,
-          MANTA_AGENT_HOOK_ENDPOINT: endpoint,
-          MANTA_PANE_KEY: 'tab-1:leaf-1',
-          JCODE_HOOK_EVENT: 'pre_tool',
-          JCODE_HOOK_SESSION_ID: 'session_gate_1',
-          JCODE_HOOK_PAYLOAD: JSON.stringify({ event: 'pre_tool', tool_name: 'write' })
-        },
-        // Why: the assertion below is the real gate; this only stops a regression
-        // from hanging the suite instead of failing it.
-        timeout: 20_000,
-        // stdio is the point of the test: jcode reads stderr to EOF, so an
-        // inherited pipe in a backgrounded child would hold the gate open for as
-        // long as the POST ran, detached or not.
-        stdio: ['pipe', 'pipe', 'pipe']
-      })
-      const elapsed = Date.now() - startedAt
+      /** Runs the managed hook for one event and returns how long the caller waited.
+       *  Only the gate is fed stdin, because jcode gives its observer hooks a null one. */
+      const runHook = (event: string): number => {
+        // A tool input far larger than a 64 KB pipe buffer: jcode write_all()s this to
+        // the gate's stdin and awaits it, so a gate that never reads stdin stalls.
+        const input =
+          event === 'pre_tool' ? JSON.stringify({ content: 'x'.repeat(512 * 1024) }) : ''
+        const startedAt = Date.now()
+        execFileSync('/bin/sh', [scriptPath], {
+          input,
+          env: {
+            ...process.env,
+            MANTA_AGENT_HOOK_ENDPOINT: endpoint,
+            MANTA_PANE_KEY: 'tab-1:leaf-1',
+            JCODE_HOOK_EVENT: event,
+            JCODE_HOOK_SESSION_ID: 'session_gate_1',
+            JCODE_HOOK_PAYLOAD: JSON.stringify({ event, tool_name: 'write' })
+          },
+          // Why: the assertion below is the real gate; this only stops a regression
+          // from hanging the suite instead of failing it.
+          timeout: 30_000,
+          // stdio is the point of the test: jcode reads the gate's stderr to EOF, so a
+          // backgrounded child that inherited it would hold the tool call open for as
+          // long as the POST ran, detached or not.
+          stdio: ['pipe', 'pipe', 'pipe']
+        })
+        return Date.now() - startedAt
+      }
 
-      // Comfortably under curl's 1.5s ceiling: a synchronous POST would sit on
-      // that ceiling for every tool call, and jcode's own budget is only 5s.
-      expect(elapsed).toBeLessThan(1_000)
+      // Why measure both rather than assert a wall-clock bound: the absolute numbers
+      // move with the machine, and a bound tight enough to catch a synchronous gate on
+      // a fast host goes flaky on a loaded CI runner. The ratio is the actual claim.
+      const observerMs = runHook('turn_end')
+      const gateMs = runHook('pre_tool')
+      expect(gateMs * 4).toBeLessThan(observerMs)
     } finally {
       rmSync(endpointDir, { recursive: true, force: true })
       await new Promise<void>((resolve) => blackHole.close(() => resolve()))
