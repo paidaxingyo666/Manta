@@ -128,7 +128,12 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     detectCmd: 'opencode',
     promptInjectionMode: 'flag-prompt',
     // Why: opencode enables bracketed paste before its composer mounts; wait for the post-\x1b[?2004h show-cursor so paste lands.
-    draftPasteReadySignal: 'render-cursor-after-bracketed-paste'
+    draftPasteReadySignal: 'render-cursor-after-bracketed-paste',
+    // Why: ConPTY never forwards DECSET 2004 (terminal-agent-paste-bracketing.ts), so on Windows
+    // this signal cannot fire at all and the budget becomes the fixed settle delay before the
+    // blind process-ownership paste. 8s lands mid-startup there; match codex, the other
+    // quiet-window-less signal, which needed the same headroom (#22479).
+    draftPasteReadyTimeoutMs: 20_000
   },
   // Why: opencode2 installs as a separate binary and uses the same prompt flags.
   // Its @opentui composer keeps the same cursor-gated paste signal.
@@ -138,7 +143,8 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     launchCmd: 'opencode2 --standalone',
     expectedProcess: 'opencode2',
     promptInjectionMode: 'flag-prompt',
-    draftPasteReadySignal: 'render-cursor-after-bracketed-paste'
+    draftPasteReadySignal: 'render-cursor-after-bracketed-paste',
+    draftPasteReadyTimeoutMs: 20_000
   },
   'mimo-code': {
     detectCmd: 'mimo',
