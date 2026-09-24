@@ -162,7 +162,18 @@ describe('planCommitMessageGeneration', () => {
       ok: true,
       plan: {
         binary: 'jcode',
-        args: ['--no-update', '--quiet', '--no-selfdev', 'run', '--json', 'name this branch'],
+        // --tool-profile none: the prompt is a staged patch, and jcode's default
+        // profile would expose shell/read/write/MCP to it.
+        args: [
+          '--no-update',
+          '--quiet',
+          '--no-selfdev',
+          '--tool-profile',
+          'none',
+          'run',
+          '--json',
+          'name this branch'
+        ],
         stdinPayload: null,
         label: 'Jcode'
       }
