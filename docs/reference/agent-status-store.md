@@ -234,17 +234,29 @@ repaint, an inferred answer) keeps it only while `mainAgent` is unchanged. A chi
 sticky permission prompt still records the main agent's own progress and background
 evidence in the held row, and pushes the held row to subscribers when `mainAgent` changes.
 
-Two combining rules remain outside the shared fold and are named so a reader
-does not mistake them for drift:
+Every lane, Codex included, combines through the fold. A child waiting on a
+human is a fold input (`childWorkLiveness: 'waiting'`, derived from the child's
+own `waiting` state; a child's `blocked` means it failed and stays live work)
+and makes the row wait whatever the main agent is doing, unless the main agent
+is itself asking. Only the Codex hook lane feeds that input today. Known
+divergences, pinned by name in the parity table
+(`src/shared/main-agent-status-parity.test.ts`) where they are reachable, so a
+reader does not mistake them for drift:
 
-- Codex keeps `codexRosterEffectiveState` for its combined `state` (a waiting
-  child wins, a settled root with any live child reads `working`, never
-  monitoring) and publishes `mainAgent` from its root record; moving that combine
-  onto the fold needs a waiting-child input the fold does not have yet.
 - A cancelled turn with a still-running shell reads `done` in the hook lane
-  and `monitoring` in the structured lane. The parity table in
-  `src/shared/main-agent-status-parity.test.ts` pins this as a known
-  divergence; the cancel policy that removes it flips that row.
+  and `monitoring` in the structured lane; the cancel policy that removes it
+  flips that row.
+- The Claude hook lane holds a child's permission wait in one slot on the
+  displaced main agent record (`waitingAgentId`, `stateBeforeWait`), not on
+  the child. It publishes the displaced state as `mainAgent`, but the next
+  main agent event overwrites the slot, so the row stops reading `waiting`
+  while the child is still asking, and a second asking child replaces the
+  first.
+- The structured lane has no per-child wait: a child's pending prompt makes
+  the session `attention`, which reads as the main agent's own `blocked`.
+- The Codex hook lane drops its roster on a root `Stop` when it tracks no
+  child transcripts, so a still-running or still-asking child stops holding
+  the row.
 
 ## PR 1b: the runtime's retained row store is deleted
 

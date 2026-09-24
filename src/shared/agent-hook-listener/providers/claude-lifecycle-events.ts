@@ -9,8 +9,8 @@ import {
 } from '../../claude-subagent-roster'
 import type { HookListenerState } from '../listener-state'
 import { readString } from '../tool-input-preview'
+import { mainAgentTurnInterrupted } from '../../agent-lead-status-fold'
 import {
-  claudeMainAgentTurnInterrupted,
   clearClaudePendingWaitForAgent,
   getOrCreateClaudeSubagentRoster,
   resolveClaudePaneStatus
@@ -85,7 +85,7 @@ export function normalizeClaudeSubagentLifecycleEvent(
   const hasUnconfirmedChild = claudeRosterHasRestoredSnapshotSubagent(roster)
   const hasConfirmedDoneGate =
     cachedLead?.state === 'done' &&
-    !claudeMainAgentTurnInterrupted(cachedLead) &&
+    !mainAgentTurnInterrupted(cachedLead) &&
     (state.claudeRunningNonAgentTaskPaneKeys.has(paneKey) ||
       state.claudeActiveSessionCronPaneKeys.has(paneKey))
   const restoredOnlyDoneGate =
@@ -138,7 +138,7 @@ export function buildClaudeCachedLeadStatusPayload(
       outcome: lead?.outcome
     }),
     updateToolSnapshot: false,
-    interrupted: claudeMainAgentTurnInterrupted(lead),
+    interrupted: mainAgentTurnInterrupted(lead),
     // Why: draining the last background child is this turn's all-clear; the stamp lets a consumer pair it with the announcement already sent.
     turnCompletedAt: lead?.turnCompletedAt
   })

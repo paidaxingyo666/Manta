@@ -5,8 +5,8 @@ import {
 } from '../../agent-status-types'
 import { normalizeOptionalField } from '../../agent-status-field-normalization'
 import { isAskUserQuestionTool } from '../../agent-question-answered-intent'
+import type { AgentLeadStatusResolution } from '../../agent-lead-status-fold'
 import {
-  codexRosterEffectiveState,
   codexRosterToSnapshots,
   finishCodexSubagent,
   upsertCodexSubagent
@@ -27,6 +27,7 @@ import {
   getOrCreateCodexSubagentRoster,
   getOrCreateCodexSubagentTranscriptState,
   hasCodexTranscriptSubagents,
+  resolveCodexPaneStatus,
   setCodexMainAgentTurnState
 } from './codex-state'
 
@@ -36,7 +37,7 @@ export function buildCodexStatusPayload(
   promptText: string,
   paneKey: string,
   hookPayload: Record<string, unknown>,
-  options: { stateName: 'working' | 'waiting' | 'done'; updateLead: boolean }
+  options: AgentLeadStatusResolution & { updateLead: boolean }
 ): ParsedAgentStatusPayload | null {
   const snapshot = options.updateLead
     ? resolveToolState(state, paneKey, extractToolFields('codex', eventName, hookPayload), {
@@ -47,6 +48,7 @@ export function buildCodexStatusPayload(
 
   return normalizeAgentStatusPayload({
     state: options.stateName,
+    workingMode: options.workingMode,
     prompt: resolvePrompt(state, paneKey, promptText, {
       resetOnNewTurn: options.updateLead && isNewTurnEvent('codex', eventName)
     }),
@@ -68,13 +70,10 @@ export function buildCodexChildDrivenStatusPayload(
   paneKey: string,
   hookPayload: Record<string, unknown>
 ): ParsedAgentStatusPayload | null {
-  const leadState = state.codexLeadStateByPaneKey.get(paneKey)?.state ?? 'working'
-  const stateName = codexRosterEffectiveState(
-    state.codexSubagentRosterByPaneKey.get(paneKey),
-    leadState
-  )
+  // Why: a child event before any root event means the root is mid-turn; nothing else spawns.
+  const lead = state.codexLeadStateByPaneKey.get(paneKey) ?? { state: 'working' as const }
   return buildCodexStatusPayload(state, eventName, '', paneKey, hookPayload, {
-    stateName,
+    ...resolveCodexPaneStatus(state, paneKey, lead),
     updateLead: false
   })
 }
@@ -228,21 +227,15 @@ export function normalizeCodexEvent(
     stateName
   )
   const previousLead = state.codexLeadStateByPaneKey.get(paneKey)
-  setCodexMainAgentTurnState(state, paneKey, {
+  const record = setCodexMainAgentTurnState(state, paneKey, {
     state: ownedState,
     ...codexOutcomeRestatedByStop(previousLead, ownedState),
     model:
       normalizeOptionalField(hookPayload['model'], AGENT_MODEL_MAX_LENGTH) ??
       (eventName === 'SessionStart' ? undefined : previousLead?.model)
   })
-  // The combined state keeps Codex's own rule (a waiting child wins, a done root with any live
-  // child reads working); folding it onto `foldAgentLeadStatus` is a separate slice.
-  const effectiveState = codexRosterEffectiveState(
-    state.codexSubagentRosterByPaneKey.get(paneKey),
-    ownedState
-  )
   return buildCodexStatusPayload(state, eventName, promptText, paneKey, hookPayload, {
-    stateName: effectiveState,
+    ...resolveCodexPaneStatus(state, paneKey, record),
     updateLead: true
   })
 }

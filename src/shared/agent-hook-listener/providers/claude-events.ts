@@ -1,4 +1,5 @@
 import type { ParsedAgentStatusPayload } from '../../agent-status-types'
+import { mainAgentTurnInterrupted } from '../../agent-lead-status-fold'
 import { isAskUserQuestionTool } from '../../agent-question-answered-intent'
 import { readClaudeBackgroundAgentTasks } from '../../claude-background-task-inventory'
 import {
@@ -17,7 +18,6 @@ import {
   normalizeClaudeSubagentLifecycleEvent
 } from './claude-lifecycle-events'
 import {
-  claudeMainAgentTurnInterrupted,
   getOrCreateClaudeSubagentRoster,
   resolveClaudePaneStatus,
   setClaudeMainAgentTurnState,
@@ -78,7 +78,7 @@ export function normalizeClaudeEvent(
   const interrupted =
     isTurnBoundary &&
     ((eventAgentId === undefined && hookPayload['is_interrupt'] === true) ||
-      claudeMainAgentTurnInterrupted(previousLead))
+      mainAgentTurnInterrupted(previousLead))
       ? true
       : undefined
   // Why: absent means unknown — a plain Stop never becomes `success`, so a cancel can never read as a
@@ -206,7 +206,7 @@ export function normalizeClaudeEvent(
     return buildClaudeStatusPayload(state, eventName, promptText, paneKey, hookPayload, {
       ...resolveClaudePaneStatus(state, paneKey, restored),
       updateToolSnapshot: true,
-      interrupted: claudeMainAgentTurnInterrupted(restored),
+      interrupted: mainAgentTurnInterrupted(restored),
       turnCompletedAt: restored.turnCompletedAt
     })
   }
