@@ -334,6 +334,8 @@ export type AgentJournalRenderItem = AgentJournalProducerLinkage & {
   observedAt: number
   /** Set when the row was appended by crash reconciliation rather than live. */
   recovered?: true
+  /** When crash reconciliation wrote this revision; present exactly when `recovered` is. */
+  recoveredAt?: number
 }
 
 // ─── Submissions ────────────────────────────────────────────────────────────

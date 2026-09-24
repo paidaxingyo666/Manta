@@ -282,6 +282,7 @@ export const AgentJournalRenderItemSchema = z.object({
   sequence: z.number().int(),
   observedAt: z.number(),
   recovered: z.literal(true).optional(),
+  recoveredAt: z.number().optional(),
   ...AgentJournalProducerLinkageFields
 })
 

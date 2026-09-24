@@ -13,6 +13,7 @@
 import { agentProviderSessionsEqual } from '../../../shared/agent-session-resume'
 import type { AgentSessionRecord } from '../../../shared/agent-session-record'
 import { normalizeOptionalField } from '../../../shared/agent-status-field-normalization'
+import { isAgentStatusHeldOpenByChildWork } from '../../../shared/agent-lead-status-fold'
 import { AGENT_MODEL_MAX_LENGTH } from '../../../shared/agent-status-types'
 import {
   agentSessionBackgroundTasksEqual,
@@ -21,6 +22,7 @@ import {
   type AgentSessionStatusSummary
 } from '../../../shared/agent-session-wire'
 import { projectStructuredAgentSessionStatusSummary } from '../../../shared/structured-agent-session-projection'
+import { structuredAgentSessionAgentStatus } from '../../../shared/structured-agent-session-agent-status'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import type { StructuredAgentSessionProviderChildPhase } from './structured-agent-session-adapter'
 import { structuredAgentSessionProviderSessionMetadata } from './structured-agent-session-history-result'
@@ -67,8 +69,13 @@ function summariesEqual(a: AgentSessionStatusSummary, b: AgentSessionStatusSumma
     a.hostExecutionOwned === b.hostExecutionOwned &&
     a.hostExecutionPhase === b.hostExecutionPhase &&
     a.rewindBlockedReason === b.rewindBlockedReason &&
-    // Settled activity changes ranking; streaming active turns must stay quiet.
-    (a.status !== 'idle' || a.updatedAt === b.updatedAt) &&
+    // A moved state clock changes ranking; row activity alone, including a subagent's, does not.
+    // An idle state the journal cannot date still republishes, since readers date it by `updatedAt`,
+    // and so does one live child work holds open: readers take each publish as its evidence.
+    a.statusStartedAt === b.statusStartedAt &&
+    (a.status !== 'idle' ||
+      a.updatedAt === b.updatedAt ||
+      (a.statusStartedAt !== undefined && !isIdleHeldOpenByChildWork(b))) &&
     a.latestPrompt === b.latestPrompt &&
     a.model === b.model &&
     a.toolName === b.toolName &&
@@ -77,6 +84,19 @@ function summariesEqual(a: AgentSessionStatusSummary, b: AgentSessionStatusSumma
     a.turnOutcome === b.turnOutcome &&
     agentSessionBackgroundTasksEqual(a.backgroundTasks, b.backgroundTasks) &&
     agentProviderSessionsEqual(undefined, a.providerSession, b.providerSession)
+  )
+}
+
+function isIdleHeldOpenByChildWork(summary: AgentSessionStatusSummary): boolean {
+  return (
+    summary.status === 'idle' &&
+    isAgentStatusHeldOpenByChildWork(
+      structuredAgentSessionAgentStatus({
+        status: summary.status,
+        backgroundTasks: summary.backgroundTasks,
+        turnOutcome: summary.turnOutcome
+      })
+    )
   )
 }
 

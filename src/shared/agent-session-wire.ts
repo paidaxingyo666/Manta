@@ -234,6 +234,10 @@ export type AgentSessionStatusSummary = {
   backgroundTasks?: AgentSessionBackgroundTask[]
   providerSession?: AgentProviderSessionMetadata
   updatedAt: number
+  /** When the session's own agent entered `status`, dated by its own lifecycle edges and never by
+   *  row activity: `updatedAt` also moves for a subagent's rows. Absent from older hosts, and when
+   *  the journal records no such edge; readers then keep dating the state themselves. */
+  statusStartedAt?: number
 }
 
 /** A summary outlives its provider child: an evicted idle session is still idle, so the host
