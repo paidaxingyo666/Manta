@@ -19,6 +19,9 @@ export const STRUCTURED_AGENT_SESSION_RESUME_CONCURRENCY = 3
 export const STRUCTURED_AGENT_SESSION_RESUME_IN_PROGRESS =
   'agent_session_resume_already_in_progress'
 
+/** The chat stopped being resumable between listing and acting; nothing was attempted. */
+export const STRUCTURED_AGENT_SESSION_RESUME_NOT_ELIGIBLE = 'agent_session_resume_not_eligible'
+
 export type StructuredAgentSessionResumeOutcome = {
   sessionId: string
   outcome: 'resumed' | 'refused'
@@ -111,7 +114,7 @@ async function resumeOne(
         return {
           sessionId,
           outcome: 'refused' as const,
-          reason: 'agent_session_resume_not_eligible'
+          reason: STRUCTURED_AGENT_SESSION_RESUME_NOT_ELIGIBLE
         }
       }
       await deps.resume(sessionId)

@@ -25,6 +25,17 @@ export type ResumeCandidate = {
   model?: string
 }
 
+/** An offer that was acted on and did not end with the agent carrying on. The host keeps it until
+ *  the user opens the chat and sends, retries successfully, dismisses it, or it expires. */
+export type ResumeFailure = ResumeCandidate & {
+  failedAt: number
+  outcome: 'refused' | 'unconfirmed'
+  /** The host's or provider's refusal code, verbatim. */
+  reason: string
+  /** Whether a retry would run at all; an older host omits it and the reason decides alone. */
+  retryable?: boolean
+}
+
 export type ResumeWorkspaceGroup = {
   workspaceId: string
   candidates: ResumeCandidate[]

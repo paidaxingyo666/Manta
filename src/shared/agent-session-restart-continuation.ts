@@ -26,3 +26,15 @@ export const AGENT_SESSION_RESTART_CONTINUATION_MESSAGE =
  */
 export const AGENT_SESSION_RESTART_CONTINUATION_NOTE =
   'Manta asked this agent to continue after a restart. Your own prompt was not re-sent.'
+
+/** Host-authored notes left in a chat the continuation did not carry on, so the chat itself says
+ *  what happened and what to do. The next message the user sends is the manual continuation. */
+export const AGENT_SESSION_RESTART_CONTINUATION_REFUSED_NOTE =
+  "Manta couldn't continue this chat after the restart. Send a message to continue it."
+export const AGENT_SESSION_RESTART_CONTINUATION_UNCONFIRMED_NOTE =
+  "Manta asked this agent to continue after the restart but couldn't confirm it did. Check its latest reply before sending another message."
+
+/** For a chat Manta could not get hold of. Why decides the fix, which the restart list gives; advice
+ *  to send a message would meet the same refusal. */
+export const AGENT_SESSION_RESTART_NOT_CONNECTED_NOTE =
+  "Manta couldn't reconnect this chat after the restart, so it didn't ask the agent to continue."

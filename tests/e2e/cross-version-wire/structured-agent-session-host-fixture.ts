@@ -19,6 +19,7 @@ export function structuredHostStub(
     // `installableHost` below is what reassembles the member. Keeping them flat also lets the
     // manifest name them to prove a call reached the host.
     restartResumableList: vi.fn(async () => []),
+    restartResumableFailures: vi.fn(async () => []),
     restartResumableDismiss: vi.fn(async () => 0),
     restartResumeAll: vi.fn(async () => []),
     restartContinueAll: vi.fn(async () => ({ resumed: [], continued: [] })),
@@ -103,6 +104,7 @@ export function installableHost(
     ...hostCalls,
     restartResume: {
       list: hostCalls.restartResumableList,
+      listFailures: hostCalls.restartResumableFailures,
       dismiss: hostCalls.restartResumableDismiss,
       resume: hostCalls.restartResumeAll,
       continueAfterRestart: hostCalls.restartContinueAll

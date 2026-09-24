@@ -42,6 +42,18 @@ export type StructuredAgentSessionRestartCandidateReader = (
   options?: StructuredAgentSessionRestartCandidateOptions
 ) => StructuredAgentSessionResumeCandidate[]
 
+/** The newest user message in a live session's journal, the same fact the predicate compares
+ *  against a marker. Undefined when the session is not readable here, which decides nothing. */
+export function liveStructuredAgentSessionLatestUserItemId(
+  sessions: ReadonlyMap<string, StructuredAgentSessionRestartJournalSource>,
+  sessionId: string
+): string | null | undefined {
+  const session = sessions.get(sessionId)
+  return session
+    ? (latestStructuredAgentSessionUserItem(session.journal.snapshot().items)?.itemId ?? null)
+    : undefined
+}
+
 export function createStructuredAgentSessionRestartCandidateReader(deps: {
   /** The host's LIVE session map — the only honest answer to "was this actually working". */
   sessions: ReadonlyMap<string, StructuredAgentSessionRestartJournalSource>

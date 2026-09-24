@@ -250,9 +250,13 @@ export const HoldParams = z
   .object({ sessionId: SessionId, holderId: Identifier('Invalid holder id') })
   .strict()
 
-/** A launch's offer to resume what the last teardown recorded as working. No arguments: the set is
- *  the host's to derive, never a client's to assert. */
-export const RestartResumableParams = z.object({}).strict()
+/** A launch's offer to resume what the last teardown recorded as working; the set is the host's to
+ *  derive, never a client's to assert. Listing takes nothing. Dismissing takes the sessions to
+ *  forget, or nothing to forget them all; a client only ever names sessions the host itself listed,
+ *  so an older host that rejects the key is never asked to. */
+export const RestartResumableParams = z
+  .object({ sessionIds: z.array(SessionId).max(MAX_RESTART_RESUME_SESSIONS).optional() })
+  .strict()
 
 /** Omitting `sessionIds` takes the whole offered set; naming them takes that subset. Either way the
  *  host re-derives eligibility, so an id a client invents is simply not in the set. */
