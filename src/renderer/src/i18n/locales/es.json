@@ -14614,6 +14614,43 @@
           "deleteTitle": "¿Eliminar el artefacto?",
           "deleteDescription": "“{{name}}” ya no estará disponible en su enlace público.",
           "delete": "Eliminar"
+        },
+        "ArtifactPublishButton": {
+          "a4a49da6af": "Compartir como artefacto",
+          "confirmTitle": "Compartir como artefacto",
+          "confirmDescription": "Esto publica el archivo actual en un enlace que cualquier persona con la URL puede ver.",
+          "accountTitle": "Cuenta de Manta",
+          "accountDescription": "Inicia sesión para crear y gestionar este enlace.",
+          "signInAgain": "Iniciar sesión de nuevo",
+          "signIn": "Iniciar sesión",
+          "publishingOffTitle": "El uso compartido de artefactos está desactivado",
+          "publishingOffDescription": "Obtén más información sobre los enlaces públicos y activa el uso compartido en Ajustes.",
+          "openSettings": "Abrir los ajustes de artefactos",
+          "sharing": "Compartiendo…",
+          "sharePublicLink": "Generar enlace",
+          "publishedDescription": "Cualquier persona con este enlace puede ver el archivo compartido.",
+          "checkingLink": "Comprobando si existe un enlace…",
+          "checkFailed": "No se pudo comprobar si existe un enlace.",
+          "tryAgain": "Reintentar"
+        },
+        "artifact-publish-flow": {
+          "9a078a0c65": "El uso compartido de artefactos no está disponible",
+          "bba20daa6d": "Inicia sesión en Manta e inténtalo de nuevo.",
+          "54b1805328": "No se pudo compartir el artefacto",
+          "430019efd0": "Artefacto compartido",
+          "2fc727c831": "Artefacto actualizado",
+          "5cb4f5ec36": "Copiar enlace",
+          "fbb5018602": "Este archivo está vacío.",
+          "6112db5a1c": "Este artefacto es demasiado grande para compartirlo.",
+          "e2ed5acd8c": "Manta no pudo leer este archivo. Ábrelo desde un espacio de trabajo e inténtalo de nuevo.",
+          "6d475e9b25": "Solo los archivos HTML y Markdown locales se pueden compartir como artefactos.",
+          "29a406be09": "Los artefactos deben contener texto."
+        },
+        "ArtifactPublishedLinkPanel": {
+          "copyLink": "Copiar enlace",
+          "openLink": "Abrir enlace",
+          "updating": "Actualizando…",
+          "update": "Actualizar el contenido compartido"
         }
       },
       "ComposerParentWorktreePicker": {
