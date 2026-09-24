@@ -83,7 +83,10 @@ export async function executeAgentLaunch(
       agent: intent.agent,
       workspaceKind: launchWorkspaceKind(intent.target),
       ...(intent.reuseTerminal ? { terminal: intent.reuseTerminal.handle } : {}),
-      ...(intent.cwd ? { cwd: intent.cwd } : {})
+      ...(intent.cwd ? { cwd: intent.cwd } : {}),
+      ...(intent.target.kind === 'existing' && intent.target.workspacePath
+        ? { workspacePath: intent.target.workspacePath }
+        : {})
     },
     settings,
     vocabulary
