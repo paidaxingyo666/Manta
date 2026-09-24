@@ -15023,11 +15023,9 @@
           "missingIpykernelTitle": "Installer ipykernel ?",
           "missingIpykernel": "L'exécution de cellules avec '{{env}}' nécessite le package ipykernel.",
           "copyCommand": "Commande Copier",
-          "chooseAnother": "Choisissez-en un autre",
           "install": "Installer",
           "kernelStartFailed": "Le noyau n'a pas pu démarrer.",
           "noPython": "Python n'a pas été trouvé sur cet ordinateur. Installez-le depuis [python.org](https://www.python.org/downloads/), puis exécutez à nouveau la cellule.",
-          "installFailed": "L'installation d'ipykernel a échoué. Exécutez `{{command}}` vous-même ou créez un environnement virtuel pour ce projet avec `{{venvCommand}}` et choisissez-le comme noyau.",
           "kernelDied": "Le noyau est mort.",
           "localOnly": "Les cellules du bloc-notes ne peuvent s'exécuter que pour les fichiers de cet ordinateur.",
           "pythonOnly": "Seuls les notebooks Python peuvent s'exécuter dans Manta."

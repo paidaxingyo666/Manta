@@ -14920,11 +14920,9 @@
           "missingIpykernelTitle": "ipykernel을 설치하시겠습니까?",
           "missingIpykernel": "'{{env}}'으로 셀을 실행하려면 ipykernel 패키지가 필요합니다.",
           "copyCommand": "복사 명령",
-          "chooseAnother": "다른 것을 선택하세요",
           "install": "설치",
           "kernelStartFailed": "커널을 시작하지 못했습니다.",
           "noPython": "이 컴퓨터에서는 Python을 찾을 수 없습니다. [python.org](https://www.python.org/downloads/)에서 설치한 후 셀을 다시 실행하세요.",
-          "installFailed": "ipykernel 설치에 실패했습니다. `{{command}}`을 직접 실행하거나 `{{venvCommand}}`을 사용하여 이 프로젝트에 대한 가상 환경을 만들고 이를 커널로 선택하세요.",
           "kernelDied": "커널이 죽었습니다.",
           "localOnly": "노트북 셀은 이 컴퓨터의 파일에 대해서만 실행할 수 있습니다.",
           "pythonOnly": "Manta에서는 Python 노트북만 실행할 수 있습니다."

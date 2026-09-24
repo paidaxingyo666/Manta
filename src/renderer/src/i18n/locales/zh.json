@@ -14920,11 +14920,9 @@
           "missingIpykernelTitle": "安装ipykernel？",
           "missingIpykernel": "使用“{{env}}”运行单元需要 ipykernel 包。",
           "copyCommand": "复制命令",
-          "chooseAnother": "选择另一个",
           "install": "安装",
           "kernelStartFailed": "内核无法启动。",
           "noPython": "在此计算机上未找到 Python。从 [python.org](https://www.python.org/downloads/) 安装它，然后再次运行单元。",
-          "installFailed": "安装 ipykernel 失败。自己运行`{{command}}`，或者使用`{{venvCommand}}`为此项目创建一个虚拟环境并选择它作为内核。",
           "kernelDied": "内核死了。",
           "localOnly": "笔记本单元只能针对该计算机上的文件运行。",
           "pythonOnly": "只有 Python 笔记本可以在 Manta 中运行。"
