@@ -36,6 +36,8 @@ export type TuiAgentConfig = {
   draftPromptFlag?: string
   /** Startup env var that seeds the input without submitting, for agents with no `--prefill`-style flag (e.g. pi); avoids the paste-after-ready race. */
   draftPromptEnvVar?: string
+  /** Claude Code follows pasted text only where the user's typed words ask, so dispatch briefs need a typed lead line. */
+  pasteNeedsTypedRequest?: boolean
   /** Pre-write a trust artifact so the agent's first-launch "trust this folder?" menu doesn't consume the bracketed paste (see agent-trust-presets.ts). */
   preflightTrust?: 'cursor' | 'copilot' | 'codex' | 'antigravity'
   /** Agent-specific signal that the composer is ready for paste, stronger than the default quiet-render window. */
@@ -72,6 +74,7 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
   claude: {
     detectCmd: 'claude',
     promptInjectionMode: 'argv',
+    pasteNeedsTypedRequest: true,
     // Why: `claude --prefill <text>` seeds the input without submitting, avoiding the paste-after-ready race (PR https://github.com/stablyai/orca/pull/926).
     draftPromptFlag: '--prefill'
   },
@@ -89,7 +92,8 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
       win32: `${getMantaCliCommandNameForPlatform('win32')} claude-teams`
     },
     expectedProcess: 'claude',
-    promptInjectionMode: 'stdin-after-start'
+    promptInjectionMode: 'stdin-after-start',
+    pasteNeedsTypedRequest: true
   },
   openclaude: {
     detectCmd: 'openclaude',

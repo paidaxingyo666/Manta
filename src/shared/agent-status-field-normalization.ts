@@ -4,10 +4,7 @@
 // truncate without splitting surrogate pairs. Extracted from
 // agent-status-types.ts, which owns the payload shapes and per-field caps.
 
-import {
-  compactDispatchPromptForStatus,
-  isMantaDispatchStatusPrompt
-} from './manta-dispatch-status-prompt'
+import { compactDispatchPromptForStatus } from './manta-dispatch-status-prompt'
 
 /** Maximum character length for the prompt field. Truncated on parse. */
 export const AGENT_STATUS_MAX_FIELD_LENGTH = 200
@@ -45,14 +42,13 @@ export function normalizePromptField(value: unknown): string {
   if (typeof value !== 'string') {
     return ''
   }
-  if (isMantaDispatchStatusPrompt(value)) {
-    return compactDispatchPromptForStatus(
+  return (
+    compactDispatchPromptForStatus(
       value,
       AGENT_STATUS_MAX_FIELD_LENGTH,
       normalizeSingleLinePreview
-    )
-  }
-  return normalizeSingleLinePreview(value, AGENT_STATUS_MAX_FIELD_LENGTH)
+    ) ?? normalizeSingleLinePreview(value, AGENT_STATUS_MAX_FIELD_LENGTH)
+  )
 }
 
 function normalizeSingleLinePreview(value: string, maxLength: number): string {

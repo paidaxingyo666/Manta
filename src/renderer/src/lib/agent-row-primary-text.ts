@@ -1,11 +1,10 @@
 import type { AgentStatusEntry } from '../../../shared/agent-status-types'
 import {
+  findMantaDispatchPreambleStart,
   findMantaDispatchTaskMarkerIndex,
-  MANTA_DISPATCH_STATUS_PREAMBLE_PREFIX,
   MANTA_DISPATCH_STATUS_TASK_MARKER
 } from '../../../shared/manta-dispatch-status-prompt'
 
-export const MANTA_DISPATCH_PREAMBLE_PREFIX = MANTA_DISPATCH_STATUS_PREAMBLE_PREFIX
 const MANTA_DISPATCH_TASK_MARKER = MANTA_DISPATCH_STATUS_TASK_MARKER
 const MANTA_DISPATCH_TASK_ID_MARKER = 'Your task ID is:'
 // Why: match deriveGeneratedTabTitle's scan budget — previews only need the
@@ -19,7 +18,7 @@ const MANTA_DISPATCH_TASK_MARKER_SCAN_LIMIT = 32_768
 
 /** True when the live prompt is still a Manta dispatch turn (not sticky metadata alone). */
 export function isMantaDispatchPrompt(prompt: string): boolean {
-  return prompt.trimStart().startsWith(MANTA_DISPATCH_PREAMBLE_PREFIX)
+  return findMantaDispatchPreambleStart(prompt) !== -1
 }
 
 /**
@@ -77,10 +76,11 @@ export function getAgentRowGeneratedTitleText(
 }
 
 export function getMantaDispatchTaskId(prompt: string): string | null {
-  if (!isMantaDispatchPrompt(prompt)) {
+  const start = findMantaDispatchPreambleStart(prompt)
+  if (start === -1) {
     return null
   }
-  const scan = prompt.trimStart().slice(0, MANTA_DISPATCH_TASK_ID_SCAN_LIMIT)
+  const scan = prompt.slice(start, start + MANTA_DISPATCH_TASK_ID_SCAN_LIMIT)
   const markerIndex = scan.indexOf(MANTA_DISPATCH_TASK_ID_MARKER)
   if (markerIndex === -1) {
     return null
@@ -102,12 +102,14 @@ function getMantaDispatchTaskPreview(prompt: string): string {
   // spaces) and capped ~200 chars by normalizePromptField, which preserves
   // `=== TASK ===` + body. Prefer the first non-empty line so multi-line raw
   // preambles still work; a single-line fold is one "line" after the marker.
-  if (!isMantaDispatchPrompt(prompt)) {
+  const start = findMantaDispatchPreambleStart(prompt)
+  if (start === -1) {
     return ''
   }
-  const scan = prompt
-    .trimStart()
-    .slice(0, MANTA_DISPATCH_TASK_MARKER_SCAN_LIMIT + MANTA_DISPATCH_TASK_PREVIEW_SCAN_LIMIT)
+  const scan = prompt.slice(
+    start,
+    start + MANTA_DISPATCH_TASK_MARKER_SCAN_LIMIT + MANTA_DISPATCH_TASK_PREVIEW_SCAN_LIMIT
+  )
   // Why: share the normalizer's standalone-line marker rule. A naive indexOf
   // would treat base-drift commit subjects that mention `=== TASK ===` as the
   // real separator when helpers are called with raw multi-line preambles.
