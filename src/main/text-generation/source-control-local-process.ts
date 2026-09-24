@@ -56,6 +56,28 @@ function exceedsWindowsCommandLineBudget(command: string, args: string[]): boole
   return units > WINDOWS_COMMAND_LINE_UNIT_BUDGET
 }
 
+// Why separate from the Windows budget: Linux caps a SINGLE argv entry at
+// MAX_ARG_STRLEN (32 pages, so 128 KiB on a 4-KiB-page host) and execve fails with
+// E2BIG past it, well before the much larger total-argv limit. Agents that deliver the
+// whole prompt as one argument trip this on a big staged diff, so the cap is per-arg
+// and in bytes, not units. Headroom left for hosts whose page size differs.
+const LINUX_SINGLE_ARGUMENT_BYTE_BUDGET = 120 * 1024
+
+function exceedsLinuxArgumentBudget(args: string[]): boolean {
+  return args.some((arg) => Buffer.byteLength(arg, 'utf8') > LINUX_SINGLE_ARGUMENT_BYTE_BUDGET)
+}
+
+/** The user-facing reason this plan cannot be spawned here, or null when it can. */
+function argumentBudgetFailure(plan: CommitMessagePlan): string | null {
+  if (process.platform === 'win32' && exceedsWindowsCommandLineBudget(plan.binary, plan.args)) {
+    return `${plan.label} prompt is too large for the Windows command line. Stage fewer changes and try again.`
+  }
+  if (process.platform === 'linux' && exceedsLinuxArgumentBudget(plan.args)) {
+    return `${plan.label} prompt is too large to pass as a single command-line argument. Stage fewer changes and try again.`
+  }
+  return null
+}
+
 export function runLocalSourceControlPlan(input: {
   plan: CommitMessagePlan
   cwd: string
@@ -74,14 +96,12 @@ export function runLocalSourceControlPlan(input: {
   const result = new Promise<InternalTextGenerationResult>((resolve) => {
     let child: SpawnedSourceControlAgentProcess
     try {
-      if (process.platform === 'win32' && exceedsWindowsCommandLineBudget(plan.binary, plan.args)) {
+      // Why before spawn: agents like jcode ride the whole prompt on argv, so a large
+      // staged diff fails at execve with an error the user cannot act on.
+      const budgetFailure = argumentBudgetFailure(plan)
+      if (budgetFailure) {
         markProcessClosed()
-        resolve({
-          success: false,
-          // Why: jcode rides the whole prompt on argv; a large staged diff would
-          // exceed Windows' 32,767-unit command line and fail to spawn at all.
-          error: `${plan.label} prompt is too large for the Windows command line. Stage fewer changes and try again.`
-        })
+        resolve({ success: false, error: budgetFailure })
         return
       }
       child = input.spawnAgent({
