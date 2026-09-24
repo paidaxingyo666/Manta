@@ -36,7 +36,6 @@ const TUI_AGENT_KIND_BY_AGENT = {
   aug: 'aug',
   cline: 'cline',
   codebuff: 'codebuff',
-  freebuff: 'freebuff',
   'command-code': 'command-code',
   continue: 'continue',
   cursor: 'cursor',
