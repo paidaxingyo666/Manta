@@ -22,6 +22,7 @@ const { getPathMock } = vi.hoisted(() => ({
 
 import {
   OpenCodeHookService,
+  openCode2HookService,
   _internals,
   getOpenCodeFamilyPluginSource,
   getOpenCodePluginSource,
@@ -92,7 +93,7 @@ describe('OpenCode hook plugin source', () => {
     const digest = (source: string): string => createHash('sha256').update(source).digest('hex')
 
     expect(digest(getOpenCodePluginSource())).toBe(
-      'a43118afe856104629c968cc8adf43ced3ce85109977746e709bf4f391548fdf'
+      '609ae8b1fdf648e8023a1a55f2fb2038a44ca3a0d561021d2204814d48d1bb0b'
     )
     expect(
       digest(getOpenCodeFamilyPluginSource('/hook/mimo-code', { emitSessionStart: false }))
@@ -310,6 +311,31 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
     expect(module.default?.server).toBeTypeOf('function')
     // v2 loader: "Plugin must export a default definition with an id and an effect or setup function."
     expect(module.default?.setup).toBeTypeOf('function')
+  })
+
+  // Why: #22506 — both variants install side by side in one global plugins dir, and
+  // OpenCode 2 kills every plugin after the first that reuses an id ("Duplicate plugin
+  // ID"). Discovery sorts by path, so manta-opencode-status.js always wins and the
+  // opencode2 plugin never loads. Assert the installed files, not just the sources.
+  it('installs both family plugins into one config dir under distinct ids', async () => {
+    expect(new OpenCodeHookService().buildPtyEnv(daemonSessionId)).toEqual({})
+    // #22440 Issue 2: the opencode2 variant must not shadow global config discovery either.
+    expect(openCode2HookService.buildPtyEnv(daemonSessionId)).toEqual({})
+
+    const pluginsDir = join(resolveOpenCodeConfigDirectory(), 'plugins')
+    const ids: string[] = []
+    for (const fileName of ['manta-opencode-status.js', 'orca-opencode2-status.js']) {
+      // Why: a .mjs copy so Node parses the installed file as ESM without a package.json.
+      const modulePath = join(userDataDir, `installed-${fileName}-${Date.now()}.mjs`)
+      writeFileSync(modulePath, readFileSync(join(pluginsDir, fileName), 'utf8'))
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the assertions below validate the shape this names.
+      const module = (await import(pathToFileURL(modulePath).href)) as {
+        default?: { id?: unknown }
+      }
+      ids.push(String(module.default?.id))
+    }
+
+    expect(ids).toEqual(['manta-opencode-status', 'orca-opencode2-status'])
   })
 
   it('clearPty leaves the shared OpenCode config dir off the teardown hot path', () => {
