@@ -17554,9 +17554,7 @@
         }
       },
       "launchPromptNotDelivered": "Not delivered — check the terminal",
-      "structuredSessionCloseFailed": "Could not close this chat session",
       "structuredSessionLaunchFailed": "Could not open {{value0}} chat",
-      "structuredSessionCloseFailedDescription": "The terminal stayed open so the provider remains recoverable.",
       "handoff": {
         "stage": {
           "finishingChat": "Finishing chat session…",
