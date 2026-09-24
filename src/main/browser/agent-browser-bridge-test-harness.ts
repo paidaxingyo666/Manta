@@ -33,7 +33,6 @@ export function mockBrowserManager(
     getBrowserPageCertificateFailure: vi.fn(() => null),
     unregisterGuest: vi.fn(),
     ensureWebviewVisible: vi.fn(async () => () => {}),
-    acquireAutomationVisibility: vi.fn(async () => () => {}),
     ...overrides
   } as unknown as BrowserManager
 }

@@ -21,6 +21,7 @@ import type { RuntimeCommandSurfaceHost } from './manta-runtime-core'
 import { structuredAgentSessionTabId } from '../../shared/structured-agent-session-projection'
 import { SESSION_TAB_NOT_FOUND_ERROR } from '../../shared/session-tab-close'
 import { captureAcknowledgedTerminalTabRetirement } from './workspace-session-terminal-tab-retirement-identity'
+import { rendererPublicationThrottle } from '../window/renderer-publication-throttle'
 
 export class MantaRuntimeWithCloseMobileSessionTab extends MantaRuntimeWithRefuseUnattributedMobileSessionTabClose {
   async closeMobileSessionTab(
@@ -196,7 +197,7 @@ export class MantaRuntimeWithCloseMobileSessionTab extends MantaRuntimeWithRefus
         }
         const releasePublicationThrottle =
           options.clientNavigationId && win
-            ? this.rendererPublicationThrottle.acquire(win.webContents)
+            ? rendererPublicationThrottle.acquire(win.webContents)
             : () => {}
         try {
           await (options.localPtyTeardownOwnedExternally
