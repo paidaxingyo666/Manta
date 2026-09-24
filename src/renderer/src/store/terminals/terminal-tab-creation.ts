@@ -243,7 +243,11 @@ export function createTerminalTabCreationActions(
             ...s.layoutByWorktree,
             [worktreeId]: s.layoutByWorktree[worktreeId] ?? { type: 'leaf', groupId: group.id }
           },
-          activeTabId: shouldActivate ? tab.id : orphanCleanupPatch.activeTabId,
+          // Why: the global selection is the main window's; a tab in another worktree (or the floating workspace) activates only within its own group.
+          activeTabId:
+            shouldActivate && s.activeWorktreeId === worktreeId
+              ? tab.id
+              : orphanCleanupPatch.activeTabId,
           activeTabIdByWorktree: {
             ...orphanCleanupPatch.activeTabIdByWorktree,
             [worktreeId]: nextActiveTabIdForWorktree
