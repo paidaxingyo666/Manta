@@ -169,17 +169,11 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
     }
   }
 
-  bindPromptItemId(
-    sessionId: string,
-    journalItemId: string,
-    promptKey: string,
-    questionId?: string
-  ): void {
+  bindPromptItemId(sessionId: string, journalItemId: string, promptKey: string): void {
     const session = this.sessions.get(sessionId)
     session?.prompts.bindJournalItemId(
       journalItemId,
       promptKey,
-      questionId,
       session.translator?.currentTurnId ?? null
     )
   }
