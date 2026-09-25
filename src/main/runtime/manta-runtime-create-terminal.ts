@@ -212,12 +212,6 @@ export class MantaRuntimeWithCreateTerminal extends MantaRuntimeWithTerminalCrea
           terminalHandle: preAllocatedHandle,
           ...(result.incarnationId ? { incarnationId: result.incarnationId } : {})
         })
-        if (launchOpts.structuredAgentSessionId) {
-          dependencies.agentSessionPtyWriteGate.bindPty(
-            result.id,
-            launchOpts.structuredAgentSessionId
-          )
-        }
         const pty = this.getOrCreatePtyWorktreeRecord(result.id)
         if (pty) {
           pty.runtimeSessionOwned = true

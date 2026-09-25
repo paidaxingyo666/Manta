@@ -17509,38 +17509,6 @@
         "questionCount": "{{value0}} 问题"
       },
       "structuredSessionLaunchFailed": "无法打开 {{value0}} 聊天",
-      "handoff": {
-        "stage": {
-          "finishingChat": "正在完成聊天会话...",
-          "finishingTerminal": "整理代理终端...",
-          "openingTerminal": "打开代理终端...",
-          "resumingChat": "正在恢复聊天会话...",
-          "verifyingTerminal": "正在验证代理终端...",
-          "verifyingChat": "正在验证聊天会话...",
-          "recovering": "正在恢复代理会话...",
-          "manualRecovery": "代理会话需要恢复"
-        },
-        "switchingOwner": "切换会话所有者...",
-        "mode": {
-          "switching": "交换",
-          "terminal": "终端",
-          "chat": "聊天"
-        },
-        "switchingAfterTurn": "本回合后切换",
-        "returningAfterTurn": "本回合后返回",
-        "cancel": "取消",
-        "switchAfterTurn": "本回合后切换",
-        "stopTurnAndSwitch": "停止转弯并切换",
-        "openAgentTui": "打开代理 TUI",
-        "returnAfterTurn": "本回合后返回",
-        "returnToChat": "返回聊天",
-        "agentOpenOnHost": "代理已在 {{value0}} 的终端中打开。",
-        "agentOpen": "代理在终端中打开。",
-        "exitTerminal": "退出代理终端以继续聊天。",
-        "retryProof": "重试证明",
-        "retry": "重试",
-        "details": "细节"
-      },
       "structuredSessionLaunchFailedDescription": "Manta 无法打开结构化 {{value0}} 聊天。有关详细信息，请参阅日志。",
       "subagents": {
         "state": {

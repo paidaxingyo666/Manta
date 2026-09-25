@@ -17608,38 +17608,6 @@
         "questionCount": "{{value0}} questions"
       },
       "structuredSessionLaunchFailed": "Impossible d'ouvrir le chat {{value0}}",
-      "handoff": {
-        "stage": {
-          "finishingChat": "Fin de la session de discussion…",
-          "finishingTerminal": "Terminal d'agent de finition…",
-          "openingTerminal": "Ouverture du terminal des agents…",
-          "resumingChat": "Reprise de la session de discussion…",
-          "verifyingTerminal": "Terminal de l'agent de vérification…",
-          "verifyingChat": "Vérification de la session de discussion…",
-          "recovering": "Récupération de la session de l'agent…",
-          "manualRecovery": "La session de l'agent doit être récupérée"
-        },
-        "switchingOwner": "Changer de propriétaire de session…",
-        "mode": {
-          "switching": "Commutation",
-          "terminal": "Terminal",
-          "chat": "Chat"
-        },
-        "switchingAfterTurn": "Changer après ce tour",
-        "returningAfterTurn": "Revenir après ce tour",
-        "cancel": "Annuler",
-        "switchAfterTurn": "Changer après ce tour",
-        "stopTurnAndSwitch": "Arrêtez de tourner et de changer",
-        "openAgentTui": "TUI à agent ouvert",
-        "returnAfterTurn": "Revenir après ce tour",
-        "returnToChat": "Revenir au chat",
-        "agentOpenOnHost": "L'agent est ouvert dans le terminal le {{value0}}.",
-        "agentOpen": "L'agent est ouvert dans le terminal.",
-        "exitTerminal": "Quittez le terminal de l'agent pour continuer le chat.",
-        "retryProof": "Réessayez la preuve",
-        "retry": "Réessayer",
-        "details": "Détails"
-      },
       "structuredSessionLaunchFailedDescription": "Manta n'a pas pu ouvrir une discussion structurée {{value0}}. Consultez les journaux pour plus de détails.",
       "subagents": {
         "state": {

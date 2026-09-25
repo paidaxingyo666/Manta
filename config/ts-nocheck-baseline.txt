@@ -42,6 +42,7 @@ src/main/runtime/manta-runtime-get-agent-session-execution-namespace.ts
 src/main/runtime/manta-runtime-get-orchestration-dispatch-authority.ts
 src/main/runtime/manta-runtime-get-pty-record-for-pane-key.ts
 src/main/runtime/manta-runtime-get-runtime-id.ts
+src/main/runtime/manta-runtime-get-structured-agent-session-create-support.ts
 src/main/runtime/manta-runtime-get-terminal-interactive-wait.ts
 src/main/runtime/manta-runtime-get-unpersisted-tracked-title-for-pty.ts
 src/main/runtime/manta-runtime-get-worktree-ps.ts
@@ -75,7 +76,6 @@ src/main/runtime/manta-runtime-pick-most-recent-actor.ts
 src/main/runtime/manta-runtime-postlude.ts
 src/main/runtime/manta-runtime-prepare-pty-execution-context.ts
 src/main/runtime/manta-runtime-preserved-branch-cleanup.ts
-src/main/runtime/manta-runtime-prove-recovered-structured-tui-pty-process.ts
 src/main/runtime/manta-runtime-prune-mobile-session-tab-group-layout.ts
 src/main/runtime/manta-runtime-pty-foreground-process-reads.ts
 src/main/runtime/manta-runtime-publish-pty-backed-mobile-session-terminal.ts
@@ -96,7 +96,6 @@ src/main/runtime/manta-runtime-resolve-browser-network-execution-host-for-worktr
 src/main/runtime/manta-runtime-resolve-exit-waiters.ts
 src/main/runtime/manta-runtime-resolve-known-workspace-file-target.ts
 src/main/runtime/manta-runtime-resolve-mobile-session-terminal-command.ts
-src/main/runtime/manta-runtime-resolve-recovered-structured-tui-transcript.ts
 src/main/runtime/manta-runtime-resolve-terminal-pane.ts
 src/main/runtime/manta-runtime-resolve-terminal-split-source-authority.ts
 src/main/runtime/manta-runtime-resolve-waiter.ts
@@ -120,12 +119,8 @@ src/main/runtime/manta-runtime-state-fields.ts
 src/main/runtime/manta-runtime-stop-exact-terminals-for-worktree.ts
 src/main/runtime/manta-runtime-stop-explicitly-closed-tab-ptys.ts
 src/main/runtime/manta-runtime-stop-requested-pty-ids.ts
-src/main/runtime/manta-runtime-stop-structured-session-process.ts
 src/main/runtime/manta-runtime-stop-terminals-for-worktree.ts
 src/main/runtime/manta-runtime-stored-mobile-snapshot-has-stale-preserved-tab.ts
-src/main/runtime/manta-runtime-structured-agent-session-launch-tui.ts
-src/main/runtime/manta-runtime-structured-agent-session-recover-tui-owner.ts
-src/main/runtime/manta-runtime-structured-agent-session-reprove-tui-owner.ts
 src/main/runtime/manta-runtime-subscribe-to-terminal-resize.ts
 src/main/runtime/manta-runtime-sync-mobile-session-tabs.ts
 src/main/runtime/manta-runtime-sync-window-graph.ts

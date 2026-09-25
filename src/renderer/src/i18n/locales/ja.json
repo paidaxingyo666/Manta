@@ -17544,38 +17544,6 @@
         "questionCount": "{{value0}} の質問"
       },
       "structuredSessionLaunchFailed": "{{value0}} チャットを開けませんでした",
-      "handoff": {
-        "stage": {
-          "finishingChat": "チャットセッションを終了しています…",
-          "finishingTerminal": "仕上げ Agent ターミナル…",
-          "openingTerminal": "Agent ターミナルを開いています…",
-          "resumingChat": "チャットセッションを再開しています…",
-          "verifyingTerminal": "Agent ターミナルを確認しています…",
-          "verifyingChat": "チャットセッションを確認しています…",
-          "recovering": "Agent セッションを回復しています…",
-          "manualRecovery": "Agent セッションの回復が必要です"
-        },
-        "switchingOwner": "セッション所有者を切り替えています…",
-        "mode": {
-          "switching": "スイッチング",
-          "terminal": "ターミナル",
-          "chat": "チャット"
-        },
-        "switchingAfterTurn": "このターン後に切り替える",
-        "returningAfterTurn": "このターン後に戻る",
-        "cancel": "キャンセル",
-        "switchAfterTurn": "このターン後に切り替える",
-        "stopTurnAndSwitch": "回転を止めて切り替えます",
-        "openAgentTui": "Agent TUI を開く",
-        "returnAfterTurn": "このターン後に戻る",
-        "returnToChat": "チャットに戻る",
-        "agentOpenOnHost": "Agent は {{value0}} のターミナルで開いています。",
-        "agentOpen": "Agent はターミナルで開いています。",
-        "exitTerminal": "Agent ターミナルを終了してチャットを続行します。",
-        "retryProof": "再試行証明",
-        "retry": "再試行",
-        "details": "詳細"
-      },
       "structuredSessionLaunchFailedDescription": "Manta は構造化された {{value0}} チャットを開けませんでした。詳細についてはログを参照してください。",
       "subagents": {
         "state": {
