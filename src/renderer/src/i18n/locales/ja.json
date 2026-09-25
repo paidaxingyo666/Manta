@@ -6163,7 +6163,6 @@
           "parkTerminal": "ターミナルを退避"
         },
         "SidebarFeedbackImageAttachments": {
-          "screenshotsHint": "スクリーンショットは最大 {count} 件まで添付できます",
           "attachImages": "Attach",
           "removeImage": "{{fileName}} を削除"
         },
