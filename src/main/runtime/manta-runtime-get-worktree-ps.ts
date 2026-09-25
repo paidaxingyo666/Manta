@@ -164,6 +164,7 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStructuredAge
         codexStructuredPermissionPolicyForSettings(this.requireStore().getSettings()),
       // Same gate and same settings as agentSession.createSupport, re-read on every acquisition.
       getClaudeManagedAccountGateSettings: () => this.requireStore().getSettings(),
+      resolveAgentAccountHome: (agent) => this.resolveStructuredAgentAccountHome(agent),
       // Structured chat has no agent CLI hooks, so this projection is what the first-work
       // workspace rename listens to instead of `agentStatus:set`.
       onSessionStatusChanged: (summary, options) => {

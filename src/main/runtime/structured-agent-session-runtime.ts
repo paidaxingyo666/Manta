@@ -51,6 +51,11 @@ import { recordAgentSessionProviderHandle } from './agent-session-provider-handl
 import type { ClaudeStructuredAuthPolicy } from '../claude-accounts/claude-structured-auth-policy'
 import { createStructuredClaudeRuntimeAdapter } from './structured-claude-runtime-adapter'
 import { createStructuredAgentSessionLifecycleDelivery } from './structured-agent-session-lifecycle-delivery'
+import { agentModelCatalogStore } from '../native-chat/agent-model-catalog/agent-model-catalog-store'
+import {
+  modelCatalogHostDeps,
+  type RuntimeAgentAccountHomeResolver
+} from './structured-agent-model-catalog-wiring'
 
 /** Sibling of the journal tree rather than inside it: one file adjudicates every
  *  session's lease, while a journal is per session. */
@@ -104,6 +109,9 @@ export type StructuredAgentSessionRuntimeDeps = {
   statusSink?: StructuredAgentSessionHostDeps['statusSink']
   handoffTransport?: StructuredAgentSessionHandoffTransport
   reapOrphanChildren?: typeof stopOrphanAgentSessionChildren
+  /** The account home a structured launch would pin right now, for catalog
+   *  reads with no session record. Absent disables the catalog surface. */
+  resolveAgentAccountHome?: RuntimeAgentAccountHomeResolver
 }
 
 let installing: Promise<InstalledRuntime> | null = null
@@ -172,6 +180,7 @@ export async function stopStructuredAgentSessionRuntime(options?: {
       failures.push(error)
     }
   }
+  await agentModelCatalogStore.flushPersistence()
   if (failures.length === 1) {
     throw failures[0]
   }
@@ -187,8 +196,8 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
   if (typeof deps.resolveClaudeAuthPolicy !== 'function') {
     throw new Error(CLAUDE_STRUCTURED_AUTH_POLICY_REQUIRED)
   }
-  const { resolveCodexEnvironment, resolveClaudeInheritedEnv } =
-    createStructuredAgentEnvironmentResolvers(deps)
+  const envResolvers = createStructuredAgentEnvironmentResolvers(deps)
+  const { resolveCodexEnvironment, resolveClaudeInheritedEnv } = envResolvers
   const store = await AgentSessionRecordStore.open({
     directory: join(deps.stateDirectory, RECORD_STORE_DIR_NAME),
     hostId: deps.hostId
@@ -240,6 +249,7 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
       }),
       ...(deps.openCodexConnection ? { openConnection: deps.openCodexConnection } : {}),
       ...(deps.readProcessStartTime ? { readProcessStartTime: deps.readProcessStartTime } : {}),
+      modelCatalog: agentModelCatalogStore,
       onBackgroundTasksChanged: (sessionId, state) =>
         host?.publishBackgroundTaskState(sessionId, state),
       onDispatchSettledLate,
@@ -285,7 +295,8 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
         host?.publishBackgroundTaskState(sessionId, state),
       onDispatchSettledLate,
       ...(deps.openClaudeConnection ? { openClaudeConnection: deps.openClaudeConnection } : {}),
-      ...(deps.readProcessStartTime ? { readProcessStartTime: deps.readProcessStartTime } : {})
+      ...(deps.readProcessStartTime ? { readProcessStartTime: deps.readProcessStartTime } : {}),
+      modelCatalog: agentModelCatalogStore
     })
     const adapter = new StructuredAgentSessionAdapterRouter({ codex, claude }, async () => {
       await Promise.all([codex.closeAll(), claude.closeAll()])
@@ -315,7 +326,8 @@ async function install(deps: StructuredAgentSessionRuntimeDeps): Promise<Install
           recordAgentSessionProviderHandle({ record, fence: record.lease.runtimeFence, link, now })
         )
       },
-      ...(deps.handoffTransport ? { handoffTransport: deps.handoffTransport } : {})
+      ...(deps.handoffTransport ? { handoffTransport: deps.handoffTransport } : {}),
+      ...(await modelCatalogHostDeps({ store, deps, envResolvers }))
     })
     setStructuredAgentSessionHost(host)
     return {

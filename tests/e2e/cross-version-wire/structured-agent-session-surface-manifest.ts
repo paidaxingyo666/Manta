@@ -106,6 +106,11 @@ export const STRUCTURED_CALLS: {
     result: { current: { model: 'gpt-live' } }
   },
   {
+    method: 'agentSession.modelCatalog',
+    hostMethod: 'modelCatalog',
+    result: { origin: 'unknown' }
+  },
+  {
     method: 'agentSession.commands',
     hostMethod: 'readCommands',
     result: { commands: [{ name: 'clear', kind: 'command' }] }
@@ -275,6 +280,8 @@ export function paramsFor(method: string): unknown {
     }
     case 'agentSession.history':
       return { sessionId: SESSION, direction: 'tail' }
+    case 'agentSession.modelCatalog':
+      return { agent: 'codex', sessionId: SESSION }
     case 'agentSession.hold':
     case 'agentSession.release':
       return { sessionId: SESSION, holderId: 'surface-1' }

@@ -33,6 +33,8 @@ let store: AgentSessionRecordStore
 let host: StructuredAgentSessionHost
 let acquire: Mock<StructuredAgentSessionAdapter['acquire']>
 let activeModel: string
+let optionWritable: Promise<void>
+let setOption: Mock<StructuredAgentSessionAdapter['setOption']>
 let transcriptPath: string
 
 function envelope(method: string, fields: Record<string, unknown>): AgentSessionMutationEnvelope {
@@ -91,6 +93,10 @@ function transport(): StructuredAgentSessionHandoffTransport {
 }
 
 function adapter(): StructuredAgentSessionAdapter {
+  setOption = vi.fn(async ({ value }) => {
+    activeModel = value
+    return { model: value }
+  })
   acquire = vi.fn(async ({ fence, spawnToken, options }) => {
     activeModel = options?.model ?? DEFAULT_MODEL
     return {
@@ -109,10 +115,8 @@ function adapter(): StructuredAgentSessionAdapter {
     dispatch: vi.fn(),
     cancelTurn: vi.fn(async () => ({ cancelled: true })),
     answerPrompt: vi.fn(async () => undefined),
-    setOption: vi.fn(async ({ value }) => {
-      activeModel = value
-      return { model: value }
-    }),
+    setOption,
+    awaitOptionWritable: () => optionWritable,
     readOptions: vi.fn(async () => ({ current: { model: activeModel }, models: [] })),
     closeSession: vi.fn(async () => {
       activeModel = DEFAULT_MODEL
@@ -125,6 +129,7 @@ beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'orca-claude-handoff-options-'))
   resetHostTestOperationIds()
   activeModel = DEFAULT_MODEL
+  optionWritable = Promise.resolve()
   transcriptPath = join(root, 'claude.jsonl')
   await writeFile(transcriptPath, '', 'utf8')
   store = await AgentSessionRecordStore.open({ directory: join(root, 'store'), hostId: 'local' })
@@ -157,6 +162,24 @@ afterEach(async () => {
 })
 
 describe('Claude structured session handoff options', () => {
+  it('queues a pick made while the provider starts only once it can take it', async () => {
+    let land = (): void => {}
+    optionWritable = new Promise((resolve) => {
+      land = resolve
+    })
+    const fields = { key: 'model', value: PICKED_MODEL }
+    const picked = host.setOption(CALLER, {
+      envelope: envelope('agentSession.setOption', fields),
+      ...fields
+    })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(setOption).not.toHaveBeenCalled()
+
+    land()
+    expect(await picked).toMatchObject({ ok: true, value: { options: { model: PICKED_MODEL } } })
+    expect(store.getRecord(SESSION)?.options).toEqual({ model: PICKED_MODEL })
+  })
+
   it('keeps a directly selected model through chat to TUI to chat', async () => {
     const fields = { key: 'model', value: PICKED_MODEL }
     expect(

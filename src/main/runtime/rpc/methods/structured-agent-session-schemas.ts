@@ -14,6 +14,7 @@ export {
   HistoryParams,
   HoldParams,
   JournalCursor,
+  ModelCatalogParams,
   MutationEnvelope,
   OptionsParams,
   RespondParams,

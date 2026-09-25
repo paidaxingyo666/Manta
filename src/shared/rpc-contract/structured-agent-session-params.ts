@@ -227,6 +227,15 @@ export const HandoffParams = z
 
 export const OptionsParams = z.object({ sessionId: SessionId }).strict()
 
+/** `sessionId` scopes the catalog to that session's pinned account; without a
+ *  session record the host keys it by the account a new launch would pin.
+ *  `worktree` names where a new chat runs, whose own config may replace the default. */
+export const ModelCatalogParams = z.strictObject({
+  agent: z.enum(['claude', 'codex']),
+  sessionId: SessionId.optional(),
+  worktree: Identifier('Invalid worktree selector').optional()
+})
+
 export const ConversationCommandParams = z
   .object({
     envelope: MutationEnvelope,

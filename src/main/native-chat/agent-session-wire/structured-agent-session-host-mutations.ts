@@ -149,11 +149,13 @@ export function respondToStructuredAgentSessionPrompt(
   return mutate(context, caller, params.envelope, promptPlan(params))
 }
 
-export function setStructuredAgentSessionOption(
+export async function setStructuredAgentSessionOption(
   context: StructuredAgentSessionMutationContext,
   caller: StructuredAgentSessionCaller,
   params: { envelope: AgentSessionMutationEnvelope; key: string; value: string }
 ): Promise<AgentSessionMutationResult<AgentSessionOptionResult>> {
+  // Outside the queue: a pick made while the provider starts then queues behind what its start persists.
+  await context.deps.adapter.awaitOptionWritable?.(params.envelope.sessionId)
   return mutate(context, caller, params.envelope, setOptionPlan(params))
 }
 

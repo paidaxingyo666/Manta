@@ -44,6 +44,7 @@ export function createStructuredSessionMocks() {
     fileLinkClick: vi.fn<(...args: never[]) => unknown>(),
     launchLifecycle: nullable<StructuredAgentSessionLaunchLifecycle>(),
     launchFailureReason: nullable<string>(),
+    launchResumes: false,
     retryLaunch: vi.fn<(...args: never[]) => unknown>(),
     controllerProps: nullable<{ transportEnabled?: boolean }>(),
     mode: 'static' as 'static' | 'outbox',
@@ -177,6 +178,8 @@ export function createStructuredSessionMocks() {
     structuredAgentSessionLaunch: () => ({
       retryStructuredAgentSessionLaunch: mocks.retryLaunch,
       getStructuredAgentSessionLaunchLifecycle: () => mocks.launchLifecycle,
+      getStructuredAgentSessionLaunchResumes: () => mocks.launchResumes,
+      useStructuredAgentSessionLaunchSelection: () => null,
       useStructuredAgentSessionLaunchLifecycle: () => mocks.launchLifecycle,
       useStructuredAgentSessionLaunchFailureReason: () => mocks.launchFailureReason
     }),
@@ -235,6 +238,7 @@ export function createStructuredSessionMocks() {
     mocks.call.mockReset()
     mocks.launchLifecycle = null
     mocks.launchFailureReason = null
+    mocks.launchResumes = false
     mocks.retryLaunch.mockReset()
     mocks.controllerProps = null
     mocks.mode = 'static'

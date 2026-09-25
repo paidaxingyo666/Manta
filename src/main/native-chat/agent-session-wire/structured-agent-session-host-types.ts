@@ -13,6 +13,7 @@ import type {
 import type { AgentSessionAttachParams } from './structured-agent-session-attach'
 import type { StructuredAgentSessionHandoffTransport } from './structured-agent-session-handoff-types'
 import type { StructuredAgentSessionStatusSink } from './structured-agent-session-status-feed'
+import type { AgentModelCatalogService } from '../agent-model-catalog/agent-model-catalog-service'
 
 export type StructuredAgentSessionCaller = { callerKey: string }
 
@@ -93,4 +94,6 @@ export type StructuredAgentSessionHostDeps = {
    *  every reader of that store simply lists no structured session. */
   statusSink?: StructuredAgentSessionStatusSink
   handoffTransport?: StructuredAgentSessionHandoffTransport
+  /** Host model catalog surface; absent means every catalog read answers `unknown`. */
+  modelCatalog?: AgentModelCatalogService
 }

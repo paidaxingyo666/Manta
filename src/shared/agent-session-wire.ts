@@ -377,6 +377,22 @@ export type AgentSessionFastModeSupport = {
   reason?: string
 }
 
+/**
+ * The host's model catalog for an agent, answered from its own store and
+ * never through a session's queue. `unknown` means this host has no listing
+ * for the key yet — the client keeps its static seed. Additive read-only
+ * surface: an older host simply lacks the method.
+ */
+export type AgentSessionModelCatalogResult =
+  | { origin: 'unknown' }
+  | {
+      /** What produced the listing; any age is served, `fetchedAt` carries it. */
+      origin: 'live-session' | 'probe'
+      models: AgentSessionModelOption[]
+      fastModeSupport?: AgentSessionFastModeSupport
+      fetchedAt: number
+    }
+
 /** One entry of the `/` menu the running provider reports for itself. `skill`
  *  marks a name the session loaded as a skill rather than a built-in command;
  *  commands the provider reserves for a terminal UI are already removed. */
