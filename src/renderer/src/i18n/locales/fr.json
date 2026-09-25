@@ -3211,6 +3211,14 @@
             "e2fcf07c0d": "Manta n'a pas pu enregistrer cette session de terminal car le stockage local est plein ou inaccessible en écriture. Ouvrez l'analyseur d'espace disque pour trouver du stockage de espace de travail à nettoyer.",
             "678c780a2c": "Espace disque indisponible"
           },
+          "zcode": {
+            "missing": {
+              "tui": {
+                "title": "This ZCode build has no terminal UI",
+                "description": "Manta's hooks installed correctly \u2014 the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Manta to confirm."
+              }
+            }
+          },
           "osc52": {
             "clipboard": {
               "blocked": {

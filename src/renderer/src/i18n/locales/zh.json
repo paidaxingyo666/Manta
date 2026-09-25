@@ -3089,6 +3089,14 @@
             "e2fcf07c0d": "Manta 无法保存此终端会话，因为本地存储已满或不可写。打开磁盘空间分析器以查找可以清理的工作区存储。",
             "678c780a2c": "磁盘空间不可用"
           },
+          "zcode": {
+            "missing": {
+              "tui": {
+                "title": "This ZCode build has no terminal UI",
+                "description": "Manta's hooks installed correctly \u2014 the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Manta to confirm."
+              }
+            }
+          },
           "osc52": {
             "clipboard": {
               "blocked": {

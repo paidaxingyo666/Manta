@@ -3089,6 +3089,14 @@
             "e2fcf07c0d": "로컬 저장소가 가득 찼거나 쓸 수 없기 때문에 Manta가 이 terminal 세션을 저장할 수 없습니다. 디스크 공간 분석기를 열어 정리할 수 있는 워크스페이스 저장소를 찾으세요.",
             "678c780a2c": "디스크 공간을 사용할 수 없습니다."
           },
+          "zcode": {
+            "missing": {
+              "tui": {
+                "title": "This ZCode build has no terminal UI",
+                "description": "Manta's hooks installed correctly \u2014 the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Manta to confirm."
+              }
+            }
+          },
           "osc52": {
             "clipboard": {
               "blocked": {

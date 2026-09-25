@@ -3089,6 +3089,14 @@
             "e2fcf07c0d": "ローカルストレージがいっぱいか書き込みできないため、Manta はこのターミナルセッションを保存できませんでした。ディスク容量アナライザーを開いて、クリーンアップできるワークスペースストレージを見つけます。",
             "678c780a2c": "ディスク容量が利用できません"
           },
+          "zcode": {
+            "missing": {
+              "tui": {
+                "title": "This ZCode build has no terminal UI",
+                "description": "Manta's hooks installed correctly \u2014 the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Manta to confirm."
+              }
+            }
+          },
           "osc52": {
             "clipboard": {
               "blocked": {
