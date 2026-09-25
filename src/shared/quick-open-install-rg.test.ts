@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { detectLinuxInstallCommandFromOsRelease } from './fs-handler-install-rg'
+import { detectLinuxInstallCommandFromOsRelease } from './quick-open-install-rg'
 
 describe('detectLinuxInstallCommandFromOsRelease', () => {
   it('uses apt for Debian and Ubuntu families', () => {

@@ -9,14 +9,12 @@
  */
 import { fork, spawnSync } from 'node:child_process'
 import { build } from 'esbuild'
-import { createHash } from 'node:crypto'
 import {
   chmodSync,
   copyFileSync,
-  existsSync,
+  cpSync,
   mkdirSync,
   mkdtempSync,
-  readFileSync,
   rmSync,
   writeFileSync
 } from 'node:fs'
@@ -24,10 +22,10 @@ import { arch, platform, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
 import {
-  MANTAD_VERSION,
   MANTAD_VERSION_FILENAME,
-  mantadArtifactFilenames
+  ORCAD_RIPGREP_ARTIFACTS
 } from '../../src/shared/mantad-artifacts.ts'
+import { computeOrcadFullVersion } from './orcad-artifact-version.mjs'
 
 const ROOT = join(import.meta.dirname, '..', '..')
 const OUT_DIR = join(ROOT, 'out', 'mantad')
@@ -83,6 +81,23 @@ copyFileSync(AGENT_BROWSER_SOURCE, AGENT_BROWSER_OUTPUT)
 if (process.platform !== 'win32') {
   chmodSync(AGENT_BROWSER_OUTPUT, 0o755)
 }
+// Why every platform: an SSH deployment can target a different host than the build machine.
+for (const artifact of ORCAD_RIPGREP_ARTIFACTS) {
+  const [, ripgrepPlatform, ripgrepName] = artifact.split('/')
+  const outputDir = join(OUT_DIR, 'ripgrep', ripgrepPlatform)
+  mkdirSync(outputDir, { recursive: true })
+  const outputPath = join(outputDir, ripgrepName)
+  copyFileSync(
+    join(ROOT, 'node_modules', '@vscode', 'ripgrep-universal', 'bin', ripgrepPlatform, ripgrepName),
+    outputPath
+  )
+  if (!ripgrepPlatform.startsWith('win32-')) {
+    chmodSync(outputPath, 0o755)
+  }
+}
+cpSync(join(ROOT, 'resources', 'licenses', 'ripgrep'), join(OUT_DIR, 'ripgrep', 'licenses'), {
+  recursive: true
+})
 
 /** Why one call per child and not one `outdir` build: esbuild mirrors each entry's source
  *  directory under `outdir`, and both children must land flat beside mantad.js — that is where
@@ -246,18 +261,7 @@ if (graphErrors.length > 0) {
 // already-`.install-complete` dir is never re-uploaded. The deploy would silently run stale
 // bytes while reporting the new version.
 if (process.exitCode !== 1) {
-  const hash = createHash('sha256')
-  for (const filename of mantadArtifactFilenames()) {
-    const artifactPath = join(OUT_DIR, filename)
-    if (!existsSync(artifactPath)) {
-      throw new Error(
-        `mantad declares ${filename} in MANTAD_ARTIFACTS but never emitted it. Add the build ` +
-          'step, or drop it from src/shared/mantad-artifacts.ts.'
-      )
-    }
-    hash.update(readFileSync(artifactPath))
-  }
-  const fullVersion = `${MANTAD_VERSION}+${hash.digest('hex').slice(0, 12)}`
+  const fullVersion = computeOrcadFullVersion(OUT_DIR)
   writeFileSync(join(OUT_DIR, MANTAD_VERSION_FILENAME), fullVersion)
   console.log(
     `[build-mantad] ok — ${fullVersion}, ${(output.bytes / 1024 / 1024).toFixed(2)} MB, ${Object.keys(output.inputs).length} modules, zero electron and node:sqlite imports.`

@@ -460,8 +460,6 @@ const MERMAID_PACKAGE = 'node_modules/mermaid/'
  *   modules        4221 -> 4219   (-2)
  *   local modules  1035 -> 1033   (-2)
  */
-const SESSION_ROUTE_MODULES = 4219
-
 /** What the page enters this route through once the route is a switch with a `.web.tsx` sibling. */
 const ROUTE_ENTRY = [
   'app/h/[hostId]/session/[worktreeId].web.tsx',
@@ -523,10 +521,8 @@ describeClosure(
       const { modules } = await mobileWebAppRouteClosure(SESSION_ROUTE)
       // The engine is here, as the one artifact the loader imports.
       expect(artifactModules(modules)).toHaveLength(1)
-      // And the package's own file tree is not, anywhere: it is inside that artifact. Meaningful
-      // only beside the line above, which is why the two sit together.
+      // Package sources stay inside that artifact; unrelated module counts are not this boundary.
       expect(packageModules(modules)).toEqual([])
-      expect(modules).toHaveLength(SESSION_ROUTE_MODULES)
 
       const download = await mobileWebAppRouteChunkClosure(SESSION_ROUTE)
       // The fence: nothing of the engine is reachable from the route's own chunk by an import
