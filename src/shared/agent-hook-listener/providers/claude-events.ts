@@ -6,6 +6,7 @@ import {
   claudeRosterHasRestoredSnapshotSubagent,
   claudeRosterHasRuntimeWorkingSubagent,
   foldClaudeBackgroundTasksIntoRoster,
+  isClaudeChildTurnEndEvent,
   reapUnconfirmedRestoredClaudeSubagents,
   upsertWorkingClaudeSubagent
 } from '../../claude-subagent-roster'
@@ -36,8 +37,8 @@ export function normalizeClaudeEvent(
   const eventAgentId = readString(hookPayload, 'agent_id')
   if (
     eventName === 'SubagentStart' ||
-    eventName === 'SubagentStop' ||
-    eventName === 'TeammateIdle'
+    eventName === 'TeammateIdle' ||
+    isClaudeChildTurnEndEvent(eventName, eventAgentId)
   ) {
     return normalizeClaudeSubagentLifecycleEvent(state, eventName, paneKey, hookPayload)
   }

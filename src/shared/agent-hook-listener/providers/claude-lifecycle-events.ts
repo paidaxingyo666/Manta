@@ -17,10 +17,10 @@ import {
 } from './claude-roster-state'
 import { buildClaudeStatusPayload } from './claude-status-build'
 
-/** SubagentStart/Stop/TeammateIdle update the roster and re-emit the lead's last known state with the fresh child list, so the sidebar reflects spawn/finish even when a background child outlives the lead turn with no other hook traffic. */
+/** SubagentStart/Stop/TeammateIdle (and a child's StopFailure, which ends its turn like SubagentStop) update the roster and re-emit the lead's last known state with the fresh child list, so the sidebar reflects spawn/finish even when a background child outlives the lead turn with no other hook traffic. */
 export function normalizeClaudeSubagentLifecycleEvent(
   state: HookListenerState,
-  eventName: 'SubagentStart' | 'SubagentStop' | 'TeammateIdle',
+  eventName: 'SubagentStart' | 'SubagentStop' | 'StopFailure' | 'TeammateIdle',
   paneKey: string,
   hookPayload: Record<string, unknown>
 ): ParsedAgentStatusPayload | null {
