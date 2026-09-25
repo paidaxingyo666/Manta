@@ -262,11 +262,7 @@ export function registerPtyHandlers(
     sendPtySpawnedToRenderer: session.sendPtySpawnedToRenderer,
     syncPtyBackgroundedDelivery: session.syncPtyBackgroundedDelivery
   })
-  installPtyWriteIpcHandlers({
-    mainWindow,
-    runtime,
-    clearHiddenRendererResizeOutput: session.clearHiddenRendererResizeOutput
-  })
+  installPtyWriteIpcHandlers({ mainWindow, runtime })
   installPtyResizeVisibilityIpc(session)
   installPtyInspectIpcHandlers({ getLocalPtyProviderStartupPromise })
   installPtyKillIpcHandler({

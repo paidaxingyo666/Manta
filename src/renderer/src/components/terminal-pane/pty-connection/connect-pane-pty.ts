@@ -94,7 +94,6 @@ export function connectPanePty(
   session.terminalBellNotificationTimer = null
   session.pendingTerminalBellNotification = false
   session.reattachIdleAgentCursorResetTimer = null
-  session.alternateScreenBackgroundRepaintTimer = null
   session.shiftEnterReconfirmTimer = null
   session.synchronizedForegroundOutputActive = false
   // Why: carries up to one marker-length-1 of trailing bytes so a ConPTY-split DEC 2026 marker is still detected (#8754).

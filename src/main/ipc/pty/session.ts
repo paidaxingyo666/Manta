@@ -170,8 +170,6 @@ export type PtyIpcSession = {
   ) => { droppable: boolean; droppedWhileHidden: boolean; policyChanged: boolean }
   transitionSpawnHiddenRendererPtyDeliveryState: (id: string, hidden: boolean) => void
   rendererPtyIsKnownHidden: (id: string) => boolean
-  clearHiddenRendererResizeOutput: (id: string) => void
-  clearDeliveredHiddenRendererResizeOutput: (id: string) => void
   schedulePendingDataAfterCreditReport: (creditedAny: boolean) => void
   writeOffLostRendererDelivery: (report: PtyRendererDeliveryStateReport) => PtyDeliveryWriteOff[]
   getRendererInFlightCharsForPty: (id: string) => number
@@ -263,8 +261,6 @@ export function createPtyIpcSession(args: {
     transitionHiddenRendererPtyDeliveryState: unsetSessionFn,
     transitionSpawnHiddenRendererPtyDeliveryState: unsetSessionFn,
     rendererPtyIsKnownHidden: unsetSessionFn,
-    clearHiddenRendererResizeOutput: unsetSessionFn,
-    clearDeliveredHiddenRendererResizeOutput: unsetSessionFn,
     schedulePendingDataAfterCreditReport: unsetSessionFn,
     writeOffLostRendererDelivery: unsetSessionFn,
     getRendererInFlightCharsForPty: unsetSessionFn

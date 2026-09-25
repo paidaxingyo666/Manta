@@ -13,11 +13,7 @@ import {
 import { reportAgentSessionWriteRefusal } from '../agent-session-write-refusal-report'
 import { ptyOwnership } from '../provider/ownership-state'
 import { tryGetProviderForPty } from '../provider/registry'
-import {
-  interactiveOutputCharsByPty,
-  lastInputAtByPty,
-  visibleRendererPtys
-} from '../delivery/visibility-state'
+import { interactiveOutputCharsByPty, lastInputAtByPty } from '../delivery/visibility-state'
 
 export function isMainWindowPtyIpcEvent(
   event: IpcMainEvent | IpcMainInvokeEvent,
@@ -37,7 +33,6 @@ export type PtyViewportClaimPayload = { id: string; cols: number; rows: number }
 export function createPtyWriteInput(deps: {
   mainWindow: BrowserWindow
   runtime?: MantaRuntimeService
-  clearHiddenRendererResizeOutput: (id: string) => void
 }): {
   writePtyInput: (args: PtyWritePayload) => boolean | Promise<boolean>
   writePtyInputAccepted: (args: PtyWritePayload) => boolean | Promise<boolean>
@@ -48,7 +43,7 @@ export function createPtyWriteInput(deps: {
     mainWebContents: WebContents
   ) => boolean
 } {
-  const { mainWindow, runtime, clearHiddenRendererResizeOutput } = deps
+  const { mainWindow, runtime } = deps
 
   const reportUnavailablePtyWrite = (id: string, error: unknown): void => {
     if (
@@ -207,9 +202,6 @@ export function createPtyWriteInput(deps: {
       const now = performance.now()
       lastInputAtByPty.set(args.id, now)
       interactiveOutputCharsByPty.set(args.id, 0)
-      if (visibleRendererPtys.has(args.id)) {
-        clearHiddenRendererResizeOutput(args.id)
-      }
       return writePtyProviderInput(provider, args.id, args.data, admitted)
     } catch {
       return false
@@ -236,9 +228,6 @@ export function createPtyWriteInput(deps: {
       const now = performance.now()
       lastInputAtByPty.set(args.id, now)
       interactiveOutputCharsByPty.set(args.id, 0)
-      if (visibleRendererPtys.has(args.id)) {
-        clearHiddenRendererResizeOutput(args.id)
-      }
       return writePtyProviderInput(provider, args.id, args.data, admitted)
     } catch {
       return false

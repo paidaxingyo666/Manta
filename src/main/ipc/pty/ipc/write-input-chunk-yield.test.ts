@@ -38,8 +38,8 @@ function afterImmediateTurns(turns: number): Promise<'stalled'> {
 
 function createWriteInput(): ReturnType<typeof createPtyWriteInput>['writePtyInput'] {
   return createPtyWriteInput({
-    mainWindow: mainWindow as never,
-    clearHiddenRendererResizeOutput: vi.fn()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: write input only calls isDestroyed() and webContents, which this mock provides.
+    mainWindow: mainWindow as never
   }).writePtyInput
 }
 

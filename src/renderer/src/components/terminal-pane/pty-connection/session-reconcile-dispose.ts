@@ -256,10 +256,6 @@ export function installSessionReconcileDispose(session: ConnectPanePtySession): 
       session.pendingTerminalBellNotification = false
       session.clearTerminalBellNotificationTimer()
       session.clearReattachIdleAgentCursorResetTimer()
-      if (session.alternateScreenBackgroundRepaintTimer !== null) {
-        clearTimeout(session.alternateScreenBackgroundRepaintTimer)
-        session.alternateScreenBackgroundRepaintTimer = null
-      }
       session.cleanupHiddenOutputRestoreDeferredRetry()
       session.cleanupHiddenOutputRestoreForegroundDeadline()
       session.cleanupHiddenOutputRestoreFloodRepaint()
