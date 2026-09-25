@@ -26,9 +26,11 @@ export async function buildDurableCheckpointSnapshot(opts: {
   if (!restoreInfo && pendingRecords.length === 0) {
     return liveSnapshot
   }
+  // Why not on a first fold: live was seeded with disk plus the ground, so disk is never live's copy.
   if (
     restoreInfo &&
     pendingRecords.length === 0 &&
+    !opts.isFirstTake &&
     diskCheckpointAgreesWithLive(restoreInfo, liveSnapshot)
   ) {
     return diskCheckpointWithLiveIdentity(restoreInfo, liveSnapshot)

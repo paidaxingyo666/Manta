@@ -1,4 +1,4 @@
-import { POST_REPLAY_DEAD_TUI_RESET } from '../../shared/terminal-mode-reset-profiles'
+import { PROCESS_BOUNDARY_GROUND } from '../../shared/terminal-mode-reset-profiles'
 import { TerminalShellCleanExitConfirmation } from './terminal-shell-clean-exit-confirmation'
 import { TerminalShellLifecycleScanner } from './terminal-shell-lifecycle-scanner'
 import type { PtyIngressEmission } from '../../shared/pty-startup-ingress'
@@ -283,10 +283,10 @@ export class TerminalShellRecoveryBarrier {
       if (confirmed && this.isAlive()) {
         // Scanned before release so alt-state stays honest; the reset bytes are
         // deliberately inert for ownership (no OSC 133, no TUI mode enables).
-        this.scanner.scan(POST_REPLAY_DEAD_TUI_RESET)
+        this.scanner.scan(PROCESS_BOUNDARY_GROUND)
         try {
           this.releaseDownstream({
-            data: POST_REPLAY_DEAD_TUI_RESET,
+            data: PROCESS_BOUNDARY_GROUND,
             rawStartSeq: this.pendingRawSeq,
             rawEndSeq: this.pendingRawSeq,
             transformed: true
