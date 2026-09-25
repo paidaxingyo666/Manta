@@ -49,7 +49,6 @@ export type StructuredAgentSessionMutationContext = {
   sessions: Map<string, StructuredAgentSessionHostSession>
   publish: (sessionId: string, journal: StructuredAgentSessionHostSession['journal']) => void
   flushStreamedEvents: (sessionId: string) => Promise<void>
-  hasPendingStreamedEvents?: (sessionId: string) => boolean
   requireSession: (sessionId: string) => StructuredAgentSessionHostSession
   serialize: <T>(sessionId: string, task: () => Promise<T>) => Promise<T>
   /** A send that finds the owner gone brings it back through here, inside its own serialize. */
@@ -78,7 +77,6 @@ function mutate<TValue>(
       prepareSession,
       publish: (journal) => context.publish(envelope.sessionId, journal),
       flushStreamedEvents: context.flushStreamedEvents,
-      hasPendingStreamedEvents: context.hasPendingStreamedEvents,
       providerChildPhase: () => context.sessions.get(envelope.sessionId)?.providerChildPhase,
       now: () => context.now()
     })

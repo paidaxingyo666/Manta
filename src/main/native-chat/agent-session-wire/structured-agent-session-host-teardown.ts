@@ -64,15 +64,16 @@ export function structuredAgentSessionHostTeardownPhases(collaborators: {
   handoffs: { stopTuiHistoryCatchup: () => void; drain: () => Promise<void> }
   tasks: { drainAttaches: () => Promise<void> }
   evictOwnedSessions: () => Promise<void>
-  captureResumeMarkers: () => void
+  /** Opens this teardown's witnesses; each session's own is taken as eviction stops its child. */
+  beginResumeMarkers: () => void
   recordResumeMarkers: () => Promise<void>
 }): StructuredAgentSessionTeardownPhase[] {
   return [
     {
-      name: 'capture-resume-markers',
+      name: 'begin-resume-markers',
       run: () => {
         try {
-          collaborators.captureResumeMarkers()
+          collaborators.beginResumeMarkers()
         } catch {
           console.warn('[structured-agent-session] capturing recovery witnesses failed')
         }
@@ -163,10 +164,16 @@ export async function flushStructuredAgentSessionHost(
       ...context,
       evictOwnedSessions: () =>
         evictOwnedStructuredAgentSessions(
-          { ...context, onStoppedWork: context.restartResume.confirmStoppedMarker },
+          {
+            ...context,
+            restartWitness: {
+              beforeStop: context.restartResume.captureBeforeStop,
+              stopped: context.restartResume.confirmStopped
+            }
+          },
           retainSessionIds
         ),
-      captureResumeMarkers: () => context.restartResume.captureMarkers(context.trigger),
+      beginResumeMarkers: () => context.restartResume.beginTeardown(context.trigger),
       recordResumeMarkers: context.restartResume.recordMarkers
     }),
     sessions: context.sessions,

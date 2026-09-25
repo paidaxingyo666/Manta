@@ -17132,8 +17132,8 @@
       },
       "NativeChatResumeOnRestartModal": {
         "title": "Reprendre les discussions interrompues ?",
-        "body": "Ces discussions étaient à mi-parcours lorsque Manta a fermé ses portes. La reprise restaure chacune là où elle s'est arrêtée, avec son contexte complet, et demande à l'agent de vérifier sa dernière action avant de continuer. Votre propre invite n'est pas renvoyée.",
-        "updateBody": "Ces discussions étaient à mi-parcours lorsqu'Manta a installé une mise à jour. La reprise restaure chacune là où elle s'est arrêtée, avec son contexte complet, et demande à l'agent de vérifier sa dernière action avant de continuer. Votre propre invite n'est pas renvoyée.",
+        "body": "Ces discussions étaient en cours lorsqu'Manta s'est fermé. La reprise restaure chacune là où elle s'est arrêtée, avec son contexte complet, et demande à l'agent de vérifier ce qu'il faisait avant de continuer. Votre propre invite n'est pas renvoyée.",
+        "updateBody": "Ces discussions étaient en cours lorsqu'Manta a installé une mise à jour. La reprise restaure chacune là où elle s'est arrêtée, avec son contexte complet, et demande à l'agent de vérifier ce qu'il faisait avant de continuer. Votre propre invite n'est pas renvoyée.",
         "resuming": "Reprise…",
         "untitled": "Discussion sans titre",
         "listLabel": "Des discussions qui reprendraient",
@@ -17156,7 +17156,15 @@
         "notConfirmedOtherOne": "Impossible de confirmer qu'une autre discussion a repris",
         "notConfirmedOtherMany": "Impossible de confirmer que {{value0}}, les autres discussions ont repris",
         "show": "Montrer",
-        "dismiss": "Rejeter"
+        "dismiss": "Rejeter",
+        "activityUnnamed": "sans nom",
+        "activityApproval": "En attente de votre approbation : {{value0}}",
+        "activityQuestion": "En attente de votre réponse : {{value0}}",
+        "activityMidReply": "Réponse en cours",
+        "activitySubagentOne": "Sous-agent en cours : {{value0}}",
+        "activitySubagentMany": "{{value0}} sous-agents en cours",
+        "activityMonitorOne": "Surveillance : {{value0}}",
+        "activityMonitorMany": "Surveillance de {{value0}} tâches en arrière-plan"
       },
       "linear-issue-attribute-filter-coverage-notice": {
         "statusPartialTeamCoverage": "Filtrage des statuts des équipes {{value0}} sur {{value1}} : les problèmes des équipes restantes ne sont pas inclus.",

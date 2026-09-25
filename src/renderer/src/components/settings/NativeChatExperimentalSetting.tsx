@@ -168,7 +168,7 @@ export function NativeChatExperimentalSetting({
                 <p className="text-xs text-muted-foreground">
                   {translate(
                     'auto.components.settings.ExperimentalPane.nativeChat.resumeCopy',
-                    'When Manta quits or installs an update, chats that were mid-turn are automatically resumed when Manta is reopened.'
+                    'When Manta quits or installs an update, chats that were working are automatically resumed when Manta is reopened.'
                   )}
                 </p>
               </div>

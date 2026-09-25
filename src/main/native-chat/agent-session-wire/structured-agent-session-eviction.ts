@@ -10,7 +10,7 @@
 // clear the running-turn marker. Draining or closing the sink ahead of that drops them, which
 // leaves the durable journal claiming the agent is still working — a worse outcome than the leak
 // this teardown exists to fix. So: stop the child, drain what it emitted on its way out, then let
-// the sink go.
+// the sink go. The one step ahead of the stop only reads, for quit's resume offer.
 //
 // FAILURE. A step that fails ABORTS the rest. `closeSession` returning false means the child's
 // exit was not proven and the adapter has deliberately kept the session indexed so a retry can
@@ -35,6 +35,9 @@ export type StructuredAgentSessionEvictionContext = {
   forget: () => Promise<void>
   /** Drops the cached sink so a later attach mints a fresh one. */
   discardSink: () => void
+  /** Fires right before the stop, while the child's turn and background roster are still live. A
+   *  throw is logged, never allowed to abort the stop. */
+  beforeProviderChildStop?: () => void
   /** Fires once the adapter has PROVEN the child gone, so host bookkeeping stops claiming one. */
   onProviderChildStopped?: () => void
   /** Whether this host still owes the child's wind-down. Distinct from `hasProviderChild`, which a
@@ -54,6 +57,20 @@ export type StructuredAgentSessionEvictionStep = {
 
 export const STRUCTURED_AGENT_SESSION_EVICTION_STEPS: readonly StructuredAgentSessionEvictionStep[] =
   [
+    {
+      // Quit's resume offer: what the sidebar shows, read while the child is still running.
+      name: 'snapshot-before-stop',
+      run: (context) => {
+        if (context.hasProviderChild === false || !context.beforeProviderChildStop) {
+          return
+        }
+        try {
+          context.beforeProviderChildStop()
+        } catch {
+          console.warn('[structured-agent-session] capturing recovery witness failed')
+        }
+      }
+    },
     {
       name: 'stop-provider-child',
       run: async (context) => {

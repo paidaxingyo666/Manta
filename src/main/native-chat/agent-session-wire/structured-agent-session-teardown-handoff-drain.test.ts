@@ -157,11 +157,11 @@ describe('structured agent-session host teardown', () => {
       handoffs: { stopTuiHistoryCatchup: () => undefined, drain: noop },
       tasks: { drainAttaches: noop },
       evictOwnedSessions: noop,
-      captureResumeMarkers: () => {},
+      beginResumeMarkers: () => {},
       recordResumeMarkers: noop
     })
     expect(phases.map((phase) => phase.name)).toEqual([
-      'capture-resume-markers',
+      'begin-resume-markers',
       'dispose-holds',
       'stop-lease-renewal',
       'stop-tui-catchup',
@@ -185,7 +185,7 @@ describe('structured agent-session host teardown', () => {
       handoffs: { stopTuiHistoryCatchup: () => {}, drain: cleaned },
       tasks: { drainAttaches: cleaned },
       evictOwnedSessions: cleaned,
-      captureResumeMarkers: () => {},
+      beginResumeMarkers: () => {},
       recordResumeMarkers: () => pending.promise
     })
     try {

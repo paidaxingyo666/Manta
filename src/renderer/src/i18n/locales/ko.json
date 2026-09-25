@@ -7057,7 +7057,7 @@
             "structuredScope": "현재는 로컬 세션만 가능합니다. WSL 및 원격 실행 호스트(SSH 포함)는 계속해서 터미널 채팅을 사용하며 Manta가 프로세스 시작 시간을 읽을 수 없으면 Windows는 이 채팅을 사용합니다.",
             "structuredToggleLabel": "업데이트된 구조화된 기본 채팅 전환",
             "resumeTitle": "다시 시작한 후 작업 중인 채팅을 자동으로 재개합니다.",
-            "resumeCopy": "Manta가 종료되거나 업데이트를 설치하면 Manta가 다시 열릴 때 중간에 진행된 채팅이 자동으로 재개됩니다.",
+            "resumeCopy": "Manta가 종료되거나 업데이트를 설치하면 Manta가 다시 열릴 때 작업 중이던 채팅이 자동으로 재개됩니다.",
             "resumeToggleLabel": "다시 시작한 후 자동 재개 전환"
           },
           "agentDashboard": {
@@ -17018,8 +17018,8 @@
       },
       "NativeChatResumeOnRestartModal": {
         "title": "중단된 채팅을 재개하시겠습니까?",
-        "body": "이 채팅은 Manta가 문을 닫았을 때 중간에 이루어졌습니다. 재개하면 중지된 각 항목이 전체 컨텍스트와 함께 복원되고, 계속하기 전에 에이전트에게 마지막 작업을 확인하도록 요청합니다. 귀하의 메시지는 다시 전송되지 않습니다.",
-        "updateBody": "이러한 채팅은 Manta가 업데이트를 설치한 중간에 이루어졌습니다. 재개하면 중지된 각 항목이 전체 컨텍스트와 함께 복원되고, 계속하기 전에 에이전트에게 마지막 작업을 확인하도록 요청합니다. 귀하의 메시지는 다시 전송되지 않습니다.",
+        "body": "이 채팅은 Manta가 종료될 때 작업 중이었습니다. 재개하면 각 채팅이 전체 컨텍스트와 함께 중지된 지점에서 복원되고, 계속하기 전에 에이전트에게 하던 작업을 확인하도록 요청합니다. 귀하의 메시지는 다시 전송되지 않습니다.",
+        "updateBody": "이 채팅은 Manta가 업데이트를 설치할 때 작업 중이었습니다. 재개하면 각 채팅이 전체 컨텍스트와 함께 중지된 지점에서 복원되고, 계속하기 전에 에이전트에게 하던 작업을 확인하도록 요청합니다. 귀하의 메시지는 다시 전송되지 않습니다.",
         "resuming": "재개 중…",
         "untitled": "제목 없는 채팅",
         "listLabel": "재개될 채팅",
@@ -17042,7 +17042,15 @@
         "notConfirmedOtherOne": "다른 채팅 1개가 재개되었는지 확인할 수 없습니다.",
         "notConfirmedOtherMany": "{{value0}} 다른 채팅이 재개되었는지 확인할 수 없습니다.",
         "show": "표시",
-        "dismiss": "닫기"
+        "dismiss": "닫기",
+        "activityUnnamed": "이름 없음",
+        "activityApproval": "승인 대기 중: {{value0}}",
+        "activityQuestion": "답변 대기 중: {{value0}}",
+        "activityMidReply": "응답 중이었음",
+        "activitySubagentOne": "하위 에이전트 실행 중: {{value0}}",
+        "activitySubagentMany": "하위 에이전트 {{value0}}개 실행 중",
+        "activityMonitorOne": "모니터링 중: {{value0}}",
+        "activityMonitorMany": "백그라운드 작업 {{value0}}개 모니터링 중"
       },
       "linear-issue-attribute-filter-coverage-notice": {
         "statusPartialTeamCoverage": "{{value1}} 팀 상태 중 {{value0}} 필터링 중 - 나머지 팀의 문제는 포함되지 않습니다.",

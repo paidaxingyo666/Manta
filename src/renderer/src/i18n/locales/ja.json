@@ -7057,7 +7057,7 @@
             "structuredScope": "今のところローカルセッションのみ。 WSL およびリモート実行ホスト (SSH を含む) は引き続きターミナルチャットを使用し、Manta がプロセスの開始時間を読み取ることができない限り、Windows はターミナルチャットにフォールバックします。",
             "structuredToggleLabel": "更新された構造化ネイティブチャットの切り替え",
             "resumeTitle": "再起動後に作業中のチャットを自動的に再開する",
-            "resumeCopy": "Manta が終了するかアップデートをインストールすると、Manta が再度開かれたときにターン途中だったチャットが自動的に再開されます。",
+            "resumeCopy": "Manta が終了するかアップデートをインストールすると、Manta が再度開かれたときに作業中だったチャットが自動的に再開されます。",
             "resumeToggleLabel": "再起動後の自動再開の切り替え"
           },
           "agentDashboard": {
@@ -17018,8 +17018,8 @@
       },
       "NativeChatResumeOnRestartModal": {
         "title": "中断されたチャットを再開しますか?",
-        "body": "これらのチャットは、Manta が終了したときのターンの途中でした。再開すると、各操作が完全なコンテキストとともに停止した場所から復元され、続行する前に最後の操作を確認するよう Agent に要求されます。自分自身のプロンプトは再送信されません。",
-        "updateBody": "これらのチャットは、Manta がアップデートをインストールしたときのターンの途中でした。再開すると、各操作が完全なコンテキストとともに停止した場所から復元され、続行する前に最後の操作を確認するよう Agent に要求されます。自分自身のプロンプトは再送信されません。",
+        "body": "これらのチャットは、Manta が終了したときに作業中でした。再開すると、各チャットが完全なコンテキストとともに停止した場所から復元され、続行する前に何をしていたかを確認するよう Agent に要求されます。自分自身のプロンプトは再送信されません。",
+        "updateBody": "これらのチャットは、Manta がアップデートをインストールしたときに作業中でした。再開すると、各チャットが完全なコンテキストとともに停止した場所から復元され、続行する前に何をしていたかを確認するよう Agent に要求されます。自分自身のプロンプトは再送信されません。",
         "resuming": "再開中…",
         "untitled": "無題のチャット",
         "listLabel": "再開されるチャット",
@@ -17042,7 +17042,15 @@
         "notConfirmedOtherOne": "他の 1 件のチャットが再開されたことを確認できませんでした",
         "notConfirmedOtherMany": "{{value0}} 他のチャットが再開されたことを確認できませんでした",
         "show": "見せる",
-        "dismiss": "閉じる"
+        "dismiss": "閉じる",
+        "activityUnnamed": "名前なし",
+        "activityApproval": "承認待ち: {{value0}}",
+        "activityQuestion": "回答待ち: {{value0}}",
+        "activityMidReply": "返信の途中でした",
+        "activitySubagentOne": "サブ Agent 実行中: {{value0}}",
+        "activitySubagentMany": "{{value0}} 個のサブ Agent が実行中",
+        "activityMonitorOne": "監視中: {{value0}}",
+        "activityMonitorMany": "{{value0}} 個のバックグラウンドタスクを監視中"
       },
       "linear-issue-attribute-filter-coverage-notice": {
         "statusPartialTeamCoverage": "{{value0}}/{{value1}} チームステータスをフィルタリングしています。残りのチームからの問題は含まれません。",

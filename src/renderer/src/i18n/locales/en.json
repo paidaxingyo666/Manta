@@ -1953,8 +1953,8 @@
       },
       "NativeChatResumeOnRestartModal": {
         "title": "Resume interrupted chats?",
-        "body": "These chats were mid-turn when Manta closed. Resuming restores each one where it stopped, with its full context, and asks the agent to check its last action before carrying on. Your own prompt is not re-sent.",
-        "updateBody": "These chats were mid-turn when Manta installed an update. Resuming restores each one where it stopped, with its full context, and asks the agent to check its last action before carrying on. Your own prompt is not re-sent.",
+        "body": "These chats were working when Manta closed. Resuming restores each one where it stopped, with its full context, and asks the agent to check what it was doing before carrying on. Your own prompt is not re-sent.",
+        "updateBody": "These chats were working when Manta installed an update. Resuming restores each one where it stopped, with its full context, and asks the agent to check what it was doing before carrying on. Your own prompt is not re-sent.",
         "resuming": "Resuming…",
         "untitled": "Untitled chat",
         "listLabel": "Chats that would be resumed",
@@ -1977,7 +1977,15 @@
         "notConfirmedOtherOne": "Couldn’t confirm 1 other chat was resumed",
         "notConfirmedOtherMany": "Couldn’t confirm {{value0}} other chats were resumed",
         "show": "Show",
-        "dismiss": "Dismiss"
+        "dismiss": "Dismiss",
+        "activityUnnamed": "unnamed",
+        "activityApproval": "Waiting for your approval: {{value0}}",
+        "activityQuestion": "Waiting for your answer: {{value0}}",
+        "activityMidReply": "Was mid-reply",
+        "activitySubagentOne": "Subagent running: {{value0}}",
+        "activitySubagentMany": "{{value0}} subagents running",
+        "activityMonitorOne": "Monitoring: {{value0}}",
+        "activityMonitorMany": "Monitoring {{value0}} background tasks"
       },
       "StarNagCard": {
         "92b0f9d921": "is authenticated and try again.",
@@ -7211,7 +7219,7 @@
             "structuredScope": "Local sessions only for now. WSL and remote execution hosts (including SSH) continue to use terminal chat, and Windows falls back to it unless Manta can read process start times.",
             "structuredToggleLabel": "Toggle updated structured native chat",
             "resumeTitle": "Resume working chats automatically after a restart",
-            "resumeCopy": "When Manta quits or installs an update, chats that were mid-turn are automatically resumed when Manta is reopened.",
+            "resumeCopy": "When Manta quits or installs an update, chats that were working are automatically resumed when Manta is reopened.",
             "resumeToggleLabel": "Toggle automatic resume after a restart",
             "shellEnvNamesLabel": "Variables to pass from your shell",
             "shellEnvNamePlaceholder": "Variable name",

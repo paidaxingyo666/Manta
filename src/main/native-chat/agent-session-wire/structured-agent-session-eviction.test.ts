@@ -82,6 +82,7 @@ describe('structured agent session eviction', () => {
 
   it('names every step, so a half-finished eviction says which one failed', () => {
     expect(STRUCTURED_AGENT_SESSION_EVICTION_STEPS.map((step) => step.name)).toEqual([
+      'snapshot-before-stop',
       'stop-provider-child',
       'drain-published',
       'settle-dead-generation',
