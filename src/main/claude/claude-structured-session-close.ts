@@ -116,6 +116,7 @@ async function finalizeClaudePublishedSession(
     }
     rootExitVerdict = cleanupError
   }
+  session.childWork.clear()
   if (session.backgroundTasks.clear()) {
     input.onBackgroundTasksChanged?.(input.sessionId, null)
   }
