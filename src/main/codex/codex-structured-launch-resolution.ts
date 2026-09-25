@@ -84,6 +84,9 @@ export function createCodexStructuredLaunchResolver(
       // An empty chain is a session that has never proved a thread, so it
       // starts one; anything else resumes the last link this session proved.
       resumeThreadId,
+      // Only a thread this session created may still be one Codex never saved: a resumed,
+      // forked or adopted head names a conversation Codex held.
+      ...(resumeThreadId && head?.origin === 'created' ? { supersedeIfUnsaved: true } : {}),
       ...(permissionPolicy ? { permissionPolicy } : {}),
       ...(resumeThreadId
         ? {
