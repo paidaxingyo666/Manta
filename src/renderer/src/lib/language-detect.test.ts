@@ -38,6 +38,25 @@ describe('detectLanguage', () => {
     expect(detectLanguage('C:\\rtl\\TOP.SV')).toBe('systemverilog')
   })
 
+  it.each([
+    'report.abap',
+    'src/zcor0260.prog.abap',
+    'src/zcl_demo.clas.abap',
+    'src/zif_demo.intf.abap',
+    'C:\\repo\\src\\ZCL_DEMO.CLAS.ABAP',
+    '\\\\server\\share\\src\\ZREPORT.PROG.ABAP',
+    '/home/user/folder workspace/src/Report.AbAp'
+  ])('maps ABAP source %s to the Monaco built-in abap language id', (filePath) => {
+    expect(detectLanguage(filePath)).toBe('abap')
+  })
+
+  it.each(['src.abap/README', 'src\\abap.abap\\README', 'report.abap.bak', 'report.abapx'])(
+    'keeps non-ABAP file %s on plaintext',
+    (filePath) => {
+      expect(detectLanguage(filePath)).toBe('plaintext')
+    }
+  )
+
   it('maps .proto files to the Monaco built-in proto language id, not the alias', () => {
     expect(detectLanguage('api/v1/service.proto')).toBe('proto')
   })
