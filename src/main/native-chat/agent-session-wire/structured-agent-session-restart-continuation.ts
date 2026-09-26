@@ -146,8 +146,7 @@ export function restartContinuationBody(marker: AgentSessionResumeMarker): Agent
   }
 }
 
-/** The fence is read AFTER the reconnect: reattaching mints a new one, and the pre-reconnect value
- *  would be refused by the mutation admission. */
+/** The fence only fills the envelope: admission names this send by its operation id, not a fence. */
 export function restartContinuationEnvelope(
   sessionId: string,
   fence: number,

@@ -45,10 +45,6 @@ export type StructuredAgentSessionHostSession = {
   owesProviderChildWindDown?: boolean
   /** Exact adapter acquisition behind `hasProviderChild`; retained after exit to fence recovery. */
   acquisitionGeneration: string | null
-  /** The fence of the released owner this child replaced, when it was resumed into a lease handed
-   *  back cleanly. A writer current as of that owner is admitted at `fence`: the restart is the
-   *  only thing that moved it. Absent for a create or a journal restored for reading. */
-  resumedFromFence?: number
 }
 
 export type StructuredAgentSessionHostDeps = {
