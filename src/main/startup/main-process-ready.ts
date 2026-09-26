@@ -2,6 +2,7 @@ import { initializeMainProcessI18nAndMenu } from './main-process-i18n-menu'
 import { mainProcessState as state } from './main-process-state'
 import { initializeReadyFoundation } from './main-process-ready-foundation'
 import { initializeReadyRuntimeServices } from './main-process-ready-runtime'
+import { releaseDesktopActivationAfter } from './serve-desktop-activation'
 import {
   initializeMainProcessRuntimeLaunch,
   type MainProcessRuntimeLaunchOptions
@@ -9,8 +10,15 @@ import {
 
 /** Runs the ready-phase composition in the same dependency order as the legacy entry point. */
 export async function initializeMainProcessReady(
-  options: MainProcessRuntimeLaunchOptions
+  launchOptions: MainProcessRuntimeLaunchOptions
 ): Promise<void> {
+  const options: MainProcessRuntimeLaunchOptions = {
+    ...launchOptions,
+    openMainWindow: releaseDesktopActivationAfter(
+      state.desktopActivationGate,
+      launchOptions.openMainWindow
+    )
+  }
   try {
     await initializeReadyFoundation()
     await initializeReadyRuntimeServices()
@@ -28,6 +36,8 @@ export async function initializeMainProcessReady(
       }
     }
   } catch (error) {
+    // Startup now exits after failure; reopening would use a closing profile writer.
+    state.desktopActivationGate = null
     try {
       await state.store?.freezeWritesAsync()
       state.profileStateAdmission?.release()

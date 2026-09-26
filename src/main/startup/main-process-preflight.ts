@@ -147,7 +147,9 @@ function initializeMainProcessPreflight(options: MainProcessPreflightOptions): b
     ? state.devInstanceIdentity.appUserModelId
     : undefined
   state.desktopActivationGate = createServeDesktopActivationGate({
-    initialState: state.isServeMode ? 'initializing' : 'ready',
+    // Why held for desktop too: an activation before the startup window exists would open a
+    // second main window and abort launch; runtime launch releases it once that window exists.
+    initialState: 'initializing',
     activateWindow: () => {
       // Why: an updater replacement must not resurrect the old app bundle.
       if (!isQuittingForUpdate()) {

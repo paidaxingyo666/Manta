@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  createServeDesktopActivationGate,
+  type ServeDesktopActivationGate
+} from './serve-desktop-activation'
 
 const { state, foundation, runtime, i18n, launch } = vi.hoisted(() => ({
   state: {
     store: { freezeWritesAsync: vi.fn(async () => {}) },
     profileStateAdmission: initialAdmission(),
+    desktopActivationGate: initialActivationGate(),
     mainProcessI18nReady: Promise.resolve()
   },
   foundation: vi.fn(async () => {}),
@@ -14,6 +19,10 @@ const { state, foundation, runtime, i18n, launch } = vi.hoisted(() => ({
 
 function initialAdmission(): { release(): void } | undefined {
   return undefined
+}
+
+function initialActivationGate(): ServeDesktopActivationGate | null {
+  return null
 }
 
 vi.mock('./main-process-state', () => ({ mainProcessState: state }))
@@ -34,9 +43,36 @@ const options = {
 beforeEach(() => {
   vi.clearAllMocks()
   state.profileStateAdmission = { release: vi.fn() }
+  state.desktopActivationGate = null
 })
 
 describe('startup persistence lifetime', () => {
+  it('disables activations before a failed launch closes its profile writer', async () => {
+    const activateWindow = vi.fn()
+    state.desktopActivationGate = createServeDesktopActivationGate({
+      initialState: 'ready',
+      activateWindow
+    })
+    const failure = new Error('runtime startup failed')
+    launch.mockRejectedValueOnce(failure)
+    let finishFreeze = (): void => {}
+    state.store.freezeWritesAsync.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishFreeze = resolve
+        })
+    )
+    const rejected = expect(initializeMainProcessReady(options)).rejects.toBe(failure)
+
+    await vi.waitFor(() => expect(state.store.freezeWritesAsync).toHaveBeenCalledOnce())
+
+    expect(state.desktopActivationGate).toBeNull()
+    state.desktopActivationGate?.requestActivation()
+    expect(activateWindow).not.toHaveBeenCalled()
+    finishFreeze()
+    await rejected
+  })
+
   it('awaits writer release after a later startup phase fails', async () => {
     const failure = new Error('runtime startup failed')
     const admission = state.profileStateAdmission
