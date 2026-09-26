@@ -2,14 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
   createProfileStateStoreForStartupMock,
-  orcadProfileStateAuthorityModeMock,
   emitMock,
   ensureActiveMantaProfileMock,
   initMantaProfilePathsMock,
   initSshHostKeyStoreFileMock
 } = vi.hoisted(() => ({
   createProfileStateStoreForStartupMock: vi.fn(),
-  orcadProfileStateAuthorityModeMock: vi.fn(),
   emitMock: vi.fn(),
   ensureActiveMantaProfileMock: vi.fn(),
   initMantaProfilePathsMock: vi.fn(),
@@ -17,8 +15,7 @@ const {
 }))
 
 vi.mock('../persistence/profile-state/profile-state-startup-authority', () => ({
-  createProfileStateStoreForStartup: createProfileStateStoreForStartupMock,
-  orcadProfileStateAuthorityMode: orcadProfileStateAuthorityModeMock
+  createProfileStateStoreForStartup: createProfileStateStoreForStartupMock
 }))
 vi.mock('../manta-profiles/profile-index-store', () => ({
   ensureActiveMantaProfile: ensureActiveMantaProfileMock,
@@ -40,7 +37,6 @@ beforeEach(() => {
     stateDatabaseFile: '/tmp/profile/profile-state.db',
     profile: { id: 'profile-1' }
   })
-  orcadProfileStateAuthorityModeMock.mockReturnValue('sqlite-candidate')
 })
 
 describe('mantad profile-state startup', () => {
@@ -65,14 +61,13 @@ describe('mantad profile-state startup', () => {
       databaseFile: '/tmp/profile/profile-state.db',
       profileId: 'profile-1',
       runtime: 'mantad',
-      authorityMode: 'sqlite-candidate',
       storageAuthority: 'runtime'
     })
     expect(result.store).toBe(store)
     expect(result.authority).toEqual({
       backend: 'sqlite',
       classification: 'json-only',
-      authority_mode: 'sqlite-candidate',
+      authority_mode: 'sqlite-established',
       runtime: 'mantad',
       migrated: true
     })
