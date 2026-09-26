@@ -28,6 +28,9 @@ MANTA_WSL_CWD=$(pwd -P 2>/dev/null) || {
 }
 MANTA_BRIDGE_PS1_WIN=$(wslpath -w "$MANTA_BRIDGE_PS1")
 MANTA_WSL_CWD_WIN=$(wslpath -w "$MANTA_WSL_CWD")
+if [ -n "\${WSL_DISTRO_NAME:-}" ]; then
+  set -- -WslDistro "$WSL_DISTRO_NAME" "$@"
+fi
 exec "$MANTA_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$MANTA_BRIDGE_PS1_WIN" "$MANTA_WIN_LAUNCHER" -WslCwd "$MANTA_WSL_CWD_WIN" "$@"
 `
 }
@@ -71,6 +74,7 @@ try {
   }
   [string]$MantaLauncher = $args[0]
   [string]$WslCwd = ''
+  [string]$WslDistro = ''
   [int]$ForwardArgStart = 1
   if ($args.Count -ge 2 -and $args[1] -eq '-WslCwd') {
     if ($args.Count -lt 3) {
@@ -78,6 +82,13 @@ try {
     }
     $WslCwd = $args[2]
     $ForwardArgStart = 3
+  }
+  if ($ForwardArgStart -eq 3 -and $args.Count -ge 4 -and $args[3] -eq '-WslDistro') {
+    if ($args.Count -lt 5) {
+      throw 'Invalid Manta WSL CLI bridge invocation.'
+    }
+    $WslDistro = $args[4]
+    $ForwardArgStart = 5
   }
   [string[]]$ForwardArgs = @()
   if ($args.Count -gt $ForwardArgStart) {
@@ -87,6 +98,12 @@ try {
     Remove-Item Env:MANTA_CLI_CWD -ErrorAction SilentlyContinue
   } else {
     $env:MANTA_CLI_CWD = $WslCwd
+  }
+  # Do not let an inherited Windows environment choose the caller's account location.
+  if ([string]::IsNullOrEmpty($WslDistro)) {
+    Remove-Item Env:ORCA_CLI_WSL_DISTRO -ErrorAction SilentlyContinue
+  } else {
+    $env:ORCA_CLI_WSL_DISTRO = $WslDistro
   }
   $LauncherDirectory = Split-Path -Parent $MantaLauncher
   Push-Location -LiteralPath $LauncherDirectory
