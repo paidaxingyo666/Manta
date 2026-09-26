@@ -5,8 +5,9 @@ import {
   isOrcaSessionId,
   parseOrcaSessionAddress
 } from './manta-session-address'
+import { testOrcaSessionId } from './manta-session-address-test-fixture'
 
-const SESSION_ID = '0b7e4c2a-5f1d-4e8a-9c3b-2d6f8a1e4b70'
+const SESSION_ID = testOrcaSessionId('0b7e4c2a-5f1d-4e8a-9c3b-2d6f8a1e4b70')
 const ADDRESS = `session:${SESSION_ID}`
 
 describe('Manta session address', () => {
@@ -14,7 +15,8 @@ describe('Manta session address', () => {
     expect(ORCA_SESSION_ADDRESS_PREFIX).toBe('session:')
     expect(formatOrcaSessionAddress(SESSION_ID)).toBe(ADDRESS)
     expect(parseOrcaSessionAddress(ADDRESS)).toBe(SESSION_ID)
-    expect(formatOrcaSessionAddress(parseOrcaSessionAddress(ADDRESS) ?? '')).toBe(ADDRESS)
+    const parsed = parseOrcaSessionAddress(ADDRESS)
+    expect(parsed && formatOrcaSessionAddress(parsed)).toBe(ADDRESS)
   })
 
   it('reads only the addressed spelling when parsing an address', () => {
