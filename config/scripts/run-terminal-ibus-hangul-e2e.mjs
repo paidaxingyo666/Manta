@@ -254,7 +254,6 @@ async function runInsideSession(evidenceDir) {
             'run',
             'test:e2e:headful',
             '--workers=1',
-            '--',
             'tests/e2e/terminal-ibus-hangul-native.spec.ts',
             'tests/e2e/terminal-hangul-terminating-digit-native.spec.ts'
           ],
@@ -265,11 +264,11 @@ async function runInsideSession(evidenceDir) {
           ...(nestedWayland
             ? {
                 MANTA_E2E_IME_INJECTOR: 'nested',
-                ORCA_E2E_NESTED_FOCUS_CMD: path.join(
+                MANTA_E2E_NESTED_FOCUS_CMD: path.join(
                   projectDir,
                   'config/scripts/focus-nested-wayland-terminal.sh'
                 ),
-                ORCA_E2E_EXTRA_APP_ARGS:
+                MANTA_E2E_EXTRA_APP_ARGS:
                   '--ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3 --password-store=basic --use-mock-keychain --disable-gpu-sandbox',
                 PLAYWRIGHT_JSON_OUTPUT_FILE: path.join(evidenceDir, 'playwright.json')
               }
