@@ -89,4 +89,35 @@ describe('detectLanguage', () => {
     expect(detectLanguage('config/tsconfig.jsonc')).toBe('json')
     expect(detectLanguage('notes/scratch.unknownext')).toBe('plaintext')
   })
+  it.each([
+    ['.env', 'ini'],
+    ['.env.local', 'ini'],
+    ['.env.development', 'ini'],
+    ['.env.production', 'ini'],
+    ['.env.functions.local', 'ini'],
+    ['.env.staging', 'ini'],
+    ['.env.test.example', 'ini'],
+    ['config/.env.development.local', 'ini'],
+    ['.ENV', 'ini'],
+    ['.ENV.STAGING', 'ini'],
+    ['C:\\repo\\.EnV.FUNCTIONS.LOCAL', 'ini'],
+    ['\\\\server\\share\\.env.test.example', 'ini'],
+    ['.env.sh', 'shell'],
+    ['.ENV.SH', 'shell'],
+    ['.env.json', 'json'],
+    ['.env.local.ts', 'typescript'],
+    ['.env/CMakeLists.txt', 'cmake'],
+    ['C:\\repo\\.env.local\\Dockerfile', 'dockerfile'],
+    ['.envrc', 'plaintext'],
+    ['.environment', 'plaintext'],
+    ['env.staging', 'plaintext'],
+    ['dev.env', 'plaintext'],
+    ['other.env.local', 'plaintext'],
+    ['..env.local', 'plaintext'],
+    ['.env.staging/readme', 'plaintext'],
+    ['C:\\repo\\.env.local\\notes', 'plaintext'],
+    ['', 'plaintext']
+  ])('detects dotenv names without overriding specific mappings: %s', (filePath, expected) => {
+    expect(detectLanguage(filePath)).toBe(expected)
+  })
 })
