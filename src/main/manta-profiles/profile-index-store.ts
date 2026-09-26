@@ -22,23 +22,24 @@ import {
   type MantaProfileSummary
 } from '../../shared/manta-profiles'
 import {
-  getMantaProfileBrowserSessionMetaFile,
   getMantaProfileDataFile,
   getMantaProfileDirectory,
   getMantaProfileIndexPath,
-  getProfileUserDataPath,
-  LEGACY_BACKUP_COUNT,
-  legacyBackupPath,
-  legacyBrowserSessionMetaPath,
-  legacyDataFilePath,
-  profileBackupPath
+  getMantaProfileStateDatabaseFile,
+  hasOrcaProfileStateDatabase,
+  getProfileUserDataPath
 } from './profile-storage-paths'
+import { copyLegacyStateToProfile } from './profile-legacy-state-import'
+import { profileStateJsonExportPaths } from '../persistence/profile-state/profile-state-export-path'
+import { profileStateDatabaseBackups } from '../persistence/profile-state/profile-state-backup-path'
 
 export {
   getMantaProfileBrowserSessionMetaFile,
   getMantaProfileDataFile,
   getMantaProfileDirectory,
   getMantaProfileIndexPath,
+  getMantaProfileStateDatabaseFile,
+  hasOrcaProfileStateDatabase,
   getMantaProfilesDirectory,
   initMantaProfilePaths
 } from './profile-storage-paths'
@@ -47,6 +48,7 @@ export type ActiveMantaProfileState = {
   index: MantaProfileIndex
   profile: MantaProfileSummary
   dataFile: string
+  stateDatabaseFile: string
   profileDirectory: string
 }
 
@@ -136,30 +138,6 @@ export function writeProfileIndex(indexPath: string, index: MantaProfileIndex): 
   bestEffortFsyncDirectorySync(dirname(indexPath))
 }
 
-function copyIfPresent(source: string, target: string): void {
-  if (!existsSync(source) || existsSync(target)) {
-    return
-  }
-  mkdirSync(dirname(target), { recursive: true })
-  // Why: tmp+rename so a crash mid-copy cannot leave a truncated target that
-  // the exists() guard above would then treat as a completed migration.
-  const tmpTarget = `${target}.tmp`
-  copyFileSync(source, tmpTarget)
-  renameSync(tmpTarget, target)
-}
-
-function copyLegacyStateToProfile(userDataPath: string, profileId: string): void {
-  const profileDataFile = getMantaProfileDataFile(profileId, userDataPath)
-  copyIfPresent(legacyDataFilePath(userDataPath), profileDataFile)
-  copyIfPresent(
-    legacyBrowserSessionMetaPath(userDataPath),
-    getMantaProfileBrowserSessionMetaFile(profileId, userDataPath)
-  )
-  for (let i = 0; i < LEGACY_BACKUP_COUNT; i++) {
-    copyIfPresent(legacyBackupPath(userDataPath, i), profileBackupPath(profileDataFile, i))
-  }
-}
-
 // Why: a brand-new profile has no data file, which the telemetry cohort
 // migration reads as a fresh install and defaults to opted-in. Copying the
 // active profile's consent block keeps an opted-out user opted out (and keeps
@@ -230,7 +208,22 @@ export function ensureActiveMantaProfile(
 
   const profileDirectory = getMantaProfileDirectory(activeProfile.id, userDataPath)
   mkdirSync(profileDirectory, { recursive: true })
-  if (activeProfile.id === DEFAULT_LOCAL_MANTA_PROFILE_ID) {
+  const profileDatabaseFile = getMantaProfileStateDatabaseFile(activeProfile.id, userDataPath)
+  const profileDataFile = getMantaProfileDataFile(activeProfile.id, userDataPath)
+  let hasRetainedProfileStateExport = false
+  try {
+    hasRetainedProfileStateExport =
+      profileStateJsonExportPaths(profileDataFile).length > 0 ||
+      profileStateDatabaseBackups(profileDatabaseFile).length > 0
+  } catch {
+    // An unreadable profile directory must never trigger a fallback copy of legacy state.
+    hasRetainedProfileStateExport = true
+  }
+  if (
+    activeProfile.id === DEFAULT_LOCAL_MANTA_PROFILE_ID &&
+    !hasOrcaProfileStateDatabase(activeProfile.id, userDataPath) &&
+    !hasRetainedProfileStateExport
+  ) {
     copyLegacyStateToProfile(userDataPath, activeProfile.id)
   }
 
@@ -241,7 +234,8 @@ export function ensureActiveMantaProfile(
   return {
     index,
     profile: activeProfile,
-    dataFile: getMantaProfileDataFile(activeProfile.id, userDataPath),
+    dataFile: profileDataFile,
+    stateDatabaseFile: profileDatabaseFile,
     profileDirectory
   }
 }

@@ -1,3 +1,4 @@
+import { withDurableRuntimeStore } from './runtime-durable-store-fixture'
 import * as mocks from './manta-runtime-test-mocks.spec'
 import type { Mock } from 'vitest'
 
@@ -211,7 +212,7 @@ function makePostRevealWorkerRecoveryHarness(
   }
   const { runtimeStore, getSession } = makeRuntimeStoreWithWorkspaceSession(session)
   const runtime = new MantaRuntimeService(
-    { ...runtimeStore, flushOrThrow: vi.fn() } as never,
+    withDurableRuntimeStore({ ...runtimeStore, flushOrThrow: vi.fn() }),
     undefined,
     { canRecoverPersistentLocalPtys: () => true }
   )

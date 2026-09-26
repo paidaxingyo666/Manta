@@ -1,6 +1,13 @@
 import { ipcRenderer } from 'electron'
 import type { PreloadApi } from '../api-types'
-import { ORCA_PROFILE_AUTH_STATUS_CHANGED_CHANNEL } from '../../shared/manta-profiles'
+import {
+  ORCA_PROFILE_AUTH_STATUS_CHANGED_CHANNEL,
+  type MantaProfileListResult,
+  type SwitchMantaProfileResult,
+  type TransferMantaProfileProjectResult
+} from '../../shared/manta-profiles'
+import { prepareAndInvokeAppRestart } from '../renderer-restart-wiring'
+import { awaitBeforeUnloadCheckpoint } from '../preload-runtime-support'
 
 export const mantaProfilesApi = {
   list: () => ipcRenderer.invoke('mantaProfiles:list'),
@@ -12,8 +19,30 @@ export const mantaProfilesApi = {
   },
   createLocal: (args) => ipcRenderer.invoke('mantaProfiles:createLocal', args),
   createCloudLinked: (args) => ipcRenderer.invoke('mantaProfiles:createCloudLinked', args),
-  switchProfile: (args) => ipcRenderer.invoke('mantaProfiles:switch', args),
-  transferProject: (args) => ipcRenderer.invoke('mantaProfiles:transferProject', args),
+  switchProfile: (args) =>
+    prepareAndInvokeAppRestart(
+      window,
+      (): Promise<SwitchMantaProfileResult> => ipcRenderer.invoke('mantaProfiles:switch', args),
+      awaitBeforeUnloadCheckpoint,
+      (result) => result.status === 'relaunching'
+    ),
+  transferProject: async (args) => {
+    const invoke = (): Promise<TransferMantaProfileProjectResult> =>
+      ipcRenderer.invoke('mantaProfiles:transferProject', args)
+    if (args.mode !== 'move') {
+      return invoke()
+    }
+    const current: MantaProfileListResult = await ipcRenderer.invoke('mantaProfiles:list')
+    if (args.sourceProfileId !== current.activeProfileId) {
+      return invoke()
+    }
+    return prepareAndInvokeAppRestart(
+      window,
+      invoke,
+      awaitBeforeUnloadCheckpoint,
+      (result) => result.status === 'transferred' && result.willRelaunch === true
+    )
+  },
   findProjectProfiles: (args) => ipcRenderer.invoke('mantaProfiles:findProjectProfiles', args),
   connectCurrent: () => ipcRenderer.invoke('mantaProfiles:connectCurrent'),
   refreshAuth: () => ipcRenderer.invoke('mantaProfiles:refreshAuth'),

@@ -1,8 +1,6 @@
-import path from 'node:path'
-import { readFileSync } from 'node:fs'
+import { readPersistedProfileState } from './helpers/persisted-profile-state'
 import type { ElectronApplication } from '@playwright/test'
 import { test, expect } from './helpers/manta-app'
-import { DEFAULT_LOCAL_MANTA_PROFILE_ID } from '../../src/shared/manta-profiles'
 import { sshRemotePtyLeaseAllowsReattach, type SshRemotePtyLease } from '../../src/shared/ssh-types'
 import { toRelaySshPtyId } from '../../src/shared/ssh-pty-id'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
@@ -60,13 +58,8 @@ const RUN_DOCKER_SSH = process.env.MANTA_E2E_SSH_DOCKER === '1'
  * drift from the fan-out it exists to bound.
  */
 function readSshLeases(userDataDir: string, targetId: string): SshRemotePtyLease[] {
-  const dataPath = path.join(
-    userDataDir,
-    'profiles',
-    DEFAULT_LOCAL_MANTA_PROFILE_ID,
-    'manta-data.json'
-  )
-  const parsed = JSON.parse(readFileSync(dataPath, 'utf8')) as {
+  // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This test owns the persisted fixture; optional fields are checked at use sites.
+  const parsed = readPersistedProfileState(userDataDir) as {
     sshRemotePtyLeases?: SshRemotePtyLease[]
   }
   return (parsed.sshRemotePtyLeases ?? []).filter((lease) => lease.targetId === targetId)
@@ -205,7 +198,7 @@ test.describe('SSH transport drop recovery', () => {
         ptyId,
         `yes "$(printf 'MANTA_%s' FLOOD_LINE)" | head -c 48000000; printf 'FLOO%s\\n' DED`
       )
-      await waitForTerminalOutput(mantaPage, 'ORCA_FLOOD_LINE', 30_000, 20_000)
+      await waitForTerminalOutput(mantaPage, 'MANTA_FLOOD_LINE', 30_000, 20_000)
       await recoverDockerSshRelayAfterFault(mantaPage, remote.targetId, () => {
         expect(dropDockerSshRelayTransport(target!)).toBeGreaterThan(0)
       })

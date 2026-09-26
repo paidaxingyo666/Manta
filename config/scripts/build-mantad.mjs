@@ -21,6 +21,7 @@ import {
 import { arch, platform, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
+import { smokeProfileStateWorkers } from './profile-state-worker-smoke.mjs'
 import {
   MANTAD_VERSION_FILENAME,
   ORCAD_RIPGREP_ARTIFACTS
@@ -99,10 +100,8 @@ cpSync(join(ROOT, 'resources', 'licenses', 'ripgrep'), join(OUT_DIR, 'ripgrep', 
   recursive: true
 })
 
-/** Why one call per child and not one `outdir` build: esbuild mirrors each entry's source
- *  directory under `outdir`, and both children must land flat beside mantad.js — that is where
- *  their runtime resolvers look for them. */
-function buildForkedChild(entryPoint, outfile) {
+// Child and worker resolvers require flat entries beside mantad.js.
+function buildIsolatedEntry(entryPoint, outfile) {
   return build({
     entryPoints: [entryPoint],
     bundle: true,
@@ -120,9 +119,15 @@ function buildForkedChild(entryPoint, outfile) {
   })
 }
 
-const childResults = await Promise.all([
-  buildForkedChild(WATCHER_ENTRY, WATCHER_OUT_FILE),
-  buildForkedChild(DAEMON_ENTRY, DAEMON_OUT_FILE)
+const isolatedResults = await Promise.all([
+  buildIsolatedEntry(WATCHER_ENTRY, WATCHER_OUT_FILE),
+  buildIsolatedEntry(DAEMON_ENTRY, DAEMON_OUT_FILE),
+  ...['writer', 'backup'].map((role) =>
+    buildIsolatedEntry(
+      join(ROOT, `src/main/persistence/profile-state/profile-state-${role}-worker-entry.ts`),
+      join(OUT_DIR, `profile-state-${role}-worker-entry.js`)
+    )
+  )
 ])
 
 const result = await build({
@@ -147,9 +152,7 @@ const output = Object.values(result.metafile.outputs).find(
 // Why check `original` and not just `path`: when electron is bundleable, esbuild
 // rewrites `path` to the resolved file under node_modules and the naive check passes
 // while the package is very much in the bundle.
-// Why both metafiles: the forked children ship in the same deployment and run under the
-// same plain Node. A daemon-entry that reached electron would fail at fork time, on the
-// path whose whole point is that terminals survive.
+// Every isolated entry ships under the same plain-Node compatibility contract.
 function collectImporters(metafiles, matches) {
   const importers = new Set()
   for (const metafile of metafiles) {
@@ -164,7 +167,7 @@ function collectImporters(metafiles, matches) {
   return importers
 }
 
-const metafiles = [result.metafile, ...childResults.map((child) => child.metafile)]
+const metafiles = [result.metafile, ...isolatedResults.map((entry) => entry.metafile)]
 const electronImporters = collectImporters(
   metafiles,
   (specifier) => specifier === 'electron' || specifier.startsWith('electron/')
@@ -254,6 +257,12 @@ if (graphErrors.length > 0) {
     )
     process.exitCode = 1
   }
+  try {
+    await smokeProfileStateWorkers(OUT_DIR)
+  } catch (error) {
+    console.error('[build-mantad] profile state worker check failed:', error)
+    process.exitCode = 1
+  }
 }
 
 // Why a content hash and not MANTAD_VERSION alone: the remote install directory is keyed on
@@ -295,7 +304,10 @@ async function smokeLoadWatcherChild() {
         resolve(failure)
       }
       child.on('message', (message) => {
-        if (message?.op === 'subscribe-started') {
+        // Wait until the subscribe lifecycle has sent its final acknowledgement.
+        // Disconnecting on subscribe-started races the subsequent subscribed or
+        // subscribe-failed message and makes the child report an expected EPIPE.
+        if (message?.op === 'subscribed' || message?.op === 'subscribe-failed') {
           child.disconnect()
         }
       })

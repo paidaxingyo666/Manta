@@ -9,9 +9,10 @@ import {
   parseArgs,
   resolveMantadExitCode
 } from './mantad-entry'
-import { startOrcadWithLifecycle } from './orcad-lifecycle'
+import { startOrcadWithLifecycle } from './mantad-lifecycle'
 import { MantadBindAddressError } from './mantad-bind-address'
 import { MantadInstanceLockError } from './mantad-instance-lock'
+import { ProfileStateAccessError } from '../persistence/profile-state/profile-state-access'
 
 describe('parseArgs', () => {
   it('accepts --bind and leaves it unset when absent', () => {
@@ -38,6 +39,9 @@ describe('resolveMantadExitCode', () => {
       resolveMantadExitCode(new MantadInstanceLockError('orcad_instance_lock_held', 'held'))
     ).toBe(MANTAD_EXIT_CONFIGURATION)
     expect(resolveMantadExitCode(new MantadBindAddressError('bad'))).toBe(MANTAD_EXIT_CONFIGURATION)
+    expect(resolveMantadExitCode(new ProfileStateAccessError('recovery interrupted'))).toBe(
+      MANTAD_EXIT_CONFIGURATION
+    )
     expect(resolveMantadExitCode(new Error('port in use'))).toBe(MANTAD_EXIT_FAILED)
     expect(MANTAD_EXIT_CONFIGURATION).not.toBe(MANTAD_EXIT_FAILED)
   })
@@ -57,7 +61,7 @@ describe('mantad lifecycle cleanup', () => {
     ).rejects.toThrow('startup failed')
 
     expect(cleanupRuntime).toHaveBeenCalledOnce()
-    expect(cleanupHost).toHaveBeenCalledOnce()
+    expect(cleanupHost).toHaveBeenCalledExactlyOnceWith(true)
   })
 
   it('preserves the startup error when rollback also fails', async () => {
@@ -95,5 +99,18 @@ describe('mantad lifecycle cleanup', () => {
 
     expect(cleanupRuntime).toHaveBeenCalledOnce()
     expect(cleanupHost).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the host aware of failed runtime teardown so it cannot release profile admission', async () => {
+    const failure = new Error('profile writer still running')
+    const cleanupHost = vi.fn(async () => {})
+    const handle = await startOrcadWithLifecycle(async (registerCleanup) => {
+      registerCleanup(async () => {
+        throw failure
+      })
+      return {}
+    }, cleanupHost)
+    await expect(handle.stop()).rejects.toBe(failure)
+    expect(cleanupHost).toHaveBeenCalledExactlyOnceWith(false)
   })
 })

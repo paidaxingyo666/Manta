@@ -134,6 +134,24 @@ describe('collectMantadHealth', () => {
     expect(health.platform).toBe(process.platform)
     expect(health.terminalDaemon.state).toBe('live')
   })
+
+  it('includes bounded profile-state authority metadata when supplied', async () => {
+    const health = await collectMantadHealth('1.2.3', {
+      backend: 'sqlite',
+      classification: 'sqlite-only',
+      authority_mode: 'sqlite-established',
+      runtime: 'mantad',
+      migrated: false
+    })
+
+    expect(health.profileStateAuthority).toEqual({
+      backend: 'sqlite',
+      classification: 'sqlite-only',
+      authority_mode: 'sqlite-established',
+      runtime: 'mantad',
+      migrated: false
+    })
+  })
 })
 
 describe('computeOrcadBuildHash', () => {
