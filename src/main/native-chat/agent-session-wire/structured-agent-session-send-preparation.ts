@@ -114,7 +114,7 @@ export function structuredAgentSessionSendNeedsOwner(
 
 type SendPreparationContext = Pick<
   StructuredAgentSessionMutationContext,
-  'deps' | 'sessions' | 'holds' | 'restoreReadable' | 'publish'
+  'deps' | 'sessions' | 'holds' | 'restoreReadable'
 >
 
 export async function prepareStructuredAgentSessionSend(
@@ -224,7 +224,6 @@ async function recordFailedRestart(
         }
       ]
     })
-    context.publish(sessionId, session.journal)
   } catch (error) {
     context.deps.onEventSinkError?.({ sessionId, error })
   }

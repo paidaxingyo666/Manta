@@ -44,6 +44,7 @@ import type {
 import { StructuredAgentSessionEventRecovery } from './structured-agent-session-event-recovery'
 import { StructuredAgentSessionBackgroundTaskChannel } from './structured-agent-session-background-task-channel'
 import { StructuredAgentSessionClientDelivery } from './structured-agent-session-client-delivery'
+import { StructuredAgentSessionConversations } from './structured-agent-session-conversations'
 import {
   createStructuredAgentSessionRestartResume,
   type StructuredAgentSessionRestartResume
@@ -56,7 +57,10 @@ export class StructuredAgentSessionHost {
     () => this.mutationContext(),
     this
   )
-  private readonly sessions = new Map<string, StructuredAgentSessionHostSession>()
+  private readonly sessions = new StructuredAgentSessionConversations({
+    deliver: (sessionId, journal) => this.subscribers.publish(sessionId, journal),
+    onDeliveryError: (sessionId, error) => this.deps.onEventSinkError?.({ sessionId, error })
+  })
   private readonly clientDelivery = new StructuredAgentSessionClientDelivery(
     this.sessions,
     () => this.now(),
@@ -125,10 +129,11 @@ export class StructuredAgentSessionHost {
       ensureProviderChild: (id, options) => this.holds.ensureProviderChild(id, options),
       onBarrierError: (sessionId, error) => deps.onEventSinkError?.({ sessionId, error })
     })
-    this.restartResume = createStructuredAgentSessionRestartResume(deps, this.sessions, {
-      ...structuredAgentSessionRestartResumeSurfaces(this, this.now),
-      publish: this.subscribers.publish.bind(this.subscribers)
-    })
+    this.restartResume = createStructuredAgentSessionRestartResume(
+      deps,
+      this.sessions,
+      structuredAgentSessionRestartResumeSurfaces(this, this.now)
+    )
     this.runtimeState.startLeaseRenewal()
   }
 

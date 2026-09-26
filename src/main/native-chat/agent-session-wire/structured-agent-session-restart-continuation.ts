@@ -55,7 +55,6 @@ export type StructuredAgentSessionContinuationHost = {
     clientMessageId: string
   ) => Promise<{ value: AgentSessionSendResult } | undefined>
   onNoteFailed: (sessionId: string, error: unknown) => void
-  publish: (sessionId: string, journal: AgentSessionJournal) => void
   now: () => number
   /** Whether the marker is still an offer, with the continuation's own submission set aside.
    *  Re-asked right before dispatch, so a newer user message refuses the send; a provider turn
@@ -106,9 +105,9 @@ export function noteRestartReattachFailed(
   )
 }
 
-/** Writes a host-authored status note into the chat and publishes it to open panes. */
+/** Writes a host-authored status note into the chat. */
 function restartNoteWriter(
-  host: Pick<StructuredAgentSessionContinuationHost, 'sessions' | 'publish' | 'now'>
+  host: Pick<StructuredAgentSessionContinuationHost, 'sessions' | 'now'>
 ): StructuredAgentSessionContinuationDeps['note'] {
   return async (sessionId, text, tone) => {
     const session = host.sessions.get(sessionId)
@@ -120,7 +119,6 @@ function restartNoteWriter(
       { kind: 'status', text, ...(tone ? { tone } : {}) },
       { fence: session.fence }
     )
-    host.publish(sessionId, session.journal)
   }
 }
 

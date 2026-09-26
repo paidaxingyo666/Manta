@@ -27,7 +27,8 @@ export type StructuredAgentSessionReveal = {
 }
 
 export type StructuredAgentSessionHostSession = {
-  journal: AgentSessionJournal
+  /** Readonly: a new handle enters only through the session map's `set`, which binds its delivery. */
+  readonly journal: AgentSessionJournal
   params: AgentSessionAttachParams
   fence: number
   /** Whether THIS host generation is running the provider process behind the session. A journal
