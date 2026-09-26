@@ -3,6 +3,8 @@
 ; electron-builder accepts exactly ONE `nsis.include` file, so every customInstall /
 ; customUnInstall hook Manta needs lives here.
 
+!include "${__FILEDIR__}\orca-process-check.nsh"
+
 ; ---------------------------------------------------------------------------
 ; Markdown "Open with Manta" (issue #10138)
 ;
