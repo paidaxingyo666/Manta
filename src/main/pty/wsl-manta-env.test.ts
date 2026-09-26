@@ -62,6 +62,7 @@ describe('addMantaWslInteropEnv', () => {
       MANTA_TERMINAL_HANDLE: 'term_wsl',
       MANTA_USER_DATA_PATH: 'C:\\Users\\jin\\AppData\\Roaming\\Manta',
       MANTA_CLI_COMMAND: 'manta-ide',
+      ORCA_WSL_CLI_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Manta\\wsl-managed-cli\\hash',
       MANTA_CODEX_LAUNCH_PREFLIGHT: 'C:\\Program Files\\Manta\\resources\\bin\\manta.exe',
       ORCA_OMP_FRESH_CONFIG: 'C:\\Manta\\fresh-session.yml',
       MANTA_OMP_STATUS_EXTENSION: 'C:\\Users\\jin\\.omp\\agent\\extensions\\manta-agent-status.ts',
@@ -87,6 +88,7 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toContain('MANTA_TERMINAL_HANDLE/u')
     expect(env.WSLENV).toContain('MANTA_USER_DATA_PATH/p')
     expect(env.WSLENV).toContain('MANTA_CLI_COMMAND/u')
+    expect(env.WSLENV).toContain('MANTA_WSL_CLI_DIR/p')
     expect(env.WSLENV).toContain('MANTA_CODEX_LAUNCH_PREFLIGHT/p')
     expect(env.WSLENV).toContain('MANTA_OMP_STATUS_EXTENSION/p')
     expect(env.WSLENV).toContain('MANTA_OMP_FRESH_CONFIG/p')

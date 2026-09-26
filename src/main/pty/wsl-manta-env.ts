@@ -79,6 +79,8 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     // and it cannot derive the hash segment from MANTA_USER_DATA_PATH alone.
     'MANTA_SHELL_READY_ROOT/p',
     'MANTA_CLI_COMMAND/u',
+    // Why /p: the managed CLI launcher lives in the host's userData tree.
+    'MANTA_WSL_CLI_DIR/p',
     'MANTA_CODEX_LAUNCH_PREFLIGHT/p',
     'MANTA_PANE_KEY/u',
     'MANTA_TAB_ID/u',
