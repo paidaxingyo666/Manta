@@ -53,9 +53,7 @@ export const MANTAD_INSTALL_MODEL: RemoteInstallModel = {
   nativeDepsPackageName: 'manta-mantad',
   versionFilename: MANTAD_VERSION_FILENAME,
   installCompleteFilename: MANTAD_INSTALL_COMPLETE_FILENAME,
-  // Why the parameter is ignored: mantad's forked children are the same three .js files on
-  // every host. The Windows-only console-list agent patch is a relay/node-pty concern.
-  requiredArtifacts: () => mantadArtifactFilenames()
+  requiredArtifacts: (isWindows) => mantadArtifactFilenames(isWindows ? 'win32' : '')
 }
 
 export const REMOTE_INSTALL_MODELS: readonly RemoteInstallModel[] = [

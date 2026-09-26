@@ -16,15 +16,13 @@ import { setAppEnvironment, type AppEnvironment } from '../../shared/app-environ
 import { setSecretStore, type SecretStore } from '../../shared/secret-store'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { resolveMantadInstallRoot, resolveMantadPath, resolveUserDataPath } from './mantad-app-paths'
+import { describeMantadBindExposure, resolveMantadBindHost } from './mantad-bind-address'
 import {
-  describeMantadBindExposure,
-  MantadBindAddressError,
-  resolveMantadBindHost
-} from './mantad-bind-address'
-import { MantadInstanceLockError } from './mantad-instance-lock'
-import { flushOrcadProfileStoreForShutdown, startOrcadWithHost } from './mantad-lifecycle'
+  flushOrcadProfileStoreForShutdown,
+  installOrcadShutdownSignals,
+  startOrcadWithHost
+} from './mantad-lifecycle'
 import { parseArgs } from './mantad-command-arguments'
-import { ProfileStateAccessError } from '../persistence/profile-state/profile-state-access'
 import {
   changedAiVaultSearchSettings,
   type AiVaultSearchSettings
@@ -369,52 +367,18 @@ async function startMantadRuntime(
  * supervision contract has to prevent, so systemd's `RestartPreventExitStatus` needs a code
  * that means "do not retry" and nothing else does.
  */
-export const MANTAD_EXIT_OK = 0
-export const MANTAD_EXIT_FAILED = 1
-export const MANTAD_EXIT_CONFIGURATION = 78
+export {
+  MANTAD_EXIT_OK,
+  MANTAD_EXIT_FAILED,
+  MANTAD_EXIT_CONFIGURATION,
+  resolveMantadExitCode
+} from './orcad-exit-code'
 
 /** Bounded so a wedged transport cannot hold a supervisor's stop past its own deadline. */
-export const MANTAD_SHUTDOWN_DEADLINE_MS = 15_000
-
-export function resolveMantadExitCode(error: unknown): number {
-  return error instanceof MantadInstanceLockError ||
-    error instanceof MantadBindAddressError ||
-    error instanceof ProfileStateAccessError
-    ? MANTAD_EXIT_CONFIGURATION
-    : MANTAD_EXIT_FAILED
-}
+export { MANTAD_SHUTDOWN_DEADLINE_MS } from './mantad-lifecycle'
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
-  const handle = await startMantad(parseArgs(argv))
-  let stopping = false
-  const shutdown = (signal: NodeJS.Signals): void => {
-    if (stopping) {
-      // Why escalate rather than ignore: a supervisor's second signal means the first
-      // deadline elapsed. Continuing to wait silently is what makes a stop hang until
-      // SIGKILL, which is the one teardown that skips the daemon handoff entirely.
-      console.error(`mantad: second ${signal} during shutdown — exiting immediately`)
-      process.exit(MANTAD_EXIT_FAILED)
-    }
-    stopping = true
-    // Why a self-imposed deadline as well: the supervisor's SIGKILL leaves no exit code and
-    // no log line. Exiting ourselves keeps the failure attributable.
-    const deadline = setTimeout(() => {
-      console.error(
-        `mantad: shutdown after ${signal} exceeded ${MANTAD_SHUTDOWN_DEADLINE_MS}ms — exiting`
-      )
-      process.exit(MANTAD_EXIT_FAILED)
-    }, MANTAD_SHUTDOWN_DEADLINE_MS)
-    deadline.unref()
-    handle
-      .stop()
-      .then(() => process.exit(MANTAD_EXIT_OK))
-      // Why not rethrow: we are already tearing down on a signal, and an exit code is
-      // the only thing a supervisor can act on.
-      .catch((error) => {
-        console.error(`mantad: shutdown after ${signal} failed:`, error)
-        process.exit(MANTAD_EXIT_FAILED)
-      })
-  }
-  process.on('SIGINT', () => shutdown('SIGINT'))
-  process.on('SIGTERM', () => shutdown('SIGTERM'))
+  const startup = startMantad(parseArgs(argv))
+  installOrcadShutdownSignals(async () => (await startup).stop())
+  await startup
 }

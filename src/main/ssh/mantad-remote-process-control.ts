@@ -1,16 +1,13 @@
 /**
  * Stopping a running mantad on the host without taking its terminals with it.
  *
- * `SIGKILL` is absent on purpose. mantad's own escalation contract (`mantad-entry.ts`) is
- * SIGTERM, then a second SIGTERM meaning "your deadline elapsed, exit now"; a kill skips the
- * teardown that releases the instance lock and disconnects — rather than shuts down — the
- * terminal daemon. The daemon is detached and would survive a kill, but a stop that leaves
- * the lock file behind makes the successor refuse to start with
- * `orcad_data_root_shared`, so the update turns into an outage for no gain.
+ * SIGTERM starts one bounded durable shutdown. If it outlasts this wait, preserve the
+ * current owner; SIGKILL would skip flushing state and releasing the instance lock.
  */
 import { shellEscape } from './ssh-connection-utils'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import { MANTAD_READINESS_FILENAME } from './mantad-remote-launch'
+import { selectOrcadSlotRuntimeCommand } from './mantad-remote-runtime'
 import {
   assertPosixOrcadHost as assertPosixHost,
   MANTAD_PID_FILENAME,
@@ -48,7 +45,8 @@ export function stopOrcadCommand(
     ...(options.justLaunched
       ? []
       : [
-          `runtime_pid=$(${shellEscape(options.nodePath)} -e ${shellEscape(readRuntimePid)} ${readiness} 2>/dev/null) || { echo UNKNOWN; exit 0; };`,
+          `runtime_pid=$(${selectOrcadSlotRuntimeCommand(host, remoteInstallDir, options.nodePath)}; ` +
+            `"$orcad_runtime" -e ${shellEscape(readRuntimePid)} ${readiness} 2>/dev/null) || { echo UNKNOWN; exit 0; };`,
           '[ "$pid" = "$runtime_pid" ] || { echo UNKNOWN; exit 0; };'
         ]),
     'orcad_alive "$pid" || { echo ALREADY_EXITED; exit 0; };',

@@ -4,18 +4,11 @@
  * preserve current state and the prelaunch snapshot for explicit recovery.
  */
 import type { SshConnection } from './ssh-connection'
+import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/orcad-profile-preflight'
 import { execCommand } from './ssh-relay-deploy-helpers'
-import { shellEscape } from './ssh-connection-utils'
 import { MANTAD_INSTALL_MODEL } from './remote-install-model'
-import { acquireInstallLock } from './ssh-relay-install-lock'
-import { uploadRelayDirectory, writeRelayFile } from './ssh-relay-install-transfers'
-import {
-  abandonInstall,
-  computeRemoteInstallDir,
-  finalizeInstall,
-  isRemoteInstallComplete,
-  readLocalFullVersion
-} from './ssh-relay-versioned-install'
+import { writeRelayFile } from './ssh-relay-install-transfers'
+import { computeRemoteInstallDir, readLocalFullVersion } from './ssh-relay-versioned-install'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import {
   MANTAD_STATE_SNAPSHOT_DIR,
@@ -46,13 +39,18 @@ import {
 } from './mantad-remote-process-control'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import { computeLocalOrcadBuildHash } from './mantad-local-build-hash'
+import { preflightInstalledOrcad } from './mantad-remote-preflight'
+import { assertPosixOrcadHost } from './mantad-remote-host-support'
+import { installOrcadBundle } from './mantad-remote-install'
+import { materializeOrcadArtifact } from './orcad-artifact-materializer'
+import { resolveOrcadDeploymentTarget } from './orcad-deployment-target'
 
 export type OrcadDeployOptions = {
   conn: SshConnection
   host: RemoteHostPlatform
   remoteHome: string
-  /** Local `out/mantad`, containing the artifacts and the `.version` marker. */
-  localOrcadDir: string
+  /** An already assembled bundle; otherwise materialize the packaged template for this host. */
+  localOrcadDir?: string
   nodePath: string
   userDataDir: string
   bindHost: string
@@ -75,7 +73,6 @@ export type OrcadDeployResult =
   | { outcome: 'already-active'; fullVersion: string }
   | { outcome: 'installed-not-activated'; fullVersion: string; code: string; reason: string }
 
-const DEFAULT_READINESS_TIMEOUT_MS = 90_000
 const READINESS_POLL_MS = 500
 const STOP_WAIT_SECONDS = 20
 
@@ -88,53 +85,6 @@ function exec(options: OrcadDeployOptions, command: string): Promise<string> {
 
 function baseDir(options: OrcadDeployOptions): string {
   return joinRemotePath(options.host, options.remoteHome, RELAY_REMOTE_DIR)
-}
-
-/** Install the bytes under `mantad-<version>/`, using the relay's install transaction. */
-async function installOrcadBundle(
-  options: OrcadDeployOptions,
-  fullVersion: string,
-  remoteDir: string
-): Promise<void> {
-  if (
-    await isRemoteInstallComplete(options.conn, MANTAD_INSTALL_MODEL, remoteDir, options.host, {
-      signal: options.signal
-    })
-  ) {
-    return
-  }
-  await acquireInstallLock(options.conn, remoteDir, options.host, { signal: options.signal })
-  try {
-    // Re-probe under the lock: a sibling deploy may have finished while we waited.
-    if (
-      await isRemoteInstallComplete(options.conn, MANTAD_INSTALL_MODEL, remoteDir, options.host, {
-        signal: options.signal
-      })
-    ) {
-      return
-    }
-    await uploadRelayDirectory(options.conn, options.localOrcadDir, remoteDir, options.host, {
-      signal: options.signal
-    })
-    const { host } = options
-    if (host.os !== 'win32') {
-      // SFTP creates uploaded files with 0644 even when the source binary is executable.
-      const binaryPath = joinRemotePath(host, remoteDir, 'ripgrep', host.relayPlatform, 'rg')
-      await exec(options, `chmod 755 ${shellEscape(binaryPath)}`)
-    }
-    await writeRelayFile(
-      options.conn,
-      options.host,
-      joinRemotePath(options.host, remoteDir, MANTAD_INSTALL_MODEL.versionFilename),
-      fullVersion,
-      { signal: options.signal }
-    )
-    await finalizeInstall(options.conn, remoteDir, options.host, { signal: options.signal })
-  } catch (error) {
-    // Leave a recoverable partial rather than a dir that probes complete.
-    await abandonInstall(options.conn, remoteDir, options.host)
-    throw error
-  }
 }
 
 async function captureSnapshot(
@@ -186,7 +136,7 @@ async function launchAndAwaitReadiness(
     options,
     orcadLaunchCommand(options.host, { ...options, remoteInstallDir, fullVersion })
   )
-  const deadline = Date.now() + (options.readinessTimeoutMs ?? DEFAULT_READINESS_TIMEOUT_MS)
+  const deadline = Date.now() + (options.readinessTimeoutMs ?? ORCAD_STARTUP_READINESS_TIMEOUT_MS)
   const sleep = options.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)))
   let last = parseOrcadReadinessOutput('')
   while (Date.now() < deadline) {
@@ -247,7 +197,16 @@ async function restoreIncumbent(
 }
 
 /** Activate on a healthy verdict; retain changed candidate state for explicit recovery. */
-export async function deployOrcad(options: OrcadDeployOptions): Promise<OrcadDeployResult> {
+export async function deployOrcad(input: OrcadDeployOptions): Promise<OrcadDeployResult> {
+  assertPosixOrcadHost(input.host)
+  const options = {
+    ...input,
+    localOrcadDir:
+      input.localOrcadDir ??
+      (await materializeOrcadArtifact(await resolveOrcadDeploymentTarget(input), {
+        signal: input.signal
+      }))
+  }
   const now = options.now ?? ((): Date => new Date())
   const fullVersion = readLocalFullVersion(options.localOrcadDir)
   const remoteDir = computeRemoteInstallDir(MANTAD_INSTALL_MODEL, options.remoteHome, fullVersion)
@@ -270,6 +229,24 @@ export async function deployOrcad(options: OrcadDeployOptions): Promise<OrcadDep
       fullVersion,
       code: plan.code,
       reason: plan.reason
+    }
+  }
+
+  try {
+    await preflightInstalledOrcad({
+      ...options,
+      remoteInstallDir: remoteDir,
+      fullVersion
+    })
+  } catch (error) {
+    options.signal?.throwIfAborted()
+    return {
+      outcome: 'installed-not-activated',
+      fullVersion,
+      code: 'orcad_candidate_preflight_failed',
+      reason: `Candidate profile preflight failed; the incumbent was not stopped: ${
+        error instanceof Error ? error.message : String(error)
+      }`
     }
   }
 

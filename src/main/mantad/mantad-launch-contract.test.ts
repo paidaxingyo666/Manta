@@ -13,6 +13,7 @@ import { startOrcadWithLifecycle } from './mantad-lifecycle'
 import { MantadBindAddressError } from './mantad-bind-address'
 import { MantadInstanceLockError } from './mantad-instance-lock'
 import { ProfileStateAccessError } from '../persistence/profile-state/profile-state-access'
+import { OrcadBundledRuntimeError } from './orcad-bundled-runtime'
 
 describe('parseArgs', () => {
   it('accepts --bind and leaves it unset when absent', () => {
@@ -43,6 +44,9 @@ describe('resolveMantadExitCode', () => {
       MANTAD_EXIT_CONFIGURATION
     )
     expect(resolveMantadExitCode(new Error('port in use'))).toBe(MANTAD_EXIT_FAILED)
+    expect(resolveMantadExitCode(new OrcadBundledRuntimeError('partial installation'))).toBe(
+      MANTAD_EXIT_CONFIGURATION
+    )
     expect(MANTAD_EXIT_CONFIGURATION).not.toBe(MANTAD_EXIT_FAILED)
   })
 })

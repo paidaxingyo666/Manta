@@ -188,6 +188,9 @@ module.exports = {
     // Why: these repo-only inputs are either bundled into out/ or copied via
     // extraResources. Shipping them in app.asar bloats the desktop bundle.
     '!src{,/**/*}',
+    '!out/mantad{,/**/*}',
+    '!out/orcad-template{,/**/*}',
+    '!out/.mantad-*{,/**/*}',
     '!config{,/**/*}',
     '!docs{,/**/*}',
     '!mobile{,/**/*}',

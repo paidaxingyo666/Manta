@@ -1,16 +1,59 @@
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveMantadBrowserProvider } from './mantad-browser-provider'
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
+import { ORCAD_BUNDLED_LAUNCHER_ENV } from './orcad-bundled-runtime'
+import { resolveMantadExitCode } from './orcad-exit-code'
 import {
   acquireProfileStateRuntimeAdmission,
   type ProfileStateRuntimeAdmission
 } from '../persistence/profile-state/profile-state-access'
+
+const bundledLauncherChannel = process.env[ORCAD_BUNDLED_LAUNCHER_ENV] === '1'
+delete process.env[ORCAD_BUNDLED_LAUNCHER_ENV]
 
 function createIdempotentOrcadCleanup(cleanup: () => Promise<void>): () => Promise<void> {
   let completion: Promise<void> | null = null
   return () => {
     completion ??= Promise.resolve().then(cleanup)
     return completion
+  }
+}
+
+export const MANTAD_SHUTDOWN_DEADLINE_MS = 15_000
+
+/** A launcher and its child can both receive the same process-group or service stop signal. */
+export function installOrcadShutdownSignals(
+  stop: () => Promise<void>,
+  deadlineMs = MANTAD_SHUTDOWN_DEADLINE_MS
+): void {
+  let stopping = false
+  const shutdown = (signal: string): void => {
+    if (stopping) {
+      return
+    }
+    stopping = true
+    setTimeout(() => {
+      console.error(`mantad: shutdown after ${signal} exceeded ${deadlineMs}ms — exiting`)
+      process.exit(1)
+    }, deadlineMs)
+    stop()
+      .then(() => process.exit(0))
+      .catch((error) => {
+        console.error(`mantad: shutdown after ${signal} failed:`, error)
+        process.exit(resolveMantadExitCode(error))
+      })
+  }
+  process.on('SIGINT', () => shutdown('SIGINT'))
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
+  // Headless runtimes survive terminal hangups; INT/TERM are the graceful stop contract.
+  if (process.platform !== 'win32') {
+    process.on('SIGHUP', () => {})
+  }
+  if (bundledLauncherChannel && typeof process.send === 'function') {
+    process.once('disconnect', () => shutdown('launcher disconnect'))
+    if (!process.connected) {
+      shutdown('launcher disconnect')
+    }
   }
 }
 
