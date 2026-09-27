@@ -481,14 +481,12 @@ test.describe('Terminal Shortcuts', () => {
 
     // Why: exercise the production PTY-output tracker, not xterm's renderer-
     // local flag state, so the test covers the bytes the shortcut policy sees.
-    await execInTerminal(mantaPage, ptyId, "printf '\\033[>1u'")
+    // The command disarms its own flags: ones left armed at exit are grounded by the host.
+    await execInTerminal(mantaPage, ptyId, "printf '\\033[>1u'; read -r _; printf '\\033[<u'")
     await expect.poll(() => getKittyKeyboardFlags(mantaPage)).toBe(1)
     await pressAndExpectWrite(mantaPage, electronApp, 'Shift+Enter', '\x1b[13;2u')
 
-    // Clear the shell's unconsumed CSI-u line before resetting flags in a settled
-    // command; otherwise its line editor can swallow the reset bytes.
-    await sendToTerminal(mantaPage, ptyId, '\x15\x03')
-    await execInTerminal(mantaPage, ptyId, "printf '\\033[=0u'")
+    await sendToTerminal(mantaPage, ptyId, '\r')
     await expect.poll(() => getKittyKeyboardFlags(mantaPage)).toBe(0)
     await pressAndExpectWrite(mantaPage, electronApp, 'Shift+Enter', '\x1b\r')
   })
@@ -557,7 +555,10 @@ test.describe('Terminal Shortcuts', () => {
     electronApp
   }) => {
     await installMainProcessPtyWriteSpy(electronApp)
-    await waitForActivePanePtyId(mantaPage)
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    // SIGINT during shell startup kills the shell, so interrupt only a ready prompt.
+    await execInTerminal(mantaPage, ptyId, 'echo "CTRL_C_""READY"')
+    await waitForTerminalOutput(mantaPage, 'CTRL_C_READY')
     await enableKittyKeyboardReporting(mantaPage, 31)
     await clearPtyWriteLog(electronApp)
     await focusActiveTerminalInput(mantaPage)
