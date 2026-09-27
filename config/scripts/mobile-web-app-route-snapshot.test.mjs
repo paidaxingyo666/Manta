@@ -1,7 +1,11 @@
 import { existsSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { readRouteSnapshot } from './mobile-web-app-route-snapshot.mjs'
-import { withRouteSnapshot } from './run-mobile-web-app-checks.mjs'
+import {
+  prepareRouteSnapshot,
+  withPreparedRouteSnapshot,
+  withRouteSnapshot
+} from './run-mobile-web-app-checks.mjs'
 import { PAGE_ROUTE_MODULES } from './mobile-web-app-page-route-modules.mjs'
 
 const collect = async (entries) => ({
@@ -69,4 +73,40 @@ describe('snapshot validation', () => {
       }, collect)
     }
   )
+})
+
+it('consumes a separately prepared snapshot and removes it after success', async () => {
+  await withRouteSnapshot(async (file) => {
+    const result = await withPreparedRouteSnapshot(file, async (prepared) => {
+      expect(prepared).toBe(file)
+      return 'verified'
+    })
+    expect(result).toBe('verified')
+    expect(existsSync(file)).toBe(false)
+  }, collect)
+})
+
+it('rejects incomplete prepared snapshots before launching tests', async () => {
+  await withRouteSnapshot(async (file) => {
+    writeFileSync(file, JSON.stringify({ version: 1, routes: [] }))
+    let launched = false
+    await expect(
+      withPreparedRouteSnapshot(file, async () => {
+        launched = true
+      })
+    ).rejects.toThrow('missing')
+    expect(launched).toBe(false)
+    expect(existsSync(file)).toBe(false)
+  }, collect)
+})
+
+it('removes previous evidence before a failed preparation', async () => {
+  await withRouteSnapshot(async (file) => {
+    await expect(
+      prepareRouteSnapshot(file, async () => {
+        throw new Error('unresolved import')
+      })
+    ).rejects.toThrow('unresolved import')
+    expect(existsSync(file)).toBe(false)
+  }, collect)
 })

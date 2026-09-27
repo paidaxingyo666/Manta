@@ -22,6 +22,7 @@ describe('CI background step barriers', () => {
       pr.jobs.static_analysis,
       pr.jobs.mobile_web_app,
       pr.jobs.package,
+      pr.jobs.shell_contracts,
       mobile.jobs.verify,
       cloud.jobs.security
     ]) {
@@ -67,13 +68,40 @@ describe('CI background step barriers', () => {
 
   it('waits for WebKit and the bundle before any browser tests', () => {
     const steps = pr.jobs.mobile_web_app.steps
-    assertJoinedBefore(steps, 'webkit', (step) =>
-      step.run?.includes('run-mobile-web-app-checks.mjs')
+    assertJoinedBefore(
+      steps,
+      'webkit',
+      (step) => step.name === 'Builder, override census and render checks'
     )
     const build = steps.findIndex((step) => step.name === 'Build and verify the app bundle')
     expect(steps[build].background).toBeUndefined()
-    expect(build).toBeLessThan(steps.findIndex((step) => step.wait === 'webkit'))
+    expect(build).toBeLessThan(steps.findIndex((step) => [step.wait].flat().includes('webkit')))
     expect(steps.findIndex((step) => step.id === 'webkit')).toBeLessThan(build)
+  })
+
+  it('joins shell installation before checking fish and running live shell tests', () => {
+    const steps = pr.jobs.shell_contracts.steps
+    assertJoinedBefore(steps, 'shells', (step) => step.name === 'Require fish 4+')
+    assertJoinedBefore(steps, 'shells', (step) => step.name === 'Test real shell contracts')
+    const install = steps.findIndex((step) => step.uses?.endsWith('/install-node-dependencies'))
+    expect(install).toBeGreaterThan(steps.findIndex((step) => step.id === 'shells'))
+    expect(install).toBeLessThan(steps.findIndex((step) => step.wait === 'shells'))
+  })
+
+  it('prepares fresh mobile routes after dependencies and before the browser tests', () => {
+    const steps = pr.jobs.mobile_web_app.steps
+    assertJoinedBefore(
+      steps,
+      'mobile-routes',
+      (step) => step.name === 'Builder, override census and render checks'
+    )
+    const prepare = steps.findIndex((step) => step.id === 'mobile-routes')
+    expect(prepare).toBeGreaterThan(
+      steps.findIndex((step) => step.uses?.endsWith('/install-mobile-dependencies'))
+    )
+    expect(prepare).toBeLessThan(
+      steps.findIndex((step) => step.name === 'Build and verify the app bundle')
+    )
   })
 
   it('joins package setup before reading outputs and preserves isolated native probes', () => {

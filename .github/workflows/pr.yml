@@ -245,6 +245,23 @@ jobs:
       - name: Enforce runtime Electron-import ratchet
         run: pnpm run check:runtime-electron-ratchet
 
+      # Why: extraction writes sorted evidence to an isolated temporary path,
+      # so feature PRs need one normalized AST pass rather than a three-OS matrix.
+      - name: Verify localization extraction
+        id: localization-extraction
+        background: true
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # Detection failures run the full check; renames retain the removed input path.
+          if git diff --name-only --no-renames -z --merge-base "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/localization-changes" &&
+            scope="$(node config/scripts/localization-extraction-change-scope.mjs "$RUNNER_TEMP/localization-changes")" && [ "$scope" = false ]; then
+            echo "Localization extraction inputs are unchanged."
+          else
+            pnpm run verify:localization-extraction
+          fi
+
       # Why both: the ratchet proves nothing reachable from the runtime imports electron,
       # which is a property of the import graph. This proves the Node artifact it enables
       # actually boots, pairs, creates a worktree and round-trips a real PTY.
@@ -275,23 +292,6 @@ jobs:
         id: localization-catalogs
         background: true
         run: pnpm run verify:localization-catalogs
-
-      # Why: extraction writes sorted evidence to an isolated temporary path,
-      # so feature PRs need one normalized AST pass rather than a three-OS matrix.
-      - name: Verify localization extraction
-        id: localization-extraction
-        background: true
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          # Detection failures run the full check; renames retain the removed input path.
-          if git diff --name-only --no-renames -z --merge-base "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/localization-changes" &&
-            scope="$(node config/scripts/localization-extraction-change-scope.mjs "$RUNNER_TEMP/localization-changes")" && [ "$scope" = false ]; then
-            echo "Localization extraction inputs are unchanged."
-          else
-            pnpm run verify:localization-extraction
-          fi
 
       - name: Verify localization coverage
         run: pnpm run verify:localization-coverage
@@ -507,6 +507,8 @@ jobs:
       # fish-color-scheme-child-stdin.node-pty.test.ts (#9993) needs it. Noble ships
       # 3.7, so the PPA is what makes that lane real.
       - name: Install zsh and fish
+        id: shells
+        background: true
         run: |
           # Why the update/PPA/fish steps are tolerant: a repo the runner image already
           # ships can lack a Release file for this suite, and a failed add-apt-repository
@@ -555,6 +557,12 @@ jobs:
           # first install command in this step to prove the lane really installs them.
           timeout 300 sudo apt-get install -y zsh fish
 
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+
+      - wait: shells
+
       # Separate from the install so the failure names the contract, not an apt error.
       # MANTA_REQUIRE_FISH re-checks this at test time; this step just fails in seconds
       # instead of after a full dependency install.
@@ -569,10 +577,6 @@ jobs:
             echo "::error::shell contracts needs fish 4+ (DECSET 2031 arming, #9993) but got '${version:-none}'. Fix the ppa:fish-shell/release-4 install rather than letting the fish lane skip." >&2
             exit 1
           fi
-
-      - uses: ./.github/actions/install-node-dependencies
-        with:
-          native-runtime: node
 
       - name: Test real shell contracts
         run: |
@@ -699,6 +703,11 @@ jobs:
       # The entry lives in mobile/ so one React resolves; without this every RN import is nothing.
       - uses: ./.github/actions/install-mobile-dependencies
 
+      - name: Prepare mobile route snapshot
+        id: mobile-routes
+        background: true
+        run: node config/scripts/run-mobile-web-app-checks.mjs --prepare-route-snapshot "$RUNNER_TEMP/mobile-routes.json"
+
       # Why the runner's Google Chrome and not a downloaded chromium: same reason as the mantad
       # browser job -- Ubuntu 24.04 only ships an AppArmor userns profile for the Chrome .deb.
       # Why fail instead of skip: a silently skipped render check is the failure this job exists
@@ -718,7 +727,7 @@ jobs:
         run: pnpm run build:mobile-web
 
       # Browser checks must observe both a finished install and the built bundle.
-      - wait: webkit
+      - wait: [webkit, mobile-routes]
 
       # The bundling tests skip themselves where mobile dependencies are absent, which is how they
       # stay green in the sharded `test` job. This is the job that installs them, so here a missing
@@ -733,6 +742,7 @@ jobs:
       - name: Builder, override census and render checks
         env:
           ORCA_MOBILE_WEB_APP_DEPS_REQUIRED: '1'
+          ORCA_MOBILE_WEB_PREPARED_ROUTE_SNAPSHOT: ${{ runner.temp }}/mobile-routes.json
         run: |
           node config/scripts/run-mobile-web-app-checks.mjs
 

@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 import { mobileWebAppModuleClosure } from './build-mobile-web-app-bundle.mjs'
+import { readRouteSnapshot } from './mobile-web-app-route-snapshot.mjs'
 import { PAGE_ROUTE_MODULES } from './mobile-web-app-page-route-modules.mjs'
 import { spawnProcess } from './script-child-process.mjs'
 
@@ -16,17 +17,35 @@ export const mobileWebCheckArgs = [
   'config/scripts/build-mobile-web-app-bundle.test.mjs'
 ]
 
+export async function prepareRouteSnapshot(file, collect = mobileWebAppModuleClosure) {
+  rmSync(file, { force: true })
+  const routes = []
+  for (const route of new Set(PAGE_ROUTE_MODULES.values())) {
+    const closure = await collect(['app/_layout', 'app/h/_layout', route])
+    routes.push({ route, closure })
+  }
+  writeFileSync(file, JSON.stringify({ version: 1, routes }))
+}
+
+export async function withPreparedRouteSnapshot(file, run) {
+  try {
+    for (const route of new Set(PAGE_ROUTE_MODULES.values())) {
+      if (!readRouteSnapshot(route, file)) {
+        throw new Error(`Prepared mobile route snapshot is missing ${route}`)
+      }
+    }
+    return await run(file)
+  } finally {
+    rmSync(file, { force: true })
+  }
+}
+
 export async function withRouteSnapshot(run, collect = mobileWebAppModuleClosure) {
   const directory = mkdtempSync(join(tmpdir(), 'orca-route-snapshot-'))
   try {
-    const routes = []
-    for (const route of new Set(PAGE_ROUTE_MODULES.values())) {
-      const closure = await collect(['app/_layout', 'app/h/_layout', route])
-      routes.push({ route, closure })
-    }
     const file = join(directory, 'routes.json')
-    writeFileSync(file, JSON.stringify({ version: 1, routes }))
-    return await run(file)
+    await prepareRouteSnapshot(file, collect)
+    return await withPreparedRouteSnapshot(file, run)
   } finally {
     rmSync(directory, { recursive: true, force: true })
   }
@@ -56,5 +75,14 @@ function runTests(file) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  await withRouteSnapshot(runTests)
+  if (process.argv[2] === '--prepare-route-snapshot') {
+    if (process.argv.length !== 4) {
+      throw new Error('Expected --prepare-route-snapshot FILE')
+    }
+    await prepareRouteSnapshot(process.argv[3])
+  } else if (process.env.ORCA_MOBILE_WEB_PREPARED_ROUTE_SNAPSHOT) {
+    await withPreparedRouteSnapshot(process.env.ORCA_MOBILE_WEB_PREPARED_ROUTE_SNAPSHOT, runTests)
+  } else {
+    await withRouteSnapshot(runTests)
+  }
 }

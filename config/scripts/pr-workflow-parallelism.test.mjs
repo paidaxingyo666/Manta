@@ -517,9 +517,11 @@ describe('PR workflow parallelism', () => {
     // The bundling tests skip themselves without mobile/node_modules, which is what keeps the
     // sharded `test` job green. Only this env var stops that skip from spreading to the one job
     // that installs them, so a typo here would leave the whole job passing vacuously.
-    const step = workflow.jobs.mobile_web_app.steps.find((entry) =>
-      entry.run?.includes('node config/scripts/run-mobile-web-app-checks.mjs')
+    const step = workflow.jobs.mobile_web_app.steps.find(
+      (entry) => entry.name === 'Builder, override census and render checks'
     )
+    expect(step.run).toContain('node config/scripts/run-mobile-web-app-checks.mjs')
+    expect(step.run).not.toContain('--prepare-route-snapshot')
     expect(step.env[MOBILE_WEB_APP_DEPENDENCIES_REQUIRED_ENV]).toBe('1')
     expect(mobileWebCheckArgs).toEqual([
       'run',
