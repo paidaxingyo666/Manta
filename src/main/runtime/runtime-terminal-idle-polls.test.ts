@@ -73,6 +73,7 @@ describe('RuntimeTerminalIdlePolls timer budget', () => {
       getAdoptedPtyIdleStatus: () => null,
       getPaneAgent: () => null,
       getFirstPartyAgentStatus: () => null,
+      readScreenLines: () => null,
       getLiveLeaf: (leaf) => leaf,
       resolve: (waiter, result) => resolved.push({ handle: waiter.handle, result })
     })
@@ -108,6 +109,7 @@ describe('RuntimeTerminalIdlePolls timer budget', () => {
       getAdoptedPtyIdleStatus: () => null,
       getPaneAgent: () => null,
       getFirstPartyAgentStatus: () => null,
+      readScreenLines: () => null,
       getLiveLeaf: (leaf) => leaf,
       resolve: () => {}
     })
@@ -133,6 +135,7 @@ describe('RuntimeTerminalIdlePolls timer budget', () => {
       getAdoptedPtyIdleStatus: () => null,
       getPaneAgent: () => null,
       getFirstPartyAgentStatus: () => null,
+      readScreenLines: () => null,
       getLiveLeaf: (leaf) => leaf,
       resolve: () => {}
     })
@@ -163,6 +166,7 @@ describe('RuntimeTerminalIdlePolls timer budget', () => {
       getAdoptedPtyIdleStatus: () => null,
       getPaneAgent: () => null,
       getFirstPartyAgentStatus: () => null,
+      readScreenLines: () => null,
       getLiveLeaf: (leaf) => leaf,
       resolve: (waiter) => resolved.push(waiter.handle)
     })

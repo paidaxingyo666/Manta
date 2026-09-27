@@ -335,6 +335,7 @@ export class MantaRuntimeWithRuntimeId {
     getPaneAgent: (ptyId) => this.getPaneAgentForTuiIdle(ptyId),
     getFirstPartyAgentStatus: (ptyId) =>
       (ptyId ? this.ptysById.get(ptyId)?.lastExplicitAgentStatus : null) ?? null,
+    readScreenLines: (ptyId) => this.readLiveTerminalScreenLines(ptyId),
     getLiveLeaf: (leaf) => this.leaves.get(this.getLeafKey(leaf.tabId, leaf.leafId)) ?? leaf,
     resolve: (waiter, result) => this.terminalWaiters.resolve(waiter, result)
   })
@@ -350,6 +351,7 @@ export class MantaRuntimeWithRuntimeId {
       getPaneAgent: (ptyId) => this.getPaneAgentForTuiIdle(ptyId),
       getFirstPartyAgentStatus: (ptyId) =>
         (ptyId ? this.ptysById.get(ptyId)?.lastExplicitAgentStatus : null) ?? null,
+      readScreenLines: (ptyId) => this.readLiveTerminalScreenLines(ptyId),
       startVisibleReadProbe: (waiter, waiterTimeoutMs, agent) =>
         this.startTuiIdleVisibleReadProbe(waiter, waiterTimeoutMs, agent)
     },

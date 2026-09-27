@@ -29,7 +29,16 @@ const SEEDS = Math.max(1, Number(process.env.SERIALIZE_TRANSCRIPT_SEEDS) || 2)
 // Checkpoints (default seeds) whose new replay diverges exactly as the previous
 // build's did — pre-existing upstream limitations, not regressions (verified
 // with ORCA_OLD_SERIALIZE_ADDON). Shrink when one is fixed.
-const KNOWN_PREEXISTING_I2_FAILURES: Record<string, number> = { less: 6, nano: 2, opencode: 5 }
+const KNOWN_PREEXISTING_I2_FAILURES: Record<string, number> = {
+  less: 6,
+  nano: 2,
+  opencode: 5,
+  // Codex 0.157 header border restores with an extra attribute bit (STA-8628 fixtures).
+  'codex-0157-config-override-embedded-warning': 22,
+  'codex-0157-effort-override-embedded-warning': 4,
+  'codex-0157-no-daemon-effort-override': 16,
+  'codex-0157-plain-ready': 18
+}
 
 type Transcript = { name: string; data: string; cols: number; rows: number }
 type Schedule = 'none' | 'shrink' | 'shrink-grow' | 'jitter'
