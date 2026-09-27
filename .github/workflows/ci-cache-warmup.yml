@@ -10,6 +10,9 @@ on:
       - '.github/workflows/ci-cache-warmup.yml'
       - '.github/actions/install-node-dependencies/**'
       - '.github/actions/prepare-git-compatibility/**'
+      - '.github/actions/prepare-linux-package-fixture/**'
+      - 'config/docker/headless-serve-shutdown/**'
+      - 'config/docker/cli-launch-contract/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
@@ -23,6 +26,9 @@ on:
     paths:
       - '.github/workflows/ci-cache-warmup.yml'
       - '.github/actions/prepare-git-compatibility/**'
+      - '.github/actions/prepare-linux-package-fixture/**'
+      - 'config/docker/headless-serve-shutdown/**'
+      - 'config/docker/cli-launch-contract/**'
       - 'config/scripts/ci-cache-warmup-workflow.test.mjs'
 
 permissions:
@@ -82,3 +88,21 @@ jobs:
           native-runtime: node
       - name: Verify native cache is usable
         run: node config/scripts/ensure-native-runtime.mjs --check-only
+
+  warm-linux-package-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MANTA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/prepare-linux-package-fixture
+        with:
+          fixture: headless-serve-shutdown
+          save-cache: ${{ github.event_name != 'pull_request' }}
+      - uses: ./.github/actions/prepare-linux-package-fixture
+        with:
+          fixture: cli-launch-contract
+          save-cache: ${{ github.event_name != 'pull_request' }}

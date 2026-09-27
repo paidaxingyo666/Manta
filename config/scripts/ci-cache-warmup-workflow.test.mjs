@@ -28,7 +28,11 @@ it('publishes incremental state under a key and prefix that new PRs restore', ()
 })
 
 it('bounds warming to the required platforms and validates changes without granting writes', () => {
-  expect(Object.keys(workflow.jobs)).toEqual(['warm', 'warm-windows'])
+  expect(Object.keys(workflow.jobs)).toEqual([
+    'warm',
+    'warm-windows',
+    'warm-linux-package-fixtures'
+  ])
   expect(workflow.jobs.warm['timeout-minutes']).toBeLessThanOrEqual(10)
   expect(workflow.permissions).toEqual({ contents: 'read' })
   expect(workflow.on.push.branches).toEqual(['main'])
