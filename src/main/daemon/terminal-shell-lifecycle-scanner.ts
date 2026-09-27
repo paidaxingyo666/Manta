@@ -54,11 +54,6 @@ export class TerminalShellLifecycleScanner {
   private altActive = false
   private commandEnteredAlternateScreen = false
   private readonly inputModes = new TerminalArmedInputModes()
-  // Why one-shot: a refuted proof leaves the alt screen up (no reset was ever
-  // scanned), and without disarming every later prompt's D would re-open a full
-  // pause-and-inspect episode. Only a fresh alternate-screen enable re-arms; input
-  // modes are one-shot by markCommandEnd's demotion.
-  private uncleanTriggerArmed = false
 
   get owner(): TerminalOwner | undefined {
     return this.ownerState
@@ -97,7 +92,6 @@ export class TerminalShellLifecycleScanner {
       // this a mirror seeded mid-TUI never arms its unclean-death trigger and
       // the whole occupancy loses recovery.
       this.altActive = opts.alternateScreen
-      this.uncleanTriggerArmed = opts.alternateScreen
       this.commandEnteredAlternateScreen = opts.alternateScreen
     }
   }
@@ -123,7 +117,6 @@ export class TerminalShellLifecycleScanner {
         this.inputModes.reset()
         this.altActive = false
         this.commandEnteredAlternateScreen = false
-        this.uncleanTriggerArmed = false
         continue
       }
       if (oscPayload !== undefined) {
@@ -142,13 +135,12 @@ export class TerminalShellLifecycleScanner {
         }
         // An alternate screen or a command's input mode still up at command-finished
         // means the app died without its own teardown; the caller must repair first.
-        const leftInputModes = this.inputModes.markCommandEnd()
-        const uncleanDeath = (this.uncleanTriggerArmed && this.altActive) || leftInputModes
+        // Every D re-asks: a refuted one may be a nested shell's while the app lives.
+        const uncleanDeath = this.inputModes.markCommandEnd() || this.altActive
         const cleanExit = !uncleanDeath && this.commandEnteredAlternateScreen && !this.altActive
         this.revoke()
         this.commandEnteredAlternateScreen = false
         if (uncleanDeath) {
-          this.uncleanTriggerArmed = false
           this.scanTail = ''
           // Why the clamp: a complete OSC can never sit wholly inside the
           // carried tail (extractScanTail keeps incomplete ones only), so this
@@ -195,7 +187,6 @@ export class TerminalShellLifecycleScanner {
           this.altActive = enabled
           if (enabled) {
             this.commandEnteredAlternateScreen = true
-            this.uncleanTriggerArmed = true
           }
         }
       }
