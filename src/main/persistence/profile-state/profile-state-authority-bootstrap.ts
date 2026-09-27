@@ -84,7 +84,8 @@ export function bootstrapProfileStateAuthority(
         : authority.readInitialState()
     if (initialState === undefined) {
       throw new ProfileStateAuthorityBootstrapError(
-        'Profile state has both JSON and SQLite storage without a matching acceptance marker'
+        'Profile state has both JSON and SQLite storage without a matching acceptance marker',
+        'diverged-json'
       )
     }
     return { classification, authority, initialState, migrated: false }

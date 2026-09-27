@@ -12,7 +12,11 @@ type ProfileStateRecoveryLocation = {
 export class ProfileStateAuthorityBootstrapError extends Error {
   readonly code = 'ambiguous-profile-state' as const
 
-  constructor(message: string) {
+  /** `diverged-json`: both copies are readable, so the user can pick one at startup. */
+  constructor(
+    message: string,
+    readonly divergence?: 'diverged-json'
+  ) {
     super(message)
     this.name = 'ProfileStateAuthorityBootstrapError'
   }
