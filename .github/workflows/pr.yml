@@ -271,19 +271,10 @@ jobs:
       - name: Verify skill freshness manifest
         run: pnpm run verify:skill-bundle-manifest
 
-      # These checks only read catalogs; extraction writes to its own temporary directory.
-      - name: Verify localization catalog
-        id: localization-catalog
+      - name: Verify localization catalogs
+        id: localization-catalogs
         background: true
-        run: pnpm run verify:localization-catalog
-
-      # Why: the renderer ships only the English entries i18next cannot rebuild
-      # from each call site's inline default, so the generated subset has to
-      # track en.json and those defaults.
-      - name: Verify runtime-required localization catalog
-        id: localization-runtime
-        background: true
-        run: pnpm run verify:localization-runtime-catalog
+        run: pnpm run verify:localization-catalogs
 
       # Why: extraction writes sorted evidence to an isolated temporary path,
       # so feature PRs need one normalized AST pass rather than a three-OS matrix.
@@ -305,7 +296,7 @@ jobs:
       - name: Verify localization coverage
         run: pnpm run verify:localization-coverage
 
-      - wait: [localization-catalog, localization-runtime, localization-extraction]
+      - wait: [localization-catalogs, localization-extraction]
 
       # Why: project-owned type declarations must live in .ts so tsc
       # actually checks them. TypeScript's skipLibCheck: true (inherited
@@ -860,6 +851,24 @@ jobs:
           src/main/browser/browser-route-h3-egress.electron.test.ts
           src/main/browser/browser-route-dns-prefetch.electron.test.ts
 
+      # Restore independent fixtures during builds; keep native lifecycle probes serial.
+      - uses: ./.github/actions/prepare-linux-package-fixture
+        id: shutdown-fixture-cache
+        background: true
+        with:
+          fixture: headless-serve-shutdown
+
+      - uses: ./.github/actions/prepare-linux-package-fixture
+        id: cli-fixture-cache
+        background: true
+        with:
+          fixture: cli-launch-contract
+
+      - name: Install Linux package tooling
+        id: linux-package-tools
+        background: true
+        run: sudo apt-get update && sudo apt-get install -y cpio rpm
+
       - name: Build package inputs
         run: |
           status=0
@@ -889,8 +898,7 @@ jobs:
       - name: Build native components
         run: pnpm run build:native
 
-      - name: Install Linux package tooling
-        run: sudo apt-get update && sudo apt-get install -y cpio rpm
+      - wait: linux-package-tools
 
       - name: Package unpacked app
         env:
@@ -914,10 +922,7 @@ jobs:
           [[ "$deb_marker" == deb ]] || { echo "Expected deb marker, got: $deb_marker"; exit 1; }
           [[ "$rpm_marker" == rpm ]] || { echo "Expected rpm marker, got: $rpm_marker"; exit 1; }
 
-      - uses: ./.github/actions/prepare-linux-package-fixture
-        id: shutdown-fixture-cache
-        with:
-          fixture: headless-serve-shutdown
+      - wait: shutdown-fixture-cache
 
       - name: Verify headless serve signal shutdown
         env:
@@ -926,12 +931,9 @@ jobs:
           node config/scripts/run-headless-serve-shutdown-docker.mjs
           --appimage dist/manta-linux.AppImage --all-entrypoints
 
-      - uses: ./.github/actions/prepare-linux-package-fixture
-        id: cli-fixture-cache
-        with:
-          fixture: cli-launch-contract
-
       # A default container reproduces the hostile AppImage launch environment.
+      - wait: cli-fixture-cache
+
       - name: Verify Linux CLI launch contract
         env:
           ORCA_CLI_FIXTURE_CACHE_IMAGE: ${{ steps.cli-fixture-cache.outputs.image }}
