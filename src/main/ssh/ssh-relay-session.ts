@@ -23,6 +23,7 @@ import { toAppSshPtyId, toRelaySshPtyId } from '../providers/ssh-pty-id'
 import { SshFilesystemProvider } from '../providers/ssh-filesystem-provider'
 import { isMethodNotFoundError } from './ssh-filesystem-stream-reader'
 import { SshGitProvider } from '../providers/ssh-git-provider'
+import { selectOpenCodePluginSources } from '../agent-hooks/opencode-plugin-settings'
 import { agentHookServer } from '../agent-hooks/server'
 import { isAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-controls'
 import {
@@ -318,6 +319,7 @@ export class SshRelaySession {
   private muxDisposeCleanup: (() => void) | null = null
   // Why: hold the notification-handler disposer so teardownProviders can release it on reconnect/shutdown (symmetric with muxDisposeCleanup).
   private muxNotificationCleanup: (() => void) | null = null
+  private pluginSettingsCleanup: (() => void) | null = null
   // Why: onStateChange never fires when the relay channel closes but SSH stays up; this callback lets ssh.ts drive relay-level reconnect.
   private _onRelayLost: ((targetId: string) => void) | null = null
   // Why: a version mismatch or a blocked owner admission is terminal, so it needs a separate callback
@@ -1087,6 +1089,13 @@ export class SshRelaySession {
       return false
     }
 
+    this.pluginSettingsCleanup?.()
+    this.pluginSettingsCleanup =
+      this.store.onSettingsChanged?.((updates) => {
+        if ('disabledTuiAgents' in updates || 'agentStatusHooksEnabled' in updates) {
+          void this.installPluginsOnRelay(mux)
+        }
+      }) ?? null
     await this.installPluginsOnRelay(mux)
     if (shouldContinue && !shouldContinue()) {
       return false
@@ -1539,17 +1548,28 @@ export class SshRelaySession {
 
   // Why: ship plugin/extension source from Manta so agent-event changes don't force a relay redeploy — the relay is versioned independently. Best-effort: failure only costs agent status on this host.
   private async installPluginsOnRelay(mux: SshChannelMultiplexer): Promise<void> {
-    if (!isRemoteAgentHooksEnabled() || !this.areAgentStatusHooksEnabled()) {
+    if (!isRemoteAgentHooksEnabled()) {
       return
     }
     try {
-      await mux.request(AGENT_HOOK_INSTALL_PLUGINS_METHOD, {
-        opencodePluginSource: openCodeInternals.getOpenCodePluginSource(),
-        opencode2PluginSource: openCodeInternals.getOpenCode2PluginSource(),
-        piExtensionSource: getPiAgentStatusExtensionSource('pi'),
-        ompExtensionSource: getPiAgentStatusExtensionSource('omp'),
-        primeAgentExtensionSource: getPiAgentStatusExtensionSource('prime-agent')
-      })
+      const hooksEnabled = this.areAgentStatusHooksEnabled()
+      await mux.request(
+        AGENT_HOOK_INSTALL_PLUGINS_METHOD,
+        selectOpenCodePluginSources(
+          {
+            opencodePluginSource: openCodeInternals.getOpenCodePluginSource(),
+            opencode2PluginSource: openCodeInternals.getOpenCode2PluginSource(),
+            ...(hooksEnabled
+              ? {
+                  piExtensionSource: getPiAgentStatusExtensionSource('pi'),
+                  ompExtensionSource: getPiAgentStatusExtensionSource('omp'),
+                  primeAgentExtensionSource: getPiAgentStatusExtensionSource('prime-agent')
+                }
+              : {})
+          },
+          this.store.getSettings?.() ?? null
+        )
+      )
     } catch (err) {
       // Why: -32601 = older relay without the handler; CONNECTION_LOST/DISPOSED = routine mid-flight teardown — swallow both.
       const code = (err as { code?: unknown })?.code
@@ -1675,6 +1695,8 @@ export class SshRelaySession {
     this.openCodeRuntimePreparation?.controller.abort()
     this.openCodeRuntimePreparation = null
     this.releaseRelayLossWatcher()
+    this.pluginSettingsCleanup?.()
+    this.pluginSettingsCleanup = null
     this.muxNotificationCleanup?.()
     this.muxNotificationCleanup = null
     for (const cleanup of this.ptyRecoveryNotificationCleanups) {

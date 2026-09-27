@@ -1,3 +1,4 @@
+import { restoreOrStripOverlayEnv } from '../../../shared/agent-overlay-env'
 import { delimiter } from 'node:path'
 import { dropInheritedMantaFishHistory } from '../../fish-history-session'
 import { removeAppImageRuntimeEnv } from '../../pty/appimage-terminal-env'
@@ -57,6 +58,22 @@ function deleteRequestedDaemonEnvKeys(
     keys?.includes('MANTA_CODEX_HOME') === true &&
     env.MANTA_CODEX_HOME !== undefined &&
     env.CODEX_HOME === env.MANTA_CODEX_HOME
+  // A merged caller config can supersede the daemon's recorded overlay source.
+  if (
+    keys?.includes('MANTA_OPENCODE_CONFIG_DIR') &&
+    (env.OPENCODE_CONFIG_DIR === undefined ||
+      env.OPENCODE_CONFIG_DIR === env.MANTA_OPENCODE_CONFIG_DIR)
+  ) {
+    restoreOrStripOverlayEnv(
+      env,
+      {
+        primary: 'OPENCODE_CONFIG_DIR',
+        overlay: 'MANTA_OPENCODE_CONFIG_DIR',
+        source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR'
+      },
+      {}
+    )
+  }
   for (const key of keys ?? []) {
     delete env[key]
   }
