@@ -62,7 +62,7 @@ jobs:
           status=0
           pnpm run build:relay &
           relay_pid=$!
-          npx electron-vite build --mode e2e || status=1
+          pnpm run build:electron-vite:parallel --mode e2e || status=1
           pnpm run build:web-from-renderer || status=1
           wait "$relay_pid" || status=1
           exit "$status"

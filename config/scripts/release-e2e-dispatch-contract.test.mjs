@@ -72,7 +72,7 @@ describe('release E2E dispatch contract', () => {
   it('includes the paired-runtime web client in the shared E2E build artifact', () => {
     const buildStep = e2eWorkflow.jobs.build.steps.find((step) => step.name === 'Build E2E outputs')
 
-    expect(buildStep.run).toContain('electron-vite build --mode e2e')
+    expect(buildStep.run).toContain('pnpm run build:electron-vite:parallel --mode e2e')
     expect(buildStep.env.VITE_EXPOSE_STORE).toBe('true')
     expect(buildStep.run).toContain('pnpm run build:web-from-renderer')
     expect(buildStep.run).toContain('pnpm run build:relay')
