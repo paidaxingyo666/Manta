@@ -235,7 +235,18 @@ jobs:
       # which is a property of the import graph. This proves the Node artifact it enables
       # actually boots, pairs, creates a worktree and round-trips a real PTY.
       - name: Boot mantad and round-trip a terminal
-        run: pnpm run smoke:mantad-terminal
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MANTA_BACKGROUND_LAUNCH: '1'
+        run: |
+          # Detection failures run the smoke; renames retain the removed input path.
+          if git diff --name-only --no-renames -z --merge-base "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/mantad-smoke-changes" &&
+            scope="$(node config/scripts/mantad-terminal-smoke-change-scope.mjs "$RUNNER_TEMP/mantad-smoke-changes")" && [ "$scope" = false ]; then
+            echo "Mantad terminal smoke inputs are unchanged."
+          else
+            pnpm run smoke:mantad-terminal
+          fi
 
       - name: Verify the generated RPC params catalog
         run: pnpm run verify:rpc-params-catalog
@@ -860,12 +871,12 @@ jobs:
 
       - name: Package unpacked app
         env:
+          MANTA_BACKGROUND_LAUNCH: '1'
           MANTA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
-        # PR artifacts are only inspected locally; gzip avoids release-size xz compression.
-        run: >-
-          pnpm exec electron-builder --config config/electron-builder.config.cjs
-          --linux AppImage deb rpm --x64 --publish never
-          --config.deb.compression=gz --config.rpm.compression=gzip
+        # Prepare once with every hook, then isolate the format-specific mutations.
+        run: |
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --linux dir --x64 --publish never
+          node config/scripts/package-linux-formats.mjs
 
       - name: Verify root-package marker payloads
         run: |

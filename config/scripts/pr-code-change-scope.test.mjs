@@ -198,6 +198,9 @@ describe('per-job path classification', () => {
 
   it('runs Linux packaging when an artifact contract changes', () => {
     for (const file of [
+      'config/scripts/package-linux-formats.mjs',
+      'config/scripts/script-child-process.mjs',
+      'config/scripts/space-sharing-copy.mjs',
       '.github/actions/prepare-linux-package-fixture/action.yml',
       'config/docker/cli-launch-contract/Dockerfile',
       'config/docker/cli-launch-contract/run-cli-case.sh',

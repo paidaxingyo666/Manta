@@ -217,6 +217,9 @@ const SHARED_PACKAGE_PREFIXES = [
 
 const LINUX_PACKAGE_PREFIXES = [
   ...SHARED_PACKAGE_PREFIXES,
+  'config/scripts/package-linux-formats',
+  'config/scripts/script-child-process.mjs',
+  'config/scripts/space-sharing-copy.mjs',
   '.github/actions/prepare-linux-package-fixture/',
   'config/docker/cli-launch-contract/',
   'config/docker/headless-pairing/',
