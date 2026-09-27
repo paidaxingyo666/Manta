@@ -197,6 +197,8 @@
     "../src/main/devin/hook-settings.ts",
     "../src/main/devin/hook-service.ts",
     "../src/main/devin/hook-config-json.ts",
+    "../src/main/hermes/hermes-config-document.ts",
+    "../src/main/hermes/hermes-config-source-edits.ts",
     "../src/main/hermes/hermes-config-yaml.ts",
     "../src/main/hermes/hermes-home-filesystem.ts",
     "../src/main/hermes/hermes-managed-plugin-source.ts",
