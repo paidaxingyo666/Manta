@@ -10996,7 +10996,7 @@
           "e27c8d45bf": "환경 변수로 인해 진단이 비활성화되었습니다."
         },
         "ShortcutCommandBlock": {
-          "eb72c52c28": "키, 마우스 뒤로/앞으로 버튼을 누르거나 수정자 키를 두 번 탭하세요(예: {{value0}}). Esc 키로 취소합니다.",
+          "eb72c52c28": "단축키를 누르거나 수정자 키를 두 번 탭하세요(예: {{value0}}). Esc 키로 취소합니다.",
           "70b5d25583": "{{value0}} shortcut",
           "287e07ddde": "Modified",
           "3c83cd7d1c": "Disabled",

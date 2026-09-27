@@ -118,9 +118,7 @@ const KEY_TOKEN_LABELS: Record<string, string> = {
   Insert: 'Insert',
   Tab: 'Tab',
   Escape: 'Esc',
-  Space: 'Space',
-  MouseBack: 'Mouse Back',
-  MouseForward: 'Mouse Forward'
+  Space: 'Space'
 }
 
 const MAC_KEY_TOKEN_LABELS: Record<string, string> = { ...KEY_TOKEN_LABELS, Backspace: '⌫' }

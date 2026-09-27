@@ -1,4 +1,3 @@
-import type { MouseShortcutInput } from '../../shared/mouse-shortcut-input'
 import { ipcRenderer, webFrame } from 'electron'
 import type {
   RuntimeMobileMarkdownRequest,
@@ -138,9 +137,6 @@ export const uiClipboardAndWindowControlsApi = {
   },
   setFloatingFocus: (state: { panelFocused: boolean; terminalFocused: boolean }): void => {
     ipcRenderer.send('ui:setFloatingFocus', state)
-  },
-  dispatchMouseShortcut: (input: MouseShortcutInput): void => {
-    ipcRenderer.send('ui:dispatchMouseShortcut', input)
   },
   setShortcutRecorderFocused: (focused: boolean): void => {
     ipcRenderer.send('ui:setShortcutRecorderFocused', focused)

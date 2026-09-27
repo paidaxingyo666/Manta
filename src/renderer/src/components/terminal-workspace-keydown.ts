@@ -41,12 +41,7 @@ export function handleTerminalWorkspaceKeyDown(
     mobileEmulatorEnabled,
     terminalShortcutPolicy
   } = controller
-  if (
-    !activeWorktreeId ||
-    event.defaultPrevented ||
-    (event.target instanceof Element &&
-      event.target.closest('[data-shortcut-recorder-active]') !== null)
-  ) {
+  if (!activeWorktreeId) {
     return
   }
   const context = getKeybindingContext(event.target)

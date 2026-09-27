@@ -20,7 +20,6 @@ export function normalizeKeybindingWithOptions(
   if (parsed.doubleTapModifier) {
     return { ok: true, value: canonicalizeParsedKeybinding(parsed) }
   }
-  const isMouseButton = parsed.key === 'MouseBack' || parsed.key === 'MouseForward'
   const isShiftInsert = parsed.shift && parsed.key === 'Insert'
   const isBareAllowed = options.allowBareKeybindings === true && isSafeBareKey(parsed)
   const isShiftOnlyAllowed =
@@ -35,7 +34,6 @@ export function normalizeKeybindingWithOptions(
     !parsed.meta &&
     !parsed.control &&
     !parsed.alt &&
-    !isMouseButton &&
     !isShiftInsert &&
     !isBareAllowed &&
     !isShiftOnlyAllowed

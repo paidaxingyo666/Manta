@@ -73,9 +73,7 @@ const SIMPLE_KEY_TOKENS = new Map<string, string>(
     BACKSLASH: 'Backslash',
     SEMICOLON: 'Semicolon',
     QUOTE: 'Quote',
-    BACKQUOTE: 'Backquote',
-    MOUSEBACK: 'MouseBack',
-    MOUSEFORWARD: 'MouseForward'
+    BACKQUOTE: 'Backquote'
   })
 )
 
