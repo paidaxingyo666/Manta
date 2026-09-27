@@ -11077,7 +11077,7 @@
           "e27c8d45bf": "Les diagnostics sont désactivés par une variable d'environnement."
         },
         "ShortcutCommandBlock": {
-          "eb72c52c28": "Appuyez sur un raccourci, ou appuyez deux fois sur une touche modificatrice (ex. {{value0}}). Échap annule.",
+          "eb72c52c28": "Appuyez sur des touches, un bouton Précédent/Suivant de la souris ou deux fois sur une touche modificatrice (ex. {{value0}}). Échap annule.",
           "70b5d25583": "Raccourci {{value0}}",
           "287e07ddde": "Modifié",
           "3c83cd7d1c": "Désactivé",
