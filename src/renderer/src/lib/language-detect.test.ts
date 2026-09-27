@@ -112,6 +112,11 @@ describe('detectLanguage', () => {
     expect(detectLanguage('C:\\theme\\snippets\\CART.LIQUID')).toBe('liquid')
   })
 
+  it('maps .sol files to the Monaco built-in sol language id, not the solidity alias', () => {
+    expect(detectLanguage('contracts/Vault.sol')).toBe('sol')
+    expect(detectLanguage('C:\\repo\\contracts\\TOKEN.SOL')).toBe('sol')
+  })
+
   it('maps Salesforce Apex sources to the apex language id (case-insensitive)', () => {
     expect(detectLanguage('force-app/main/default/classes/AccountService.cls')).toBe('apex')
     expect(detectLanguage('force-app/main/default/triggers/AccountTrigger.trigger')).toBe('apex')
