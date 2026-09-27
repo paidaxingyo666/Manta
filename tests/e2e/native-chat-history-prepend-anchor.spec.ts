@@ -138,6 +138,13 @@ test.describe('Native chat transcript anchoring', () => {
         sessionId,
         transcriptPath
       })
+      // Exercise the supported manual paging fallback while the reader stays mid-transcript.
+      await mantaPage.evaluate(() => {
+        Object.defineProperty(window, 'IntersectionObserver', {
+          value: undefined,
+          configurable: true
+        })
+      })
       await toggleTerminalTabToChatView(mantaPage, {
         tabId,
         worktreeId: descriptor.worktreeId
