@@ -42,6 +42,7 @@ const EXT_TO_LANGUAGE: Record<string, string> = {
   // Why: Monaco declares Liquid as both '.liquid' and '.html.liquid'; the final-extension
   // lookup below covers the compound form, so the single entry is enough.
   '.liquid': 'liquid',
+  '.twig': 'twig',
   '.xml': 'xml',
   '.svg': 'xml',
   '.py': 'python',

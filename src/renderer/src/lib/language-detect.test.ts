@@ -119,6 +119,23 @@ describe('detectLanguage', () => {
     expect(detectLanguage('C:\\repo\\force-app\\classes\\ACCOUNTSERVICE.CLS')).toBe('apex')
   })
 
+  it.each([
+    'templates/base.twig',
+    'templates/node--article.html.twig',
+    'C:\\theme\\templates\\PAGE.HTML.TWIG',
+    '\\\\server\\share\\templates\\PAGE.TWIG',
+    '/home/user/folder workspace/templates/Base.TwIg'
+  ])('maps Twig template %s to the Monaco built-in twig language id', (filePath) => {
+    expect(detectLanguage(filePath)).toBe('twig')
+  })
+
+  it.each(['base.twig.bak', 'base.twigx', 'templates.twig/README', 'templates.twig\\README'])(
+    'keeps non-Twig file %s on plaintext',
+    (filePath) => {
+      expect(detectLanguage(filePath)).toBe('plaintext')
+    }
+  )
+
   it('keeps .json/.jsonc on the built-in json language and unknown on plaintext', () => {
     expect(detectLanguage('config/settings.json')).toBe('json')
     expect(detectLanguage('config/tsconfig.jsonc')).toBe('json')
