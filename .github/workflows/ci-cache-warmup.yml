@@ -63,3 +63,22 @@ jobs:
       - name: Refresh TypeScript state for this commit
         if: steps.typecheck-cache.outputs.cache-hit != 'true'
         run: pnpm run typecheck
+
+  warm-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-11-arm]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      MANTA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+      - name: Verify native cache is usable
+        run: node config/scripts/ensure-native-runtime.mjs --check-only
