@@ -16,6 +16,7 @@
  */
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
+import { isUnconfirmedSshCommandTermination } from './ssh-relay-exec-command'
 import {
   isRelayNativeDepsCacheEntryName,
   relayNativeDepsCacheBaseDir,
@@ -30,7 +31,11 @@ import {
   RELAY_NATIVE_CACHE_LIST_OK,
   RELAY_NATIVE_CACHE_REFS_OK
 } from './ssh-relay-native-deps-cache-commands'
-import { moveRemoteTreeCommand, removeRemoteTreeCommand } from './ssh-remote-commands'
+import {
+  moveRemoteTreeCommand,
+  removeRemoteTreeCommand,
+  restoreRemoteTreeCommand
+} from './ssh-remote-commands'
 import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 
 type ReferenceScan =
@@ -69,7 +74,10 @@ export async function gcRelayNativeDepsCache(
     entries = parseCacheEntryListing(
       await execHostCommand(conn, host, listRelayNativeDepsCacheEntriesCommand(host, remoteHome))
     )
-  } catch {
+  } catch (err) {
+    if (isUnconfirmedSshCommandTermination(err)) {
+      throw err
+    }
     return
   }
   if (entries.length === 0) {
@@ -116,28 +124,31 @@ async function removeUnreferencedCacheEntry(
     if (moved.trim() !== 'MOVED') {
       return false
     }
-  } catch {
+  } catch (err) {
+    if (isUnconfirmedSshCommandTermination(err)) {
+      throw err
+    }
     return false
   }
   // Why recheck under the rename: a deploy that read `.deps-complete` before it moved can still
   // be creating its symlink. Its reference now names a path that no longer exists, so restoring
   // the tree is the only outcome that leaves that relay with working native deps.
-  let recheck: ReferenceScan
-  try {
-    recheck = await scanCacheReferences(conn, host, remoteHome)
-  } catch {
-    recheck = { readable: false }
-  }
+  const recheck = await scanCacheReferences(conn, host, remoteHome).catch(async (err: unknown) => {
+    // A read-only scan cannot conflict with restoring this pass's renamed tree.
+    await restoreCacheEntry(conn, host, tombstone, entryDir).catch(() => {})
+    throw err
+  })
   if (!recheck.readable || recheck.referencedKeys.has(key)) {
-    await execHostCommand(conn, host, moveRemoteTreeCommand(host, tombstone, entryDir)).catch(
-      () => {}
-    )
+    await restoreCacheEntry(conn, host, tombstone, entryDir)
     return false
   }
   try {
     await execHostCommand(conn, host, removeRemoteTreeCommand(host, tombstone))
     return true
-  } catch {
+  } catch (err) {
+    if (isUnconfirmedSshCommandTermination(err)) {
+      throw err
+    }
     // The sweep in the entry listing drains a tombstone this pass could not remove.
     return false
   }
@@ -155,7 +166,10 @@ async function scanCacheReferences(
       host,
       listRelayNativeDepsCacheReferencesCommand(host, remoteHome)
     )
-  } catch {
+  } catch (err) {
+    if (isUnconfirmedSshCommandTermination(err)) {
+      throw err
+    }
     return { readable: false }
   }
   const lines = output.split(/\r?\n/).map((line) => line.trim())
@@ -240,4 +254,19 @@ function parseCacheEntryListing(output: string): string[] {
     }
   }
   return entries
+}
+
+async function restoreCacheEntry(
+  conn: SshConnection,
+  host: RemoteHostPlatform,
+  tombstone: string,
+  entryDir: string
+): Promise<void> {
+  await execHostCommand(conn, host, restoreRemoteTreeCommand(host, tombstone, entryDir)).catch(
+    (err) => {
+      if (isUnconfirmedSshCommandTermination(err)) {
+        throw err
+      }
+    }
+  )
 }
