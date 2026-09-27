@@ -168,17 +168,27 @@ jobs:
             pnpm-lock.yaml
             mobile/pnpm-lock.yaml
 
+      # Keep each check in its own log while sharing this runner.
       - name: Lint
+        id: root-lint
+        background: true
         run: pnpm exec oxlint --format github
 
       - name: Reject low-evidence patterns
         run: pnpm run audit:anti-slop
 
+      - wait: root-lint
+
       - name: Enforce focused code-quality plugins
+        id: native-code-quality
+        background: true
         run: pnpm run audit:code-quality:native
 
       - name: Enforce type-aware code-quality baseline
         run: pnpm run audit:code-quality:type-aware
+
+      # Mobile installation changes import resolution for the native cycle check.
+      - wait: native-code-quality
 
       # Why here: the changed-code gate lints mobile files too, and its type-aware pass
       # resolves types from mobile/node_modules. Without the install every mobile type
@@ -187,10 +197,14 @@ jobs:
         if: needs.code_paths.outputs.mobile_dependencies == 'true'
 
       - name: Enforce changed-code quality
+        id: changed-code-quality
+        background: true
         run: pnpm run check:code-quality:changed -- "${{ github.event.pull_request.base.sha }}"
 
       - name: Enforce React Doctor on changed lines
         run: pnpm run check:react-doctor:changed -- "${{ github.event.pull_request.base.sha }}"
+
+      - wait: changed-code-quality
 
       - name: Check Zustand selector fan-out budget
         run: pnpm run check:zustand-selector-fanout
@@ -257,18 +271,25 @@ jobs:
       - name: Verify skill freshness manifest
         run: pnpm run verify:skill-bundle-manifest
 
+      # These checks only read catalogs; extraction writes to its own temporary directory.
       - name: Verify localization catalog
+        id: localization-catalog
+        background: true
         run: pnpm run verify:localization-catalog
 
       # Why: the renderer ships only the English entries i18next cannot rebuild
       # from each call site's inline default, so the generated subset has to
       # track en.json and those defaults.
       - name: Verify runtime-required localization catalog
+        id: localization-runtime
+        background: true
         run: pnpm run verify:localization-runtime-catalog
 
       # Why: extraction writes sorted evidence to an isolated temporary path,
       # so feature PRs need one normalized AST pass rather than a three-OS matrix.
       - name: Verify localization extraction
+        id: localization-extraction
+        background: true
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -283,6 +304,8 @@ jobs:
 
       - name: Verify localization coverage
         run: pnpm run verify:localization-coverage
+
+      - wait: [localization-catalog, localization-runtime, localization-extraction]
 
       # Why: project-owned type declarations must live in .ts so tsc
       # actually checks them. TypeScript's skipLibCheck: true (inherited
@@ -674,6 +697,14 @@ jobs:
             pnpm-lock.yaml
             mobile/pnpm-lock.yaml
 
+      # The drawer check runs on WebKit as well as Chrome, because the shell's iOS WebView is
+      # WebKit and the Chrome above cannot stand in for it. Downloaded rather than resolved from
+      # the runner: Ubuntu ships no WebKit build to point at.
+      - name: Install WebKit for the drawer check
+        id: webkit
+        background: true
+        run: pnpm exec playwright install --with-deps webkit
+
       # The entry lives in mobile/ so one React resolves; without this every RN import is nothing.
       - uses: ./.github/actions/install-mobile-dependencies
 
@@ -692,14 +723,11 @@ jobs:
           "$chrome" --version
           echo "ORCA_MOBILE_WEB_RENDER_BROWSER=$chrome" >> "$GITHUB_ENV"
 
-      # The drawer check runs on WebKit as well as Chrome, because the shell's iOS WebView is
-      # WebKit and the Chrome above cannot stand in for it. Downloaded rather than resolved from
-      # the runner: Ubuntu ships no WebKit build to point at.
-      - name: Install WebKit for the drawer check
-        run: pnpm exec playwright install --with-deps webkit
-
       - name: Build and verify the app bundle
         run: pnpm run build:mobile-web
+
+      # Browser checks must observe both a finished install and the built bundle.
+      - wait: webkit
 
       # The bundling tests skip themselves where mobile dependencies are absent, which is how they
       # stay green in the sharded `test` job. This is the job that installs them, so here a missing
