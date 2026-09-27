@@ -69,7 +69,10 @@ import { classifyPrJobs } from './pr-code-change-scope.mjs'
 
 const projectDir = resolve(import.meta.dirname, '../..')
 const WINDOWS_LANE_JOB = 'package_windows'
-const WINDOWS_LANE_STEP = 'Test Windows-specific boundaries'
+const WINDOWS_LANE_STEPS = [
+  'Test Windows-specific boundaries',
+  'Test Windows installer process probe'
+]
 const WINDOWS_LANE_RUNNER = 'windows-2022'
 
 /**
@@ -104,21 +107,21 @@ const UNREGISTERED_ON_MAIN = [
  * list cannot become a place to park a file someone did not want to register.
  */
 const MANUAL_OPT_IN = [
-  // `runIf(platform === 'win32' && Boolean(distro))`, distro from ORCA_TEST_WSL_DISTRO.
+  // `runIf(platform === 'win32' && Boolean(distro))`, distro from MANTA_TEST_WSL_DISTRO.
   'src/main/git/runner-wsl-linked-gitdir-windows.test.ts',
-  // `runRealWsl = … && ORCA_REAL_WSL_BANNER_TEST === '1'`; needs a real distro.
+  // `runRealWsl = … && MANTA_REAL_WSL_BANNER_TEST === '1'`; needs a real distro.
   'src/main/local-worktree-filesystem-wsl-banner.wsl.test.ts',
-  // `RUN_REAL_WINDOWS = platform === 'win32' && ORCA_REAL_WINDOWS_SKILL_TEST === '1'`.
+  // `RUN_REAL_WINDOWS = platform === 'win32' && MANTA_REAL_WINDOWS_SKILL_TEST === '1'`.
   'src/main/skills/skill-windows-rename-contention.integration.test.ts',
   // Same flag; installs into a real Windows workspace.
   'src/main/skills/skill-windows-workspace.integration.test.ts',
-  // `RUN_REAL_WSL = … && ORCA_REAL_WSL_SKILL_TEST === '1'`; real distro filesystem.
+  // `RUN_REAL_WSL = … && MANTA_REAL_WSL_SKILL_TEST === '1'`; real distro filesystem.
   'src/main/skills/skill-wsl-delete.integration.test.ts',
   // Same flag; real WSL install transactions.
   'src/main/skills/skill-wsl-install-transaction.integration.test.ts',
   // Same flag; real WSL POSIX semantics.
   'src/main/skills/skill-wsl-posix-semantics.integration.test.ts',
-  // `runRealWsl = … && ORCA_REAL_WSL_DELETE_TEST === '1'`; real distro traversal race.
+  // `runRealWsl = … && MANTA_REAL_WSL_DELETE_TEST === '1'`; real distro traversal race.
   'src/main/wsl-approved-root-race.wsl.test.ts',
   // Same flag; real UNC delete against a distro.
   'src/main/wsl-unc-delete.wsl.test.ts',
@@ -288,19 +291,20 @@ function readWindowsWorkflow() {
   const jobs = Object.entries(workflow.jobs ?? {})
   const windowsJobs = jobs.filter(([, job]) => couldRunOnWindows(job?.['runs-on']))
   const steps = workflow.jobs?.[WINDOWS_LANE_JOB]?.steps ?? []
-  const step = steps.find((candidate) => candidate?.name === WINDOWS_LANE_STEP)
-  if (!step) {
-    throw new Error(
-      `No "${WINDOWS_LANE_STEP}" step in the ${WINDOWS_LANE_JOB} job of .github/workflows/pr.yml. ` +
-        'If it was renamed, update WINDOWS_LANE_STEP here -- do not delete this guard.'
-    )
-  }
-  const run = String(step.run ?? '')
-  if (!run.includes('vitest run')) {
-    throw new Error(
-      `The "${WINDOWS_LANE_STEP}" step no longer invokes vitest; this guard is stale.`
-    )
-  }
+  const runs = WINDOWS_LANE_STEPS.map((name) => {
+    const step = steps.find((candidate) => candidate?.name === name)
+    if (!step) {
+      throw new Error(
+        `No "${name}" step in ${WINDOWS_LANE_JOB}; update WINDOWS_LANE_STEPS if renamed.`
+      )
+    }
+    const run = String(step.run ?? '')
+    if (!run.includes('vitest run')) {
+      throw new Error(`The "${name}" step no longer invokes vitest; this guard is stale.`)
+    }
+    return run
+  })
+  const run = runs.join(' ')
   return {
     windowsJobNames: windowsJobs.map(([name]) => name),
     laneFiles: run.split(/\s+/).filter((token) => TEST_FILE_PATTERN.test(token))
@@ -331,7 +335,7 @@ function registrationFailure(path) {
   const missing = []
   if (!laneFiles.includes(path)) {
     missing.push(
-      `add "${path}" to the "${WINDOWS_LANE_STEP}" vitest argv in .github/workflows/pr.yml ` +
+      `add "${path}" to the "${WINDOWS_LANE_STEPS[0]}" vitest argv in .github/workflows/pr.yml ` +
         `(job ${WINDOWS_LANE_JOB})`
     )
   }

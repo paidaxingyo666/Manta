@@ -1,5 +1,62 @@
 # CI efficiency and runner capacity
 
+## September 27 follow-up
+
+[PR #23368](https://github.com/stablyai/orca/pull/23368) overlaps shell installation
+with dependency setup, starts localization extraction before the mantad smoke,
+and prepares mobile route snapshots while WebKit and the bundle are being built.
+Its 27 checks passed without retries; seven existing conditional checks skipped.
+
+Same-runner comparisons in both orders measured:
+
+| Work | Before | After | Evidence |
+| --- | --- | --- | --- |
+| Static block | 63.5 / 74.7s | 38.9 / 55.6s | [Full comparisons](https://github.com/stablyai/orca/actions/runs/36302208990) |
+| Shell job, downloads warmed equally | 76.8 / 70.3s | 64.4 / 64.0s | [Controlled shell runs](https://github.com/stablyai/orca/actions/runs/36302612626) |
+| Mobile preparation | 19.8–21.6s | 18.0–18.5s | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36302877583) |
+| Web projection and mobile build | 17.2–17.3s | 11.7–12.1s | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36302974324) |
+| Mobile verifier fixture suite | 25.47 / 25.35s | 20.04 / 19.92s | [Four full-suite runs](https://github.com/stablyai/orca/actions/runs/36302692823) |
+
+Full mobile-job timings were dominated by first-run apt installation and browser
+test variation; the controlled preparation measurement is the scheduling evidence.
+All 1,248 web/mobile output files matched byte-for-byte in the build comparison.
+The fixture suite kept all 47 tests, isolated mutable copies, and the verifier's
+two fresh builds. No deadline, isolation, or worker-count changes were needed.
+
+The existing unit assignment was already balanced at about 919 historical
+worker-seconds per shard; fresh x86 elapsed times still ranged from 254 to 433s.
+Refreshing weights alone would encode runner variation rather than resolve it.
+An [identical-source architecture pilot](https://github.com/stablyai/orca/actions/runs/36302250920)
+ran shards 1 and 8 on both four-CPU hosted runners. Complete jobs improved from
+449 to 404s and 461 to 384s on ARM, including setup; test and skip counts matched.
+A [full ARM run](https://github.com/stablyai/orca/actions/runs/36302906752) then passed
+all eight shards in 329–373 test seconds (365–412 job seconds). Uploaded reports
+matched the same complete x86 assignment: 9,876 files, each exactly once, no
+unhandled errors. These are elapsed samples excluding queue time, not a guarantee
+that every ARM allocation is faster than every x86 allocation.
+
+PR unit shards and their cache primer now use ARM; a main-branch warmer seeds
+that architecture's existing native and pnpm cache keys. Native, package, and
+relay gates continue on x86. The daily workflow retains complete x86 coverage on
+both Node 24 and Node 26, including relay integration. Thus PR unit architecture
+changes, while x86 unit coverage remains scheduled; this is an explicit coverage
+placement tradeoff rather than a claim of identical per-PR host coverage.
+
+PR validation exposed a WebRTC probe timeout inside a hidden renderer. Isolated
+and four-concurrent probes passed on both architectures; the original cause is
+unproven. The probe now uses Electron main for the same three-second observation
+interval. A [fault-injection comparison](https://github.com/stablyai/orca/actions/runs/36304349257)
+passed with renderer timers unavailable on both architectures, while the original
+probe failed the negative control. Packet assertions and deadlines are unchanged.
+A subsequent Windows run timed out in the installer's real CIM process query
+after verifying restricted policy. Its unchanged probe now runs before the
+concurrent native suite, removing that source of contention without relaxing
+the twenty-second process deadline or dropping either PowerShell architecture.
+
+Replacing Vitest deep comparisons with Node assertions in the status-store
+oracle saved only about one local second in an initial trial. The change was
+not retained: that evidence did not justify changing assertion semantics.
+
 ## Four follow-up changes
 
 - Keep the readiness event, but reuse required checks only after an Actions API

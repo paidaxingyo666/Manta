@@ -1,9 +1,13 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { deserialize, serialize } from 'node:v8'
 import { describe, expect, it } from 'vitest'
+import {
+  withScratch,
+  readAppBundle,
+  readWrittenBundle,
+  copyWrittenBundle
+} from './mobile-web-app-bundle-test-fixture.mjs'
 import {
   MOBILE_WEB_APP_NATIVE_PARITY_STYLE,
   MOBILE_WEB_APP_ROOT_RESET,
@@ -66,34 +70,6 @@ function allScriptSource({ script, chunks }) {
   return [script, ...chunks.map((chunk) => chunk.bytes)].map((bytes) => bytes.toString('utf8'))
 }
 
-async function withScratch(run) {
-  const scratch = await mkdtemp(join(tmpdir(), 'orca-mobile-web-app-test-'))
-  try {
-    return await run(scratch)
-  } finally {
-    await rm(scratch, { recursive: true, force: true })
-  }
-}
-
-// Snapshots preserve Buffer methods and give each assertion its own mutable copy.
-let appBundleSnapshot
-let writtenBundleSnapshot
-
-async function readAppBundle() {
-  appBundleSnapshot ??= bundleMobileWebApp().then(serialize)
-  // Deserialized Buffers alias their snapshot, so copy it before exposing them.
-  return deserialize(Buffer.from(await appBundleSnapshot))
-}
-
-async function readWrittenBundle() {
-  writtenBundleSnapshot ??= withScratch(async (scratch) => {
-    const { outDir, ...result } = await buildMobileWebAppBundle({ outDir: join(scratch, 'bundle') })
-    const html = await readFile(join(outDir, 'index.html'), 'utf8')
-    return serialize({ ...result, html })
-  })
-  return deserialize(await writtenBundleSnapshot)
-}
-
 describe('the CRLF pin', () => {
   it('exempts the same extensions in .gitattributes as the CRLF scan skips', async () => {
     const attributes = await readFile(join(projectDir, '.gitattributes'), 'utf8')
@@ -124,6 +100,19 @@ describeBundling('the app bundle', () => {
     const written = await readWrittenBundle()
     written.manifest.assets.length = 0
     expect((await readWrittenBundle()).manifest.assets.length).toBeGreaterThan(0)
+    const originalByte = written.files[0].bytes[0]
+    written.files[0].bytes[0] ^= 255
+    expect((await readWrittenBundle()).files[0].bytes[0]).toBe(originalByte)
+    await withScratch(async (scratch) => {
+      const firstDir = join(scratch, 'first')
+      await copyWrittenBundle(firstDir)
+      await writeFile(join(firstDir, 'manifest.json'), 'corrupted')
+      const secondDir = join(scratch, 'second')
+      const second = await copyWrittenBundle(secondDir)
+      for (const { file, bytes } of second.files) {
+        expect((await readFile(join(secondDir, file))).equals(bytes), file).toBe(true)
+      }
+    })
   }, 120_000)
 
   it('resolves react-native to react-native-web and leaves no require.context', async () => {
@@ -642,7 +631,7 @@ describe('the verifier', () => {
     async () => {
       await withScratch(async (scratch) => {
         const outDir = join(scratch, 'mobile-web')
-        await buildMobileWebAppBundle({ outDir })
+        await copyWrittenBundle(outDir)
         await expect(verifyMobileWebAppBundle({ bundleDir: outDir })).resolves.toBeDefined()
       })
     },
@@ -654,7 +643,7 @@ describe('the verifier', () => {
     async () => {
       await withScratch(async (scratch) => {
         const outDir = join(scratch, 'mobile-web')
-        await buildMobileWebAppBundle({ outDir })
+        await copyWrittenBundle(outDir)
         const manifestPath = join(outDir, 'manifest.json')
         const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
         manifest.buildId = 'f'.repeat(64)
@@ -672,7 +661,7 @@ describe('the verifier', () => {
     async () => {
       await withScratch(async (scratch) => {
         const outDir = join(scratch, 'mobile-web')
-        const { manifest } = await buildMobileWebAppBundle({ outDir })
+        const { manifest } = await copyWrittenBundle(outDir)
         // What a stale out/ actually looks like: every digest agrees with its bytes and the
         // buildId derives from the asset list, but the source has moved on. Only the two fresh
         // builds the verifier runs can tell, which is the check this covers.

@@ -70,6 +70,22 @@ jobs:
         if: steps.typecheck-cache.outputs.cache-hit != 'true'
         run: pnpm run typecheck
 
+  warm-linux-arm:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    env:
+      MANTA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+          node-version: '24'
+      - name: Verify native cache is usable
+        run: node config/scripts/ensure-native-runtime.mjs --check-only
+
   warm-windows:
     strategy:
       fail-fast: false

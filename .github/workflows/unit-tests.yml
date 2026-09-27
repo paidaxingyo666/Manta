@@ -8,13 +8,19 @@ on:
         required: true
         type: string
 
+      runner:
+        description: Hosted runner for the unit shards; relay integration keeps its x86 host.
+        required: false
+        default: ubuntu-latest
+        type: string
+
 permissions:
   contents: read
 
 jobs:
   test:
     name: tests node ${{ matrix.node }} ${{ matrix.shard }}/${{ matrix.shard_total }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
       matrix:
@@ -78,7 +84,11 @@ jobs:
           if-no-files-found: warn
 
   relay_integration:
-    name: relay integration node ${{ fromJSON(inputs.node_versions)[0] }}
+    name: relay integration node ${{ matrix.node }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ${{ fromJSON(inputs.node_versions) }}
     runs-on: ubuntu-latest
 
     steps:
@@ -90,7 +100,7 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: node
-          node-version: ${{ fromJSON(inputs.node_versions)[0] }}
+          node-version: ${{ matrix.node }}
           cache-electron-package: 'true'
           cache-dependency-path: |
             pnpm-lock.yaml

@@ -70,7 +70,7 @@ describe('PR workflow parallelism', () => {
     expect(workflow.permissions).toEqual({ contents: 'read' })
   })
 
-  it('runs Node 24 on PRs and the same eight-shard suite on Node 26 daily', () => {
+  it('runs all eight shards on ARM for PRs and both Node versions on x86 daily', () => {
     const sharedTest = unitTestWorkflow.jobs.test
     const testStep = sharedTest.steps.find((step) => step.name === 'Test shard')
     const installStep = sharedTest.steps.find(
@@ -86,7 +86,22 @@ describe('PR workflow parallelism', () => {
     expect(workflow.jobs.test.uses).toBe('./.github/workflows/unit-tests.yml')
     expect(JSON.parse(workflow.jobs.test.with.node_versions)).toEqual(['24'])
     expect(nodeNextWorkflow.jobs.test.uses).toBe('./.github/workflows/unit-tests.yml')
-    expect(JSON.parse(nodeNextWorkflow.jobs.test.with.node_versions)).toEqual(['26'])
+    expect(JSON.parse(nodeNextWorkflow.jobs.test.with.node_versions)).toEqual(['24', '26'])
+    expect(workflow.jobs.test.with.runner).toBe('ubuntu-24.04-arm')
+    expect(workflow.jobs.test_native_cache['runs-on']).toBe('ubuntu-24.04-arm')
+    expect(sharedTest['runs-on']).toBe('${{ inputs.runner }}')
+    expect(unitTestWorkflow.on.workflow_call.inputs.runner.default).toBe('ubuntu-latest')
+    expect(nodeNextWorkflow.jobs.test.with.runner).toBeUndefined()
+    expect(nodeNextWorkflow.jobs.test_native_cache['runs-on']).toBe('ubuntu-latest')
+    expect(nodeNextWorkflow.jobs.test_native_cache.strategy.matrix.node).toEqual(['24', '26'])
+    const relay = unitTestWorkflow.jobs.relay_integration
+    expect(relay.strategy.matrix.node).toBe('${{ fromJSON(inputs.node_versions) }}')
+    expect(relay['runs-on']).toBe('ubuntu-latest')
+    expect(
+      relay.steps.find((step) => step.uses === './.github/actions/install-node-dependencies').with[
+        'node-version'
+      ]
+    ).toBe('${{ matrix.node }}')
     expect(nodeNextWorkflow.on.schedule).toHaveLength(1)
     expect(nodeNextWorkflow.on.workflow_dispatch).toBeNull()
     expect(sharedTest.strategy.matrix.node).toBe('${{ fromJSON(inputs.node_versions) }}')
@@ -104,7 +119,7 @@ describe('PR workflow parallelism', () => {
     expect(primerInstall.with['node-version']).toBe('24')
     expect(workflow.jobs.test.needs).toContain('test_native_cache')
     expect(nodeNextPrimerInstall.with['native-runtime']).toBe('node')
-    expect(nodeNextPrimerInstall.with['node-version']).toBe('26')
+    expect(nodeNextPrimerInstall.with['node-version']).toBe('${{ matrix.node }}')
     expect(nodeNextWorkflow.jobs.test.needs).toEqual(['test_native_cache'])
   })
 

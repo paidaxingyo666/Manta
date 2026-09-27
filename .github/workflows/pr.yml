@@ -606,7 +606,7 @@ jobs:
     name: prepare test native cache node 24
     needs: [code_paths]
     if: needs.code_paths.outputs.native_cache_changed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Checkout
@@ -629,6 +629,7 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     with:
       node_versions: '["24"]'
+      runner: ubuntu-24.04-arm
 
   # Why a separate job: the test needs a real Chrome, and the sharded `test` matrix
   # would pay for it on every shard to run one file in whichever shard it landed in.
@@ -897,6 +898,8 @@ jobs:
           exit "$status"
 
       - name: Project web client from renderer build
+        id: web-client
+        background: true
         run: pnpm run build:web-from-renderer
 
       # Why here and not inside "Build package inputs": this job assembles packaging inputs step by
@@ -908,7 +911,7 @@ jobs:
       - name: Build native components
         run: pnpm run build:native
 
-      - wait: linux-package-tools
+      - wait: [linux-package-tools, web-client]
 
       - name: Package unpacked app
         env:
@@ -1006,13 +1009,18 @@ jobs:
 
       # vitest runs here directly rather than through `pnpm test`, so the addon
       # assertions only hold once install-node-dependencies has rebuilt natives.
+      - name: Test Windows installer process probe
+        # Keep cold CIM startup out of the concurrent Electron/native process workload.
+        run: >-
+          pnpm exec vitest run --config config/vitest.config.ts
+          config/scripts/nsis-process-check.test.mjs
+
       - name: Test Windows-specific boundaries
         run: >-
           pnpm exec vitest run --config config/vitest.config.ts
           config/scripts/rebuild-native-deps.test.mjs
           config/scripts/rebuild-native-deps-windows-process-tree.test.mjs
           config/scripts/rebuild-native-deps-node-pty.test.mjs
-          config/scripts/nsis-process-check.test.mjs
           config/scripts/ensure-native-runtime-job-ownership.test.mjs
           config/scripts/verify-packaged-node-pty-job-ownership.test.mjs
           config/scripts/windows-pe-machine.test.mjs
