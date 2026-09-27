@@ -63,9 +63,24 @@ jobs:
           pnpm run build:relay &
           relay_pid=$!
           pnpm run build:electron-vite:parallel --mode e2e || status=1
-          pnpm run build:web-from-renderer || status=1
           wait "$relay_pid" || status=1
           exit "$status"
+
+      # The CLI emits into out/main too; start only after Electron finishes clearing that tree.
+      - name: Build shared E2E CLI
+        id: e2e-cli
+        background: true
+        run: |
+          if node -e 'process.exit(require("./package.json").scripts["prepare:cli-output"] ? 0 : 1)'; then
+            pnpm run build:cli
+          else
+            echo "Older ref: let each consumer build and install its CLI."
+          fi
+
+      - name: Project shared E2E web client
+        run: pnpm run build:web-from-renderer
+
+      - wait: e2e-cli
 
       - name: Upload E2E build output
         uses: actions/upload-artifact@v7
