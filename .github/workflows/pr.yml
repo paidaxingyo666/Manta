@@ -710,17 +710,12 @@ jobs:
       # one `pr-code-change-scope.mjs` fires this job on, so naming a test into the family is all
       # it takes to have it run. Quoted because these are vitest filename filters, matched as
       # substrings against the discovered files, and the shell must not touch them.
-      #
-      # Cost: 18 files in 25-30s wall, of which the frame-budget sweep is 2.5s. That sweep encodes
-      # 111 noise JPEGs in Chromium, so it is the one step here whose cost grows with its viewport
-      # set; adding rows to that set is a decision about this job's runtime.
+      # Route censuses share fresh dependency lists for this invocation; scratch builds stay independent.
       - name: Builder, override census and render checks
         env:
           ORCA_MOBILE_WEB_APP_DEPS_REQUIRED: '1'
         run: |
-          pnpm exec vitest run --config config/vitest.config.ts \
-            'config/scripts/mobile-web-app-' \
-            'config/scripts/build-mobile-web-app-bundle.test.mjs'
+          node config/scripts/run-mobile-web-app-checks.mjs
 
   cross-version-wire:
     name: cross-version wire compatibility

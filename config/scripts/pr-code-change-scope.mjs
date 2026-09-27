@@ -113,6 +113,9 @@ const MANTAD_BROWSER_PREFIXES = [
 // import, and the shell policy the render check runs the page under.
 const MOBILE_WEB_APP_PREFIXES = [
   'config/scripts/build-mobile-web-app',
+  'config/scripts/run-mobile-web-app-checks',
+  'config/scripts/script-child-process.mjs',
+  'src/shared/child-process/',
   'config/scripts/verify-mobile-web-app-bundle',
   'config/scripts/mobile-web-app-',
   'config/scripts/mobile-web-bundle-',
