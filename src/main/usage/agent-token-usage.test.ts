@@ -45,6 +45,9 @@ const codexLocation = {
   reasoningOutputTokens: 5,
   totalTokens: 120,
   hasInferredPricing: false,
+  longContextInputTokens: 0,
+  longContextCachedInputTokens: 0,
+  longContextOutputTokens: 0,
   estimatedCostUsd: 1
 }
 const codex: CodexUsageSession = {
@@ -64,6 +67,9 @@ const codex: CodexUsageSession = {
   totalReasoningOutputTokens: 10,
   totalTokens: 240,
   hasInferredPricing: false,
+  longContextInputTokens: 0,
+  longContextCachedInputTokens: 0,
+  longContextOutputTokens: 0,
   locationBreakdown: [codexLocation, { ...codexLocation, worktreeId: null }],
   modelBreakdown: [],
   locationModelBreakdown: []
