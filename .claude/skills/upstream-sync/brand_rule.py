@@ -91,6 +91,10 @@ KEEP_PATH = (
     # .meta.json. A rename shifts every byte after it and the replay no longer lines up.
     'src/main/runtime/__fixtures__/',
     'src/main/daemon/__fixtures__/pty-transcripts/',
+    # xterm patches are a pair: the source patch and the bundle hunks generated from it must match
+    # byte for byte, and a rename splits differently inside a sourcemap string (2026-09-28).
+    'config/patches/@xterm__',
+    'config/patches/xterm-src/',
 )
 # Phrases where the brand is a bare word with a space in front of it, so the
 # token scanner never sees them as one unit. GNOME Orca is Ubuntu's screen
