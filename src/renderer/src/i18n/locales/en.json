@@ -151,7 +151,8 @@
         "portsToggleDescription": "Show live workspace ports. Click it for workspace-scoped ports and external listeners.",
         "antigravityToggleDescription": "Show Antigravity subscription usage for the active workspace.",
         "grokToggleDescription": "Show Grok subscription credit usage when signed in via Grok CLI.",
-        "cursorToggleDescription": "Show Cursor plan usage when signed in through cursor-agent or Cursor IDE."
+        "cursorToggleDescription": "Show Cursor plan usage when signed in through cursor-agent or Cursor IDE.",
+        "zcodeToggleDescription": "Show ZCode Coding Plan quota usage."
       },
       "menuBarIcon": {
         "title": "Show Menu Bar Icon",
@@ -3823,7 +3824,8 @@
             "floatingTerminalNewActivity": "{{label}}, new activity",
             "codexSignInSuccess": "Signed in to Codex",
             "codexSignInError": "Codex sign-in failed. Please try again.",
-            "cursorUsageMenu": "Cursor Usage"
+            "cursorUsageMenu": "Cursor Usage",
+            "zcodeUsageMenu": "ZCode Usage"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Connect an account",
@@ -3970,6 +3972,7 @@
             }
           },
           "tooltip": {
+            "zcode": { "mcp": "MCP" },
             "cedb7b99e3": "% used",
             "6d6df77f41": "No data available",
             "7f7f208060": "Monthly",
@@ -9360,6 +9363,11 @@
             "c5b9f8d1e3": "xai",
             "usagePercentageDisplayTitle": "Usage percentages",
             "usagePercentageDisplayDescription": "Choose whether provider limits show the percentage used or remaining.",
+            "zcodeUsageTitle": "ZCode Usage",
+            "zcodeUsageDescription": "Show ZCode Coding Plan quota usage in the status bar.",
+            "zcode": "zcode",
+            "zai": "zai",
+            "glm": "glm",
             "tray": {
               "tray": "tray",
               "system": "system tray",
