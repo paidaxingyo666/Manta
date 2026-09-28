@@ -80,6 +80,7 @@ vi.mock('@xterm/xterm', () => ({
     scrollToBottom = vi.fn()
     selectAll = vi.fn()
     getSelection = vi.fn(() => this.selectionText)
+    hasSelection = vi.fn(() => this.selectionText !== '')
     attachCustomKeyEventHandler = vi.fn((handler: (event: KeyboardEvent) => boolean) => {
       this.customKeyHandler = handler
     })
@@ -362,6 +363,37 @@ describe('AgentTerminalPreview', () => {
     )
     expect(handled).toBe(true)
     expect(writeTerminalClipboardText).not.toHaveBeenCalled()
+  })
+
+  it('hands unselected Cmd+C to a kitty app and copies a selection instead', async () => {
+    platformState.value = 'darwin'
+    render(<AgentTerminalPreview ptyId="pty-1" />)
+    await waitFor(() => expect(terminalHarness.instances).toHaveLength(1))
+    const terminal = terminalHarness.instances[0]!
+    await waitFor(() => expect(terminal.customKeyHandler).not.toBeNull())
+    const cmdC = (type: string): KeyboardEvent =>
+      new KeyboardEvent(type, { key: 'c', code: 'KeyC', metaKey: true, cancelable: true })
+
+    // A plain shell's unselected Cmd+C sends nothing.
+    expect(terminal.customKeyHandler!(cmdC('keydown'))).toBe(false)
+    expect(terminal.customKeyHandler!(cmdC('keyup'))).toBe(false)
+
+    act(() => {
+      emitData?.({ type: 'data', ptyId: 'pty-1', data: '\x1b[>1u', bytes: 5 })
+    })
+    expect(terminal.customKeyHandler!(cmdC('keydown'))).toBe(true)
+    expect(terminal.customKeyHandler!(cmdC('keyup'))).toBe(true)
+
+    // A highlight of blank cells copies no text but is still Manta's selection, as in the pane.
+    Object.assign(terminal, { hasSelection: () => true })
+    expect(terminal.customKeyHandler!(cmdC('keydown'))).toBe(false)
+    expect(terminal.customKeyHandler!(cmdC('keyup'))).toBe(false)
+    expect(writeTerminalClipboardText).not.toHaveBeenCalled()
+
+    terminal.selectionText = 'selected text'
+    expect(terminal.customKeyHandler!(cmdC('keydown'))).toBe(false)
+    expect(terminal.customKeyHandler!(cmdC('keyup'))).toBe(false)
+    expect(writeTerminalClipboardText).toHaveBeenCalledWith('selected text')
   })
 
   it('selects all terminal text on Cmd+A and blocks xterm handling', async () => {

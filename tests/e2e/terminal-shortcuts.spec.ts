@@ -34,6 +34,11 @@ import {
   installTerminalPtyWriteSpy as installMainProcessPtyWriteSpy,
   readTerminalPtyWrites as getPtyWrites
 } from './helpers/terminal-pty-write-spy'
+import {
+  armKittyKeyboardFromPty,
+  getKittyKeyboardFlags,
+  interruptAndExpectEtx
+} from './helpers/terminal-kitty-keyboard'
 
 async function setActivePaneForegroundAgent(
   page: Page,
@@ -63,60 +68,6 @@ async function setActivePaneForegroundAgent(
     })
     return paneKey
   }, agent)
-}
-
-async function dispatchCtrlCToActiveTerminalTextarea(
-  page: Page,
-  options: { keyupCtrlKey?: boolean } = {}
-): Promise<{
-  keydownDefaultPrevented: boolean
-  keyupDefaultPrevented: boolean
-}> {
-  return page.evaluate((dispatchOptions) => {
-    const state = window.__store?.getState()
-    const worktreeId = state?.activeWorktreeId
-    const tabId =
-      state?.activeTabType === 'terminal'
-        ? state.activeTabId
-        : worktreeId
-          ? (state?.activeTabIdByWorktree?.[worktreeId] ?? null)
-          : null
-    const manager = tabId ? window.__paneManagers?.get(tabId) : null
-    const pane = manager?.getActivePane?.() ?? manager?.getPanes?.()[0] ?? null
-    const textarea = pane?.container.querySelector(
-      '.xterm-helper-textarea'
-    ) as HTMLTextAreaElement | null
-    if (!pane || !textarea) {
-      throw new Error('No active terminal textarea for Ctrl+C dispatch')
-    }
-    pane.terminal.clearSelection()
-    pane.terminal.focus()
-    textarea.focus()
-
-    const createEvent = (type: 'keydown' | 'keyup', ctrlKey: boolean): KeyboardEvent => {
-      const event = new KeyboardEvent(type, {
-        key: 'c',
-        code: 'KeyC',
-        ctrlKey,
-        bubbles: true,
-        cancelable: true
-      })
-      Object.defineProperty(event, 'keyCode', { get: () => 67 })
-      Object.defineProperty(event, 'which', { get: () => 67 })
-      return event
-    }
-
-    // Why: Electron headless consumes real Ctrl+C before xterm in automation;
-    // synthetic DOM events still exercise Manta's installed xterm boundary.
-    const keydown = createEvent('keydown', true)
-    textarea.dispatchEvent(keydown)
-    const keyup = createEvent('keyup', dispatchOptions.keyupCtrlKey !== false)
-    textarea.dispatchEvent(keyup)
-    return {
-      keydownDefaultPrevented: keydown.defaultPrevented,
-      keyupDefaultPrevented: keyup.defaultPrevented
-    }
-  }, options)
 }
 
 async function focusFloatingTerminal(page: Page): Promise<void> {
@@ -225,66 +176,6 @@ async function getActiveTerminalViewport(
       baseY: buffer.baseY
     }
   })
-}
-
-async function getKittyKeyboardFlags(page: Page): Promise<number | null> {
-  return page.evaluate(() => {
-    const state = window.__store?.getState()
-    const worktreeId = state?.activeWorktreeId
-    const tabId =
-      state?.activeTabType === 'terminal'
-        ? state.activeTabId
-        : worktreeId
-          ? (state?.activeTabIdByWorktree?.[worktreeId] ?? null)
-          : null
-    const manager = tabId ? window.__paneManagers?.get(tabId) : null
-    const pane = manager?.getActivePane?.() ?? manager?.getPanes?.()[0] ?? null
-    const terminal = pane?.terminal as
-      | {
-          core?: { coreService?: { kittyKeyboard?: { flags?: number } } }
-          _core?: { coreService?: { kittyKeyboard?: { flags?: number } } }
-        }
-      | undefined
-    return (
-      terminal?.core?.coreService?.kittyKeyboard?.flags ??
-      terminal?._core?.coreService?.kittyKeyboard?.flags ??
-      null
-    )
-  })
-}
-
-// Why arm from the PTY: the mirror the shortcut policy reads only sees application output.
-async function armKittyKeyboardFromPty(page: Page, ptyId: string, command: string): Promise<void> {
-  await execInTerminal(page, ptyId, command)
-  await expect
-    .poll(async () => await getKittyKeyboardFlags(page), {
-      timeout: 15_000,
-      message: 'the application never armed kitty keyboard reporting'
-    })
-    .toBe(31)
-}
-
-async function interruptAndExpectEtx(page: Page, app: ElectronApplication): Promise<void> {
-  await clearPtyWriteLog(app)
-  await focusActiveTerminalInput(page)
-  await page.keyboard.down('Control')
-  await page.keyboard.up('Control')
-  expect((await getPtyWrites(app)).join('')).toBe('')
-  await clearPtyWriteLog(app)
-
-  expect(await dispatchCtrlCToActiveTerminalTextarea(page, { keyupCtrlKey: false })).toEqual({
-    keydownDefaultPrevented: false,
-    keyupDefaultPrevented: false
-  })
-  await expect
-    .poll(async () => (await getPtyWrites(app)).some((write) => write.includes('\x03')), {
-      timeout: 5_000,
-      message: 'Ctrl+C did not reach the PTY as ETX'
-    })
-    .toBe(true)
-  const writes = (await getPtyWrites(app)).join('')
-  expect(writes).not.toContain('\x1b[99;5u')
-  expect(writes).not.toContain('\x1b[99')
 }
 
 async function pressShiftedRussianLayoutKey(page: Page): Promise<{
@@ -623,6 +514,81 @@ test.describe('Terminal Shortcuts', () => {
       .toBe(true)
     expect((await getPtyWrites(electronApp)).join('')).not.toContain('\x1b[')
     await mantaPage.keyboard.press('Backspace')
+  })
+
+  test('unselected Cmd+C reaches a Kitty app, including after Ctrl+C', async ({
+    mantaPage,
+    electronApp
+  }) => {
+    test.skip(process.platform !== 'darwin', 'macOS copy binding')
+    await installMainProcessPtyWriteSpy(electronApp)
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    await execInTerminal(mantaPage, ptyId, 'echo "CMD_C_""READY"')
+    await waitForTerminalOutput(mantaPage, 'CMD_C_READY')
+    const select = (text: string | null): Promise<string> =>
+      mantaPage.evaluate(async (selectedText) => {
+        const state = window.__store!.getState()
+        const pane = window.__paneManagers!.get(state.activeTabId!)!.getActivePane()!
+        if (selectedText === null) {
+          pane.terminal.clearSelection()
+          return ''
+        }
+        await new Promise<void>((resolve) =>
+          pane.terminal.write(`\r\n${selectedText}\r\n`, resolve)
+        )
+        const buffer = pane.terminal.buffer.active
+        pane.terminal.select(0, buffer.baseY + buffer.cursorY - 1, selectedText.length)
+        return pane.terminal.getSelection()
+      }, text)
+    // Presses Cmd+C, then a marker chord whose write proves the Cmd+C bytes had their turn.
+    const pressCmdC = async (marker: string, markerWrite: string): Promise<string[]> => {
+      await clearPtyWriteLog(electronApp)
+      await focusActiveTerminalInput(mantaPage)
+      await mantaPage.keyboard.press('Meta+c')
+      await mantaPage.keyboard.press(marker)
+      await expect.poll(async () => await getPtyWrites(electronApp)).toContain(markerWrite)
+      const writes = await getPtyWrites(electronApp)
+      return writes.slice(0, writes.indexOf(markerWrite))
+    }
+    const kittyCmdC = ['\x1b[99;9;99u', '\x1b[99;9:3u']
+    const originalClipboard = await electronApp.evaluate(({ clipboard }) => clipboard.readText())
+    try {
+      await select(null)
+      expect(await pressCmdC('x', 'x')).toEqual([])
+      await mantaPage.keyboard.press('Backspace')
+
+      // An app that survives SIGINT, like an agent TUI, and disarms its own flags on exit.
+      await armKittyKeyboardFromPty(
+        mantaPage,
+        ptyId,
+        `bash -c 'trap "" INT; printf "\\033[=31u"; read -r _; printf "\\033[=0u"'`
+      )
+      await select(null)
+      expect(await pressCmdC('Shift+Enter', '\x1b[13;2u')).toEqual(kittyCmdC)
+
+      const selectedText = await select('Terminal copy selection')
+      expect(selectedText).toBe('Terminal copy selection')
+      await electronApp.evaluate(({ clipboard }) => clipboard.writeText(''))
+      expect(await pressCmdC('Shift+Enter', '\x1b[13;2u')).toEqual([])
+      await expect
+        .poll(() => electronApp.evaluate(({ clipboard }) => clipboard.readText()))
+        .toBe(selectedText)
+
+      await interruptAndExpectEtx(mantaPage, electronApp)
+      expect(await getKittyKeyboardFlags(mantaPage)).toBe(31)
+      await select(null)
+      expect(await pressCmdC('Shift+Enter', '\x1b[13;2u')).toEqual(kittyCmdC)
+
+      await sendToTerminal(mantaPage, ptyId, '\r')
+      await expect.poll(async () => await getKittyKeyboardFlags(mantaPage)).toBe(0)
+      expect(await pressCmdC('x', 'x')).toEqual([])
+      await mantaPage.keyboard.press('Backspace')
+    } finally {
+      await electronApp.evaluate(
+        ({ clipboard }, text) => clipboard.writeText(text),
+        originalClipboard
+      )
+    }
   })
 
   test('@headful Codex-like background output stays visible without disabling WebGL in auto mode', async ({
