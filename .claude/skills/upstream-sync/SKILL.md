@@ -279,7 +279,15 @@ conflict-time one renamed blindly with an identity map pointing at a bundle id
 upstream never used. That is where "GNOME Manta screen reader" and
 `com.stablyai.manta` came from.
 
-**`build-mirror.py`** streams upstream's new commits through `git fast-import`
+**`build-mirror.py`** extends the mirror from its tip — the upstream commit named
+by the tip's `Mirror-Of:` — not from a prefix counted at upstream's root. The
+mirror starts partway through upstream's history (4cb013c0), and on 2026-09-28
+fetching an old upstream tag brought the earlier history into the clone: the
+root-prefix match then found nothing and would have rebuilt all 11,986 commits
+onto a lineage main shares nothing with. Replayed against a grafted, truncated
+history the tip-based extension produced byte-identical commits. Only when the
+tip is not in upstream's history (a rewrite) does it fall back to the prefix.
+It streams upstream's new commits through `git fast-import`
 on top of the mirror it finds, referencing unchanged blobs by SHA and emitting
 only transformed ones. Blobs the mirror already carries keep their names — an
 unchanged file is referenced, not re-decided under newer evidence. Evidence

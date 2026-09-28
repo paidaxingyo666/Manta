@@ -200,21 +200,43 @@ class Mirror:
                     found[line[len('Mirror-Of: '):].strip()] = sha.strip()
         return found
 
+    def mirrored_tip(self, ref, have):
+        """The upstream commit the mirror's tip stands for, when upstream still contains it."""
+        try:
+            body = git('log', '-1', '--format=%B', ref).stdout.decode('utf-8', 'surrogateescape')
+        except subprocess.CalledProcessError:
+            return None
+        tips = [line[len('Mirror-Of: '):].strip() for line in body.splitlines() if line.startswith('Mirror-Of: ')]
+        if not tips or tips[-1] not in have:
+            return None
+        ancestor = subprocess.run(['git', 'merge-base', '--is-ancestor', tips[-1], self.upstream], capture_output=True)
+        return tips[-1] if ancestor.returncode == 0 else None
+
     def build(self, ref):
-        revs = commits(self.upstream)
         have = self.existing_mirror(ref)
-        # The mirror is a straight line; reuse the longest prefix of upstream's
-        # history that is already mirrored, in order, and append the rest.
-        keep = 0
-        while keep < len(revs) and revs[keep] in have:
-            keep += 1
+        # The mirror is a straight line. Extend it from its tip: the mirror began
+        # partway through upstream's history (4cb013c0), so once the clone holds
+        # the history before that — fetching an old upstream tag is enough — a
+        # prefix counted from upstream's root matches nothing and every commit
+        # would be rebuilt, on a lineage main shares nothing with.
+        tip_up = self.mirrored_tip(ref, have)
+        if tip_up:
+            new = git('rev-list', '--reverse', '--topo-order', f'{tip_up}..{self.upstream}').stdout.decode().split()
+            revs = [tip_up] + new
+            keep = 1
+        else:
+            # No usable tip: reuse the longest mirrored prefix from the root, as before.
+            revs = commits(self.upstream)
+            keep = 0
+            while keep < len(revs) and revs[keep] in have:
+                keep += 1
         if keep and keep == len(revs):
             tip = have[revs[-1]]
             print(f'  {ref} already mirrors {self.upstream} ({keep} commits); nothing to do', file=sys.stderr)
             git('update-ref', ref, tip)
             return tip
         if keep:
-            print(f'  {ref}: {keep} commits already mirrored, {len(revs) - keep} new', file=sys.stderr)
+            print(f'  {ref}: {len(have) if tip_up else keep} commits already mirrored, {len(revs) - keep} new', file=sys.stderr)
         else:
             print(f'  {ref}: no reusable prefix — building all {len(revs)} commits', file=sys.stderr)
         self.resume_from = have[revs[keep - 1]] if keep else None
