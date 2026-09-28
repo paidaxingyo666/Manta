@@ -3,6 +3,7 @@ import { MantaRuntimeWithResolveTerminalPane } from './manta-runtime-resolve-ter
 import { PROVEN_ABSENT_LEAF_PTY_TTL_MS } from './manta-runtime-core'
 import { pruneExpiredProvenAbsentLeafPtyVerdicts } from './proven-absent-leaf-pty-verdicts'
 import type { RuntimeTerminalSend } from '../../shared/runtime-types'
+import type { TerminalInputKind } from '../../shared/terminal-input-kind'
 import type { RuntimeAgentPromptWriteOptions } from './runtime-terminal-contracts'
 import {
   assertTerminalInputWithinLimitWithYield,
@@ -103,7 +104,8 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
       reserveWrite?: (ptyId: string) => void
       afterWrite?: (ptyId: string) => void | Promise<void>
       suffixFailureError?: string
-    } = {}
+      inputKind: TerminalInputKind
+    }
   ): Promise<RuntimeTerminalSend> {
     const pty = this.getLivePtyForHandle(handle)
     if (pty) {
@@ -152,7 +154,7 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
   async sendTerminalAgentPrompt(
     handle: string,
     prompt: string,
-    options: RuntimeAgentPromptWriteOptions = {}
+    options: RuntimeAgentPromptWriteOptions
   ): Promise<RuntimeTerminalSend> {
     // Why the consuming agent: the foreground process reads the bytes; launchAgent covers startup.
     const payloadFor = (ptyId: string): string => {
