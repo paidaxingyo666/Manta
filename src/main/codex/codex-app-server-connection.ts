@@ -5,7 +5,6 @@ import { buildCodexAppServerExitError } from './codex-app-server-exit-error'
 import { initializeCodexAppServerConnection } from './codex-app-server-handshake'
 import { CodexAppServerHandshakeExitUnprovenError } from './codex-app-server-handshake-exit-proof'
 import { terminateCodexAppServerProcessTree } from './codex-app-server-process-teardown'
-import { CODEX_SPAWN_TOKEN_ENV } from './codex-structured-owner-identity'
 import { waitForProcessExitUntil } from './codex-process-exit-deadline'
 import {
   CodexAppServerTimeoutError,
@@ -64,12 +63,11 @@ export async function openCodexAppServerConnection(
   }
   const spawnSpec = createProviderSpawnSpec(launch, childEnv, process.platform)
   const child = spawnImpl(spawnSpec)
-  const spawnToken = launch.env?.[CODEX_SPAWN_TOKEN_ENV]
 
   function terminateProcessTree(): Promise<boolean> {
     // The supervisor and provider own separate POSIX groups so the supervisor can prove the
     // provider group empty before relaying its exit. Forced wrapper teardown uses descendant proof.
-    return terminateCodexAppServerProcessTree(child, spawnToken)
+    return terminateCodexAppServerProcessTree(child)
   }
 
   let stderrTail = ''
