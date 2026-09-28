@@ -53,6 +53,16 @@ describe('Qoder managed configuration', () => {
     })
   })
 
+  it("writes every Qoder event whatever Claude version is passed, since Claude's table never applies", () => {
+    const path = join(sandbox.home, '.qoder', 'settings.json')
+    writeFileSync(path, JSON.stringify({ hooks: {} }))
+    expect(qoderHookService.install({ claudeVersion: '1.0.62' }).state).toBe('installed')
+    const installed = JSON.parse(readFileSync(path, 'utf8'))
+    expect(Object.keys(installed.hooks).sort()).toEqual([...QODER_HOOK_EVENTS].sort())
+    expect(installed.statusLine).toBeUndefined()
+    expect(qoderHookService.remove().state).toBe('not_installed')
+  })
+
   it('refuses malformed settings instead of overwriting them', () => {
     const path = join(sandbox.home, '.qoder', 'settings.json')
     writeFileSync(path, '{broken')
