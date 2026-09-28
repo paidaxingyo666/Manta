@@ -12,9 +12,6 @@ import type { TerminalViewportChange } from './document-host-seams'
 import { scheduleDocumentFrame } from './document-frame-registry'
 import { emitKeyboardAvoidanceMetrics } from './keyboard-avoidance-metrics'
 
-/** The narrowest grid a fit or a text-scale change will fit to. */
-export const MIN_FIT_COLS = 20
-
 export function getCellHeight(scope: TerminalDocumentScope) {
   return getMeasuredCellHeight(scope) || 15
 }

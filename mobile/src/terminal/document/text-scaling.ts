@@ -2,7 +2,8 @@ import { elementInRoot } from './document-host-seams'
 import { TERMINAL_TEXT_SCALES } from '../terminal-text-scales'
 import type { TerminalDocumentScope } from './document-scope'
 import { scheduleDocumentFrame } from './document-frame-registry'
-import { applyFitScale, getCellHeight, MIN_FIT_COLS } from './fit-scale'
+import { applyFitScale, getCellHeight } from './fit-scale'
+import { fitDimensionsFromCell } from '../terminal-grid-fit'
 import { getCellWidth } from './viewport-transform'
 
 // Why: init() flips ready false on every re-init (live width reflow included)
@@ -77,21 +78,31 @@ export function applyTextScale(scope: TerminalDocumentScope, scale: number) {
     }
     const cellW = getCellWidth(scope)
     const cellH = getCellHeight(scope)
+    // Why: fit the frame React Native laid out, by the same formula; init and measure give it. Before
+    // either, the pre-ready terminal stays hidden until the first init, which applies the font and resizes.
+    const frame = scope.hostFrame
+    if (!frame) {
+      return
+    }
     if (cellW > 0 && cellH > 0) {
-      const cols = Math.floor(scope.viewportRect().width / cellW)
-      if (cols < MIN_FIT_COLS) {
+      const fit = fitDimensionsFromCell(
+        { cellWidth: cellW, cellHeight: cellH },
+        frame.width,
+        frame.height
+      )
+      if (!fit) {
         // Why: too narrow to resize the grid, but the fit still tracks the new cell size; hidden hosts hold it.
         applyFitScale(scope, 'text-scale')
         return
       }
-      const rows = Math.max(8, Math.floor(scope.viewportRect().height / cellH))
-      scope.term.resize(cols, rows)
+      scope.term.resize(fit.cols, fit.rows)
     }
     applyFitScale(scope, 'text-scale')
   })
 }
 
 export function startTextScaling(scope: TerminalDocumentScope) {
+  scope.currentTextScale = scope.start().textScale
   scope.scrollIndicator = elementInRoot(scope.root, 'scroll-indicator')
   scope.scrollThumb = elementInRoot(scope.root, 'scroll-thumb')
   scope.terminalFontFamily =

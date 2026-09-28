@@ -20,6 +20,10 @@ import { TERMINAL_DOCUMENT_MARKUP } from './terminal-webview-html'
  */
 /** Set for the length of one case; the factory throws it instead of building a document. */
 let startThrows: Error | null = null
+/** The text scale each document the factory built was started at, in order. */
+const startedScales: number[] = []
+/** Whether each of those documents was told to build its terminal before ready. */
+const startedBuilds: boolean[] = []
 /** Set for the length of one case; the document builds its terminals here instead of xterm. */
 let gridTerminal: (() => TerminalDocumentTerminal) | null = null
 
@@ -28,6 +32,8 @@ vi.mock('./document/create-terminal-document', async (importOriginal) => {
   return {
     ...actual,
     createTerminalDocument: (host: Parameters<typeof actual.createTerminalDocument>[0]) => {
+      startedScales.push(host?.start?.().textScale ?? 1)
+      startedBuilds.push(host?.start?.().shown ?? true)
       if (startThrows) {
         throw startThrows
       }
@@ -70,6 +76,8 @@ let restoreTransform: (() => void) | null = null
 
 beforeEach(() => {
   startThrows = null
+  startedScales.length = 0
+  startedBuilds.length = 0
   gridTerminal = null
   document.body.innerHTML = ''
   document.head.innerHTML = ''
@@ -254,6 +262,34 @@ describe('the component names the cause of a start that threw', () => {
   })
 })
 
+describe('the text scale a document is built at', () => {
+  it('is the one the view mounted with, for a reloaded document too, as on native', () => {
+    const host = plantHost()
+    startThrows = new Error('engine missing')
+    act(() => {
+      renderer = create(createElement(TerminalWebView, { textScale: 1.25 }), {
+        createNodeMock: () => host
+      })
+    })
+    act(() => renderer?.update(createElement(TerminalWebView, { textScale: 1.5 })))
+    startThrows = null
+    act(() => {
+      renderer?.root.find((node) => node.props.accessibilityRole === 'button').props.onPress()
+    })
+    expect(startedScales).toEqual([1.25, 1.25])
+  })
+
+  it('builds nothing before ready on the page for a view hidden when it mounted', () => {
+    const host = plantHost()
+    act(() => {
+      renderer = create(createElement(TerminalWebView, { shownAtMount: false }), {
+        createNodeMock: () => host
+      })
+    })
+    expect(startedBuilds).toEqual([false])
+  })
+})
+
 const CELL = { width: 7.5, height: 15 }
 const FIT_390 = 390 / (7.5 * 55)
 
@@ -328,7 +364,15 @@ async function mountedOverGrid({ laidOutFirst = true } = {}) {
   if (laidOutFirst) {
     layOut(390, 600)
   }
-  send({ type: 'init', cols: 55, rows: 40, initialData: '', preserveScroll: false })
+  // The app's init carries the frame it laid out.
+  send({
+    type: 'init',
+    cols: 55,
+    rows: 40,
+    initialData: '',
+    preserveScroll: false,
+    frame: { width: 390, height: 600 }
+  })
   await framesUntil(() => scales.at(-1) === FIT_390)
   return { mounted, scales, send, layOut, cells, grid: () => grids.at(-1)! }
 }
@@ -407,7 +451,7 @@ describe("the page pushes its terminal frame's box into the document", () => {
   it('holds a fit asked for while hidden and lands it on show', async () => {
     const { mounted, scales, send, layOut } = await mountedOverGrid()
     layOut(0, 0)
-    send({ type: 'resize', cols: 80, rows: 40 })
+    send({ type: 'resize', cols: 80, rows: 40, frame: null })
     await nextFrame()
     await nextFrame()
     expect(scales.at(-1)).toBe(FIT_390)
@@ -429,7 +473,7 @@ describe("the page pushes its terminal frame's box into the document", () => {
     layOut(0, 0)
     const shown = scales.length
     cells.measurable = false
-    send({ type: 'init', cols: 55, rows: 40, initialData: '', preserveScroll: false })
+    send({ type: 'init', cols: 55, rows: 40, initialData: '', preserveScroll: false, frame: null })
     // Past the retry loop's 60-frame cap, where a fit that did not wait commits scale 1.
     for (let frame = 0; frame < 75; frame++) {
       await nextFrame()
@@ -444,6 +488,8 @@ describe("the page pushes its terminal frame's box into the document", () => {
   it('fits a text scale too large to resize the grid while visible', async () => {
     const { mounted, scales, send, layOut, grid } = await mountedOverGrid()
     layOut(280, 600)
+    // The app's refit for the new width sends its grid with the frame.
+    send({ type: 'resize', cols: 55, rows: 40, frame: { width: 280, height: 600 } })
     await framesUntil(() => scales.at(-1) === 280 / (7.5 * 55))
     // fontPxForScale(2) = 26 px: 280 / (7.5 x 2) = 18 columns, under MIN_FIT_COLS, so no resize.
     send({ type: 'set-font-scale', fontScale: 2 })
@@ -455,6 +501,8 @@ describe("the page pushes its terminal frame's box into the document", () => {
   it('refits on show after a text scale too large to resize the grid while hidden', async () => {
     const { mounted, scales, send, layOut } = await mountedOverGrid()
     layOut(280, 600)
+    // The app's refit for the new width sends its grid with the frame.
+    send({ type: 'resize', cols: 55, rows: 40, frame: { width: 280, height: 600 } })
     await framesUntil(() => scales.at(-1) === 280 / (7.5 * 55))
     layOut(0, 0)
     // fontPxForScale(2) = 26 px: 280 / (7.5 x 2) = 18 columns, under MIN_FIT_COLS, so no resize.
