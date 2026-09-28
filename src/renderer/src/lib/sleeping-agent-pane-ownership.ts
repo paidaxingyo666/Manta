@@ -17,10 +17,9 @@ export function getProviderSessionClaimKey(record: SleepingAgentSessionRecord): 
     : base
 }
 
-// Why quit is excluded: it is an explicit request to keep resumable work. A
-// live interrupted checkpoint is also active work; interrupted worktree-sleep
-// records retain their existing passive/cleanup semantics.
-export function isPassiveCompletedHibernationEvidence(record: SleepingAgentSessionRecord): boolean {
+// Why live+done counts (#16308): workspace activation must not resume a finished turn's idle anchor.
+// Quit asks to keep work resumable and a live interrupted turn is unfinished.
+export function activationTreatsNoteAsFinished(record: SleepingAgentSessionRecord): boolean {
   return (
     record.origin !== 'quit' &&
     !(record.origin === 'live' && record.interrupted === true) &&
@@ -145,7 +144,7 @@ export function recordPaneIsOwnedByPreservedPane(
     if (!tab || !hasMatchingStablePaneLayout(tabId, stable.leafId, state.terminalLayoutsByTabId)) {
       return false
     }
-    if (isPassiveCompletedHibernationEvidence(record)) {
+    if (activationTreatsNoteAsFinished(record)) {
       return true
     }
     // Why: a pane with a live PTY owns its running session regardless of which
