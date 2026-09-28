@@ -50,7 +50,7 @@ const SURFACE_EXPANSION_NAMES = new Set([
   'MobileSessionCommandDock',
   'MobileSessionSheets'
 ])
-const CONTENT_COMPONENT_NAMES = ['MarkdownReader', 'DiffLineRow', 'FileReader'] as const
+const CONTENT_COMPONENT_NAMES = ['MobileMarkdownReader', 'DiffLineRow', 'FileReader'] as const
 const HOST_COMPONENT_NAMES = new Set([
   'ActivityIndicator',
   'Animated.View',
@@ -99,6 +99,8 @@ const HOST_COMPONENT_NAMES = new Set([
 // and the pane's `onCellBoxChange` goes to the viewport refit.
 // Again when one frame ref replaced the height ref, width ref and width state (hooks 280).
 // Again when one `notifyTerminalFrame` took the frame's layout (hooks 281, callbacks 80).
+// Rebased for the 2026-09-28 sync with the fork's localization and rich markdown reader: the pins
+// below that differ from upstream's move by exactly what they moved on 2026-09-20.
 const HEAD_MAIN_HOOK_SHA256 = '004b011722b17ac82c96f0b3c8e303d39b2431a216424e9b86a1ee6a4896f23e'
 // Moved when the prompt-cancel flag became one structured-session host support object (main).
 // Re-recorded against the merged tree. Again when the frame-layout and cell-box-change callbacks
@@ -137,7 +139,7 @@ const HEAD_CALLBACK_IDENTITY_SHA256 =
 // Again when an init took one options object.
 // Again when the frame's layout became one `notifyTerminalFrame`.
 // Again when the init option took the message's name, `initialData`.
-const HEAD_CALLBACK_BODY_SHA256 = '4848e925f478f1656f26031c1bdebbb9f2da60811c7e91cfd732fc9da9764079'
+const HEAD_CALLBACK_BODY_SHA256 = '9a604152445a06dc499148c7204172b94017a5c5c3345c2f5005bce360f39d35'
 // Refreshed for the startup effect: both `worktree.activate` sends became `worktreeActivate`, and
 // the sleeping-agent check reads that operation's verdict instead of the reply envelope. Refreshed
 // again when the reporter took the reply and interpreted it itself, retiring the hand-built
@@ -148,8 +150,8 @@ const HEAD_CALLBACK_BODY_SHA256 = '4848e925f478f1656f26031c1bdebbb9f2da60811c7e9
 // Moved again by the keyboard seam above, which is the +1 effect.
 // -1 effect for the Markdown actions' Back registration, which is `useBackClaim`'s own now.
 // Moved by the capability probe setting that host support object.
-const HEAD_EFFECT_SHA256 = '9b045a547ed269acf95db16cc87e33a9035a20c6888fd30e0363e58bb6b7d883'
-const HEAD_CONTENT_HOOK_SHA256 = '9c3b612fef3f370d66873aefdbe1d701f20cb64ded31fef5cc45fde6f8189581'
+const HEAD_EFFECT_SHA256 = '3f0c14e3a150eb6b52c4e5104f955e98ba809954105670cc23184584904d645c'
+const HEAD_CONTENT_HOOK_SHA256 = 'd74431115b27c22dd38c29a510604554ca767cdd2585beaa73ec2e2dae0c5de4'
 // Same pin for the 12 bodies that sit in nested functions rather than callbacks, moved by the same
 // rewrite of those send and read expressions. Count unchanged. Refreshed again in step 6 for
 // `handleClearTerminal`, whose send became `terminalBufferClear`, in step 7 for the browser tab
@@ -158,7 +160,7 @@ const HEAD_CONTENT_HOOK_SHA256 = '9c3b612fef3f370d66873aefdbe1d701f20cb64ded31fe
 // branch became that operation's own throw-the-host-message acceptance. Refreshed for negotiated
 // optimistic placement, which defers to legacy host snapshots when ownership paths disagree.
 const HEAD_NESTED_FUNCTION_SHA256 =
-  '923b5ea7fe3330cbd98213b72736bf1f653115ddb5492cb8eb8306d8ca4f28e8'
+  '5a096e0cecaa16a1f184802af873e762da2eb336096ea1e22d3d39b9fd4fc553'
 // -1 registration and -1 removal: the Markdown actions' `BackHandler` pair is `useBackClaim`'s.
 const HEAD_NATIVE_REGISTRATION_SHA256 =
   '87d4599f475575131d4d5daa20f0dac579ca6c829353cbb654206ea6965dadae'
@@ -204,17 +206,17 @@ const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f342345
 // page `keyboardShouldPersistTaps` ('handled', 'always'), which react-native-web ignores. Natively
 // the ref is undefined. 532 -> 531: the live input's reopen flag reads the host OS, not an 'android' literal.
 const HEAD_RUNTIME_STRING_SHA256 =
-  'ab8cc43940d3a3e0fdb8df3bdc178b9b61e51c7ccd55a944933862a3c290e8e3'
+  '789cb5a2780590457ef21b211d06fd9e34d9b507d6c2474ba1dea54d7406bbb7'
 // Moved by both of the dock's fields: their refs, and the live one's submit handler, are the seam's now;
 // their keyboard type and remount key read the host OS.
 // Moved again when the terminal frame kept its laid-out width unrounded, for every fit.
 // Again when the frame's onLayout wrote one frame ref and notified a new width imperatively.
 // Again when the frame's first laid-out layout alone subscribes a held-back document.
 // Again when the frame's onLayout made one `notifyTerminalFrame` call.
-const HEAD_HOST_JSX_SHA256 = 'f71b1ee495f67a6e389abf597948ffdff1f9a4a10cde6abefd2611ea4dd94245'
-const HEAD_LEAF_JSX_SHA256 = '62eb05c6e2ac0be6d553a141fc8aa1641fcb0c678777d5d539f490aab8648417'
+const HEAD_HOST_JSX_SHA256 = '9e5abe604daca6248467a193c3a912928e06277a2605f45c61a018bb10cfecd7'
+const HEAD_LEAF_JSX_SHA256 = 'd3ea9493a31c9e467b371e6a9763cc62d293b950d084b619ef2d60fce517d732'
 const HEAD_STYLE_REFERENCE_SHA256 =
-  '56a005a1f65b30c11092e3422caef67810e1ec50f66fdd06471c370138b1eeb6'
+  'b889fbfc41310b765ababe9036e7a6d34a7f3d8f5ebcf002e646dddf10fb597d'
 const HEAD_IDENTITY_FIELD_SHA256 =
   '91146853930a34dd1f3d80e5c97fbacd7cf19fb93dd26fe8fc6f29169622f9d6'
 const HEAD_NAVIGATION_SHA256 = '9d96f5dad7de555d6553eac39c0fab00efad507470fd562cb9beaa32db16f512'
@@ -617,7 +619,7 @@ describe('mobile session route extraction parity', () => {
     expect(hash(main.callbackBodies)).toBe(HEAD_CALLBACK_BODY_SHA256)
     expect(main.effects).toHaveLength(24)
     expect(hash(main.effects)).toBe(HEAD_EFFECT_SHA256)
-    expect(contentBindings).toHaveLength(14)
+    expect(contentBindings).toHaveLength(15)
     expect(hash(contentBindings)).toBe(HEAD_CONTENT_HOOK_SHA256)
     const nestedFunctions = readNestedFunctions(definitions)
     expect(nestedFunctions).toHaveLength(12)
@@ -654,14 +656,14 @@ describe('mobile session route extraction parity', () => {
 
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(531)
+    expect(strings).toHaveLength(614)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
-    expect(jsx.host).toHaveLength(125)
+    expect(jsx.host).toHaveLength(127)
     expect(hash(jsx.host)).toBe(HEAD_HOST_JSX_SHA256)
-    expect(jsx.leaf).toHaveLength(61)
+    expect(jsx.leaf).toHaveLength(63)
     expect(hash(jsx.leaf)).toBe(HEAD_LEAF_JSX_SHA256)
-    expect(jsx.styleReferences).toHaveLength(173)
+    expect(jsx.styleReferences).toHaveLength(177)
     expect(hash(jsx.styleReferences)).toBe(HEAD_STYLE_REFERENCE_SHA256)
   })
 })

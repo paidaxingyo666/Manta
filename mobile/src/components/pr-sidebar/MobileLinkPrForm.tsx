@@ -48,7 +48,9 @@ export function MobileLinkPrForm({ client, worktreeId, onCancel, onLinked }: Pro
   return (
     <View>
       <View style={styles.headingRow}>
-        <Text style={styles.heading}>{translate("m.MobileLinkPrForm.7fc66c2fd9", "Link existing pull request")}</Text>
+        <Text style={styles.heading}>
+          {translate('m.MobileLinkPrForm.7fc66c2fd9', 'Link existing pull request')}
+        </Text>
         <Pressable
           onPress={onCancel}
           disabled={submitting}
@@ -56,15 +58,22 @@ export function MobileLinkPrForm({ client, worktreeId, onCancel, onLinked }: Pro
           accessibilityLabel="Cancel"
           hitSlop={8}
         >
-          <Text style={styles.cancelText}>{translate("m.MobileLinkPrForm.64b5ae218a", "Cancel")}</Text>
+          <Text style={styles.cancelText}>
+            {translate('m.MobileLinkPrForm.64b5ae218a', 'Cancel')}
+          </Text>
         </Pressable>
       </View>
-      <Text style={styles.label}>{translate("m.MobileLinkPrForm.0f6c09a375", "PR number or GitHub URL")}</Text>
+      <Text style={styles.label}>
+        {translate('m.MobileLinkPrForm.0f6c09a375', 'PR number or GitHub URL')}
+      </Text>
       <TextInput
         style={styles.input}
         value={input}
         onChangeText={setInput}
-        placeholder={translate("m.MobileLinkPrForm.e6d07b4dd8", "#123 or https://github.com/owner/repo/pull/123")}
+        placeholder={translate(
+          'm.MobileLinkPrForm.e6d07b4dd8',
+          '#123 or https://github.com/owner/repo/pull/123'
+        )}
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         autoCorrect={false}
@@ -83,7 +92,11 @@ export function MobileLinkPrForm({ client, worktreeId, onCancel, onLinked }: Pro
         {submitting ? (
           <ActivityIndicator size="small" color={colors.bgBase} />
         ) : (
-          <Text style={styles.submitText}>{parsed ? translate("m.MobileLinkPrForm.5332c9cbc4", "Link #{{value0}}", { value0: parsed }) : translate("m.MobileLinkPrForm.90f2dc7750", "Link pull request")}</Text>
+          <Text style={styles.submitText}>
+            {parsed
+              ? translate('m.MobileLinkPrForm.5332c9cbc4', 'Link #{{value0}}', { value0: parsed })
+              : translate('m.MobileLinkPrForm.90f2dc7750', 'Link pull request')}
+          </Text>
         )}
       </Pressable>
     </View>

@@ -93,7 +93,10 @@ export function MobileWebShellDevRow() {
       >
         <LayoutTemplate size={16} color={colors.textPrimary} />
         <Text style={styles.diagnosticButtonLabel}>
-          {translate("m.mobile.web.shell.dev.row.207f2d9a20", "Open hybrid shell for the first paired host")}
+          {translate(
+            'm.mobile.web.shell.dev.row.207f2d9a20',
+            'Open hybrid shell for the first paired host'
+          )}
         </Text>
       </Pressable>
     </View>

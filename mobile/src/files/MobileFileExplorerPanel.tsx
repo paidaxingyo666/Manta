@@ -314,11 +314,13 @@ export function MobileFileExplorerPanel(props: {
       )}
       <View style={styles.titleBlock}>
         <Text style={styles.title} numberOfLines={1}>
-          {translate("m.MobileFileExplorerPanel.f288e834ba", "Files")}
+          {translate('m.MobileFileExplorerPanel.f288e834ba', 'Files')}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
           {worktreeLabel}
-          {legacyListTruncated ? translate("m.MobileFileExplorerPanel.528997afc8", "- Showing first 5000") : ''}
+          {legacyListTruncated
+            ? ` ${translate('m.MobileFileExplorerPanel.528997afc8', '- Showing first 5000')}`
+            : ''}
         </Text>
       </View>
     </View>
@@ -341,13 +343,17 @@ export function MobileFileExplorerPanel(props: {
       <Text style={styles.errorText}>{error}</Text>
       {rootRetry ? (
         <Pressable style={styles.retryButton} onPress={rootRetry}>
-          <Text style={styles.retryText}>{translate("m.MobileFileExplorerPanel.2d2d213ae8", "Retry")}</Text>
+          <Text style={styles.retryText}>
+            {translate('m.MobileFileExplorerPanel.2d2d213ae8', 'Retry')}
+          </Text>
         </Pressable>
       ) : null}
     </View>
   ) : rows.length === 0 ? (
     <View style={styles.state}>
-      <Text style={styles.emptyText}>{translate("m.MobileFileExplorerPanel.09a641d5f9", "No files found")}</Text>
+      <Text style={styles.emptyText}>
+        {translate('m.MobileFileExplorerPanel.09a641d5f9', 'No files found')}
+      </Text>
     </View>
   ) : (
     <FlatList

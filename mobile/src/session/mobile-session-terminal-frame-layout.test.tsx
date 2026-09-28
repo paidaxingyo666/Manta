@@ -38,7 +38,7 @@ vi.mock('../browser/MobileBrowserPane', () => ({ MobileBrowserPane: () => null }
 vi.mock('./TerminalPaneView', () => ({ TerminalPaneView: () => null }))
 vi.mock('./MobileNativeChatOverlay', () => ({ MobileNativeChatOverlay: () => null }))
 vi.mock('./MobileSessionFileReader', () => ({ FileReader: () => null }))
-vi.mock('./MobileSessionMarkdownReader', () => ({ MarkdownReader: () => null }))
+vi.mock('./MobileMarkdownReader', () => ({ MobileMarkdownReader: () => null }))
 vi.mock('./mobile-session-styles', () => ({ styles: {} }))
 
 import { MobileSessionActiveContent } from './MobileSessionActiveContent'

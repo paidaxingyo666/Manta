@@ -139,7 +139,7 @@ async function drainPendingHostWork(): Promise<void> {
 
 describe('fetchMobileWebBundle', () => {
   it('pages every asset to eof and returns the verified bytes', async () => {
-    const host = bundleHost({ 'index.html': '<h1>manta</h1>', 'assets/app.js': 'x=1' })
+    const host = bundleHost({ 'index.html': '<h1>orca</h1>', 'assets/app.js': 'x=1' })
     const progress: number[] = []
 
     const fetched = await fetchMobileWebBundle({
@@ -148,7 +148,7 @@ describe('fetchMobileWebBundle', () => {
     })
 
     expect([...fetched.assets.keys()].sort()).toEqual(['assets/app.js', 'index.html'])
-    expect(new TextDecoder().decode(fetched.assets.get('index.html'))).toBe('<h1>manta</h1>')
+    expect(new TextDecoder().decode(fetched.assets.get('index.html'))).toBe('<h1>orca</h1>')
     expect(new TextDecoder().decode(fetched.assets.get('assets/app.js'))).toBe('x=1')
     expect(fetched.totalBytes).toBe(16)
     expect(fetched.manifest.buildId).toBe(host.manifest.buildId)

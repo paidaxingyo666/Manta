@@ -44,8 +44,12 @@ function ReviewSheetContent({ controller, sheet }: Props & { sheet: ReviewSheet 
     case 'discard':
       return (
         <ConfirmContent
-          title={translate("m.MobileDiffReviewDrawers.d55f01e697", "Discard File")}
-          message={translate("m.MobileDiffReviewDrawers.6a3716a622", "Discard changes to \"{{value0}}\"? This cannot be undone.", { value0: sheet.target.filePath })}
+          title={translate('m.MobileDiffReviewDrawers.d55f01e697', 'Discard File')}
+          message={translate(
+            'm.MobileDiffReviewDrawers.6a3716a622',
+            'Discard changes to "{{value0}}"? This cannot be undone.',
+            { value0: sheet.target.filePath }
+          )}
           confirmLabel="Discard"
           destructive
           onConfirm={() => {
@@ -66,10 +70,14 @@ function ReviewActionsContent({ controller }: Props) {
   const overflowActions = useOverflowActions(controller)
   return (
     <ActionSheetContent
-      title={translate("m.MobileDiffReviewDrawers.a0254e034c", "Review Actions")}
+      title={translate('m.MobileDiffReviewDrawers.a0254e034c', 'Review Actions')}
       message={
         controller.reviewedUnstagedCount > 0
-          ? translate("m.MobileDiffReviewDrawers.fd30ae34a4", "{{value0}} reviewed unstaged files can be staged", { value0: controller.reviewedUnstagedCount })
+          ? translate(
+              'm.MobileDiffReviewDrawers.fd30ae34a4',
+              '{{value0}} reviewed unstaged files can be staged',
+              { value0: controller.reviewedUnstagedCount }
+            )
           : undefined
       }
       actions={overflowActions}
@@ -82,7 +90,7 @@ function SendNotesContent({ controller, load }: Props & { load: SendSheetState }
   const sendActions = useSendActions(controller, load)
   return (
     <ActionSheetContent
-      title={translate("m.MobileDiffReviewDrawers.be82c13305", "Send Notes")}
+      title={translate('m.MobileDiffReviewDrawers.be82c13305', 'Send Notes')}
       message={sendSheetMessage(controller, load)}
       actions={sendActions}
       onClose={() => controller.closeSheet('send')}
@@ -109,14 +117,14 @@ function useSendActions(
     return [
       ...terminalActions,
       {
-        label: translate("m.MobileDiffReviewDrawers.aa58d9c0d7", "New Agent Session"),
+        label: translate('m.MobileDiffReviewDrawers.aa58d9c0d7', 'New Agent Session'),
         icon: Plus,
         disabled: comments.length === 0,
         skipAutoClose: true,
         onPress: () => void controller.createTerminalAndSend(comments)
       },
       {
-        label: translate("m.MobileDiffReviewDrawers.48682ededf", "Copy Notes"),
+        label: translate('m.MobileDiffReviewDrawers.48682ededf', 'Copy Notes'),
         icon: Copy,
         disabled:
           controller.screenState.kind !== 'ready' || controller.screenState.comments.length === 0,
@@ -130,20 +138,20 @@ function useOverflowActions(controller: ReturnType<typeof useMobileDiffReviewCon
   return useMemo<ActionSheetAction[]>(
     () => [
       {
-        label: translate("m.MobileDiffReviewDrawers.48682ededf", "Copy Notes"),
+        label: translate('m.MobileDiffReviewDrawers.48682ededf', 'Copy Notes'),
         icon: Copy,
         disabled:
           controller.screenState.kind !== 'ready' || controller.screenState.comments.length === 0,
         onPress: () => void controller.copyNotes()
       },
       {
-        label: translate("m.MobileDiffReviewDrawers.6dba03733e", "Send Unsent Notes"),
+        label: translate('m.MobileDiffReviewDrawers.6dba03733e', 'Send Unsent Notes'),
         icon: Send,
         disabled: controller.unsentComments.length === 0,
         onPress: () => void controller.openSendSheet()
       },
       {
-        label: translate("m.MobileDiffReviewDrawers.00c9fda7a7", "Clear Sent Notes"),
+        label: translate('m.MobileDiffReviewDrawers.00c9fda7a7', 'Clear Sent Notes'),
         icon: Trash2,
         disabled:
           controller.screenState.kind !== 'ready' ||
@@ -152,14 +160,14 @@ function useOverflowActions(controller: ReturnType<typeof useMobileDiffReviewCon
         onPress: () => void controller.clearSentNotes()
       },
       {
-        label: translate("m.MobileDiffReviewDrawers.f5848bd976", "Stage Reviewed Files"),
+        label: translate('m.MobileDiffReviewDrawers.f5848bd976', 'Stage Reviewed Files'),
         icon: Check,
         disabled: controller.reviewedUnstagedCount === 0 || controller.busyAction !== null,
         skipAutoClose: true,
         onPress: () => void controller.stageReviewedFiles()
       },
       {
-        label: translate("m.MobileDiffReviewDrawers.9433a2e312", "Mark Unreviewed"),
+        label: translate('m.MobileDiffReviewDrawers.9433a2e312', 'Mark Unreviewed'),
         icon: X,
         disabled:
           controller.screenState.kind !== 'ready' ||
@@ -169,7 +177,7 @@ function useOverflowActions(controller: ReturnType<typeof useMobileDiffReviewCon
         onPress: () => void controller.markUnreviewed()
       },
       {
-        label: translate("m.MobileDiffReviewDrawers.4323ecdb70", "Open in Session"),
+        label: translate('m.MobileDiffReviewDrawers.4323ecdb70', 'Open in Session'),
         icon: FileText,
         disabled: !controller.currentItem || controller.currentItem.scope === 'branch',
         onPress: () => void controller.openInSession()
@@ -196,12 +204,16 @@ function NoteComposerContent({ controller, composer }: Props & { composer: Compo
       <View style={styles.composerHeader}>
         <View>
           <Text style={styles.drawerTitle}>
-            {composer.mode === 'edit' ? translate("m.MobileDiffReviewDrawers.bd7f2108fc", "Edit Note") : translate("m.MobileDiffReviewDrawers.4aa499fc3e", "Add Note")}
+            {composer.mode === 'edit'
+              ? translate('m.MobileDiffReviewDrawers.bd7f2108fc', 'Edit Note')
+              : translate('m.MobileDiffReviewDrawers.4aa499fc3e', 'Add Note')}
           </Text>
           <Text style={styles.drawerSubtitle}>
             {composer.mode === 'create' && composer.lineNumber > 0
-              ? translate("m.MobileDiffReviewDrawers.62531e9326", "Line {{value0}}", { value0: composer.lineNumber })
-              : translate("m.MobileDiffReviewDrawers.2b81315e3d", "File note")}
+              ? translate('m.MobileDiffReviewDrawers.62531e9326', 'Line {{value0}}', {
+                  value0: composer.lineNumber
+                })
+              : translate('m.MobileDiffReviewDrawers.2b81315e3d', 'File note')}
           </Text>
         </View>
         <Pressable
@@ -219,7 +231,7 @@ function NoteComposerContent({ controller, composer }: Props & { composer: Compo
         onChangeText={controller.setComposerBody}
         multiline
         autoFocus
-        placeholder={translate("m.MobileDiffReviewDrawers.da5c2e1037", "Review note")}
+        placeholder={translate('m.MobileDiffReviewDrawers.da5c2e1037', 'Review note')}
         placeholderTextColor={colors.textMuted}
         accessibilityLabel={composerLabel(composer)}
       />
@@ -248,7 +260,9 @@ function DeleteNoteButton({ onPress }: { onPress: () => Promise<void> }) {
       accessibilityLabel="Delete note"
     >
       <Trash2 size={14} color={colors.statusRed} strokeWidth={2.2} />
-      <Text style={styles.destructiveText}>{translate("m.MobileDiffReviewDrawers.f9b4e81fd2", "Delete")}</Text>
+      <Text style={styles.destructiveText}>
+        {translate('m.MobileDiffReviewDrawers.f9b4e81fd2', 'Delete')}
+      </Text>
     </Pressable>
   )
 }
@@ -274,7 +288,9 @@ function SaveNoteButton({
       accessibilityLabel={composerLabel(composer)}
     >
       <Check size={14} color={colors.bgBase} strokeWidth={2.2} />
-      <Text style={styles.primaryButtonText}>{translate("m.MobileDiffReviewDrawers.96cfded20f", "Save")}</Text>
+      <Text style={styles.primaryButtonText}>
+        {translate('m.MobileDiffReviewDrawers.96cfded20f', 'Save')}
+      </Text>
     </Pressable>
   )
 }
@@ -284,9 +300,12 @@ function CompletionContent({ controller }: Props) {
     controller.screenState.kind === 'ready' ? controller.screenState.comments.length : 0
   return (
     <>
-      <Text style={styles.drawerTitle}>{translate("m.MobileDiffReviewDrawers.76eee4075f", "Review Complete")}</Text>
+      <Text style={styles.drawerTitle}>
+        {translate('m.MobileDiffReviewDrawers.76eee4075f', 'Review Complete')}
+      </Text>
       <Text style={styles.drawerSubtitle}>
-        {mobileReviewCountLabel(controller.queue.length, 'file', 'files')} {translate("m.MobileDiffReviewDrawers.5a7dd35bb7", "reviewed,")}{' '}
+        {mobileReviewCountLabel(controller.queue.length, 'file', 'files')}{' '}
+        {translate('m.MobileDiffReviewDrawers.5a7dd35bb7', 'reviewed,')}{' '}
         {mobileReviewCountLabel(noteCount, 'note', 'notes')}
       </Text>
       <View style={styles.drawerButtonRow}>
@@ -298,7 +317,9 @@ function CompletionContent({ controller }: Props) {
           accessibilityLabel="Stage reviewed files"
         >
           <Check size={14} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.secondaryButtonText}>{translate("m.MobileDiffReviewDrawers.6b58620851", "Stage Reviewed")}</Text>
+          <Text style={styles.secondaryButtonText}>
+            {translate('m.MobileDiffReviewDrawers.6b58620851', 'Stage Reviewed')}
+          </Text>
         </Pressable>
         <Pressable
           style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
@@ -308,7 +329,9 @@ function CompletionContent({ controller }: Props) {
           accessibilityLabel="Send notes to agent"
         >
           <Send size={14} color={colors.bgBase} strokeWidth={2.2} />
-          <Text style={styles.primaryButtonText}>{translate("m.MobileDiffReviewDrawers.be82c13305", "Send Notes")}</Text>
+          <Text style={styles.primaryButtonText}>
+            {translate('m.MobileDiffReviewDrawers.be82c13305', 'Send Notes')}
+          </Text>
         </Pressable>
       </View>
     </>

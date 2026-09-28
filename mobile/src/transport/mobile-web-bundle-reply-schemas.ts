@@ -94,7 +94,10 @@ export const MobileWebBundleManifestReadSchema = z
       context.addIssue({
         code: 'custom',
         path: ['assets'],
-        message: translate("m.mobile.web.bundle.reply.schemas.a4b34ca918", "assets sum to more than the contract total")
+        message: translate(
+          'm.mobile.web.bundle.reply.schemas.a4b34ca918',
+          'assets sum to more than the contract total'
+        )
       })
       return
     }
@@ -107,7 +110,10 @@ export const MobileWebBundleManifestReadSchema = z
       context.addIssue({
         code: 'custom',
         path: ['buildId'],
-        message: translate("m.mobile.web.bundle.reply.schemas.ec97bc1e04", "buildId must be the content hash of the asset list")
+        message: translate(
+          'm.mobile.web.bundle.reply.schemas.ec97bc1e04',
+          'buildId must be the content hash of the asset list'
+        )
       })
     }
   })

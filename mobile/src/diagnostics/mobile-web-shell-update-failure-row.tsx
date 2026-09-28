@@ -54,7 +54,9 @@ export function MobileWebShellUpdateFailureRow() {
   }
   return (
     <View testID="mobile-web-shell-update-failures">
-      <Text style={styles.sectionHeading}>{translate("m.mobile.web.shell.update.failure.row.baaf70a40f", "Workspace updates")}</Text>
+      <Text style={styles.sectionHeading}>
+        {translate('m.mobile.web.shell.update.failure.row.baaf70a40f', 'Workspace updates')}
+      </Text>
       <View style={styles.section}>
         <View style={styles.accordionBody}>
           {lines.map((line) => (

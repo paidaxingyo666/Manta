@@ -19,9 +19,16 @@ export function AuthFailedBannerActions({
   return (
     <>
       <Pressable style={styles.action} onPress={onRepair}>
-        <Text style={styles.actionText}>{translate("m.AuthFailedBannerActions.web.cc4297959e", "Re-pair")}</Text>
+        <Text style={styles.actionText}>
+          {translate('m.AuthFailedBannerActions.web.cc4297959e', 'Re-pair')}
+        </Text>
       </Pressable>
-      <Text style={styles.note}>{translate("m.AuthFailedBannerActions.web.4e38949c67", "Reconnect or remove this host from the Manta app.")}</Text>
+      <Text style={styles.note}>
+        {translate(
+          'm.AuthFailedBannerActions.web.4e38949c67',
+          'Reconnect or remove this host from the Manta app.'
+        )}
+      </Text>
     </>
   )
 }

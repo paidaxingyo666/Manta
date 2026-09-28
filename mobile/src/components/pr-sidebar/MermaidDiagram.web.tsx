@@ -99,7 +99,9 @@ function MermaidFrame({ children }: { children: ReactNode }) {
   return (
     <View style={styles.frame} testID="mermaid-diagram">
       <View style={styles.label}>
-        <Text style={styles.labelText}>{translate("m.MermaidDiagram.web.bd13862940", "mermaid")}</Text>
+        <Text style={styles.labelText}>
+          {translate('m.MermaidDiagram.web.bd13862940', 'mermaid')}
+        </Text>
       </View>
       {children}
     </View>

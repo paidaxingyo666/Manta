@@ -203,7 +203,7 @@ function MobileRichMarkdownEditorWebInner(
       <TextInputModal
         visible={urlPromptKind !== null}
         title={urlPromptKind === null ? '' : RICH_MARKDOWN_URL_PROMPT_LABELS[urlPromptKind]}
-        placeholder={translate("m.MobileRichMarkdownEditor.web.6fe51deed4", "https://")}
+        placeholder={translate('m.MobileRichMarkdownEditor.web.6fe51deed4', 'https://')}
         submitLabel="Insert"
         keyboardType="url"
         onSubmit={answerUrlPrompt}

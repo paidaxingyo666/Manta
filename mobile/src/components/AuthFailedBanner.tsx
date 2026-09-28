@@ -21,7 +21,10 @@ export function AuthFailedBanner({
   return (
     <View style={styles.banner}>
       <Text style={styles.text}>
-        {translate("m.AuthFailedBanner.22b7ca421f", "Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.")}
+        {translate(
+          'm.AuthFailedBanner.22b7ca421f',
+          'Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.'
+        )}
       </Text>
       <View style={styles.actions}>
         <AuthFailedBannerActions

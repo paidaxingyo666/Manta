@@ -69,8 +69,9 @@ export function createPageBackConsumers(args: {
     },
     // A copy is walked, not the array: a consumer that closes its own sheet disposes itself from
     // inside this loop, and splicing under the iteration would skip the one beneath it.
+    // findLast over the copy, not toReversed(): Hermes does not ship toReversed.
     press: () => {
-      if (!held.toReversed().some((entry) => entry.consumer())) {
+      if ([...held].findLast((entry) => entry.consumer()) === undefined) {
         args.onUnclaimed()
       }
     },

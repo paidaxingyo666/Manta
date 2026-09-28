@@ -271,7 +271,14 @@ export function useMobileBrowserCommands(args: MobileBrowserCommandArgs) {
           : {
               ...current,
               pending: undefined,
-              ...(result === null ? { error: translate("m.use.mobile.browser.commands.42f3af2dc3", "That answer did not reach the page.") } : {})
+              ...(result === null
+                ? {
+                    error: translate(
+                      'm.use.mobile.browser.commands.42f3af2dc3',
+                      'That answer did not reach the page.'
+                    )
+                  }
+                : {})
             }
       )
     },

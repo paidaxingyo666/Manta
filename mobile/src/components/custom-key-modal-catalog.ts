@@ -14,6 +14,7 @@ import {
 } from '../terminal/terminal-accessory-keys'
 import { translate } from '../i18n/i18n'
 import { localizedConstant } from '../i18n/localized-constant'
+import { persistMirrored } from '../storage/mirrored-storage-keys'
 
 const CUSTOM_ACCESSORY_KEYS_STORAGE_KEY = 'manta:custom-accessory-keys'
 
@@ -91,5 +92,8 @@ export async function loadCustomKeys(): Promise<CustomKey[]> {
 }
 
 export async function saveCustomKeys(keys: CustomKey[]): Promise<void> {
-  await AsyncStorage.setItem(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY, JSON.stringify(keys))
+  // Through the one write path, which notes the mirror on an accepted write and on nothing else
+  // (ruling 35). There is no rollback here any more because there is nothing to undo: on the page
+  // a value over the cap rejects, and a rejected write never reached the map.
+  await persistMirrored(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY, JSON.stringify(keys))
 }

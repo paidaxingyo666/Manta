@@ -258,12 +258,16 @@ export function MobileSourceControlPanel({
     ) : screenState.kind === 'error' || screenState.kind === 'unavailable' ? (
       <View style={styles.state}>
         <Text style={styles.stateTitle}>
-          {screenState.kind === 'unavailable' ? translate("m.MobileSourceControlPanel.520503d3c5", "Source Control Unavailable") : translate("m.MobileSourceControlPanel.4a571203d0", "Unable to Load")}
+          {screenState.kind === 'unavailable'
+            ? translate('m.MobileSourceControlPanel.520503d3c5', 'Source Control Unavailable')
+            : translate('m.MobileSourceControlPanel.4a571203d0', 'Unable to Load')}
         </Text>
         <Text style={styles.stateText}>{screenState.message}</Text>
         {screenState.kind === 'error' && statusRetry ? (
           <Pressable style={styles.retryButton} onPress={statusRetry}>
-            <Text style={styles.retryText}>{translate("m.MobileSourceControlPanel.760815df5f", "Retry")}</Text>
+            <Text style={styles.retryText}>
+              {translate('m.MobileSourceControlPanel.760815df5f', 'Retry')}
+            </Text>
           </Pressable>
         ) : null}
       </View>

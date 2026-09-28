@@ -155,7 +155,13 @@ export function useMobileDiffReviewSendActions(input: SendActionsInput) {
     } catch (err) {
       updateSendSheet({
         kind: 'error',
-        message: err instanceof Error ? err.message : translate("m.use.mobile.diff.review.send.actions.bcc1edd25f", "Unable to load agent sessions"),
+        message:
+          err instanceof Error
+            ? err.message
+            : translate(
+                'm.use.mobile.diff.review.send.actions.bcc1edd25f',
+                'Unable to load agent sessions'
+              ),
         terminals: []
       })
     }

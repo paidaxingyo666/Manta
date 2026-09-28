@@ -82,7 +82,10 @@ export function useMobileSessionMarkdownActions(scope: MobileSessionMarkdownActi
         await clipboard.writeText(current.localContent)
       } catch {
         triggerError()
-        showToast(translate("m.use.mobile.session.markdown.actions.9ce411065d", "Couldn't copy"), 1500)
+        showToast(
+          translate('m.use.mobile.session.markdown.actions.9ce411065d', "Couldn't copy"),
+          1500
+        )
         return
       }
       triggerSuccess()

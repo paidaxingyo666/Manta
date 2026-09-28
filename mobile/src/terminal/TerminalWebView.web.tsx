@@ -86,7 +86,11 @@ export const TerminalWebView = forwardRef<TerminalWebViewHandle, Props>(
         receiveRef.current?.({
           type: 'error',
           fatal: true,
-          message: translate("m.TerminalWebView.web.cbc943bb24", "terminal document failed to start - {{value0}}", { value0: error instanceof Error ? error.message : String(error) })
+          message: translate(
+            'm.TerminalWebView.web.cbc943bb24',
+            'terminal document failed to start - {{value0}}',
+            { value0: error instanceof Error ? error.message : String(error) }
+          )
         })
         return
       }

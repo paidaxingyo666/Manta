@@ -25,14 +25,20 @@ export function AuthFailedBannerActions({
     <>
       {canRetry && (
         <Pressable style={styles.action} onPress={onRetry}>
-          <Text style={styles.actionText}>{translate("m.AuthFailedBannerActions.2107b5c042", "Retry")}</Text>
+          <Text style={styles.actionText}>
+            {translate('m.AuthFailedBannerActions.2107b5c042', 'Retry')}
+          </Text>
         </Pressable>
       )}
       <Pressable style={styles.action} onPress={onRepair}>
-        <Text style={styles.actionText}>{translate("m.AuthFailedBannerActions.b979c33c30", "Re-pair")}</Text>
+        <Text style={styles.actionText}>
+          {translate('m.AuthFailedBannerActions.b979c33c30', 'Re-pair')}
+        </Text>
       </Pressable>
       <Pressable style={styles.action} onPress={onRemove}>
-        <Text style={[styles.actionText, { color: colors.statusRed }]}>{translate("m.AuthFailedBannerActions.13bc79f5fd", "Remove")}</Text>
+        <Text style={[styles.actionText, { color: colors.statusRed }]}>
+          {translate('m.AuthFailedBannerActions.13bc79f5fd', 'Remove')}
+        </Text>
       </Pressable>
     </>
   )

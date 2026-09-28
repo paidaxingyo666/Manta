@@ -30,10 +30,18 @@ import { translate } from '../i18n/i18n'
 export function PageRouteUnavailableScreen({ hostId }: { hostId: string }) {
   const router = useRouteHandoff()
   const target = hostId === '' ? '/' : hostStackHostRoute(hostId)
-  const label = hostId === '' ? translate("m.PageRouteUnavailableScreen.14da6523d7", "Back to hosts") : translate("m.PageRouteUnavailableScreen.99e9a0e257", "Back to workspaces")
+  const label =
+    hostId === ''
+      ? translate('m.PageRouteUnavailableScreen.14da6523d7', 'Back to hosts')
+      : translate('m.PageRouteUnavailableScreen.99e9a0e257', 'Back to workspaces')
   return (
     <View style={styles.root} testID="mobile-web-page-route-unavailable">
-      <Text style={styles.message}>{translate("m.PageRouteUnavailableScreen.607a017fca", "This workspace screen is not available on this host.")}</Text>
+      <Text style={styles.message}>
+        {translate(
+          'm.PageRouteUnavailableScreen.607a017fca',
+          'This workspace screen is not available on this host.'
+        )}
+      </Text>
       <Pressable
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
         accessibilityRole="button"
