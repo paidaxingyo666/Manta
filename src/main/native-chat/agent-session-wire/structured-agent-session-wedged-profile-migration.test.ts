@@ -398,7 +398,7 @@ describe('already-wedged profiles become usable on load', () => {
     ['a restart eviction', false],
     ['a proven eviction by recovery', true]
   ] as const)(
-    'settles the turn %s left even when the handle it was restored with never writes',
+    'settles the turn %s left at the next acquire when the read restore could not write it',
     async (_origin, ownerOutlivedRestart) => {
       await seedStore(
         wedgedRecord({ claimStatus: 'live', handoffStage: null, ownerProcess: DEAD_OWNER })
@@ -415,15 +415,13 @@ describe('already-wedged profiles become usable on load', () => {
             : { outcome: 'pid-absent' },
         stopOwnerProcess
       })
-      // The read restore's settlement fails, and the handle it restored with never writes again.
+      // The read restore's settlement fails, and nothing retries it.
       const failing = vi
         .spyOn(AgentSessionJournal.prototype, 'appendLifecycleBatch')
         .mockRejectedValue(new Error('journal unavailable'))
       await host.restoreReadableSessions()
       failing.mockRestore()
-      vi.spyOn(restoredJournal(), 'appendLifecycleBatch').mockRejectedValue(
-        new Error('journal unavailable')
-      )
+      expect(activeStructuredAgentSessionTurnId(restoredJournal().snapshot().items)).toBe('turn-1')
       expect(stopOwnerProcess).toHaveBeenCalledTimes(ownerOutlivedRestart ? 1 : 0)
       expect(store.getRecord(SESSION)?.lease).toMatchObject({
         claimStatus: 'released',

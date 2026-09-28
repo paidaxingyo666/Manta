@@ -364,6 +364,13 @@ export type AgentJournalSubmission = {
   /** Set when crash reconciliation resolved the dispatch, not the provider. A live
    *  `unknown` is a send still outstanding; a recovered one outlived its writer. */
   recovered?: true
+  /** The host accepted this send to hand over later; absent on sends dispatched as they were
+   *  recorded (older hosts). With no `handedOverAt` yet, a pending one is still queued. */
+  handoverRecorded?: true
+  /** When the host handed it to the provider (its `dispatch{pending}` row). */
+  handedOverAt?: number
+  /** Host-only: the submission row's sequence, which tells which host process accepted it. */
+  acceptedSequence?: number
 }
 
 /** Durable answer to "did my send land?", keyed by client message id. Only an

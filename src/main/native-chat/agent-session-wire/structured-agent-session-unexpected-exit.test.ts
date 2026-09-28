@@ -34,11 +34,18 @@ function recoveryContext(input: {
   handoffStage?: AgentSessionRecord['lease']['handoffStage']
   resumeCapable?: boolean
 }) {
-  const session = {
-    hasProviderChild: false,
-    fence: 8,
-    acquisitionGeneration: input.generation ?? GENERATION
-  } as StructuredAgentSessionHostSession
+  const session: Pick<StructuredAgentSessionHostSession, 'child' | 'lastEndedChild'> = {
+    child: null,
+    lastEndedChild: {
+      generation: input.generation ?? GENERATION,
+      fence: 7,
+      cause: 'exit',
+      reason: null,
+      duringStartup: false,
+      rootGone: true,
+      endedAt: { epoch: 'epoch-1', sequence: 0 }
+    }
+  }
   const record = {
     lease: {
       runtimeFence: 8,
@@ -121,11 +128,11 @@ describe('provider-exit recovery tickets', () => {
       .fn()
       .mockRejectedValueOnce(new Error('journal unavailable'))
       .mockResolvedValue({ epoch: 'epoch-1', sequence: 2 })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the exit reads only the child record and these journal methods; the rest of the session is unreachable from it.
     const session = {
-      hasProviderChild: true,
-      fence: 7,
-      acquisitionGeneration: GENERATION,
+      child: { generation: GENERATION, fence: 7, phase: 'ready' },
       journal: {
+        cursor: () => ({ epoch: 'epoch-1', sequence: 0 }),
         snapshot: () => ({
           items: [lifecycleItem('turn-1', 1, { state: 'running', startedAt: 1_000 })]
         }),
@@ -193,11 +200,11 @@ describe('provider-exit recovery tickets', () => {
       lifecycleItem('turn-1', 1, { state: 'completed', startedAt: 10, completedAt: 20 }),
       lifecycleItem('turn-2', 2, { state: 'running', startedAt: 30 })
     ]
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the exit reads only the child record and these journal methods; the rest of the session is unreachable from it.
     const session = {
-      hasProviderChild: true,
-      fence: 7,
-      acquisitionGeneration: GENERATION,
+      child: { generation: GENERATION, fence: 7, phase: 'ready' },
       journal: {
+        cursor: () => ({ epoch: 'epoch-1', sequence: 0 }),
         snapshot: () => ({ items }),
         appendLifecycleBatch,
         markPendingSubmissionsUnknown: vi.fn(async () => [])
@@ -242,7 +249,7 @@ describe('provider-exit recovery tickets', () => {
       7,
       'provider_exited_before_acknowledgement'
     )
-    expect(session.hasProviderChild).toBe(false)
+    expect(session.child).toBeNull()
     // The running row is revised to interrupted at exit receipt, never tombstoned.
     expect(appendLifecycleBatch).toHaveBeenCalledExactlyOnceWith({
       settlementId: `dead-generation:provider-exit:${SESSION}:7:${GENERATION}`,
@@ -299,10 +306,9 @@ describe('provider-exit recovery tickets', () => {
         sequence: 3
       }))
       const session: StructuredAgentSessionUnexpectedExitSession = {
-        hasProviderChild: true,
-        fence: 7,
-        acquisitionGeneration: GENERATION,
+        child: { generation: GENERATION, fence: 7, phase: 'ready' },
         journal: {
+          cursor: () => ({ epoch: 'epoch-1', sequence: 0 }),
           snapshot: () => ({ items }),
           appendLifecycleBatch,
           markPendingSubmissionsUnknown: vi.fn(async () => []),
@@ -356,10 +362,9 @@ describe('provider-exit recovery tickets', () => {
   it('settles a submission the dead child never acknowledged', async () => {
     const markPendingSubmissionsUnknown = vi.fn(async () => ['client-1'])
     const session: StructuredAgentSessionUnexpectedExitSession = {
-      hasProviderChild: true,
-      fence: 7,
-      acquisitionGeneration: GENERATION,
+      child: { generation: GENERATION, fence: 7, phase: 'ready' },
       journal: {
+        cursor: () => ({ epoch: 'epoch-1', sequence: 0 }),
         snapshot: () => ({ items: [] }),
         appendLifecycleBatch: vi.fn(async () => ({ epoch: 'epoch-1', sequence: 1 })),
         markPendingSubmissionsUnknown,
@@ -404,10 +409,9 @@ describe('provider-exit recovery tickets', () => {
 
   it('releases without offering a restart while terminal settlement is failing', async () => {
     const session: StructuredAgentSessionUnexpectedExitSession = {
-      hasProviderChild: true,
-      fence: 7,
-      acquisitionGeneration: GENERATION,
+      child: { generation: GENERATION, fence: 7, phase: 'ready' },
       journal: {
+        cursor: () => ({ epoch: 'epoch-1', sequence: 0 }),
         markPendingSubmissionsUnknown: vi.fn(async () => []),
         rejectPendingSubmissions: vi.fn(async () => []),
         snapshot: () => ({
@@ -442,8 +446,7 @@ describe('provider-exit recovery tickets', () => {
     const result = await settleUnexpectedStructuredAgentSessionExit(context, event)
 
     expect(result).toBeNull()
-    expect(session.hasProviderChild).toBe(false)
-    expect(session.fence).toBe(8)
+    expect(session.child).toBeNull()
     expect(publishFence).toHaveBeenCalledTimes(1)
     expect(release).toHaveBeenCalledTimes(2)
   })

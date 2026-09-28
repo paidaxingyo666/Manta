@@ -165,6 +165,11 @@ export const STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY = 'agent-session.struct
 // clients skip the host's bounded best-effort settlement observation.
 export const AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY =
   'agent-session.pending-send-result.v1' as const
+// Why: a send is now answered once the host accepts it, before any agent has it. A client without
+// this cannot show a message rejected after that answer, so the host holds its reply until the
+// message is handed over or rejected.
+export const AGENT_SESSION_ACCEPTED_SEND_RUNTIME_CAPABILITY =
+  'agent-session.accepted-send.v1' as const
 // Why: paired clients advertise Claude-structured support so the host can gate its agent-specific
 // journal and lifecycle surfaces independently from Codex support.
 export const CLAUDE_STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY =
@@ -302,6 +307,7 @@ export const NATIVE_REMOTE_RUNTIME_CLIENT_CAPABILITIES = [
 export const ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES = [
   ...NATIVE_REMOTE_RUNTIME_CLIENT_CAPABILITIES,
   AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY,
+  AGENT_SESSION_ACCEPTED_SEND_RUNTIME_CAPABILITY,
   BROWSER_CLIENT_HOST_RUNTIME_CAPABILITY,
   BROWSER_CLIENT_PAGE_METADATA_RUNTIME_CAPABILITY,
   // Why: only the renderer runs the retirement-proof ledger; CLI and mobile must keep full lists.
@@ -372,6 +378,9 @@ export const RUNTIME_CAPABILITIES = [
   AGENT_SESSION_KEYBOARD_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY,
   AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY,
+  // The host side: it accepts a send before any agent has it, and a Stop with no writer before a
+  // turn starts, so a client may gate on either.
+  AGENT_SESSION_ACCEPTED_SEND_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_HOLD_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_REVEAL_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RESUME_HISTORY_RUNTIME_CAPABILITY,

@@ -248,7 +248,7 @@ describe('useStructuredAgentSessionOutbox', () => {
       )
 
       act(() => expect(result.current.send('hello')).toBe(true))
-      await waitFor(() => expect(result.current.outbox[0]?.state).toBe('queued'))
+      await waitFor(() => expect(result.current.outbox[0]?.state).toBe('rejected'))
       const firstId = (mocks.call.mock.calls[0]![2] as { envelope: { clientOperationId: string } })
         .envelope.clientOperationId
       const retryId = result.current.outbox[0]!.clientMessageId
@@ -558,7 +558,9 @@ describe('useStructuredAgentSessionOutbox', () => {
 
     expect(mocks.call).toHaveBeenCalledOnce()
     expect(result.current.outbox).toHaveLength(1)
-    expect(result.current.blockedClientMessageId).toBe(result.current.outbox[0]?.clientMessageId)
+    // Never sent, and never re-sent on its own: it waits for Retry and holds nothing up.
+    expect(result.current.outbox[0]?.state).toBe('rejected')
+    expect(result.current.blockedClientMessageId).toBeNull()
     // Settled, not pending: the refused id never ran, so a Retry is a new operation.
     const sentId: unknown = mocks.call.mock.calls[0]![2].envelope.clientOperationId
     const retryId = result.current.outbox[0]!.clientMessageId
@@ -775,8 +777,8 @@ describe('useStructuredAgentSessionOutbox', () => {
     // A refused write is answered, not doubted: the entry parks with its rejection rather than
     // under the "delivery is unconfirmed" banner. The disposition tests pin its words.
     await waitFor(() => expect(result.current.outbox[0]?.lastFailure?.kind).toBe('rejected'))
-    expect(result.current.outbox[0]?.state).toBe('queued')
-    expect(result.current.blockedClientMessageId).toBe(firstId)
+    expect(result.current.outbox[0]?.state).toBe('rejected')
+    expect(result.current.blockedClientMessageId).toBeNull()
 
     // Retry immediately, before the journal subscription can publish the rejected row.
     act(() => result.current.retry(firstId))

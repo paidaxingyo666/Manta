@@ -20,6 +20,7 @@ import { attachStructuredAgentSession } from './structured-agent-session-attach-
 import {
   createStructuredAgentSessionHolds,
   evictHeldStructuredAgentSession,
+  stopStructuredAgentSessionAgentUnderSerialize,
   type StructuredAgentSessionLifetimeContext
 } from './structured-agent-session-host-lifetime'
 import type {
@@ -50,6 +51,8 @@ import {
   type StructuredAgentSessionRestartResume
 } from './structured-agent-session-restart-resume-host'
 import { structuredAgentSessionRestartResumeSurfaces } from './structured-agent-session-restart-resume-wiring'
+import { createStructuredAgentSessionConversationDelivery } from './structured-agent-session-host-delivery'
+import { structuredAgentSessionConversationFence } from './structured-agent-session-provider-child'
 export type { StructuredAgentSessionHostDeps } from './structured-agent-session-host-types'
 
 export class StructuredAgentSessionHost {
@@ -75,6 +78,9 @@ export class StructuredAgentSessionHost {
   ) => Promise<SessionWire.AgentSessionWireRefusal | null>
   private readonly restore: ReturnType<typeof createStructuredAgentSessionHostRestore>
   private readonly holds: StructuredAgentSessionHolds
+  private readonly conversationDelivery: ReturnType<
+    typeof createStructuredAgentSessionConversationDelivery
+  >
   private readonly eventRecovery: StructuredAgentSessionEventRecovery
   private readonly backgroundTasks: StructuredAgentSessionBackgroundTaskChannel
   /** Public because the RPC surface addresses it directly; see the restart-resume collaborator. */
@@ -97,9 +103,26 @@ export class StructuredAgentSessionHost {
       ...(deps.probeOwners ? { probeMany: deps.probeOwners } : {}),
       now: () => this.now()
     })
+    this.conversationDelivery = createStructuredAgentSessionConversationDelivery({
+      deps,
+      sessions: this.sessions,
+      serialize: (sessionId, task) => this.serialize(sessionId, task),
+      // Quit drains a delivery start before it evicts, so the child it produces is stopped.
+      trackStart: (start) => this.tasks.trackAttach(start),
+      ensureProviderChild: (sessionId) => this.holds.ensureProviderChild(sessionId),
+      reset: (sessionId, journal, reset) =>
+        this.subscribers.reset(
+          sessionId,
+          journal,
+          reset,
+          structuredAgentSessionConversationFence(deps.store, sessionId)
+        ),
+      publishRestored: this.clientDelivery.publishRestored
+    })
     this.holds = createStructuredAgentSessionHolds(
       () => this.attachContext(),
-      (sessionId) => this.close(sessionId)
+      (sessionId) => this.close(sessionId),
+      (sessionId) => this.conversationDelivery.loop.isRunning(sessionId)
     )
     this.restore = createStructuredAgentSessionHostRestore(deps, {
       reconcile: this.reconcileLeases,
@@ -108,10 +131,7 @@ export class StructuredAgentSessionHost {
       hasSession: this.hasSession,
       // Site 10: cannot overwrite a live entry — the restorer returns early on
       // `hasSession` inside the same serialized step as this `set`.
-      onReadable: (sessionId, restored) => {
-        this.sessions.set(sessionId, restored)
-        this.clientDelivery.publishRestored(sessionId)
-      }
+      onReadable: this.conversationDelivery.adoptOpened
     })
     this.eventRecovery = new StructuredAgentSessionEventRecovery({
       deps,
@@ -119,7 +139,11 @@ export class StructuredAgentSessionHost {
       sessions: this.sessions,
       flushLifecycle: (sessionId) => this.runtimeState.lifecycleBarrier(sessionId),
       publishFence: (sessionId, session) =>
-        this.subscribers.snapshot(sessionId, session.journal, session.fence),
+        this.subscribers.snapshot(
+          sessionId,
+          session.journal,
+          structuredAgentSessionConversationFence(deps.store, sessionId)
+        ),
       publishStatus: this.clientDelivery.publishStatusAndSettlement,
       hasResumeCapableHolder: (sessionId) => this.holds.hasResumeCapableHolder(sessionId),
       restartReleaseGrace: (sessionId) => this.holds.renew(sessionId),
@@ -143,7 +167,8 @@ export class StructuredAgentSessionHost {
   isHeld = (sessionId: string): boolean => this.holds.isHeld(sessionId)
 
   /** A surface bound to this session and wants it live. The FIRST hold on a session with no
-   *  provider child is what resumes one; a retained hold (a subscription) only keeps it. */
+   *  provider child is what resumes one, unless its last start failed; a retained hold (a
+   *  subscription) only keeps it. */
   hold = (
     sessionId: string,
     holderId: string,
@@ -162,7 +187,8 @@ export class StructuredAgentSessionHost {
       runtimeState: this.runtimeState,
       sessions: this.sessions,
       now: () => this.now(),
-      forgetStatus: this.clientDelivery.forgetStatus
+      forgetStatus: this.clientDelivery.forgetStatus,
+      publishStatus: this.clientDelivery.publishStatus
     }
   }
 
@@ -174,18 +200,21 @@ export class StructuredAgentSessionHost {
       tasks: this.tasks,
       reconcileLeases: (sessionId) => this.reconcileLeases(sessionId),
       serialize: (sessionId, task) => this.serialize(sessionId, task),
-      publishStatus: this.clientDelivery.publishStatus
+      publishStatus: this.clientDelivery.publishStatus,
+      openConversation: this.conversationDelivery.open
     }
   }
   /** Releases a session's resources without ending the conversation: the record and journal stay
    *  on disk, so the same session can be attached again. */
   close(sessionId: string): Promise<void> {
-    return this.serialize(sessionId, async () => {
-      await evictHeldStructuredAgentSession(this.lifetimeContext(), sessionId)
-      this.clientDelivery.closeSession(sessionId)
-      // The holders now look at a session that is gone; a failed eviction throws above, keeping them.
-      this.holds.forget(sessionId)
-    })
+    return this.serialize(sessionId, () => this.closeUnderSerialize(sessionId))
+  }
+
+  private async closeUnderSerialize(sessionId: string): Promise<void> {
+    await evictHeldStructuredAgentSession(this.lifetimeContext(), sessionId)
+    this.clientDelivery.closeSession(sessionId)
+    // The holders now look at a session that is gone; a failed eviction throws above, keeping them.
+    this.holds.forget(sessionId)
   }
 
   supportsCreate = (location: AgentSessionExecutionLocation, agent: string): boolean =>
@@ -227,6 +256,7 @@ export class StructuredAgentSessionHost {
   // Trigger inlined rather than imported: `AgentSessionResumeTrigger` in shared is the canonical
   // type, and this file has no line budget left for the import.
   async flushAllStreamedEvents(options?: { trigger?: 'quit' | 'update' }): Promise<void> {
+    this.conversationDelivery.loop.dispose()
     await flushStructuredAgentSessionHost({
       ...this.lifetimeContext(),
       holds: this.holds,
@@ -245,8 +275,12 @@ export class StructuredAgentSessionHost {
       flushStreamedEvents: this.flushStreamedEvents,
       requireSession: (sessionId) => this.requireSession(sessionId),
       serialize: (sessionId, task) => this.serialize(sessionId, task),
-      holds: this.holds,
-      restoreReadable: (sessionId) => this.restore.restoreReadableUnderSerialize(sessionId),
+      openConversation: this.conversationDelivery.open,
+      wakeDelivery: (sessionId) => this.conversationDelivery.loop.wake(sessionId),
+      stopAgent: (sessionId) =>
+        stopStructuredAgentSessionAgentUnderSerialize(this.lifetimeContext(), sessionId, {
+          cause: 'user-stop'
+        }),
       now: () => this.now()
     }
   }

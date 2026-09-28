@@ -13,28 +13,28 @@
 
 import type { AgentSessionRecord } from '../../../shared/agent-session-record'
 import type { AgentSessionWireRefusal } from '../../../shared/agent-session-wire'
-import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import { mapWithConcurrency } from '../../../shared/map-with-concurrency'
-import {
-  restoreStructuredAgentSessionRead,
-  type RestoredStructuredAgentSessionRead
-} from './structured-agent-session-read-restore'
+import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
+import type {
+  OpenedStructuredAgentSessionConversation,
+  StructuredAgentSessionConversationOpenDeps
+} from './structured-agent-session-conversation-open'
+import { restoreStructuredAgentSessionRead } from './structured-agent-session-read-restore'
 
 const JOURNAL_RESTORE_CONCURRENCY = 4
 
 export type StructuredAgentSessionReadRestoreDeps = {
-  store: AgentSessionRecordStore
-  journalRoot: string
+  openDeps: StructuredAgentSessionConversationOpenDeps & {
+    store: Pick<AgentSessionRecordStore, 'getRecord' | 'listRecords'>
+  }
   reconcile: (sessionId: string) => Promise<AgentSessionWireRefusal | null>
   resolveRecovery: (sessionId: string) => Promise<unknown>
   serialize: <T>(sessionId: string, task: () => Promise<T>) => Promise<T>
   hasSession: (sessionId: string) => boolean
-  onReadable: (sessionId: string, restored: RestoredStructuredAgentSessionRead) => void
-  /** Settles what a previous generation left running. Best effort: the next acquire re-derives it. */
-  settleStaleState: (
+  onReadable: (
     sessionId: string,
-    restored: RestoredStructuredAgentSessionRead
-  ) => Promise<void>
+    opened: OpenedStructuredAgentSessionConversation
+  ) => Promise<void> | void
 }
 
 /**
@@ -61,28 +61,19 @@ export async function restoreOneStructuredAgentSessionRead(
 /** The serialized half of the restore, for a caller already inside the session's serialize — a
  *  send replaying into a session this host has closed, which needs the journal and no child. */
 export async function restoreOneStructuredAgentSessionReadUnderSerialize(
-  input: Pick<
-    StructuredAgentSessionReadRestoreDeps,
-    'store' | 'journalRoot' | 'hasSession' | 'onReadable' | 'settleStaleState'
-  >,
+  input: Pick<StructuredAgentSessionReadRestoreDeps, 'openDeps' | 'hasSession' | 'onReadable'>,
   sessionId: string
 ): Promise<void> {
   if (input.hasSession(sessionId)) {
     // A surface that took a hold mid-restore already attached this one.
     return
   }
-  const restored = await restoreStructuredAgentSessionRead(
-    input.store,
-    input.journalRoot,
-    sessionId
-  )
-  if (!restored) {
+  const opened = await restoreStructuredAgentSessionRead(input.openDeps, sessionId)
+  if (!opened) {
     return
   }
-  // No child in this process writes to a journal with no map entry, so anything it shows running
-  // belongs to a generation that is gone. Settled before it is published, so no reader sees it run.
-  await input.settleStaleState(sessionId, restored)
-  input.onReadable(sessionId, restored)
+  // The open settled what a gone generation left running, so no reader sees it run.
+  await input.onReadable(sessionId, opened)
 }
 
 export async function restoreStructuredAgentSessionsOnRestart(

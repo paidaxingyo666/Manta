@@ -788,9 +788,19 @@ describe('subscribe', () => {
       body
     })
 
-    expect(result).toMatchObject({ ok: true, value: { submission: { dispatchState: 'accepted' } } })
-    expect(dispatch).toHaveBeenCalledTimes(1)
-    expect(events.some((event) => event.type === 'batch')).toBe(true)
+    expect(result).toMatchObject({ ok: true, value: { submission: { dispatchState: 'pending' } } })
+    // The failed transport does not stop the delivery loop either: the handover still lands and
+    // reaches the live subscriber.
+    await vi.waitFor(() => expect(dispatch).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() =>
+      expect(
+        events.some(
+          (event) =>
+            event.type === 'batch' &&
+            event.batch.submissions?.some((entry) => entry.dispatchState === 'accepted')
+        )
+      ).toBe(true)
+    )
   })
 
   it('resets a subscriber whose epoch is gone', async () => {

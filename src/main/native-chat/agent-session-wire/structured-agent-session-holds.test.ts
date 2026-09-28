@@ -184,6 +184,7 @@ describe('holds', () => {
       resume,
       serialize: keyedSerialize(),
       hasProviderChild: () => child,
+      lastStartFailed: () => false,
       hasOwedWork: () => false,
       evict: async () => {},
       graceMs: 1
@@ -214,6 +215,7 @@ describe('holds', () => {
       resume,
       serialize,
       hasProviderChild: () => child,
+      lastStartFailed: () => false,
       hasOwedWork: () => false,
       evict: async () => {},
       graceMs: 1
@@ -244,6 +246,7 @@ describe('holds', () => {
       },
       serialize,
       hasProviderChild: () => child,
+      lastStartFailed: () => false,
       hasOwedWork: () => false,
       evict: async () => {},
       graceMs: 60_000
@@ -262,6 +265,7 @@ describe('holds', () => {
       resume: async () => ({ ok: true as const }),
       serialize: keyedSerialize(),
       hasProviderChild: () => false,
+      lastStartFailed: () => false,
       hasOwedWork: () => false,
       evict,
       graceMs: 1
@@ -281,6 +285,7 @@ describe('holds', () => {
       resume: async () => ({ ok: true as const }),
       serialize: keyedSerialize(),
       hasProviderChild: () => false,
+      lastStartFailed: () => false,
       hasOwedWork: () => false,
       evict: async () => {},
       graceMs: 1
@@ -296,7 +301,7 @@ describe('holds', () => {
 
 describe('the teardown deadline', () => {
   it('leaves the child loaded instead of forcing it, and keeps the session indexed', async () => {
-    const forget = vi.fn()
+    const acknowledgeRelease = vi.fn()
     const releaseLease = vi.fn(async () => {})
 
     await expect(
@@ -309,7 +314,7 @@ describe('the teardown deadline', () => {
             close: vi.fn()
           } as never,
           adapter: { closeSession: () => new Promise<void>(() => {}) } as never,
-          forget,
+          acknowledgeRelease,
           discardSink: vi.fn(),
           releaseLease
         },
@@ -317,7 +322,7 @@ describe('the teardown deadline', () => {
       )
     ).rejects.toMatchObject({ step: 'stop-provider-child' })
 
-    expect(forget).not.toHaveBeenCalled()
+    expect(acknowledgeRelease).not.toHaveBeenCalled()
     expect(releaseLease).not.toHaveBeenCalled()
   })
 

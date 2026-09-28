@@ -6,7 +6,7 @@
 //
 // A surface takes a hold when it binds and drops it when it goes away. The first hold on a session
 // with no child resumes it — that, and not the shape of a lease on disk, is what makes a provider
-// process exist. The last hold leaving starts the idle release clock. Transport close is the BACKSTOP,
+// process exist — unless that session's last start died starting: only a send retries one. The last hold leaving starts the idle release clock. Transport close is the BACKSTOP,
 // not the mechanism: a client that vanishes mid-flight never sends its release, so the caller
 // registers one against the connection and the holder set absorbs the duplicate.
 //
@@ -33,6 +33,8 @@ export type StructuredAgentSessionHoldsDeps = {
   serialize: <T>(sessionId: string, task: () => Promise<T>) => Promise<T>
   /** Whether evicting this session would actually free anything. */
   hasProviderChild: (sessionId: string) => boolean
+  /** The last start died starting; a surface does not retry it, the next send does. */
+  lastStartFailed: (sessionId: string) => boolean
   hasOwedWork: (sessionId: string) => boolean
   evict: (sessionId: string) => Promise<void>
   onError?: (input: { sessionId: string; error: unknown }) => void
@@ -77,7 +79,11 @@ export class StructuredAgentSessionHolds {
     }
     let resumed: StructuredAgentSessionResumeOutcome
     try {
-      resumed = await this.deps.serialize(sessionId, () => this.ensureProviderChild(sessionId))
+      resumed = await this.deps.serialize(sessionId, () =>
+        this.deps.lastStartFailed(sessionId)
+          ? Promise.resolve({ ok: true as const })
+          : this.ensureProviderChild(sessionId)
+      )
     } catch (error) {
       this.releaseFailedHold(sessionId, holderId, alreadyHeld, incarnation)
       throw error
