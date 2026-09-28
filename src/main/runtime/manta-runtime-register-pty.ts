@@ -27,7 +27,6 @@ export class MantaRuntimeWithRegisterPty extends MantaRuntimeWithInvalidateAllHa
     isWsl?: boolean
   ): void {
     this.assertPtyDidNotExitBeforeRegistration(ptyId, binding?.incarnationId)
-    this.pendingPtySurfaceRetirementsByPtyId.delete(ptyId)
     this.invalidatePtyControllerInventoryForLifecycle(ptyId, connectionId)
     const existingPty = this.ptysById.get(ptyId)
     const replacementHandle = binding?.terminalHandle?.trim()
