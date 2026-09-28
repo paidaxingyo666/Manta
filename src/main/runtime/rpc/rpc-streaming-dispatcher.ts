@@ -90,6 +90,7 @@ export class RpcStreamingDispatcher {
 
     if (!isStreamingMethod(method)) {
       try {
+        // Session tabs always need this fence. COMPAT(terminal request-addressed unsubscribe): terminal only for phones without `requestId`.
         // Capture before middleware yields to a replacement subscribe on the same connection.
         const subscriptionRegistrationVersion = isRegistrationFencedUnsubscribe(request.method)
           ? runtime.getSubscriptionRegistrationVersion()
