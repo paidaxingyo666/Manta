@@ -311,11 +311,13 @@ export function MobileAgentSessionHistoryPanel({
             {translate('m.MobileAgentSessionHistoryPanel.205877f249', 'Unable to Load')}
           </Text>
           <Text style={styles.stateText}>{screenState.message}</Text>
-          <Pressable style={styles.retryButton} onPress={retry}>
-            <Text style={styles.retryText}>
-              {translate('m.MobileAgentSessionHistoryPanel.ece2f4dedf', 'Retry')}
-            </Text>
-          </Pressable>
+          {retry ? (
+            <Pressable style={styles.retryButton} onPress={retry}>
+              <Text style={styles.retryText}>
+                {translate('m.MobileAgentSessionHistoryPanel.ece2f4dedf', 'Retry')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : (
         <>

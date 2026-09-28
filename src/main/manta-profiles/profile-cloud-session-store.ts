@@ -55,6 +55,19 @@ type CachedMantaCloudSession = {
 }
 
 const memorySessions = new Map<string, CachedMantaCloudSession>()
+export const MAX_MEMORY_CLOUD_SESSIONS = 64
+
+function rememberMemorySession(key: string, session: CachedMantaCloudSession): void {
+  memorySessions.delete(key)
+  memorySessions.set(key, session)
+  while (memorySessions.size > MAX_MEMORY_CLOUD_SESSIONS) {
+    const oldest = memorySessions.keys().next()
+    if (oldest.done || oldest.value === key) {
+      break
+    }
+    memorySessions.delete(oldest.value)
+  }
+}
 
 function sessionCacheKey(profileId: string, userDataPath: string): string {
   return `${userDataPath}\0${profileId}`
@@ -119,7 +132,7 @@ export function saveMantaCloudSession(
       ciphertext: safeStorage.encryptString(JSON.stringify(session)).toString('base64')
     }
     writeSecureJsonFile(getMantaCloudSessionPath(profileId, userDataPath), encrypted)
-    memorySessions.set(cacheKey, { session, persistence: 'encrypted' })
+    rememberMemorySession(cacheKey, { session, persistence: 'encrypted' })
     return 'encrypted'
   }
 
@@ -131,13 +144,13 @@ export function saveMantaCloudSession(
       session
     }
     writeSecureJsonFile(getMantaCloudSessionPath(profileId, userDataPath), plaintext)
-    memorySessions.set(cacheKey, { session, persistence: 'dev-plaintext' })
+    rememberMemorySession(cacheKey, { session, persistence: 'dev-plaintext' })
     return 'dev-plaintext'
   }
 
   // Why: Manta account refresh tokens must not silently fall back to plaintext
   // in production. Memory-only keeps cloud features usable until restart.
-  memorySessions.set(cacheKey, { session, persistence: 'memory-only' })
+  rememberMemorySession(cacheKey, { session, persistence: 'memory-only' })
   return 'memory-only'
 }
 
@@ -177,6 +190,8 @@ export function readMantaCloudSession(
   const cacheKey = sessionCacheKey(profileId, userDataPath)
   const memorySession = memorySessions.get(cacheKey)
   if (memorySession) {
+    memorySessions.delete(cacheKey)
+    memorySessions.set(cacheKey, memorySession)
     return {
       status: 'found',
       session: memorySession.session,
@@ -209,14 +224,14 @@ export function readMantaCloudSession(
       if (!isMantaCloudSession(session)) {
         return { status: 'decrypt-failed', persistence: 'none', error: 'Invalid saved session.' }
       }
-      memorySessions.set(cacheKey, { session, persistence: 'encrypted' })
+      rememberMemorySession(cacheKey, { session, persistence: 'encrypted' })
       return { status: 'found', session, persistence: 'encrypted' }
     }
     if (parsed.format === 'dev-plaintext-v1' && allowsPlaintextMantaCloudSession()) {
       if (!isMantaCloudSession(parsed.session)) {
         return { status: 'decrypt-failed', persistence: 'none', error: 'Invalid saved session.' }
       }
-      memorySessions.set(cacheKey, { session: parsed.session, persistence: 'dev-plaintext' })
+      rememberMemorySession(cacheKey, { session: parsed.session, persistence: 'dev-plaintext' })
       return { status: 'found', session: parsed.session, persistence: 'dev-plaintext' }
     }
     return { status: 'decrypt-failed', persistence: 'none', error: 'Unsafe session format.' }
@@ -239,4 +254,8 @@ export function readMantaCloudSession(
 export function clearMantaCloudSession(profileId: string, userDataPath: string): void {
   memorySessions.delete(sessionCacheKey(profileId, userDataPath))
   rmSync(getMantaCloudSessionPath(profileId, userDataPath), { force: true })
+}
+
+export function getMantaCloudMemorySessionCountForTests(): number {
+  return memorySessions.size
 }

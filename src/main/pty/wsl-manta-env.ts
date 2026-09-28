@@ -54,6 +54,7 @@ function worktreeSetupWslenvEntries(env: Record<string, string | undefined>): st
   ]
 }
 
+/** Adds the host environment values required by a WSL PTY and its guest relay. */
 export function addMantaWslInteropEnv(env: Record<string, string>): void {
   // Why set here: every WSL spawn path funnels through this helper, and the
   // in-guest login script needs the resolved wrapper root. Windows/WSL wrappers
@@ -79,11 +80,16 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     // and it cannot derive the hash segment from MANTA_USER_DATA_PATH alone.
     'MANTA_SHELL_READY_ROOT/p',
     'MANTA_CLI_COMMAND/u',
+    // Why /p: the managed CLI launcher lives in the host's userData tree.
+    'MANTA_WSL_CLI_DIR/p',
     'MANTA_CODEX_LAUNCH_PREFLIGHT/p',
     'MANTA_PANE_KEY/u',
     'MANTA_TAB_ID/u',
     'MANTA_WORKTREE_ID/u',
     'MANTA_AGENT_LAUNCH_TOKEN/u',
+    // The guest plugin uses this marker to select the OpenCode variant that
+    // owns the pane when both native and WSL installations are present.
+    'MANTA_OPENCODE_AGENT/u',
     `${SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV}/u`,
     `${SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV}/u`,
     'MANTA_ORCHESTRATION_COMPATIBILITY_HOST_KIND/u',
@@ -99,7 +105,8 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     'MANTA_WSL_HOOK_RELAY_VERSION/u',
     'MANTA_WSL_HOOK_INSTANCE/u',
     'MANTA_OMP_SOURCE_AGENT_DIR/p',
-    'MANTA_OMP_STATUS_EXTENSION/p',
+    `MANTA_OMP_STATUS_EXTENSION/${env.MANTA_OMP_STATUS_EXTENSION?.startsWith('/') ? 'u' : 'p'}`,
+    ...(env.MANTA_PI_SOURCE_AGENT_DIR?.startsWith('/') ? ['MANTA_PI_SOURCE_AGENT_DIR/u'] : []),
     `${ORCA_IMAGE_PROTOCOL_ENV}/u`,
     `${ORCA_OMP_FRESH_CONFIG_ENV}/p`,
     ...worktreeSetupWslenvEntries(env)

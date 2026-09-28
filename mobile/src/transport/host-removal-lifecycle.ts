@@ -1,8 +1,13 @@
 import {
+  deleteHostPageCache,
+  forgetHostUpdateFailures
+} from '../mobile-web-shell/removed-host-shell-cache'
+import {
   clearWatermark,
   forgetHostNotificationSession
 } from '../notifications/notification-reconnect-catchup'
 import { unregisterPushForRemovedHost } from '../notifications/push-registration'
+import { forgetHostDescriptor } from './host-descriptor-store'
 import { removeHost } from './host-store'
 
 export async function removeHostAndCloseClient(
@@ -27,4 +32,9 @@ export async function removeHostAndCloseClient(
   forgetHostNotificationSession(hostId)
   // Best-effort: removal already committed, and a storage failure must not surface as unhandled.
   void clearWatermark(hostId).catch(() => {})
+  forgetHostDescriptor(hostId)
+  // Why after the commit and not awaited: state about a host that is gone, never a reason to hold
+  // the removal or fail it. A cache that fails to delete is reclaimed by the next eviction.
+  void forgetHostUpdateFailures(hostId).catch(() => undefined)
+  void deleteHostPageCache(hostId).catch(() => undefined)
 }

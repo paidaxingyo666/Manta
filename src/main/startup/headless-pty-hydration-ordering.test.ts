@@ -40,7 +40,7 @@ describe('headless PTY registry hydration ordering', () => {
 
   it('hydrates mantad after Store and daemon readiness but before RPC and publication', () => {
     const source = readFileSync(join(process.cwd(), 'src/main/mantad/mantad-entry.ts'), 'utf8')
-    const store = source.indexOf('const store = new Store(')
+    const store = source.indexOf('createOrcadProfileStateStartup(runtimeUserDataPath)')
     const daemon = source.indexOf('await startMantadDaemon()', store)
     const handlersAndHydration = source.indexOf('await registerHeadlessPtyRuntime(', daemon)
     const rpc = source.indexOf('await rpc.start()', handlersAndHydration)
@@ -57,7 +57,7 @@ describe('headless PTY registry hydration ordering', () => {
     const source = readFileSync(join(process.cwd(), 'src/main/mantad/mantad-entry.ts'), 'utf8')
     const cleanup = source.indexOf('registerCleanup(async () => {')
     const hookStop = source.indexOf('agentHookServer.stop()', cleanup)
-    const store = source.indexOf('const store = new Store(')
+    const store = source.indexOf('createOrcadProfileStateStartup(runtimeUserDataPath)')
     const hookStart = source.indexOf('await agentHookServer.start(', store)
     const daemon = source.indexOf('await startMantadDaemon()', hookStart)
     const hookEnv = source.indexOf('buildAgentHookPtyEnv:', daemon)

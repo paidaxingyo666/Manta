@@ -1,3 +1,4 @@
+import { withDurableRuntimeStore } from '../runtime-durable-store-fixture'
 import { describe, expect, it, vi } from 'vitest'
 import type { AgentStatusIpcPayload } from '../../../shared/agent-status-types'
 import { MantaRuntimeService, electronMocks } from '../manta-runtime-test-mocks.spec'
@@ -442,7 +443,9 @@ describe('MantaRuntimeService', () => {
     })
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const closeTerminalTab = vi.fn(async () => {})
-    const runtime = new MantaRuntimeService({ ...runtimeStore, flushOrThrow } as never)
+    const runtime = new MantaRuntimeService(
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow })
+    )
     runtime.setPtyController({
       write: () => true,
       kill,

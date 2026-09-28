@@ -26,6 +26,7 @@ export const PR_CHECK_JOBS = [
   'shell_contracts',
   'test',
   'mantad_browser',
+  'relay',
   'mobile_web_app',
   'cross-version-wire',
   'managed_hook_node18',
@@ -44,6 +45,7 @@ const GLOBAL_FORCE_PREFIXES = [
 const GLOBAL_FORCE_FILES = new Set(['package.json', 'pnpm-lock.yaml'])
 
 const GIT_COMPAT_PREFIXES = [
+  '.github/actions/prepare-git-compatibility/',
   'src/shared/git-',
   'src/shared/review-head-tracking-ref',
   'src/main/git/',
@@ -107,14 +109,29 @@ const MANTAD_BROWSER_PREFIXES = [
   'src/main/mantad/electron-serve-browser-process'
 ]
 
-// The Route A page bundle: the builder and verifier, the entry, the route tree it mounts, the
-// mobile source those routes import, and the shell policy the render check runs the page under.
+// This fork's self-hosted relay-server/ plus the desktop modules its suite imports, transitively.
+const RELAY_PREFIXES = [
+  'relay-server/',
+  'src/main/runtime/relay/',
+  'src/main/runtime/host-challenge-envelope',
+  'src/shared/mobile-relay-phone-protocol',
+  'src/shared/mobile-relay-credential-contract'
+]
+
+// The page bundle the desktop packages: the builder and verifier, the manifest writer and the
+// packaging guard they share, the entry, the route tree it mounts, the mobile source those routes
+// import, and the shell policy the render check runs the page under.
 const MOBILE_WEB_APP_PREFIXES = [
   'config/scripts/build-mobile-web-app',
+  'config/scripts/run-mobile-web-app-checks',
+  'config/scripts/script-child-process.mjs',
+  'src/shared/child-process/',
   'config/scripts/verify-mobile-web-app-bundle',
   'config/scripts/mobile-web-app-',
-  'config/scripts/build-mobile-web-bundle',
-  'config/scripts/verify-mobile-web-bundle',
+  'config/scripts/mobile-web-bundle-',
+  'config/scripts/verify-packaged-mobile-web-bundle',
+  'config/scripts/mobile-web-source-line-endings',
+  'config/scripts/script-entry-detection',
   'mobile/web-entry/',
   'mobile/app/',
   'mobile/src/',
@@ -141,11 +158,14 @@ const CROSS_VERSION_WIRE_PREFIXES = [
   'src/shared/rpc-contract/agent-launch-params',
   'src/shared/agent-session-wire',
   'src/shared/agent-session-mutation-envelope',
+  'src/shared/agent-session-record',
   'src/shared/agent-session-journal-',
   'src/main/ai-vault/structured-session-ownership.ts',
   'src/main/native-chat/agent-session-journal/',
   'src/main/native-chat/agent-session-wire/',
   'src/main/runtime/agent-session-record-store',
+  'src/main/runtime/agent-session-recovery-capsule',
+  'src/shared/agent-session-resume-marker',
   'src/main/runtime/rpc/dispatcher',
   'src/main/runtime/rpc/methods/agent-launch',
   'src/main/runtime/rpc/methods/ai-vault.ts',
@@ -153,6 +173,9 @@ const CROSS_VERSION_WIRE_PREFIXES = [
   'src/main/runtime/rpc/methods/session-tabs.ts',
   'src/main/runtime/rpc/methods/structured-agent-session',
   'src/main/runtime/rpc/methods/terminal',
+  'src/main/runtime/runtime-worktree-agent-',
+  'src/main/runtime/runtime-worktree-pty-agent-sources',
+  'src/shared/runtime-worktree-contracts',
   'src/renderer/src/runtime/remote-runtime-terminal-multiplexer'
 ]
 
@@ -214,11 +237,17 @@ const SHARED_PACKAGE_PREFIXES = [
 
 const LINUX_PACKAGE_PREFIXES = [
   ...SHARED_PACKAGE_PREFIXES,
+  'config/scripts/package-linux-formats',
+  'config/scripts/script-child-process.mjs',
+  'config/scripts/space-sharing-copy.mjs',
+  '.github/actions/prepare-linux-package-fixture/',
   'config/docker/cli-launch-contract/',
   'config/docker/headless-pairing/',
   'config/docker/headless-serve-shutdown/',
+  'config/docker/daemon-shutdown-descendants/',
   'config/scripts/run-linux-cli-launch-contract',
   'config/scripts/run-headless-linux-pairing-docker',
+  'config/scripts/run-daemon-shutdown-descendants-docker',
   'config/scripts/static-appimage-package-contract',
   'native/computer-use-linux/',
   'resources/linux/',
@@ -248,6 +277,7 @@ const WINDOWS_PACKAGE_TESTS = [
   'config/scripts/rebuild-native-deps.test.mjs',
   'config/scripts/rebuild-native-deps-windows-process-tree.test.mjs',
   'config/scripts/rebuild-native-deps-node-pty.test.mjs',
+  'config/scripts/nsis-process-check.test.mjs',
   'config/scripts/ensure-native-runtime-job-ownership.test.mjs',
   'config/scripts/verify-packaged-node-pty-job-ownership.test.mjs',
   'config/scripts/windows-pe-machine.test.mjs',
@@ -264,9 +294,11 @@ const WINDOWS_PACKAGE_TESTS = [
   'src/main/codex/windows-hook-upgrade.test.ts',
   'src/main/windows/windows-pty-job.win32.test.ts',
   'src/main/windows/windows-msys-job.win32.test.ts',
+  'src/main/providers/agent-foreground-process-git-bash.win32.test.ts',
   'src/main/windows/windows-host-job.win32.test.ts',
   'src/main/windows/windows-process-tree-command-line-patch.test.ts',
   'src/main/windows/windows-process-table-native-addon.win32.test.ts',
+  'src/main/persistence/profile-state/profile-state-access-windows-native.win32.test.ts',
   'src/main/windows-live-tree-kill.win32.test.ts',
   'src/main/wsl/wsl-runner.test.ts',
   'src/main/wsl/wsl-guest-environment.test.ts',
@@ -408,6 +440,8 @@ function jobDetector(job) {
       return (files) => files.some((file) => matchesPrefix(file, SHELL_PREFIXES))
     case 'mantad_browser':
       return (files) => files.some((file) => matchesPrefix(file, MANTAD_BROWSER_PREFIXES))
+    case 'relay':
+      return (files) => files.some((file) => matchesPrefix(file, RELAY_PREFIXES))
     // Not redundant with the lift below the jobs map: without a case here the default detector
     // returns true, which would run this job on every desktop-relevant PR.
     case 'mobile_web_app':

@@ -1,8 +1,11 @@
 import { z } from 'zod'
-import { MobileRelayEndpointSchema } from '../../../src/shared/mobile-relay-credential-contract'
-import { translate } from '../i18n/i18n'
+import {
+  MobileRelayEndpointSchema,
+  type MobileRelayEndpoint
+} from '../../../src/shared/mobile-relay-credential-contract'
+import { relayConnectWebSocketUrl } from './mobile-relay-connect-url'
 
-export const MobileAccessEndpointSchema = z
+const MobileAccessEndpointSchema = z
   .object({
     id: z.string().min(1).max(128),
     kind: z.enum(['lan', 'tailscale', 'relay']),
@@ -10,6 +13,10 @@ export const MobileAccessEndpointSchema = z
   })
   .strict()
 
+/**
+ * The stored record, which shipped builds also read and write. Only `relay` is authoritative here:
+ * `endpoints` and `relayHostId` are derived copies kept so an older build still parses the record.
+ */
 export const MobileRelayHostOverlaySchema = z
   .object({
     v: z.literal(2),
@@ -24,20 +31,14 @@ export const MobileRelayHostOverlaySchema = z
   .strict()
   .superRefine((overlay, context) => {
     if ((overlay.relayHostId === undefined) !== (overlay.relay === undefined)) {
-      context.addIssue({
-        code: 'custom',
-        message: translate(
-          'm.mobile.relay.host.overlay.0a36dc1b70',
-          'Relay identity and endpoint must coexist'
-        )
-      })
+      context.addIssue({ code: 'custom', message: 'Relay identity and endpoint must coexist' })
       return
     }
     if (overlay.relay && overlay.relay.relayHostId !== overlay.relayHostId) {
       context.addIssue({
         code: 'custom',
         path: ['relayHostId'],
-        message: translate('m.mobile.relay.host.overlay.7becc2880a', 'Relay host identity mismatch')
+        message: 'Relay host identity mismatch'
       })
     }
     const relayEndpointCount = overlay.endpoints.filter(({ kind }) => kind === 'relay').length
@@ -45,13 +46,29 @@ export const MobileRelayHostOverlaySchema = z
       context.addIssue({
         code: 'custom',
         path: ['endpoints'],
-        message: translate(
-          'm.mobile.relay.host.overlay.97129930cc',
-          'Expected exactly one endpoint for configured relay metadata'
-        )
+        message: 'Expected exactly one endpoint for configured relay metadata'
       })
     }
   })
 
-export type MobileAccessEndpoint = z.infer<typeof MobileAccessEndpointSchema>
 export type MobileRelayHostOverlay = z.infer<typeof MobileRelayHostOverlaySchema>
+
+// Why no direct entry: the host row owns the address, and a copy here outlived every Edit Host.
+export function toStoredMobileRelayHostOverlay(
+  hostId: string,
+  relay: MobileRelayEndpoint
+): MobileRelayHostOverlay {
+  return MobileRelayHostOverlaySchema.parse({
+    v: 2,
+    hostId,
+    endpoints: [
+      {
+        id: 'relay-primary',
+        kind: 'relay',
+        url: relayConnectWebSocketUrl(relay.cellUrl, relay.relayHostId)
+      }
+    ],
+    relayHostId: relay.relayHostId,
+    relay
+  })
+}

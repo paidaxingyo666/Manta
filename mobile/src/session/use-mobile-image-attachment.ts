@@ -1,13 +1,12 @@
 import { useCallback, useState } from 'react'
 import type { RpcClient } from '../transport/rpc-client'
 import type { ConnectionState } from '../transport/types'
-import { attachMobileImageToTerminal } from './mobile-image-attachment'
+import { useMediaPicker } from '../platform/media-picker'
 import {
   ImageLibraryPermissionError,
-  pickMobileImage,
   type MobileImageSource
-} from './mobile-image-source-picker'
-import { translate } from '../i18n/i18n'
+} from '../platform/media-picker-contract'
+import { attachMobileImageToTerminal } from './mobile-image-attachment'
 
 type CurrentRef<T> = {
   readonly current: T
@@ -54,6 +53,7 @@ export function useMobileImageAttachment({
   beforeTerminalSend
 }: UseMobileImageAttachmentArgs): MobileImageAttachment {
   const [isAttaching, setIsAttaching] = useState(false)
+  const picker = useMediaPicker()
   const attachImage = useCallback(
     async (source: MobileImageSource): Promise<void> => {
       if (!client || !activeHandle || !canSend) {
@@ -66,7 +66,7 @@ export function useMobileImageAttachment({
           terminal: activeHandle,
           deviceToken: deviceTokenRef.current,
           getConnectionId: getActiveWorktreeConnectionId,
-          pickImage: pickMobileImage,
+          pickImage: picker.pickImage,
           onUploadStart: () => setIsAttaching(true),
           beforeTerminalSend
         })
@@ -77,27 +77,18 @@ export function useMobileImageAttachment({
       } catch (error) {
         onError()
         if (connState !== 'connected') {
-          showToast(
-            translate('m.use.mobile.image.attachment.b6efaa94dd', 'Attach failed (disconnected)'),
-            1500
-          )
+          showToast('Attach failed (disconnected)', 1500)
           return
         }
         if (error instanceof ImageLibraryPermissionError) {
-          showToast(
-            translate('m.use.mobile.image.attachment.25d19dd487', 'Photo permission denied'),
-            1500
-          )
+          showToast('Photo permission denied', 1500)
           return
         }
         if (getErrorMessage(error) === 'Clipboard image is too large') {
-          showToast(
-            translate('m.use.mobile.image.attachment.849600ec04', 'Image too large to attach'),
-            1500
-          )
+          showToast('Image too large to attach', 1500)
           return
         }
-        showToast(translate('m.use.mobile.image.attachment.3524b83abd', 'Attach failed'), 1500)
+        showToast('Attach failed', 1500)
       } finally {
         setIsAttaching(false)
       }
@@ -113,6 +104,7 @@ export function useMobileImageAttachment({
       getActiveWorktreeConnectionId,
       onError,
       onSuccess,
+      picker,
       showToast
     ]
   )

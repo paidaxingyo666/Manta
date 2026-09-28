@@ -1,4 +1,4 @@
-import { app, ipcMain } from 'electron'
+import { app, ipcMain, type WebContents } from 'electron'
 import type { Store } from '../persistence'
 import { relaunchApp, type AppRelaunchReason } from '../app-relaunch'
 import type {
@@ -28,8 +28,12 @@ import {
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { isMultiProfileUiEnabled } from '../manta-profiles/profile-ui-scope'
 import { transferMantaProfileProject } from '../manta-profiles/profile-project-transfer'
+import { transferActiveProfileProject } from '../manta-profiles/profile-active-transfer'
 import { findMantaProfileProjectsByPath } from '../manta-profiles/profile-project-presence'
-import { flushActiveProfileBeforeFileMutation } from '../manta-profiles/profile-persistence-deadline'
+import {
+  flushActiveProfileBeforeFileMutation,
+  flushActiveProfileBeforeRelaunch
+} from '../manta-profiles/profile-persistence-deadline'
 import { normalizeExecutionHostId } from '../../shared/execution-host'
 import {
   createCloudLinkedMantaProfile,
@@ -41,6 +45,7 @@ import { registerMantaProfileOrgMemberHandlers } from './manta-profile-org-membe
 import { registerMantaCloudEndpointHandler } from './manta-cloud-endpoints-handler'
 import { onOrcaCloudSessionInvalidated } from '../manta-profiles/profile-cloud-session-invalidation'
 import { broadcastOrcaProfileAuthStatusChanged } from './manta-profile-auth-status-broadcast'
+import { transferProjectArgsFromUnknown } from './manta-profile-project-transfer-args'
 
 type RegisterMantaProfileHandlersOptions = {
   onBeforeRelaunch?: () => void | Promise<void>
@@ -49,38 +54,14 @@ type RegisterMantaProfileHandlersOptions = {
 }
 
 function profileIdFromArgs(args: unknown): string {
-  if (
-    !args ||
-    typeof args !== 'object' ||
-    typeof (args as SwitchMantaProfileArgs).profileId !== 'string'
-  ) {
-    throw new Error('invalid_manta_profile_id')
-  }
-  const profileId = (args as SwitchMantaProfileArgs).profileId.trim()
+  const profileId =
+    args && typeof args === 'object' && 'profileId' in args && typeof args.profileId === 'string'
+      ? args.profileId.trim()
+      : ''
   if (!profileId) {
     throw new Error('invalid_manta_profile_id')
   }
   return profileId
-}
-
-function transferProjectArgsFromUnknown(args: unknown): TransferMantaProfileProjectArgs {
-  if (!args || typeof args !== 'object') {
-    throw new Error('invalid_manta_profile_project_transfer')
-  }
-  const candidate = args as TransferMantaProfileProjectArgs
-  const sourceProfileId = candidate.sourceProfileId?.trim()
-  const targetProfileId = candidate.targetProfileId?.trim()
-  const repoId = candidate.repoId?.trim()
-  const mode = candidate.mode
-  if (!sourceProfileId || !targetProfileId || !repoId || (mode !== 'move' && mode !== 'copy')) {
-    throw new Error('invalid_manta_profile_project_transfer')
-  }
-  return {
-    sourceProfileId,
-    targetProfileId,
-    repoId,
-    mode
-  }
 }
 
 function findProjectsByPathArgsFromUnknown(args: unknown): FindMantaProfileProjectsByPathArgs {
@@ -140,7 +121,12 @@ async function runBeforeProfileRelaunch(
   }
 }
 
-function scheduleProfileRelaunch(reason: Extract<AppRelaunchReason, `profile-${string}`>): void {
+type ProfileRelaunchReason = Extract<AppRelaunchReason, `profile-${string}`>
+
+function scheduleProfileRelaunch(reason: ProfileRelaunchReason, sender: WebContents): void {
+  if (!sender.isDestroyed()) {
+    sender.send('app:restart-committed')
+  }
   setTimeout(() => {
     relaunchApp(reason)
     // Why: app.quit() (not app.exit) so before-quit/will-quit still run —
@@ -180,7 +166,7 @@ export function registerMantaProfileHandlers(
 
   ipcMain.handle(
     'mantaProfiles:switch',
-    async (_event, args: SwitchMantaProfileArgs): Promise<SwitchMantaProfileResult> => {
+    async (event, args: SwitchMantaProfileArgs): Promise<SwitchMantaProfileResult> => {
       const profileId = profileIdFromArgs(args)
       const current = getMantaProfileListState()
       if (profileId === current.activeProfileId) {
@@ -200,11 +186,12 @@ export function registerMantaProfileHandlers(
       }
       // Why: the current profile must be persisted before the global index
       // points startup at the target profile.
-      await flushActiveProfileBeforeFileMutation(store)
-      await runBeforeProfileRelaunch(options.onBeforeRelaunch)
+      // Switching leaves source files intact; relaunch cleanup still needs its live writer.
+      await flushActiveProfileBeforeRelaunch(store)
       setActiveMantaProfile(profileId)
+      await runBeforeProfileRelaunch(options.onBeforeRelaunch)
 
-      scheduleProfileRelaunch('profile-switch')
+      scheduleProfileRelaunch('profile-switch', event.sender)
 
       return { status: 'relaunching' }
     }
@@ -213,7 +200,7 @@ export function registerMantaProfileHandlers(
   ipcMain.handle(
     'mantaProfiles:transferProject',
     async (
-      _event,
+      event,
       rawArgs: TransferMantaProfileProjectArgs
     ): Promise<TransferMantaProfileProjectResult> => {
       const args = transferProjectArgsFromUnknown(rawArgs)
@@ -224,19 +211,37 @@ export function registerMantaProfileHandlers(
       if (args.mode === 'move' && args.sourceProfileId === current.activeProfileId) {
         // Why: transfer before any relaunch side effect so a duplicate-target
         // or validation failure cannot strand the app in a quitting state.
-        await flushActiveProfileBeforeFileMutation(store)
-        const result = transferMantaProfileProject(args, getProfileUserDataPath())
+        const result = await transferActiveProfileProject(
+          args,
+          getProfileUserDataPath(),
+          store,
+          async () => {
+            await runBeforeProfileRelaunch(options.onBeforeRelaunch)
+            scheduleProfileRelaunch('profile-transfer', event.sender)
+          }
+        )
         if (result.status === 'transferred') {
-          store.freezeWrites()
           await runBeforeProfileRelaunch(options.onBeforeRelaunch)
-          setActiveMantaProfile(args.targetProfileId)
-          scheduleProfileRelaunch('profile-transfer')
+          try {
+            setActiveMantaProfile(args.targetProfileId)
+          } finally {
+            // The source has already changed and its writer cannot resume.
+            scheduleProfileRelaunch('profile-transfer', event.sender)
+          }
           return { ...result, willRelaunch: true }
         }
         return result
       }
-      await flushActiveProfileBeforeFileMutation(store)
-      return transferMantaProfileProject(args, getProfileUserDataPath())
+      if (args.sourceProfileId !== current.activeProfileId) {
+        await store.flushPendingOrThrowAsync({ drainToStableGeneration: false })
+        return transferMantaProfileProject(args, getProfileUserDataPath())
+      }
+      const maintenance = await flushActiveProfileBeforeFileMutation(store)
+      try {
+        return transferMantaProfileProject(args, getProfileUserDataPath())
+      } finally {
+        await maintenance.resume()
+      }
     }
   )
 

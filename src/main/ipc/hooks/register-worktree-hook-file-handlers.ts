@@ -1,3 +1,4 @@
+import { getStoredRepoSshConnectionId } from '../../repo-execution-host'
 import { getLocalProjectWorktreeGitOptions } from '../../project-runtime-git-options'
 import { ipcMain } from 'electron'
 import type { ExecutionHostId } from '../../../shared/execution-host'
@@ -32,9 +33,10 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
           source: 'none' as const
         }
       }
-      if (repo.connectionId) {
+      const connectionId = getStoredRepoSshConnectionId(repo)
+      if (connectionId) {
         const issueCommandPath = joinWorktreeRelativePath(repo.path, '.manta/issue-command')
-        const fsProvider = getSshFilesystemProvider(repo.connectionId)
+        const fsProvider = getSshFilesystemProvider(connectionId)
         if (!fsProvider) {
           return {
             status: 'error',
@@ -58,7 +60,9 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
           }
         }
         try {
-          const result = await fsProvider.readFile(joinWorktreeRelativePath(repo.path, 'manta.yaml'))
+          const result = await fsProvider.readFile(
+            joinWorktreeRelativePath(repo.path, 'manta.yaml')
+          )
           sharedContent = result.isBinary
             ? null
             : parseMantaYaml(result.content)?.issueCommand?.trim() || null
@@ -92,9 +96,10 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
       if (!repo || isFolderRepo(repo)) {
         return
       }
-      if (repo.connectionId) {
+      const connectionId = getStoredRepoSshConnectionId(repo)
+      if (connectionId) {
         const issueCommandPath = joinWorktreeRelativePath(repo.path, '.manta/issue-command')
-        const fsProvider = getSshFilesystemProvider(repo.connectionId)
+        const fsProvider = getSshFilesystemProvider(connectionId)
         if (!fsProvider) {
           throw new Error(
             'Remote filesystem unavailable. Reconnect the SSH target before retrying.'
@@ -110,7 +115,7 @@ export function registerWorktreeHookFileHandlers(context: WorktreeIpcContext): v
           return
         }
         await fsProvider.createDir(joinWorktreeRelativePath(repo.path, '.manta'))
-        if (await isIssueCommandIgnoredByGit(repo.path, repo.connectionId)) {
+        if (await isIssueCommandIgnoredByGit(repo.path, connectionId)) {
           await fsProvider.writeFile(issueCommandPath, `${trimmed}\n`)
           return
         }

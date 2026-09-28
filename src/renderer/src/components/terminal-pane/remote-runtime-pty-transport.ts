@@ -636,22 +636,24 @@ export function createRemoteRuntimePtyTransport(
   async function waitForHostSessionHandle(
     hostTabId: string,
     isCurrent: () => boolean
-  ): Promise<string | null | undefined | false> {
+  ): Promise<string | undefined | false> {
     if (!worktreeId) {
       return undefined
     }
     const worktree = toRuntimeWorktreeSelector(worktreeId)
-    let activated: RuntimeMobileSessionTabsResult
+    let activated: RuntimeMobileSessionTabsResult | undefined
     try {
       // Why: this runs when the pane itself is opened/attached — the user's wake gesture.
       activated = await activateHostSessionSurface(hostTabId, worktree, 'user')
     } catch (error) {
-      if (isMissingHostSessionSurfaceError(error)) {
-        return null
+      // Why: activation answers absence from the host's own in-flight bookkeeping — a worktree snapshot
+      // it has not hydrated yet answers the same way as one it really dropped (#21852). Only the
+      // inventory below carries removal evidence, so fall through and let it adjudicate.
+      if (!isMissingHostSessionSurfaceError(error)) {
+        throw error
       }
-      throw error
     }
-    const immediate = findReadyHostSessionHandle(activated, hostTabId)
+    const immediate = activated ? findReadyHostSessionHandle(activated, hostTabId) : undefined
     if (immediate) {
       return immediate
     }
@@ -762,7 +764,7 @@ export function createRemoteRuntimePtyTransport(
   async function waitForHostSessionHandleWithRecovery(
     hostTabId: string,
     isCurrent: () => boolean
-  ): Promise<string | null | undefined | false> {
+  ): Promise<string | undefined | false> {
     let recoveryEpoch = recovery.isActive ? recovery.currentEpoch : undefined
     while (isCurrent()) {
       try {
@@ -2649,6 +2651,8 @@ export function createRemoteRuntimePtyTransport(
       storedCallbacks = {}
     },
 
+    // Why no kind: terminal.send has no launch kind, and its query-reply kind is for mobile
+    // clients, so the host classifies a desktop's bytes itself.
     sendInput(data: string): boolean {
       if (!destroyed && preconnectInputBuffer?.isBuffering()) {
         return preconnectInputBuffer.enqueue(data, 'ordinary', opts.onPreconnectInput)

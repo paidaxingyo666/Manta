@@ -107,14 +107,14 @@ const hash = (parts: string[] | string): string =>
 // moves. The render-token stream gains the four tokens that one attribute is, 35,203 -> 35,207.
 // Nothing else in the family moves.
 
-// Rebased for the 2026-09-20 sync with the fork's localization and rich markdown reader.
-const SCREEN_RPC_SCREEN_HOOKS = '07c038496105f72f648df9f09850e4d4e0c1b6dc9a64751357bc4920c8bf87c1'
+const SCREEN_RPC_SCREEN_HOOKS = '0f66df2141117dfec2f8a0adb3f598312e6fda8e80833a365a645796f5ab48c3'
 const PRE_REFACTOR_DIFF_HOOKS = '93c7189b32bed8456cc51814fffa8ce80cf62011ef968a9d53ddec2b9686f58f'
-const SCREEN_RPC_STATEMENTS = 'b40186ac869b82eb984d4eeda66d1572b3c5b1f9fc1dd791e3d3ff9bc1219479'
-const MAIN_REBASED_DECLARATIONS = 'f5cc4723699775bac7968eccb22b083c8053bd2f329fc24ff29e97aa742b422d'
-const SCREEN_RPC_SEMANTICS = '9142d7202727cf410cb31b36480066961874061d3ce51a73af0d97087f956687'
+const SCREEN_RPC_STATEMENTS = 'dd8f33cb3cf96f5c39abac397cb77e35f59079291033a1866ead462b041ab979'
+// Saved Linear selections now accept unknown persisted values; reconciliation tests cover them.
+const MAIN_REBASED_DECLARATIONS = 'ec77d34712c7c4ab19ac6a4d57878f32d22aba790d2420cc14c2c0f000d120e9'
+const SCREEN_RPC_SEMANTICS = 'e07a63387d57106483ee703ec6c19dea593e0eca5c651758f42bcb36254850b7'
 const PRE_REFACTOR_STYLES = '1db6af69c791d9963928541ad5310942fcbda6d984b422c90b6eb92b6816579a'
-const SCREEN_RPC_RENDER_TREE = '17624da3487244d1470acc889747d044d986c1e2c9737ce5151c7fb01841d7c0'
+const SCREEN_RPC_RENDER_TREE = '086742f95f1e87fb89d8c67ffd9f7a229799ae05115f9f4bcc1a925e56dcc8bb'
 
 describe('Mobile Tasks refactor parity', () => {
   it('preserves recursively flattened hook and dependency order', () => {
@@ -141,13 +141,13 @@ describe('Mobile Tasks refactor parity', () => {
 
   it('preserves RPC calls, runtime strings, and JSX host signatures', () => {
     const semantics = readMobileTasksSemanticSource()
-    expect(semantics.split('\n')).toHaveLength(3_999)
+    expect(semantics.split('\n')).toHaveLength(3_274)
     expect(hash(semantics)).toBe(SCREEN_RPC_SEMANTICS)
   })
 
   it('preserves render expressions and event handlers in tree order', () => {
     const tokens = readFlattenedMobileTasksRenderTokens()
-    expect(tokens).toHaveLength(36_609)
+    expect(tokens).toHaveLength(35_207)
     expect(hash(tokens)).toBe(SCREEN_RPC_RENDER_TREE)
   })
 

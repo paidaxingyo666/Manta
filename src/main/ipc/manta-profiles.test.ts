@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type * as ProfileStoragePaths from '../manta-profiles/profile-storage-paths'
 
 const {
   handlers,
@@ -11,7 +12,8 @@ const {
   getMantaProfileListStateMock,
   seedNewMantaProfileTelemetryConsentMock,
   setActiveMantaProfileMock,
-  transferMantaProfileProjectMock
+  transferMantaProfileProjectMock,
+  hasOrcaProfileStateDatabaseMock
 } = vi.hoisted(() => ({
   handlers: new Map<string, (_event: unknown, args?: unknown) => unknown>(),
   appExitMock: vi.fn(),
@@ -23,7 +25,8 @@ const {
   getMantaProfileListStateMock: vi.fn(),
   seedNewMantaProfileTelemetryConsentMock: vi.fn(),
   setActiveMantaProfileMock: vi.fn(),
-  transferMantaProfileProjectMock: vi.fn()
+  transferMantaProfileProjectMock: vi.fn(),
+  hasOrcaProfileStateDatabaseMock: vi.fn()
 }))
 
 vi.mock('electron', () => ({
@@ -54,20 +57,35 @@ vi.mock('../manta-profiles/profile-index-store', () => ({
   setActiveMantaProfile: setActiveMantaProfileMock
 }))
 
-function makeStoreMock(flushPendingOrThrowAsync = vi.fn()): {
-  flushPendingOrThrowAsync: typeof flushPendingOrThrowAsync
-  freezeWrites: ReturnType<typeof vi.fn>
-  getSettings: () => Record<string, never>
-} {
-  return { flushPendingOrThrowAsync, freezeWrites: vi.fn(), getSettings: () => ({}) }
+function makeStoreMock(flushPendingOrThrowAsync = vi.fn()) {
+  const freezeWrites = vi.fn()
+  const resumeMaintenance = vi.fn(async () => {})
+  return {
+    flushPendingOrThrowAsync,
+    freezeWrites,
+    resumeMaintenance,
+    beginProfileMaintenance: vi.fn(async (options: unknown) => {
+      await flushPendingOrThrowAsync(options)
+      freezeWrites()
+      return { resume: resumeMaintenance }
+    }),
+    getSettings: () => ({})
+  }
 }
 
 vi.mock('../manta-profiles/profile-project-transfer', () => ({
   transferMantaProfileProject: transferMantaProfileProjectMock
 }))
 
+vi.mock('../manta-profiles/profile-storage-paths', async (importOriginal) => ({
+  ...(await importOriginal<typeof ProfileStoragePaths>()),
+  hasOrcaProfileStateDatabase: hasOrcaProfileStateDatabaseMock
+}))
+
 import { registerMantaProfileHandlers } from './manta-profiles'
 import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'
+
+const ipcEvent = { sender: { isDestroyed: () => false, send: vi.fn() } }
 
 describe('registerMantaProfileHandlers', () => {
   beforeEach(() => {
@@ -76,6 +94,7 @@ describe('registerMantaProfileHandlers', () => {
     installFakeAppEnvironment({ getPath: () => '/tmp/manta-user-data' })
     vi.useFakeTimers()
     handlers.clear()
+    ipcEvent.sender.send.mockClear()
     appExitMock.mockReset()
     appQuitMock.mockReset()
     appRelaunchMock.mockReset()
@@ -87,6 +106,7 @@ describe('registerMantaProfileHandlers', () => {
     seedNewMantaProfileTelemetryConsentMock.mockReset()
     setActiveMantaProfileMock.mockReset()
     transferMantaProfileProjectMock.mockReset()
+    hasOrcaProfileStateDatabaseMock.mockReset().mockReturnValue(false)
   })
 
   afterEach(() => {
@@ -107,12 +127,12 @@ describe('registerMantaProfileHandlers', () => {
 
     registerMantaProfileHandlers(makeStoreMock() as never)
 
-    await expect(Promise.resolve(handlers.get('mantaProfiles:list')?.(null))).resolves.toEqual({
+    await expect(Promise.resolve(handlers.get('mantaProfiles:list')?.(ipcEvent))).resolves.toEqual({
       ...listState,
       multiProfileUi: false
     })
     await expect(
-      Promise.resolve(handlers.get('mantaProfiles:createLocal')?.(null, { name: 'Work' }))
+      Promise.resolve(handlers.get('mantaProfiles:createLocal')?.(ipcEvent, { name: 'Work' }))
     ).resolves.toBe(createState)
     expect(createLocalMantaProfileMock).toHaveBeenCalledWith({ name: 'Work' })
   })
@@ -127,7 +147,9 @@ describe('registerMantaProfileHandlers', () => {
       })
       registerMantaProfileHandlers(makeStoreMock() as never)
 
-      await expect(Promise.resolve(handlers.get('mantaProfiles:list')?.(null))).resolves.toEqual({
+      await expect(
+        Promise.resolve(handlers.get('mantaProfiles:list')?.(ipcEvent))
+      ).resolves.toEqual({
         activeProfileId: 'local-default',
         profiles: [],
         multiProfileUi: true
@@ -155,7 +177,7 @@ describe('registerMantaProfileHandlers', () => {
     registerMantaProfileHandlers(makeStoreMock(flush) as never, { onBeforeRelaunch })
 
     const resultPromise = Promise.resolve(
-      handlers.get('mantaProfiles:switch')?.(null, { profileId: 'local-work' })
+      handlers.get('mantaProfiles:switch')?.(ipcEvent, { profileId: 'local-work' })
     )
 
     await expect(resultPromise).resolves.toEqual({ status: 'relaunching' })
@@ -189,7 +211,7 @@ describe('registerMantaProfileHandlers', () => {
     registerMantaProfileHandlers(makeStoreMock(flush) as never)
 
     await expect(
-      Promise.resolve(handlers.get('mantaProfiles:switch')?.(null, { profileId: 'local-work' }))
+      Promise.resolve(handlers.get('mantaProfiles:switch')?.(ipcEvent, { profileId: 'local-work' }))
     ).rejects.toThrow('flush_failed')
 
     expect(setActiveMantaProfileMock).not.toHaveBeenCalled()
@@ -206,10 +228,10 @@ describe('registerMantaProfileHandlers', () => {
     registerMantaProfileHandlers(makeStoreMock(flush) as never, { onBeforeRelaunch })
 
     const switchProfile = Promise.resolve(
-      handlers.get('mantaProfiles:switch')?.(null, { profileId: 'local-work' })
+      handlers.get('mantaProfiles:switch')?.(ipcEvent, { profileId: 'local-work' })
     )
     const rejection = expect(switchProfile).rejects.toThrow('manta_profile_persistence_timeout')
-    await vi.advanceTimersByTimeAsync(20_000)
+    await vi.advanceTimersByTimeAsync(60_000)
     await rejection
 
     expect(setActiveMantaProfileMock).not.toHaveBeenCalled()
@@ -225,7 +247,9 @@ describe('registerMantaProfileHandlers', () => {
     registerMantaProfileHandlers(makeStoreMock() as never)
 
     await expect(
-      Promise.resolve(handlers.get('mantaProfiles:switch')?.(null, { profileId: 'local-default' }))
+      Promise.resolve(
+        handlers.get('mantaProfiles:switch')?.(ipcEvent, { profileId: 'local-default' })
+      )
     ).resolves.toEqual({ status: 'already-active' })
 
     expect(setActiveMantaProfileMock).not.toHaveBeenCalled()
@@ -236,7 +260,7 @@ describe('registerMantaProfileHandlers', () => {
     registerMantaProfileHandlers(makeStoreMock() as never)
 
     await expect(
-      Promise.resolve(handlers.get('mantaProfiles:switch')?.(null, { profileId: ' ' }))
+      Promise.resolve(handlers.get('mantaProfiles:switch')?.(ipcEvent, { profileId: ' ' }))
     ).rejects.toThrow('invalid_manta_profile_id')
   })
 
@@ -260,7 +284,7 @@ describe('registerMantaProfileHandlers', () => {
 
     await expect(
       Promise.resolve(
-        handlers.get('mantaProfiles:transferProject')?.(null, {
+        handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
           sourceProfileId: ' personal ',
           targetProfileId: ' work ',
           repoId: ' repo-1 ',
@@ -302,7 +326,7 @@ describe('registerMantaProfileHandlers', () => {
 
     await expect(
       Promise.resolve(
-        handlers.get('mantaProfiles:transferProject')?.(null, {
+        handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
           sourceProfileId: 'personal',
           targetProfileId: 'work',
           repoId: 'repo-1',
@@ -328,9 +352,54 @@ describe('registerMantaProfileHandlers', () => {
     await vi.advanceTimersByTimeAsync(150)
 
     expect(appRelaunchMock).toHaveBeenCalledOnce()
+    expect(ipcEvent.sender.send).toHaveBeenCalledWith('app:restart-committed')
     expect(relaunchAppMock).toHaveBeenCalledWith('profile-transfer')
     expect(appQuitMock).toHaveBeenCalledOnce()
     expect(appExitMock).not.toHaveBeenCalled()
+  })
+
+  it('relaunches the closed source when a completed move cannot update the profile index', async () => {
+    const store = makeStoreMock()
+    getMantaProfileListStateMock.mockReturnValue({ activeProfileId: 'personal', profiles: [] })
+    transferMantaProfileProjectMock.mockReturnValue({ status: 'transferred', mode: 'move' })
+    setActiveMantaProfileMock.mockImplementationOnce(() => {
+      throw new Error('profile index disk full')
+    })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This fixture supplies every Store operation exercised by these IPC handlers.
+    registerMantaProfileHandlers(store as never)
+
+    await expect(
+      handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
+        sourceProfileId: 'personal',
+        targetProfileId: 'work',
+        repoId: 'repo-1',
+        mode: 'move'
+      })
+    ).rejects.toThrow('profile index disk full')
+
+    expect(store.freezeWrites).toHaveBeenCalledOnce()
+    expect(store.resumeMaintenance).not.toHaveBeenCalled()
+    expect(ipcEvent.sender.send).toHaveBeenCalledWith('app:restart-committed')
+    await vi.advanceTimersByTimeAsync(150)
+    expect(relaunchAppMock).toHaveBeenCalledWith('profile-transfer')
+    expect(appQuitMock).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the active profile writable during a transfer between inactive profiles', async () => {
+    const store = makeStoreMock()
+    getMantaProfileListStateMock.mockReturnValue({ activeProfileId: 'active', profiles: [] })
+    transferMantaProfileProjectMock.mockReturnValue({ status: 'transferred', mode: 'copy' })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This fixture supplies the Store operations exercised by the handlers.
+    registerMantaProfileHandlers(store as never)
+    await handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
+      sourceProfileId: 'personal',
+      targetProfileId: 'work',
+      repoId: 'repo-1',
+      mode: 'copy'
+    })
+    expect(store.beginProfileMaintenance).not.toHaveBeenCalled()
+    expect(store.freezeWrites).not.toHaveBeenCalled()
+    expect(store.flushPendingOrThrowAsync).toHaveBeenCalledBefore(transferMantaProfileProjectMock)
   })
 
   it('rejects transfers that would mutate the active target profile offline', async () => {
@@ -342,7 +411,7 @@ describe('registerMantaProfileHandlers', () => {
 
     await expect(
       Promise.resolve(
-        handlers.get('mantaProfiles:transferProject')?.(null, {
+        handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
           sourceProfileId: 'personal',
           targetProfileId: 'work',
           repoId: 'repo-1',
@@ -351,6 +420,86 @@ describe('registerMantaProfileHandlers', () => {
       )
     ).rejects.toThrow('active_target_manta_profile_transfer_requires_relaunch')
 
+    expect(transferMantaProfileProjectMock).not.toHaveBeenCalled()
+  })
+
+  it('freezes a newly migrated source after transfer failure and reopens its current profile', async () => {
+    const store = makeStoreMock()
+    const onBeforeRelaunch = vi.fn()
+    getMantaProfileListStateMock.mockReturnValue({ activeProfileId: 'personal', profiles: [] })
+    transferMantaProfileProjectMock.mockImplementation(() => {
+      hasOrcaProfileStateDatabaseMock.mockReturnValue(true)
+      throw new Error('source commit interrupted')
+    })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This fixture supplies every Store operation exercised by these IPC handlers.
+    registerMantaProfileHandlers(store as never, { onBeforeRelaunch })
+
+    await expect(
+      Promise.resolve(
+        handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
+          sourceProfileId: 'personal',
+          targetProfileId: 'work',
+          repoId: 'repo-1',
+          mode: 'move'
+        })
+      )
+    ).rejects.toThrow('source commit interrupted')
+
+    expect(store.flushPendingOrThrowAsync).toHaveBeenCalledBefore(transferMantaProfileProjectMock)
+    expect(store.freezeWrites).toHaveBeenCalledOnce()
+    expect(store.freezeWrites).toHaveBeenCalledBefore(onBeforeRelaunch)
+    expect(setActiveMantaProfileMock).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(150)
+    expect(ipcEvent.sender.send).toHaveBeenCalledWith('app:restart-committed')
+    expect(relaunchAppMock).toHaveBeenCalledWith('profile-transfer')
+    expect(appQuitMock).toHaveBeenCalledOnce()
+  })
+
+  it('keeps an active JSON source writable after validation fails without a migration', async () => {
+    const store = makeStoreMock()
+    const onBeforeRelaunch = vi.fn()
+    getMantaProfileListStateMock.mockReturnValue({ activeProfileId: 'personal', profiles: [] })
+    transferMantaProfileProjectMock.mockImplementation(() => {
+      throw new Error('unknown_source_repo')
+    })
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This fixture supplies every Store operation exercised by these IPC handlers.
+    registerMantaProfileHandlers(store as never, { onBeforeRelaunch })
+
+    await expect(
+      Promise.resolve(
+        handlers.get('mantaProfiles:transferProject')?.(ipcEvent, {
+          sourceProfileId: 'personal',
+          targetProfileId: 'work',
+          repoId: 'repo-1',
+          mode: 'move'
+        })
+      )
+    ).rejects.toThrow('unknown_source_repo')
+
+    expect(store.resumeMaintenance).toHaveBeenCalledOnce()
+    expect(onBeforeRelaunch).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(150)
+    expect(relaunchAppMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    null,
+    {},
+    { sourceProfileId: 4 },
+    {
+      sourceProfileId: 'personal',
+      targetProfileId: 'work',
+      repoId: 'repo-1',
+      mode: 'invalid'
+    }
+  ])('rejects malformed transfer arguments before disk work: %j', async (args) => {
+    const store = makeStoreMock()
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: This fixture supplies every Store operation exercised by these IPC handlers.
+    registerMantaProfileHandlers(store as never)
+    await expect(
+      Promise.resolve(handlers.get('mantaProfiles:transferProject')?.(ipcEvent, args))
+    ).rejects.toThrow('invalid_manta_profile_project_transfer')
+    expect(store.flushPendingOrThrowAsync).not.toHaveBeenCalled()
     expect(transferMantaProfileProjectMock).not.toHaveBeenCalled()
   })
 })

@@ -132,7 +132,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
           const enriched = this.applyNormalizedStatus(event, normalized.onAccepted)
           if (enriched) {
             this.scheduleAssistantMessageRetry(source, aliasedBody, enriched)
-            this.scheduleCodexSubagentPoll(source, aliasedBody, enriched)
+            this.scheduleTranscriptPoll(source, aliasedBody, enriched)
           }
         }
         res.writeHead(204)
@@ -178,6 +178,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
       this.rollbackTransportStart()
       throw error
     }
+    this.startOpenCodeBinderLoop()
   }
 
   private rollbackTransportStart(): void {
@@ -191,6 +192,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
   stop(): void {
     // Why: flush the pending debounced write before clearing the map, else a hook <250ms before quit is lost on relaunch.
     this.flushStatusPersistSync()
+    this.stopOpenCodeBinderLoop()
     this.rollbackTransportStart()
     this.env = 'production'
     this.onAgentStatus = null
@@ -202,7 +204,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
       clearTimeout(timer)
     }
     this.assistantMessageRetryTimers.clear()
-    this.clearAllCodexSubagentPolls()
+    this.clearAllTranscriptPolls()
     this.endpointDir = null
     this.endpointFilePathCache = null
     this.endpointFileWritten = false

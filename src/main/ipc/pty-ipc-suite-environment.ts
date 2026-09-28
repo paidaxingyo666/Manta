@@ -22,6 +22,7 @@ import {
   loginPreflightExecFileMock,
   spawnMock,
   openCodeBuildPtyEnvMock,
+  openCode2BuildPtyEnvMock,
   mimoCodeBuildPtyEnvMock,
   openCodeClearPtyMock,
   buildAgentHookEnvMock,
@@ -149,6 +150,7 @@ export function createPtyIpcSuiteEnvironment(): PtyIpcSuiteEnvironment {
     loginPreflightExecFileMock.mockReset()
     spawnMock.mockReset()
     openCodeBuildPtyEnvMock.mockReset()
+    openCode2BuildPtyEnvMock.mockReset()
     mimoCodeBuildPtyEnvMock.mockReset()
     openCodeClearPtyMock.mockReset()
     buildAgentHookEnvMock.mockReset()
@@ -217,6 +219,14 @@ export function createPtyIpcSuiteEnvironment(): PtyIpcSuiteEnvironment {
       OPENCODE_CONFIG_DIR: existingConfigDir
         ? '/tmp/manta-opencode-overlay'
         : '/tmp/manta-opencode-config'
+    }))
+    openCode2BuildPtyEnvMock.mockImplementation((_ptyId: string, existingConfigDir?: string) => ({
+      MANTA_OPENCODE_HOOK_PORT: '4567',
+      MANTA_OPENCODE_HOOK_TOKEN: 'opencode2-token',
+      MANTA_OPENCODE_PTY_ID: 'test-pty',
+      OPENCODE_CONFIG_DIR: existingConfigDir
+        ? '/tmp/orca-opencode2-overlay'
+        : '/tmp/orca-opencode2-config'
     }))
     mimoCodeBuildPtyEnvMock.mockImplementation((_ptyId: string, existingHome?: string) => ({
       MIMOCODE_HOME: existingHome ? '/tmp/manta-mimocode-overlay' : '/tmp/manta-mimocode-shared'

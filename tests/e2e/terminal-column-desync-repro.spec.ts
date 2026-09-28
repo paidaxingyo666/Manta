@@ -111,7 +111,14 @@ async function closeRightSidebarAndFeatureTips(page: Page): Promise<void> {
     if (!store) {
       return
     }
-    store.getState().markFeatureTipsSeen(['manta-cli', 'cmd-j-palette', 'voice-dictation'])
+    store
+      .getState()
+      .markFeatureTipsSeen([
+        'manta-cli',
+        'cmd-j-palette',
+        'voice-dictation',
+        'agent-session-search'
+      ])
     if (store.getState().rightSidebarOpen) {
       store.getState().setRightSidebarOpen(false)
     }

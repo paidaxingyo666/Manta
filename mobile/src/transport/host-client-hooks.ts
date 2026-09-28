@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { RpcClient } from './rpc-client'
 import type { ConnectionState, HostProfile } from './types'
 import type { HostClientAcquisition } from './host-client-acquisition-registry'
-import { useRpcClientContext } from './rpc-client-context-contract'
+import type { ForceReconnect } from './rpc-client-context-contract'
+import { useRpcClientContext } from './client-context'
 
 // Primary hook for screens: acquires the shared client on mount, releases on unmount, re-renders on state change.
 export function useHostClient(hostId: string | undefined): {
@@ -83,7 +84,7 @@ export function useDisconnectHostClient(): (hostId: string) => void {
   return useRpcClientContext().disconnectHostClient
 }
 
-export function useForceReconnect(): (hostId: string) => Promise<void> {
+export function useForceReconnect(): ForceReconnect {
   return useRpcClientContext().forceReconnect
 }
 

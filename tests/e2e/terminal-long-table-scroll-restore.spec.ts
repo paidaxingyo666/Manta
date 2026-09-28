@@ -270,7 +270,14 @@ async function readTerminalBoxTableWrapDiagnostics(page: Page): Promise<{
 async function closeFeatureTips(page: Page): Promise<void> {
   await page.evaluate(() => {
     const store = window.__store
-    store?.getState().markFeatureTipsSeen(['manta-cli', 'cmd-j-palette', 'voice-dictation'])
+    store
+      ?.getState()
+      .markFeatureTipsSeen([
+        'manta-cli',
+        'cmd-j-palette',
+        'voice-dictation',
+        'agent-session-search'
+      ])
     if (store?.getState().activeModal === 'feature-tips') {
       store.getState().closeModal()
     }
@@ -347,7 +354,12 @@ test.describe('Terminal long table scroll restore repro', () => {
     await mantaPage.evaluate(() => {
       window.__store
         ?.getState()
-        .markFeatureTipsSeen(['manta-cli', 'cmd-j-palette', 'voice-dictation'])
+        .markFeatureTipsSeen([
+          'manta-cli',
+          'cmd-j-palette',
+          'voice-dictation',
+          'agent-session-search'
+        ])
     })
     const firstWorktreeId = await waitForActiveWorktree(mantaPage)
     const secondWorktreeId = (await getAllWorktreeIds(mantaPage)).find(
@@ -409,7 +421,12 @@ test.describe('Terminal long table scroll restore repro', () => {
     await mantaPage.evaluate(() => {
       window.__store
         ?.getState()
-        .markFeatureTipsSeen(['manta-cli', 'cmd-j-palette', 'voice-dictation'])
+        .markFeatureTipsSeen([
+          'manta-cli',
+          'cmd-j-palette',
+          'voice-dictation',
+          'agent-session-search'
+        ])
     })
     const firstWorktreeId = await waitForActiveWorktree(mantaPage)
     const secondWorktreeId = (await getAllWorktreeIds(mantaPage)).find(
@@ -482,7 +499,12 @@ test.describe('Terminal long table scroll restore repro', () => {
     await mantaPage.evaluate(() => {
       window.__store
         ?.getState()
-        .markFeatureTipsSeen(['manta-cli', 'cmd-j-palette', 'voice-dictation'])
+        .markFeatureTipsSeen([
+          'manta-cli',
+          'cmd-j-palette',
+          'voice-dictation',
+          'agent-session-search'
+        ])
     })
     const firstWorktreeId = await waitForActiveWorktree(mantaPage)
     const secondWorktreeId = (await getAllWorktreeIds(mantaPage)).find(

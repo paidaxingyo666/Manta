@@ -23,7 +23,7 @@ jobs:
     # would most plausibly make by hand — a hotfix drafted in the web UI — is
     # exactly the shape this deletes.
     if: github.repository == 'stablyai/orca'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     steps:
       - name: Enforce release policy

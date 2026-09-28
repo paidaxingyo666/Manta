@@ -1,3 +1,4 @@
+import { withDurableRuntimeStore } from '../runtime-durable-store-fixture'
 import { describe, expect, it, vi } from 'vitest'
 import { MantaRuntimeService, getDefaultWorkspaceSession } from '../manta-runtime-test-mocks.spec'
 import type { OrchestrationDb } from '../orchestration/db'
@@ -40,7 +41,7 @@ describe('MantaRuntimeService', () => {
     }
     const { runtimeStore, getSession } = makeRuntimeStoreWithWorkspaceSession(session)
     const runtime = new MantaRuntimeService(
-      { ...runtimeStore, flushOrThrow: vi.fn() } as never,
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow: vi.fn() }),
       undefined,
       { canRecoverPersistentLocalPtys: () => true }
     )
@@ -451,7 +452,7 @@ describe('MantaRuntimeService', () => {
       return durableWrite.promise
     })
     const runtime = new MantaRuntimeService(
-      { ...runtimeStore, flushPendingOrThrowAsync } as never,
+      withDurableRuntimeStore({ ...runtimeStore, flushPendingOrThrowAsync }),
       undefined,
       { canRecoverPersistentLocalPtys: () => true }
     )

@@ -11,7 +11,7 @@ import type { SmartNameSelection } from '../tasks/mobile-composer-source-types'
 import type { MobileComposerSource } from '../tasks/use-mobile-composer-source'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import { TaskProviderLogo } from './TaskProviderLogo'
-import { translate } from '../i18n/i18n'
+import { TEXT_INPUT_FONT_SIZE } from '../platform/text-input-font-size'
 
 type Props = {
   composer: MobileComposerSource
@@ -64,10 +64,7 @@ export function SmartWorkspaceSourceField({
   return (
     <View style={styles.field}>
       <Text style={styles.label}>
-        {label}{' '}
-        <Text style={styles.labelHint}>
-          {translate('m.SmartWorkspaceSourceField.78c976b8b3', '[Optional]')}
-        </Text>
+        {label} <Text style={styles.labelHint}>[Optional]</Text>
       </Text>
       {selection ? (
         <View style={styles.pill}>
@@ -103,10 +100,7 @@ export function SmartWorkspaceSourceField({
           onChangeText={composer.setName}
           onFocus={openDrawer}
           editable={!disabled && interactive}
-          placeholder={translate(
-            'm.SmartWorkspaceSourceField.1c7abc63cd',
-            'Type a name or search a source'
-          )}
+          placeholder="Type a name or search a source"
           placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
@@ -141,7 +135,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    fontSize: typography.bodySize,
+    fontSize: TEXT_INPUT_FONT_SIZE,
     color: colors.textPrimary
   },
   disabled: {

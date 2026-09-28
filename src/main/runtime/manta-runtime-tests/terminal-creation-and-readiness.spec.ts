@@ -263,11 +263,6 @@ describe('MantaRuntimeService', () => {
     }
 
     expect(runtime.verifyOrchestrationCompatibilityCaller(evidence)).not.toBeNull()
-    expect(
-      runtime.getAgentStatusLaunchConfigForPaneKey(spawnEnv.MANTA_PANE_KEY, {
-        launchToken: spawnEnv.MANTA_AGENT_LAUNCH_TOKEN
-      })
-    ).toBeDefined()
     expect((await runtime.listTerminals()).terminals).toEqual([
       expect.objectContaining({ handle: terminal.handle, agentIdentity: 'codex' })
     ])
@@ -276,11 +271,6 @@ describe('MantaRuntimeService', () => {
 
     expect(retireAuthority).toHaveBeenCalledWith(spawnEnv.MANTA_PANE_KEY)
     expect(runtime.verifyOrchestrationCompatibilityCaller(evidence)).toBeNull()
-    expect(
-      runtime.getAgentStatusLaunchConfigForPaneKey(spawnEnv.MANTA_PANE_KEY, {
-        launchToken: spawnEnv.MANTA_AGENT_LAUNCH_TOKEN
-      })
-    ).toBeUndefined()
     expect((await runtime.listTerminals()).terminals).toEqual([
       expect.not.objectContaining({ agentIdentity: expect.anything() })
     ])

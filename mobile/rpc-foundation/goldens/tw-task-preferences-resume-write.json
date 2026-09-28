@@ -3,67 +3,17 @@
   "family": "settings-best-effort",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
-  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
-  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
-  "adapterSha256": "ce720e10c3069e9d9ee5d3226f8a037feb68ed4176fb388aa8f63740e058f749",
-  "scenarioSha256": "0cb1e808314d74e6e16719d8ea5757f46cd83ff4c3b9c1a948eb58effcb7630a",
+  "baseline": "2077956254c707d904c066ca890dc25f3671fb70",
+  "lockfileSha256": "9317f3a98ab047f9f96fe26fd8531b8a632ac5954064b322f41a904148cbf6bb",
+  "recorderSha256": "0317fe2aebe4743ce5e7ae194531aa91b4fe0a84df457640851fe6dfdb9362af",
+  "adapterSha256": "d3b7f33d810e1fa420ac41a628cde9fe4a9e65fd57f89fbca0a40fc7d74951ab",
+  "scenarioSha256": "31bfa49f888b0eb3f72873bf4a3af26129e78c23126e8fc8fe45b952caa60904",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "73d53a8e973c": {
-      "name": "ui.set#2",
-      "ordinal": 4,
-      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"setup\":{\"contentHash\":\"hash-1\",\"approvedAt\":1767225600000}}}}}"
-    },
-    "8eac7ca88434": {
-      "name": "ui.set#1",
-      "ordinal": 1,
-      "args": [
-        {
-          "name": "method",
-          "value": "ui.set"
-        },
-        {
-          "name": "params",
-          "value": {
-            "taskResumeState": {
-              "githubItemsPreset": "issues"
-            }
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "error": {
-            "code": "forbidden",
-            "message": "no access"
-          },
-          "id": "frame-1",
-          "ok": false
-        }
-      }
-    },
-    "ae0c8e22f430": {
-      "preset": "all"
-    },
-    "b59e9062cf46": {
-      "name": "ui.set#1",
-      "ordinal": 2,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"taskResumeState\":{\"githubItemsPreset\":\"issues\"}}}"
-    },
-    "ccd0ec49549d": {
+    "083a573d9009": {
       "name": "ui.set#2",
       "ordinal": 3,
       "args": [
@@ -105,6 +55,56 @@
         }
       }
     },
+    "8eac7ca88434": {
+      "name": "ui.set#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "ui.set"
+        },
+        {
+          "name": "params",
+          "value": {
+            "taskResumeState": {
+              "githubItemsPreset": "issues"
+            }
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "error": {
+            "code": "forbidden",
+            "message": "no access"
+          },
+          "id": "frame-1",
+          "ok": false
+        }
+      }
+    },
+    "ae0c8e22f430": {
+      "preset": "all"
+    },
+    "b10dd246ebf0": {
+      "name": "ui.set#2",
+      "ordinal": 4,
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"setup\":{\"contentHash\":\"hash-1\",\"approvedAt\":1767225600000}}}}}"
+    },
+    "b59e9062cf46": {
+      "name": "ui.set#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"taskResumeState\":{\"githubItemsPreset\":\"issues\"}}}"
+    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -143,8 +143,8 @@
       {
         "id": "awaited-trust-write-refused",
         "observation": {
-          "sender": ["8eac7ca88434", "ccd0ec49549d"],
-          "payloads": ["b59e9062cf46", "73d53a8e973c"],
+          "sender": ["8eac7ca88434", "083a573d9009"],
+          "payloads": ["b59e9062cf46", "b10dd246ebf0"],
           "settlements": {
             "mount": "eb79a9b3682a",
             "resume": "eb79a9b3682a",

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '../theme/mobile-theme'
+import { connectionRetryAction } from '../transport/connection-retry-action'
 import { useMobileSourceControlState } from './use-mobile-source-control-state'
 import { useMobileSourceControlActionSheet } from './use-mobile-source-control-action-sheet'
 import { MobileSourceControlHeader } from './MobileSourceControlHeader'
@@ -19,7 +20,6 @@ import { useMobilePrSidebarController } from '../session/use-mobile-pr-sidebar-c
 import { prSidebarDetailsNeedFetch } from '../session/mobile-pr-sidebar-state'
 import { MobilePrViewPanelBody } from '../components/pr-sidebar/MobilePrViewPanel'
 import { openMobilePrUrl } from '../components/mobile-pr-url'
-import { translate } from '../i18n/i18n'
 
 export type MobileSourceControlPanelProps = {
   hostId: string
@@ -242,6 +242,13 @@ export function MobileSourceControlPanel({
     />
   )
 
+  // Why: a parked reconnect loop makes retry useless — revive the connection instead (issue #5049); loadStatus re-runs on reconnect.
+  const statusRetry = connectionRetryAction({
+    hostId,
+    needsReconnect: connState !== 'connected',
+    forceReconnect,
+    reload: () => void loadStatus()
+  })
   const statusGate =
     screenState.kind === 'loading' ? (
       <View style={styles.state}>
@@ -250,26 +257,12 @@ export function MobileSourceControlPanel({
     ) : screenState.kind === 'error' || screenState.kind === 'unavailable' ? (
       <View style={styles.state}>
         <Text style={styles.stateTitle}>
-          {screenState.kind === 'unavailable'
-            ? translate('m.MobileSourceControlPanel.520503d3c5', 'Source Control Unavailable')
-            : translate('m.MobileSourceControlPanel.4a571203d0', 'Unable to Load')}
+          {screenState.kind === 'unavailable' ? 'Source Control Unavailable' : 'Unable to Load'}
         </Text>
         <Text style={styles.stateText}>{screenState.message}</Text>
-        {screenState.kind === 'error' ? (
-          <Pressable
-            style={styles.retryButton}
-            onPress={() => {
-              // Why: a parked reconnect loop makes retry useless — revive the connection instead (issue #5049); loadStatus re-runs on reconnect.
-              if (connState !== 'connected' && hostId) {
-                void forceReconnect(hostId)
-                return
-              }
-              void loadStatus()
-            }}
-          >
-            <Text style={styles.retryText}>
-              {translate('m.MobileSourceControlPanel.760815df5f', 'Retry')}
-            </Text>
+        {screenState.kind === 'error' && statusRetry ? (
+          <Pressable style={styles.retryButton} onPress={statusRetry}>
+            <Text style={styles.retryText}>Retry</Text>
           </Pressable>
         ) : null}
       </View>

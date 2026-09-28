@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 
-import React, { type ReactNode } from 'react'
+import React, { act, type ReactNode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -36,6 +36,7 @@ vi.mock('@/components/ui/dialog', async () => {
 })
 
 import { SidebarFeedbackDialog } from './SidebarFeedbackDialog'
+import { useAppStore } from '@/store'
 
 const SUBMIT = 'Open a GitHub issue'
 
@@ -43,6 +44,7 @@ beforeEach(() => {
   mocks.getPlatform.mockReset()
   mocks.getVersion.mockReset()
   mocks.openUrl.mockReset()
+  mocks.openUrl.mockResolvedValue(undefined)
   mocks.getPlatform.mockReturnValue({
     platform: 'darwin',
     osRelease: '25.0.0',
@@ -63,6 +65,9 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  // Why: the draft outlives the dialog on purpose, so it also outlives a test
+  // unless each one starts from an empty store.
+  useAppStore.getState().clearFeedbackDraft()
 })
 
 function openDialog(): HTMLTextAreaElement {
@@ -182,5 +187,115 @@ describe('SidebarFeedbackDialog issue handoff', () => {
     fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
 
     expect((window.api as Record<string, unknown>).feedback).toBeUndefined()
+  })
+})
+
+describe('SidebarFeedbackDialog draft survival', () => {
+  const REPORT = 'The terminal froze right after a rebase'
+
+  function textarea(): HTMLTextAreaElement {
+    return screen.getByPlaceholderText<HTMLTextAreaElement>('What could we improve?')
+  }
+
+  // Why: the prefill resolves asynchronously; typing only after it lands keeps
+  // a late footer from being appended to a draft the test expects cleared.
+  async function typeBelowPrefill(text: string): Promise<void> {
+    await waitFor(() => expect(textarea().value).toContain('Manta: 1.4.189-rc.0'))
+    fireEvent.change(textarea(), { target: { value: `${text}\n${textarea().value}` } })
+  }
+
+  // Why: manta#22466. The dialog renders inside the sidebar subtree, so
+  // collapsing the sidebar unmounts it; with the draft in component state that
+  // silently discarded a report the user had not handed off yet.
+  it('keeps the typed report when the sidebar unmounts and remounts the dialog', async () => {
+    const first = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    await typeBelowPrefill(REPORT)
+
+    first.unmount()
+    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+
+    expect(textarea().value).toContain(REPORT)
+  })
+
+  it('clears the draft once the whole report reached the browser', async () => {
+    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    await typeBelowPrefill(REPORT)
+
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
+
+    await waitFor(() => expect(useAppStore.getState().feedbackDraft.feedback).toBe(''))
+  })
+
+  it('keeps the report when the browser could not be opened', async () => {
+    mocks.openUrl.mockRejectedValue(new Error('no handler'))
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    await typeBelowPrefill(REPORT)
+
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
+
+    await waitFor(() => expect(consoleError).toHaveBeenCalled())
+    expect(useAppStore.getState().feedbackDraft.feedback).toContain(REPORT)
+    consoleError.mockRestore()
+  })
+
+  // Why: only part of a long report fits the URL; the rest must stay copyable.
+  it('keeps a report that had to be truncated for the URL', async () => {
+    const longReport = 'x'.repeat(9000)
+    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    await typeBelowPrefill(longReport)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
+    })
+
+    expect(mocks.openUrl).toHaveBeenCalled()
+    expect(useAppStore.getState().feedbackDraft.feedback.startsWith(longReport)).toBe(true)
+  })
+
+  // Why: collapsing the sidebar mid-handoff unmounts the dialog, but the report
+  // still reached the browser, so the draft has to go with it.
+  it('clears the draft when the sidebar unmounts before the handoff resolves', async () => {
+    let finishOpen: (() => void) | undefined
+    mocks.openUrl.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishOpen = resolve
+      })
+    )
+    const { unmount } = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    await typeBelowPrefill(REPORT)
+
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
+    unmount()
+    await act(async () => {
+      finishOpen?.()
+    })
+
+    expect(useAppStore.getState().feedbackDraft.feedback).toBe('')
+  })
+
+  // Why: a handoff resolving after a remount must not wipe what the user typed
+  // since, even though the old handler can no longer see a mounted dialog.
+  it('keeps a report typed after remount while the previous handoff is pending', async () => {
+    const SECOND_REPORT = 'Different bug, typed after reopening the dialog'
+    let finishOpen: (() => void) | undefined
+    mocks.openUrl.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finishOpen = resolve
+      })
+    )
+    const first = render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    await typeBelowPrefill(REPORT)
+    fireEvent.click(screen.getByRole('button', { name: SUBMIT }))
+    first.unmount()
+
+    render(<SidebarFeedbackDialog open onOpenChange={vi.fn()} />)
+    fireEvent.change(textarea(), { target: { value: SECOND_REPORT } })
+    await act(async () => {
+      finishOpen?.()
+    })
+
+    expect(useAppStore.getState().feedbackDraft.feedback).toContain(SECOND_REPORT)
+    expect(textarea().value).toContain(SECOND_REPORT)
   })
 })

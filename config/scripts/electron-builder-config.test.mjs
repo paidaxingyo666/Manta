@@ -1,17 +1,17 @@
 import { existsSync } from 'node:fs'
-import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { chmod, lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { buildMobileWebBundle } from './build-mobile-web-bundle.mjs'
+import { writeMobileWebBundleFixtureTree } from './mobile-web-bundle-fixture-tree.mjs'
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..')
 const SRC_MAIN_DIR = join(REPO_ROOT, 'src', 'main')
 
 const require = createRequire(import.meta.url)
 const electronBuilderConfig = require('../electron-builder.config.cjs')
-const { FileMatcher } = require('app-builder-lib/out/fileMatcher')
+const { copyFiles, FileMatcher } = require('app-builder-lib/out/fileMatcher')
 const FpmTarget = require('app-builder-lib/out/targets/FpmTarget').default
 const electronBuilderNativeRebuild = require('./electron-builder-native-rebuild.cjs')
 
@@ -37,6 +37,7 @@ describe('electron-builder config', () => {
         '!tests{,/**/*}',
         '!examples{,/**/*}',
         '!pr-evidence{,/**/*}',
+        '!notes{,/**/*}',
         '!{.claude,.grok,.agents,.codex}{,/**/*}',
         '!Casks{,/**/*}',
         '!{AGENTS.md,CLAUDE.md,DEVELOPING.md,bundle-size-progress.md,ORCHESTRATION_IMPLEMENTATION_CHECKLIST.md,ORCHESTRATION_STRUCTURED_OUTPUT_DESIGN.md}',
@@ -61,6 +62,62 @@ describe('electron-builder config', () => {
       expect(packs(toolingPath)).toBe(false)
     }
     expect(packs('out/main/index.js')).toBe(true)
+  })
+
+  it.each(['file', 'directory'])('keeps a root notes %s out of app.asar', async (kind) => {
+    const root = await mkdtemp(join(tmpdir(), 'orca-packaging-notes-'))
+    const source = join(root, 'app')
+    const destination = join(root, 'selected')
+    const runtimePaths = [
+      'package.json',
+      'out/main/index.js',
+      'out/renderer/index.html',
+      'out/cli/index.js',
+      'out/shared/index.js',
+      'out/main/notes/index.js',
+      'out/renderer/assets/notes/help.md',
+      'resources/notes/help.md',
+      'notes.txt'
+    ]
+    const notesPaths =
+      kind === 'file'
+        ? ['notes']
+        : [
+            'notes/build.log',
+            'notes/installed-manta-backup/Manta.exe',
+            'notes/installed-manta-backup/resources/app.asar',
+            'notes/manta-windows-setup.exe',
+            'notes/.recovery/state.json'
+          ]
+    try {
+      for (const fixturePath of [...runtimePaths, ...notesPaths]) {
+        const file = join(source, fixturePath)
+        await mkdir(dirname(file), { recursive: true })
+        await writeFile(file, 'synthetic fixture\n')
+      }
+      if (kind === 'directory') {
+        await mkdir(join(source, 'notes', 'empty'))
+      }
+      const matcher = new FileMatcher(
+        source,
+        destination,
+        (value) => value,
+        electronBuilderConfig.files
+      )
+      // copyFiles adds the default include and prunes excluded directories during traversal.
+      await copyFiles([matcher])
+      for (const runtimePath of runtimePaths) {
+        expect(await readFile(join(destination, runtimePath), 'utf8')).toBe('synthetic fixture\n')
+      }
+      const isPacked = matcher.createFilter()
+      for (const notesPath of new Set(['notes', ...notesPaths])) {
+        const file = join(source, notesPath)
+        expect(isPacked(file, await lstat(file)), notesPath).toBe(false)
+      }
+      expect(existsSync(join(destination, 'notes'))).toBe(false)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
   })
 
   // Why: `files` is an all-negation list, so electron-builder's default `**/*` packs
@@ -472,7 +529,7 @@ describe('arch-aware packaging guard', () => {
   beforeAll(async () => {
     scratch = await mkdtemp(join(tmpdir(), 'orca-electron-builder-guard-'))
     bundleDir = join(scratch, 'mobile-web')
-    await buildMobileWebBundle({ outDir: bundleDir })
+    await writeMobileWebBundleFixtureTree({ outDir: bundleDir })
   })
   afterAll(async () => {
     await rm(scratch, { recursive: true, force: true })

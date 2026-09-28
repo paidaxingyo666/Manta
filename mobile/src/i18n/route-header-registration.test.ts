@@ -9,7 +9,8 @@ const layout = readFileSync(new URL('../../app/_layout.tsx', import.meta.url), '
 // A route that only returns <Redirect> never paints, so it has no header to
 // suppress and no reason to appear in the Stack.
 const routes = readdirSync(new URL('../../app', import.meta.url))
-  .filter((name) => name.endsWith('.tsx') && name !== '_layout.tsx')
+  // `_layout.web.tsx` is the page's root layout, a platform sibling of `_layout.tsx`, not a screen.
+  .filter((name) => name.endsWith('.tsx') && !name.startsWith('_layout.'))
   .filter(
     (name) =>
       !readFileSync(new URL(`../../app/${name}`, import.meta.url), 'utf8').includes('<Redirect')

@@ -6,18 +6,31 @@ import {
   validateFeedbackImages,
   type FeedbackImageAttachment
 } from './feedback-image-attachments'
-import { postFeedback } from './feedback-request-transport'
+import {
+  errorFailure,
+  messageFromError,
+  postFeedback,
+  responseFailure
+} from './feedback-request-transport'
 import type {
   FeedbackDiagnosticBundleAttachment,
   FeedbackSubmissionType,
   FeedbackSubmitBody
 } from './feedback-submit-body'
+import type {
+  FeedbackRequestFailure,
+  FeedbackSubmitArgs,
+  FeedbackSubmitResult
+} from '../../shared/feedback-submit-contract'
 
-export type { FeedbackImageAttachment }
 export type {
   FeedbackDiagnosticBundleAttachment,
-  FeedbackSubmissionType
-} from './feedback-submit-body'
+  FeedbackImageAttachment,
+  FeedbackRequestFailure,
+  FeedbackSubmissionType,
+  FeedbackSubmitArgs,
+  FeedbackSubmitResult
+}
 
 // Upstream serves this endpoint; this fork does not. The feedback dialog now
 // hands its text to a GitHub issue instead, and the crash reporter has nowhere
@@ -50,33 +63,10 @@ function resolveFeedbackApiUrl(env: NodeJS.ProcessEnv = process.env): string | n
   return null
 }
 const FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS = 60_000
-// Why: corporate filters can reject multipart with 403 while allowing the
-// small JSON report, so content-shaped failures should shed the attachment.
-const DIAGNOSTIC_BUNDLE_JSON_RETRY_STATUSES = new Set([400, 403, 408, 413, 415, 422])
-
-export type FeedbackSubmitArgs = {
-  feedback: string
-  submitAnonymously?: boolean
-  githubLogin: string | null
-  githubEmail: string | null
-  images?: FeedbackImageAttachment[]
-}
-
-export type FeedbackRequestFailure = {
-  status: number | null
-  error: string
-}
-
-export type FeedbackSubmitResult =
-  | {
-      ok: true
-      diagnosticBundleFailure?: FeedbackRequestFailure
-      /** Absent when nothing was attached; false when the text landed but the images did not. */
-      imagesDelivered?: boolean
-    }
-  | ({ ok: false } & FeedbackRequestFailure & {
-        diagnosticBundleFailure?: FeedbackRequestFailure
-      })
+// Why: corporate filters can reject multipart with 403 and hosts cap body size
+// (413) while allowing the small JSON report, so content-shaped failures should
+// shed the attachment.
+const ATTACHMENT_JSON_RETRY_STATUSES = new Set([400, 403, 408, 413, 415, 422])
 
 type InternalFeedbackSubmitArgs = FeedbackSubmitArgs & {
   submissionType?: FeedbackSubmissionType
@@ -111,18 +101,6 @@ function buildSubmitBody(args: InternalFeedbackSubmitArgs): FeedbackSubmitBody {
     // diagnostic bundles and the server rejects images on that lane.
     ...(args.submissionType !== 'crash' && args.images?.length ? { images: args.images } : {})
   }
-}
-
-function messageFromError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
-
-function responseFailure(response: Response): FeedbackRequestFailure {
-  return { status: response.status, error: `status ${response.status}` }
-}
-
-function errorFailure(error: unknown): FeedbackRequestFailure {
-  return { status: null, error: messageFromError(error) }
 }
 
 async function retryFeedbackOnPrimary(
@@ -160,7 +138,20 @@ async function retryFeedbackOnPrimary(
 }
 
 function shouldRetryWithoutDiagnosticBundle(status: number): boolean {
-  return DIAGNOSTIC_BUNDLE_JSON_RETRY_STATUSES.has(status) || status === 404 || status >= 500
+  return ATTACHMENT_JSON_RETRY_STATUSES.has(status) || status === 404 || status >= 500
+}
+
+/** Posts the attachment-free report; resolves to the failure, or null once it lands. */
+async function postFeedbackWithoutAttachment(
+  apiUrl: string,
+  body: FeedbackSubmitBody
+): Promise<FeedbackRequestFailure | null> {
+  try {
+    const response = await postFeedback(apiUrl, body)
+    return response.ok ? null : responseFailure(response)
+  } catch (error) {
+    return errorFailure(error)
+  }
 }
 
 async function submitFeedbackWithoutDiagnosticBundle(
@@ -168,14 +159,47 @@ async function submitFeedbackWithoutDiagnosticBundle(
   body: FeedbackSubmitBody,
   diagnosticBundleFailure: FeedbackRequestFailure
 ): Promise<FeedbackSubmitResult> {
+  const failure = await postFeedbackWithoutAttachment(apiUrl, body)
+  return failure
+    ? { ok: false, ...failure, diagnosticBundleFailure }
+    : { ok: true, diagnosticBundleFailure }
+}
+
+async function submitFeedbackWithImages(
+  apiUrl: string,
+  body: FeedbackSubmitBody,
+  bodyWithoutImages: FeedbackSubmitBody
+): Promise<FeedbackSubmitResult> {
   try {
-    const response = await postFeedback(apiUrl, body)
+    let imagesDelivered = true
+    const response = await postFeedback(
+      apiUrl,
+      body,
+      FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS,
+      async (nextResponse) => {
+        imagesDelivered = nextResponse.ok ? await readFeedbackImagesDelivered(nextResponse) : true
+      }
+    )
     if (response.ok) {
-      return { ok: true, diagnosticBundleFailure }
+      return { ok: true, imagesDelivered }
     }
-    return { ok: false, ...responseFailure(response), diagnosticBundleFailure }
+    const imagesFailure = responseFailure(response)
+    if (ATTACHMENT_JSON_RETRY_STATUSES.has(response.status)) {
+      const failure = await postFeedbackWithoutAttachment(apiUrl, bodyWithoutImages)
+      return failure
+        ? {
+            ok: false,
+            status: failure.status,
+            error: `${imagesFailure.error}; retry: ${failure.error}`
+          }
+        : { ok: true, imagesDelivered: false, imagesFailure }
+    }
+    // Why: the text lane retries 5xx, this one does not. Replaying the
+    // attachments on a flaky link costs more than it saves, and the caller
+    // still holds the draft and images, so a manual resend loses nothing.
+    return { ok: false, ...imagesFailure }
   } catch (error) {
-    return { ok: false, ...errorFailure(error), diagnosticBundleFailure }
+    return { ok: false, ...errorFailure(error) }
   }
 }
 
@@ -225,26 +249,7 @@ export async function submitFeedback(
   }
   const body = buildSubmitBody(args)
   if (body.images?.length) {
-    try {
-      let imagesDelivered = true
-      const response = await postFeedback(
-        apiUrl,
-        body,
-        FEEDBACK_ATTACHMENT_REQUEST_TIMEOUT_MS,
-        async (nextResponse) => {
-          imagesDelivered = nextResponse.ok ? await readFeedbackImagesDelivered(nextResponse) : true
-        }
-      )
-      if (response.ok) {
-        return { ok: true, imagesDelivered }
-      }
-      // Why: the text lane retries 5xx, this one does not. Replaying up to
-      // 32 MiB of attachments on a flaky link costs more than it saves, and the
-      // dialog keeps the draft and thumbnails so the user can resend.
-      return { ok: false, ...responseFailure(response) }
-    } catch (error) {
-      return { ok: false, ...errorFailure(error) }
-    }
+    return submitFeedbackWithImages(apiUrl, body, buildSubmitBody({ ...args, images: undefined }))
   }
   if (body.diagnosticBundle) {
     const bodyWithoutDiagnosticBundle =

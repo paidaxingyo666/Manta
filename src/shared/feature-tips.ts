@@ -4,11 +4,19 @@ import {
   type FeatureInteractionState
 } from './feature-interactions'
 
-export type FeatureTipId = 'voice-dictation' | 'manta-cli' | 'cmd-j-palette'
+export type FeatureTipId =
+  | 'voice-dictation'
+  | 'manta-cli'
+  | 'cmd-j-palette'
+  | 'agent-session-search'
 
 export type FeatureTipPriority = 'new' | 'unseen'
 
-export type FeatureTipAction = 'enable-voice' | 'setup-cli' | 'learn-cmd-j-palette'
+export type FeatureTipAction =
+  | 'enable-voice'
+  | 'setup-cli'
+  | 'learn-cmd-j-palette'
+  | 'enable-session-search'
 
 export type FeatureTip = {
   id: FeatureTipId
@@ -25,10 +33,23 @@ export type FeatureTip = {
 export type CompletedFeatureTipState = {
   cliInstalled: boolean
   voiceDictationEnabled: boolean
+  /** Search is on, or this client cannot turn it on. */
+  sessionSearchTipCompleted: boolean
   featureInteractions?: FeatureInteractionState
 }
 
 export const FEATURE_TIPS = [
+  {
+    id: 'agent-session-search',
+    priority: 'new',
+    eyebrow: 'New',
+    title: 'Search every agent session',
+    description:
+      'Find any past conversation by what was said in it, then pick up where the agent left off.',
+    action: 'enable-session-search',
+    ctaLabel: 'Turn on session search',
+    completedByFeatureInteractions: []
+  },
   {
     id: 'manta-cli',
     priority: 'new',
@@ -91,6 +112,9 @@ export function getCompletedFeatureTipIds(state: CompletedFeatureTipState): Set<
   }
   if (state.voiceDictationEnabled) {
     completedIds.add('voice-dictation')
+  }
+  if (state.sessionSearchTipCompleted) {
+    completedIds.add('agent-session-search')
   }
   for (const tip of FEATURE_TIPS) {
     if (

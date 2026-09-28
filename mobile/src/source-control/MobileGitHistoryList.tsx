@@ -5,6 +5,7 @@ import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import type { ConnectionState } from '../transport/types'
 import type { RpcClient } from '../transport/rpc-client'
 import { useForceReconnect } from '../transport/client-context'
+import { connectionRetryAction } from '../transport/connection-retry-action'
 import { gitCommitCompareRead } from './mobile-git-read-operations'
 import type { MobileGitChangedFile } from './git-compare-reply-schema'
 import {
@@ -13,7 +14,6 @@ import {
   type MobileCommitRow
 } from './mobile-git-history'
 import { resolveMobileHistoryScreenView } from './mobile-history-screen-state'
-import { translate } from '../i18n/i18n'
 
 type Props = {
   client: RpcClient | null
@@ -81,18 +81,23 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
     }
   }, [client, connState, reloadNonce, refreshNonce, worktreeId])
 
-  const retry = useCallback(() => {
-    setError(null)
-    // Why: retrying the fetch is useless while the transport's reconnect loop
-    // is parked at its backoff cap — revive the connection instead (mirrors
-    // MobileSourceControlPanel / issue #5049). The load effect re-runs via
-    // connState once the fresh client connects.
-    if (connState !== 'connected' && hostId) {
-      void forceReconnect(hostId)
-      return
-    }
-    setReloadNonce((n) => n + 1)
-  }, [connState, forceReconnect, hostId])
+  // Why: retrying the fetch is useless while the transport's reconnect loop
+  // is parked at its backoff cap — revive the connection instead (mirrors
+  // MobileSourceControlPanel / issue #5049). The load effect re-runs via
+  // connState once the fresh client connects.
+  const retryAction = connectionRetryAction({
+    hostId,
+    needsReconnect: connState !== 'connected',
+    forceReconnect,
+    reload: () => setReloadNonce((n) => n + 1)
+  })
+  const retry =
+    retryAction === null
+      ? null
+      : () => {
+          setError(null)
+          retryAction()
+        }
 
   const toggleCommit = useCallback((row: MobileCommitRow) => {
     setExpanded((current) => (current === row.id ? null : row.id))
@@ -162,14 +167,10 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
                 connected ? (
                   <ActivityIndicator size="small" color={colors.textSecondary} />
                 ) : (
-                  <Text style={styles.empty}>
-                    {translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')}
-                  </Text>
+                  <Text style={styles.empty}>Waiting for desktop...</Text>
                 )
               ) : files.length === 0 ? (
-                <Text style={styles.empty}>
-                  {translate('m.MobileGitHistoryList.cb46c1e3eb', 'No file changes')}
-                </Text>
+                <Text style={styles.empty}>No file changes</Text>
               ) : (
                 files.map((file) => (
                   <View key={file.path} style={styles.fileRow}>
@@ -197,15 +198,13 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
     return (
       <View style={styles.state}>
         <Text style={styles.stateText}>
-          {view.kind === 'waiting'
-            ? translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')
-            : view.message}
+          {view.kind === 'waiting' ? 'Waiting for desktop...' : view.message}
         </Text>
-        <Pressable style={styles.retryButton} onPress={retry} accessibilityLabel="Retry">
-          <Text style={styles.retryText}>
-            {translate('m.MobileGitHistoryList.41bdc2a206', 'Retry')}
-          </Text>
-        </Pressable>
+        {retry ? (
+          <Pressable style={styles.retryButton} onPress={retry} accessibilityLabel="Retry">
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        ) : null}
       </View>
     )
   }
@@ -219,9 +218,7 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
   if (view.kind === 'empty') {
     return (
       <View style={styles.state}>
-        <Text style={styles.stateText}>
-          {translate('m.MobileGitHistoryList.7dc0c76755', 'No commits.')}
-        </Text>
+        <Text style={styles.stateText}>No commits.</Text>
       </View>
     )
   }

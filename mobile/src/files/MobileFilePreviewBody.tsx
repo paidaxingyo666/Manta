@@ -6,7 +6,6 @@ import { MobileFilePreviewEditableSource } from './MobileFilePreviewEditableSour
 import { MobileFilePreviewSourceText } from './MobileFilePreviewSourceText'
 import type { MobileFilePreviewLineColumn } from './mobile-file-preview-line-column'
 import { filePreviewStyles as styles } from './mobile-file-preview-styles'
-import { translate } from '../i18n/i18n'
 
 type Props = {
   preview: MobileFilePreviewResult
@@ -20,7 +19,8 @@ type Props = {
   imageHeight: number
   onDraftChange: (content: string) => void
   onImageError: () => void
-  onRetry: () => void
+  /** Null where the only retry is a re-dial this document cannot make. */
+  onRetry: (() => void) | null
 }
 
 export function MobileFilePreviewBody({ preview, ...options }: Props) {
@@ -36,11 +36,11 @@ export function MobileFilePreviewBody({ preview, ...options }: Props) {
     return (
       <View style={styles.state}>
         <Text style={styles.errorText}>{preview.message}</Text>
-        <Pressable style={styles.retryButton} onPress={options.onRetry}>
-          <Text style={styles.retryText}>
-            {translate('m.MobileFilePreviewBody.cea65a249a', 'Retry')}
-          </Text>
-        </Pressable>
+        {options.onRetry ? (
+          <Pressable style={styles.retryButton} onPress={options.onRetry}>
+            <Text style={styles.retryText}>Retry</Text>
+          </Pressable>
+        ) : null}
       </View>
     )
   }
@@ -49,9 +49,7 @@ export function MobileFilePreviewBody({ preview, ...options }: Props) {
       <EditablePreviewSource {...options} />
     ) : (
       <View style={styles.state}>
-        <Text style={styles.stateText}>
-          {translate('m.MobileFilePreviewBody.d14ff7e198', 'Empty file')}
-        </Text>
+        <Text style={styles.stateText}>Empty file</Text>
       </View>
     )
   }

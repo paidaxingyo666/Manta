@@ -39,5 +39,7 @@ MANTA skills get manta-linear
 
 Prefer `--json`. Use the selected executable's `--help` for commands or flags the guide does
 not cover. If a command reports that Manta is not running, start it with `MANTA open --json`
-and retry. If `skills get` is unknown, explain that updating Manta restores the guide; use
-`--help` for read-only discovery and do not guess unsupported commands.
+and retry. If it fails with `runtime_access_denied`, your sandbox blocked the connection:
+re-run it with escalated permissions, and do not run `MANTA open` or restart Manta. If
+`skills get` is unknown, explain that updating Manta restores the guide; use `--help` for
+read-only discovery and do not guess unsupported commands.

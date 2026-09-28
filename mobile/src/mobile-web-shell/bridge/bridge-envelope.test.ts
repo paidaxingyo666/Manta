@@ -21,6 +21,7 @@ import {
   BRIDGE_ROUTE_HREF_PATTERN,
   BRIDGE_ROUTE_PATHNAME_PATTERN
 } from './bridge-caps'
+import { BRIDGE_HAPTICS_KINDS, BRIDGE_HAPTICS_NOTIFY } from './bridge-haptics-notify'
 import {
   BRIDGE_BINARY_FORMATS,
   BRIDGE_CONNECTION_STATES,
@@ -33,6 +34,8 @@ import {
   type BridgeHostMessage,
   type BridgeReplyPayload
 } from './bridge-envelope'
+import { BRIDGE_BACK_CLAIM_NOTIFY } from './bridge-page-back'
+import { BRIDGE_PAGE_PAINTED } from './bridge-page-painted'
 
 const ID = 'AAAAAAAAAAAAAAAAAAAAAA'
 const CONNECTION = {
@@ -86,6 +89,12 @@ function client(fields: Record<string, unknown>): Record<string, unknown> {
 describe('client messages', () => {
   const accepted = [
     ['ready', { type: 'ready' }],
+    ['a page painted notify', { type: 'notify', name: BRIDGE_PAGE_PAINTED }],
+    ['a back claim', { type: 'notify', name: BRIDGE_BACK_CLAIM_NOTIFY, claimed: true }],
+    [
+      'a back claim being let go',
+      { type: 'notify', name: BRIDGE_BACK_CLAIM_NOTIFY, claimed: false }
+    ],
     ['request without params', { type: 'request', id: ID, method: 'status.get' }],
     ['request with params', { type: 'request', id: ID, method: 'status.get', params: { a: 1 } }],
     [
@@ -130,6 +139,12 @@ describe('client messages', () => {
       }
     ],
     ['a navigate-back notify', { type: 'notify', name: BRIDGE_NAVIGATE_BACK_NOTIFY }],
+    // One per kind, spread from the list itself: a kind added to the tuple and left out of the
+    // schema's enum would otherwise be accepted here by a case nobody wrote.
+    ...BRIDGE_HAPTICS_KINDS.map(
+      (kind) =>
+        [`a ${kind} haptics notify`, { type: 'notify', name: BRIDGE_HAPTICS_NOTIFY, kind }] as const
+    ),
     ['close', { type: 'close' }]
   ] as const
 
@@ -199,6 +214,11 @@ describe('client messages', () => {
       'a page fault whose error is not a capture',
       client({ type: 'notify', name: BRIDGE_FAULT_GRANT, error: 'the route threw' })
     ],
+    [
+      'a haptic this app has no function for',
+      client({ type: 'notify', name: BRIDGE_HAPTICS_NOTIFY, kind: 'heavyImpact' })
+    ],
+    ['a haptics notify naming no kind', client({ type: 'notify', name: BRIDGE_HAPTICS_NOTIFY })],
     ['a bare array', []],
     ['a bare string', 'ready']
   ] as const
@@ -290,6 +310,7 @@ describe('host messages', () => {
       }
     ],
     ['state', { type: 'state', connection: CONNECTION }],
+    ['a back press handed to the page', { type: 'back' }],
     ['a whole reply', { type: 'reply', id: ID, payload: SUCCESS_PAYLOAD }],
     [
       'a failure reply, which is data and not a rejection',
@@ -335,6 +356,53 @@ describe('host messages', () => {
       expect(readHost(client(fields)).ok).toBe(true)
     })
   }
+
+  it("keeps the host's stored name identity, which the page's title rule reads", () => {
+    const host = {
+      id: 'host-a',
+      name: 'm4airs-Air',
+      lastKnownMachineName: 'm4airs-Air',
+      lastKnownHostPlatform: 'darwin',
+      endpoint: 'ws://host-a',
+      lastConnected: 0
+    }
+    const read = readHost(
+      client({
+        type: 'init',
+        sessionId: 's1',
+        buildId: 'b1',
+        connection: CONNECTION,
+        grants: GRANTS,
+        host
+      })
+    )
+    expect(read.ok && read.message.type === 'init' ? read.message.host : null).toEqual(host)
+  })
+
+  it('drops a name-identity value this page cannot read instead of refusing the init', () => {
+    const read = readHost(
+      client({
+        type: 'init',
+        sessionId: 's1',
+        buildId: 'b1',
+        connection: CONNECTION,
+        grants: GRANTS,
+        host: {
+          id: 'host-a',
+          name: 'Studio',
+          personalName: '',
+          lastKnownMachineName: 'Studio',
+          lastKnownHostPlatform: 'plan9',
+          endpoint: 'ws://host-a',
+          lastConnected: 0
+        }
+      })
+    )
+    const host = read.ok && read.message.type === 'init' ? read.message.host : null
+    expect(host).toMatchObject({ id: 'host-a', name: 'Studio', lastKnownMachineName: 'Studio' })
+    expect(host?.personalName).toBeUndefined()
+    expect(host?.lastKnownHostPlatform).toBeUndefined()
+  })
 
   const refused = [
     [

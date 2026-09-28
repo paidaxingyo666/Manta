@@ -29,6 +29,7 @@
       },
       "GitHubItemDialog": {
         "04539beb48": "issue",
+        "307c98e8e3": "Show {{value0}} more lines above",
         "3853476a97": "GitHub item",
         "3ab6ac0fc8": "Preview and edit the selected GitHub issue or pull request.",
         "45af57999b": "Close preview",
@@ -36,8 +37,6 @@
         "68796dafa0": "pr",
         "88fd82474d": "page",
         "924c2fe05e": "destructive",
-        "a18f669c7a_one": "{{value0}} {{value1}} reaction",
-        "a18f669c7a_other": "{{value0}} {{value1}} reactions",
         "b0b7344684": "Request up to 15 reviewers",
         "b1157c78ff": "sheet",
         "ce8a85d209": "default",
@@ -48,8 +47,6 @@
       },
       "GitLabItemDialog": {
         "11384f99aa": "number",
-        "40c56b95e2_one": "{{value0}} approval remaining",
-        "40c56b95e2_other": "{{value0}} approvals remaining",
         "4186685c78": "reopen",
         "881e522e04": "merge",
         "cae2712a23": "close"
@@ -76,19 +73,8 @@
         "f5a6b38a14": "sheet"
       },
       "NativeChatResumeOnRestartModal": {
-        "continueRefused_one": "{{value0}} chat could not be continued. Open it to continue manually.",
-        "continueRefused_other": "{{value0}} chats could not be continued. Open them to continue manually.",
         "continueUnconfirmed_one": "Continuation delivery is unconfirmed for {{value0}} chat. Open it to check before sending another message.",
-        "continueUnconfirmed_other": "Continuation delivery is unconfirmed for {{value0}} chats. Open them to check before sending another message.",
-        "manyAgents": "{{value0}} agents",
-        "oneAgent": "1 agent",
-        "projects": "Folder workspaces",
-        "reconnectAgent": "Reconnect {{value0}} chat",
-        "reconnectRefused_one": "{{value0}} chat could not be reconnected. You can still open it normally.",
-        "reconnectRefused_other": "{{value0}} chats could not be reconnected. You can still open them normally.",
-        "reconnectUnconfirmed_one": "Reconnection is unconfirmed for {{value0}} chat. You can still open it normally.",
-        "reconnectUnconfirmed_other": "Reconnection is unconfirmed for {{value0}} chats. You can still open them normally.",
-        "resume": "Reconnect"
+        "continueUnconfirmed_other": "Continuation delivery is unconfirmed for {{value0}} chats. Open them to check before sending another message."
       },
       "NewWorkspaceComposerCard": {
         "0e587e31fb": "yaml",
@@ -173,8 +159,6 @@
         "6459faa8b3": "error",
         "68df347677": "you@example.com",
         "6edf402e11": "overview",
-        "7719d8daa9_one": "{{value0}} member",
-        "7719d8daa9_other": "{{value0}} members",
         "7799ad9ab6": "draft",
         "887efe9140": "Connect",
         "937b29fa35": "items",
@@ -196,8 +180,6 @@
         "d0e3c8f933": "No matching GitHub work",
         "d6d08c1650": "Select a project to see GitLab work items.",
         "duplicateIssueNumberPlaceholder": "Issue number",
-        "eff9800d4b_one": "{{value0}} label",
-        "eff9800d4b_other": "{{value0}} labels",
         "f294c500ef": "No GitLab work matches this filter.",
         "fe28c9821f": "view"
       },
@@ -393,20 +375,12 @@
           "skippedConflictsExcluded_one": "{{count}} unresolved conflict was excluded from this diff view.",
           "skippedConflictsExcluded_other": "{{count}} unresolved conflicts were excluded from this diff view."
         },
-        "ConflictComponents": {
-          "4be41eaafc_one": "{{value0}} unresolved conflict",
-          "4be41eaafc_other": "{{value0}} unresolved conflicts"
-        },
         "DiffSectionBody": {
           "bdbf02d5df": "binary"
         },
         "EditorContent": {
           "d07e4b8553": "branch",
           "d16e037f40": "rich"
-        },
-        "IpynbViewer": {
-          "59b6cd874b": "code",
-          "ba149053d5": "markdown"
         },
         "ReviewNotesSendMenuContent": {
           "50f7e753ea": "Sending notes to active agent...",
@@ -441,8 +415,7 @@
           "edfcc64182": "Go"
         },
         "RichMarkdownDocLinkMenu": {
-          "142a7d51cd": "document",
-          "e17b987473": "↑↓ navigate&nbsp;&nbsp;↵ select&nbsp;&nbsp;esc dismiss"
+          "142a7d51cd": "document"
         },
         "RichMarkdownSlashMenu": {
           "e2e12b0e98": "component"
@@ -637,7 +610,8 @@
         "project": {
           "view": {
             "surfaces": {
-              "2c4b1c2c08": "number"
+              "2c4b1c2c08": "number",
+              "7616c986c6": "Open {{value0}} issues"
             }
           }
         }
@@ -684,9 +658,7 @@
         "IntegrationsStep": {
           "93f0c49ad1": "not-authenticated",
           "a3bcf13694": "connected",
-          "a74c6d6b18": "not-installed",
-          "b08a6ac93c_one": "{{value0}} workspace linked. Add another workspace or replace a restricted key any time.",
-          "b08a6ac93c_other": "{{value0}} workspaces linked. Add another workspace or replace a restricted key any time."
+          "a74c6d6b18": "not-installed"
         },
         "NotificationStep": {
           "2c47f5465f": "Turn on Allow notifications for Manta in System Settings. This step updates automatically once enabled.",
@@ -842,11 +814,7 @@
             "c57eda6822": "edit"
           },
           "Search": {
-            "0b8104eaf2_one": "{{value0}} file",
-            "0b8104eaf2_other": "{{value0}} files",
-            "1ec640c9c7": "match",
-            "6aeda362ed_one": "{{value0}} result",
-            "6aeda362ed_other": "{{value0}} results"
+            "1ec640c9c7": "match"
           },
           "SourceControl": {
             "03d238218c": "Details",
@@ -858,18 +826,13 @@
             "3636d0f686": "ready",
             "383cf92c73": "tree",
             "3a231c845b": "unknown",
-            "413a3ba113_one": "{{value0}} conflict",
-            "413a3ba113_other": "{{value0}} conflicts",
             "424ee0e5bf": "error",
             "48a003c1b1": "Staged Changes",
             "522f44dce5": "Untracked Files",
-            "657e0c90ad_one": "{{value0}} note",
-            "657e0c90ad_other": "{{value0}} notes",
+            "527e130b6f": "Stop generating",
             "77afaa8152": "All",
             "783a808870": "Close",
             "7a09d7f9d2": "base",
-            "8eb3782a0c_one": "Failed to discard {{value0}} file",
-            "8eb3782a0c_other": "Failed to discard {{value0}} files",
             "901140f47d": "Review the prompt before starting an agent.",
             "9bb062a886": "uncommitted",
             "9febd8ab5f": "create_pr",
@@ -905,18 +868,12 @@
                 "07eccfa397": "No details are available for this check.",
                 "0fc6f743b3": "by",
                 "49ea0937e4": "Add comment to resolve list",
-                "5341023167_one": "{{value0}} check",
-                "5341023167_other": "{{value0}} checks",
-                "6fa7f8723f_one": "{{value0}} commit",
-                "6fa7f8723f_other": "{{value0}} commits",
                 "7c1f0a2b11": "Open",
                 "90206b6353": "comment",
                 "95ad090b01": "thread",
                 "9fecebb29d": "Add",
                 "a916648574": "Open details",
                 "actionRequiredHint": "This check needs a manual action on GitHub (for example, approving the workflow run) before merging is unblocked.",
-                "b652f38caf_one": "{{value0}} failing check",
-                "b652f38caf_other": "{{value0}} failing checks",
                 "d098e5529a": "Output"
               },
               "empty": {
@@ -1068,12 +1025,6 @@
                   }
                 }
               },
-              "compare": {
-                "summary": {
-                  "dd72a6fd37_one": "{{value0}} commit ahead of {{value2}}",
-                  "dd72a6fd37_other": "{{value0}} commits ahead of {{value2}}"
-                }
-              },
               "discard": {
                 "dialog": {
                   "48c5ef95d9": "area",
@@ -1109,17 +1060,24 @@
       },
       "settings": {
         "AccountsPane": {
+          "0023cc336e": "Paste either the raw token value (e.g.",
           "15e831350e": "Configure MiniMax usage tracking from platform.minimax.io.",
           "1fd1b1b6b4": "Cookie not set",
+          "338820326a": ") or the full cookie header (e.g.",
           "3455cf43fa": "Claude login.",
           "350b2a1aa7": "Use your current",
           "4e32e030b2": "Stored locally. Manta sends it only to platform.minimax.io for usage refreshes.",
           "566d9a99ab": "_token=…; minimax_group_id_v2=…",
           "5e08b0fe57": "Stored locally and sent only to platform.minimax.io for usage refreshes.",
           "79418c782a": "Open platform.minimax.io/console/usage in your browser, sign in, then copy the Cookie request header from DevTools (Network → any remains request → Cookie).",
+          "7ce0e1907c": "). Find it in your browser's DevTools → Network → any opencode.ai request → Cookie header. OpenCode Go auth is web-based and shared across Windows and WSL terminals.",
+          "8951c5309f": "auth=Fe26.2**…",
           "9107406589": "Could not load Claude accounts.",
+          "922b51e02d": "Fe26.2**…",
+          "a7e38affcd": "Fe26.2**… token or auth=Fe26.2**… header",
           "b10cb4f696": "adding",
           "b11078a9c2": "wsl",
+          "b2b1aa936d": "Paste your opencode.ai session cookie for rate limit fetching.",
           "b43e761fe5": "MiniMax cookie update failed.",
           "b8c2905c2b": "Could not load Codex accounts.",
           "f5d8d2a6a1": "Open platform.minimax.io/console/usage in your browser and sign in."
@@ -1357,10 +1315,6 @@
         "McpConfigFileRow": {
           "845ae248e8": "valid"
         },
-        "McpConfigSection": {
-          "3b224167ff_one": "{{value0}} server",
-          "3b224167ff_other": "{{value0}} servers"
-        },
         "MobileEmulatorAgentControlRow": {
           "1861982430": "Failed to load CLI status.",
           "cdeaed9e37": "Registered the Manta CLI in PATH."
@@ -1457,9 +1411,13 @@
           "b5e3e77e89": "action",
           "c90b858573": "text-amber-700 dark:text-amber-300"
         },
+        "RepositoryIconPicker": {
+          "2b7d27b93c": "Use {{value0}} repo color"
+        },
         "RepositoryPane": {
           "createPendingSetup": "Track setup",
           "creatingPendingSetup": "Creating...",
+          "settingUpHost": "Importing...",
           "setupExistingFolder": "Import existing folder",
           "setupExistingFolderHelp": "Make this project available on another host by linking a checkout that already exists there.",
           "setupHost": "Import",
@@ -1527,9 +1485,7 @@
         },
         "SshPane": {
           "94c5284560": "Targets",
-          "a7d28dff81": "Add a remote host to connect to it in Manta.",
-          "f8050f6307_one": "Synced 1 server",
-          "f8050f6307_other": "Synced {{value0}} servers"
+          "a7d28dff81": "Add a remote host to connect to it in Manta."
         },
         "SshTargetCard": {
           "47e94bd6ba": "connected",
@@ -1593,6 +1549,11 @@
           "41a1480d3e": "install",
           "7c3bb36706": "remove",
           "e2b0ee267f": "stale"
+        },
+        "accounts": {
+          "search": {
+            "d1d2ae383c": "Paste your opencode.ai session cookie for rate limit fetching."
+          }
         },
         "agent-awake-copy": {
           "95d3031db2": "Keeps this computer and display awake while agents are working. Lid-close behavior follows this device's power settings.",
@@ -1675,13 +1636,6 @@
           "credentials": {
             "dialog": {
               "remoteRuntime": "Bitbucket credentials saved here are stored on this local machine only. Set MANTA_BITBUCKET_* environment variables on the remote runtime instead."
-            }
-          }
-        },
-        "browser": {
-          "use": {
-            "search": {
-              "f5b8fdddf5": "orca-cli"
             }
           }
         },
@@ -1774,15 +1728,6 @@
             }
           }
         },
-        "linear": {
-          "agent": {
-            "skill": {
-              "search": {
-                "mantaLinear": "orca-linear"
-              }
-            }
-          }
-        },
         "mobile": {
           "settings": {
             "search": {
@@ -1823,18 +1768,6 @@
           "search": {
             "62826efbe9": "Add a new remote SSH target.",
             "74c6d90d78": "Manage remote SSH targets."
-          }
-        },
-        "task": {
-          "tracker": {
-            "integration": {
-              "cards": {
-                "9fa04a032e_one": "{{value0}} site connected",
-                "9fa04a032e_other": "{{value0}} sites connected",
-                "e1f5e6424c_one": "{{value0}} workspace connected",
-                "e1f5e6424c_other": "{{value0}} workspaces connected"
-              }
-            }
           }
         },
         "terminal": {
@@ -1902,8 +1835,6 @@
           "serverName": "Server name",
           "sshConfigPickerBulkHint": "Bulk sync stays in Settings → SSH",
           "sshConfigPickerDescription": "Pick a host to fill the form. Nothing is saved until you click Save.",
-          "sshImportSynced_one": "Added {{value0}} host to Manta.",
-          "sshImportSynced_other": "Added {{value0}} hosts to Manta.",
           "sshPersistenceDefault": "Remote terminals on this host stay alive until you end them or reset the relay."
         },
         "AddRepoHostSelector": {
@@ -1961,20 +1892,6 @@
         "SetupScriptPromptCard": {
           "dcaa645da5": "ok"
         },
-        "SidebarFeedbackDialog": {
-          "26108d3699": "Join Discord",
-          "3460258a54": "Follow on X",
-          "5b120b9634": "Submit anonymously",
-          "60b721e857": "Failed to submit feedback. Please try again.",
-          "69969ba364": "Sending…",
-          "7a46c228b8": "Thanks for the feedback.",
-          "8de03e23c5": "Submit with your typed feedback only, or connect `gh` to include GitHub identity.",
-          "a2fd890d9e": "Please enter feedback before submitting.",
-          "c9e5ea0791": "GitHub:",
-          "d20439c560": "Checking GitHub identity…",
-          "f2e42e1307": "Send",
-          "imagesNotDelivered": "Feedback sent, but image delivery could not be confirmed."
-        },
         "SidebarHeader": {
           "49f62c5665": "Workspace board",
           "5c9c7c16aa": "Add a project to create workspaces",
@@ -1991,9 +1908,7 @@
           "9c95e1ce91": "Agents"
         },
         "SidebarSettingsHelpMenu": {
-          "c4f8e1b72a": "X",
-          "d396773ef0": "checking",
-          "eb9884e55b": "Discord"
+          "d396773ef0": "checking"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "Open folder picker to add a project",
@@ -2003,7 +1918,14 @@
           "2d4f0eb933": "Default",
           "631b97eea9": "Host scope",
           "680043342f": "compact",
+          "bc96dbd041": "Workspace options ({{value0}})",
           "c7591b6014": "repo"
+        },
+        "WorkspaceKanbanSettingsMenu": {
+          "b45b350eb0": "Move {{value0}} left"
+        },
+        "WorkspaceStatusAppearancePopover": {
+          "514be2f569": "Set {{value0}} color to {{value1}}"
         },
         "WorktreeCard": {
           "01f45d3d8a": "sidebar",
@@ -2032,9 +1954,7 @@
           "5fc9d1891b": "Deleting…",
           "84a2238242": "Show child workspaces",
           "ebadb7eadb": "{{value0}} {{value1}} child {{value2}}",
-          "ebc5c7dcef": "Hide child workspaces",
-          "f94466bc39_one": "{{value0}} of {{value1}} contained project remained after deleting the group.",
-          "f94466bc39_other": "{{value0}} of {{value1}} contained projects remained after deleting the group."
+          "ebc5c7dcef": "Hide child workspaces"
         },
         "WorktreeMetaDialog": {
           "029ea5ec57": "Open GitHub issue",
@@ -2159,12 +2079,8 @@
           "installAnotherMachine": "Install on another machine"
         },
         "SkillInstallReviewContent": {
-          "1b6ad2ca5c": "checked.",
           "27672470d9": "Opening the link does not install anything. Review the immutable version first.",
           "3d8421ca2f": "executable",
-          "3fc62a61eb_one": "{{value0}} placement checked.",
-          "3fc62a61eb_other": "{{value0}} placements checked.",
-          "66cff7a804": "https://app.orca.dev/skills/share/…",
           "87137bcb8d": "scripts",
           "8f9833d509": "Immutable version",
           "98ed90e523": "A skill contains instructions and may include scripts. Treat it as code from its author.",
@@ -2352,7 +2268,8 @@
             "grokUsageAria": "Open Grok usage details"
           },
           "WorkspaceSpaceCompactPanel": {
-            "2837dc7c72": "cancelling"
+            "2837dc7c72": "cancelling",
+            "bef4dc0457": "{{value0}} reclaimable · {{value1}} unavailable"
           },
           "WorkspaceSpaceManagerPanel": {
             "02b27c2230": "workspace",
@@ -2386,12 +2303,9 @@
           },
           "EditorFileTabContextMenu": {
             "1d04b1630b": "Split Down",
-            "3da91e073d": "Reveal in File Explorer",
             "6b3efb106e": "Split Up",
-            "6ffb7f7bce": "Reveal in Finder",
             "e3ff145b98": "Split Left",
-            "f7c3d7d5af": "Split Right",
-            "fe23001e60": "Open Containing Folder"
+            "f7c3d7d5af": "Split Right"
           },
           "SortableTabContextMenu": {
             "0ce4bae39d": "Split Left",
@@ -2550,6 +2464,10 @@
           "MobileDriverOverlay": {
             "3eed73394f": "Your keyboard is paused"
           },
+          "TerminalErrorToast": {
+            "ptyAllocationLimit": "Your system cannot allocate any more pty devices. Close some terminals you are not using, in Manta or another program, then try again.",
+            "terminalProcessLimit": "Your system cannot start another terminal process. Close unused terminals or quit unused processes, then try again."
+          },
           "TerminalRemoteRuntimeReconnectBanner": {
             "retryingBody": "Manta will retry for up to one minute. This terminal will resume if the connection returns."
           },
@@ -2560,18 +2478,7 @@
           "terminal": {
             "drop": {
               "handler": {
-                "1e072f611e_one": "Failed to upload {{value0}} file.",
-                "1e072f611e_other": "Failed to upload {{value0}} files.",
-                "29c031b49a": {
-                  "ac0575_one": "Uploading {{value0}} file to remote…",
-                  "ac0575_other": "Uploading {{value0}} files to remote…",
-                  "e09913_one": "Uploading {{value0}} file to runtime…",
-                  "e09913_other": "Uploading {{value0}} files to runtime…"
-                },
-                "53f015fd85_one": "Skipped {{value0}} symlink.",
-                "53f015fd85_other": "Skipped {{value0}} symlinks.",
-                "b4cf68e889_one": "Skipped {{value0}} item.",
-                "b4cf68e889_other": "Skipped {{value0}} items."
+                "29c031b49a": "Uploading {{value0}} file{{value1}} to runtime…"
               }
             }
           }
@@ -2769,6 +2676,7 @@
           "title": "Start a chat with {{value0}}"
         },
         "error": {
+          "retryingSubtitle": "The transcript could not be read. Manta keeps trying to load it.",
           "subtitle": "The transcript could not be read. Toggle back to the terminal to keep working.",
           "title": "Could not load conversation"
         },
@@ -2805,6 +2713,56 @@
         "runningPreview": "Running {{preview}}",
         "usedManySummary": "Used {{toolCount}} tools",
         "usedOneSummary": "Used 1 tool"
+      },
+      "writeNotice": {
+        "agentRefused": "The agent turned this down.",
+        "agentStarting": "The agent is still starting.",
+        "answerFirst": "Answer the question or approval first.",
+        "backgroundTasksRunning": "Background tasks are still running.",
+        "capacity": "Manta has received too many requests in the last day.",
+        "chatNotFound": "The Manta running this chat has no record of it.",
+        "clearUnfinished": "The last /clear didn't finish.",
+        "commandRunning": "A /compact or /clear is still running.",
+        "conversationCleared": "This conversation has been cleared.",
+        "goalsUnsupported": "This agent doesn't support goals.",
+        "historyUnavailable": "Manta couldn't open this chat's history right now.",
+        "historyUnreadable": "Manta couldn't read this chat's saved history.",
+        "historyUnusable": "Unable to load this chat.",
+        "hostReconciling": "Manta is still checking on this chat after restarting.",
+        "messagesUnsettled": "A message you sent earlier hasn't been confirmed yet.",
+        "notDoneAnswer": "Your answer was not sent.",
+        "notDoneCommand": "The command didn't run.",
+        "notDoneGoal": "The goal wasn't changed.",
+        "notDoneOption": "The setting wasn't changed.",
+        "notDoneReadHistory": "This chat's history couldn't be loaded.",
+        "notDoneSend": "Your message was not sent.",
+        "notDoneStop": "The agent wasn't stopped.",
+        "notDoneStopTask": "The background task wasn't stopped.",
+        "notDoneStopTasks": "The background tasks weren't stopped.",
+        "openCurrentConversation": "Open the current conversation to continue.",
+        "optionRejected": "The agent didn't accept this setting.",
+        "outcomeUnknown": "Manta couldn't confirm what happened. Check the chat.",
+        "ownerUnproven": "Manta hasn't confirmed that this chat's previous agent stopped.",
+        "promptPending": "The agent is waiting for an answer to a question or approval.",
+        "questionChanged": "This question was already answered or has changed.",
+        "quitTerminalAgent": "Quit that agent to continue the chat here.",
+        "recordFailed": "Manta couldn't record it in this chat's history.",
+        "recordUnreadable": "Manta couldn't read this chat's saved state.",
+        "reopenChat": "Reopen the chat to check again.",
+        "restartFailed": "The agent couldn't restart.",
+        "settleEarlierMessage": "Wait for your earlier message to go through, or retry it.",
+        "startNewChat": "Start a new chat to continue.",
+        "terminalAgentHoldsChat": "This chat is still open in a terminal agent.",
+        "tryAgain": "Try again.",
+        "tryAgainComposerSend": "Send it again.",
+        "turnActive": "The agent is still responding.",
+        "unreachable": "Manta couldn't reach the agent.",
+        "unsupported": "The Manta running this chat doesn't support this. Update Manta, then try again.",
+        "waitForBackgroundTasks": "Wait for the background tasks to finish.",
+        "waitForCommand": "Wait for the /compact or /clear to finish.",
+        "waitForStart": "Wait for the agent to finish starting.",
+        "waitForTurn": "Wait for the agent to finish responding, or stop it.",
+        "waitMoment": "Wait a moment."
       }
     },
     "onboarding": {

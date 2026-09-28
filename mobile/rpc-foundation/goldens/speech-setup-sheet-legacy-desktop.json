@@ -3,16 +3,26 @@
   "family": "speech.setup-sheet",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
-  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
-  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
-  "adapterSha256": "3ddb44511547ae2fc97340e5a49393233f6716f9704b7b994f43bc030788b25b",
+  "baseline": "2077956254c707d904c066ca890dc25f3671fb70",
+  "lockfileSha256": "9317f3a98ab047f9f96fe26fd8531b8a632ac5954064b322f41a904148cbf6bb",
+  "recorderSha256": "0317fe2aebe4743ce5e7ae194531aa91b4fe0a84df457640851fe6dfdb9362af",
+  "adapterSha256": "5d978690e3626892b83bdba64537f9b1e1bb66c2060a00517ceead042a6d2334",
   "scenarioSha256": "0ba2d8283fe98206c7500b62732e30acdc5b8e55f50b7ea8cae96403b803d519",
   "platform": "darwin",
   "scenarioVersion": 1,
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
+    "100447f8b483": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "Update the paired desktop Manta app to use mobile voice settings.",
+        "isRpcDeliveryUnknown": false
+      }
+    },
     "103ab24b6298": {
       "name": "speech.models.list#1",
       "ordinal": 1,
@@ -53,16 +63,6 @@
       "name": "speech.models.list#1",
       "ordinal": 2,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"speech.models.list\",\"params\":null}"
-    },
-    "544268f0e0b3": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "Error",
-        "message": "Update the paired desktop Manta app to use mobile voice settings.",
-        "isRpcDeliveryUnknown": false
-      }
     }
   },
   "recording": {
@@ -74,7 +74,7 @@
           "sender": ["103ab24b6298"],
           "payloads": ["4f793e38be31"],
           "settlements": {
-            "list": "544268f0e0b3"
+            "list": "100447f8b483"
           },
           "state": "44136fa355b3",
           "effects": []

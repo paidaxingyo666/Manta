@@ -38,6 +38,7 @@ function activeProfile(linked: boolean): ActiveMantaProfileState {
     profile,
     index: { schemaVersion: 1, activeProfileId: profile.id, profiles: [profile] },
     dataFile: '',
+    stateDatabaseFile: '',
     profileDirectory: ''
   }
 }

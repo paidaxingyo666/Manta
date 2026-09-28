@@ -5,29 +5,13 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  type ComponentType,
   type ForwardedRef
 } from 'react'
-import { Keyboard, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native'
-import {
-  Bold,
-  Code2,
-  FileCode2,
-  Heading1,
-  Heading2,
-  Heading3,
-  ImageIcon,
-  Italic,
-  Link,
-  List,
-  ListOrdered,
-  ListTodo,
-  Pilcrow,
-  Quote,
-  Strikethrough
-} from 'lucide-react-native'
+import { Keyboard, StyleSheet, View } from 'react-native'
+import { openExternalLink } from '../platform/external-link'
 import WebView, { type WebViewMessageEvent } from 'react-native-webview'
-import { colors, radii, spacing } from '../theme/mobile-theme'
+import { colors } from '../theme/mobile-theme'
+import { MobileRichMarkdownToolbar } from './MobileRichMarkdownToolbar'
 import type {
   MobileRichMarkdownCommand,
   MobileRichMarkdownEditorMessage,
@@ -38,13 +22,15 @@ import {
   buildMobileRichMarkdownEditorHtml,
   escapeInjectedJavaScriptString
 } from './mobile-rich-markdown-editor-html'
-import { localizedConstant } from '../i18n/localized-constant'
-import { translate } from '../i18n/i18n'
 
 const EDITOR_DOCUMENT_ORIGIN = 'https://manta-mobile-editor.invalid'
 const EDITOR_DOCUMENT_URL = `${EDITOR_DOCUMENT_ORIGIN}/rich-markdown-editor`
 
-type Props = Omit<MobileRichMarkdownEditorProps, 'onOpenLink'> & {
+/** Exported so the web sibling answers the same shape and a change to it fails there too. */
+export type MobileRichMarkdownEditorComponentProps = Omit<
+  MobileRichMarkdownEditorProps,
+  'onOpenLink'
+> & {
   onOpenLink?: (url: string) => void
 }
 
@@ -52,92 +38,14 @@ export type MobileRichMarkdownEditorHandle = {
   dismissKeyboard: () => void
 }
 
-type ToolbarItem = {
-  command: MobileRichMarkdownCommand
-  label: string
-  icon: ComponentType<{ size?: number; color?: string }>
-}
-
-const toolbarItems = localizedConstant((): ToolbarItem[] => [
-  {
-    command: 'paragraph',
-    label: translate('m.MobileRichMarkdownEditor.dcf876bee3', 'Body'),
-    icon: Pilcrow
-  },
-  {
-    command: 'heading1',
-    label: translate('m.MobileRichMarkdownEditor.4e4c3e5c6e', 'H1'),
-    icon: Heading1
-  },
-  {
-    command: 'heading2',
-    label: translate('m.MobileRichMarkdownEditor.4f4fb498bc', 'H2'),
-    icon: Heading2
-  },
-  {
-    command: 'heading3',
-    label: translate('m.MobileRichMarkdownEditor.aa920b1281', 'H3'),
-    icon: Heading3
-  },
-  {
-    command: 'bold',
-    label: translate('m.MobileRichMarkdownEditor.4dc5087c78', 'Bold'),
-    icon: Bold
-  },
-  {
-    command: 'italic',
-    label: translate('m.MobileRichMarkdownEditor.cf0a148dc5', 'Italic'),
-    icon: Italic
-  },
-  {
-    command: 'strike',
-    label: translate('m.MobileRichMarkdownEditor.c307647887', 'Strike'),
-    icon: Strikethrough
-  },
-  {
-    command: 'bulletList',
-    label: translate('m.MobileRichMarkdownEditor.84ac880fd0', 'Bullet list'),
-    icon: List
-  },
-  {
-    command: 'orderedList',
-    label: translate('m.MobileRichMarkdownEditor.ffbf532ba2', 'Numbered list'),
-    icon: ListOrdered
-  },
-  {
-    command: 'taskList',
-    label: translate('m.MobileRichMarkdownEditor.8cf9508628', 'Checklist'),
-    icon: ListTodo
-  },
-  {
-    command: 'quote',
-    label: translate('m.MobileRichMarkdownEditor.750393eed3', 'Quote'),
-    icon: Quote
-  },
-  {
-    command: 'link',
-    label: translate('m.MobileRichMarkdownEditor.78b02d6409', 'Link'),
-    icon: Link
-  },
-  {
-    command: 'image',
-    label: translate('m.MobileRichMarkdownEditor.7d3dcdfd44', 'Image'),
-    icon: ImageIcon
-  },
-  {
-    command: 'inlineCode',
-    label: translate('m.MobileRichMarkdownEditor.8758a483e2', 'Inline code'),
-    icon: Code2
-  },
-  {
-    command: 'codeBlock',
-    label: translate('m.MobileRichMarkdownEditor.b0b327b090', 'Code block'),
-    icon: FileCode2
-  }
-])
-
 function MobileRichMarkdownEditorInner(
-  { content, editable, onChange, onKeyboardInsetChange, onOpenLink }: Props,
+  {
+    content,
+    editable,
+    onChange,
+    onKeyboardInsetChange,
+    onOpenLink
+  }: MobileRichMarkdownEditorComponentProps,
   ref: ForwardedRef<MobileRichMarkdownEditorHandle>
 ) {
   const webViewRef = useRef<WebView>(null)
@@ -171,7 +79,7 @@ function MobileRichMarkdownEditorInner(
         onOpenLink(url)
         return
       }
-      void Linking.openURL(url).catch(() => {})
+      openExternalLink(url)
     },
     [onOpenLink]
   )
@@ -222,34 +130,7 @@ function MobileRichMarkdownEditorInner(
 
   return (
     <View style={styles.container}>
-      <View style={styles.toolbar}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.toolbarContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {toolbarItems().map((item) => {
-            const Icon = item.icon
-            return (
-              <Pressable
-                key={item.command}
-                disabled={!editable}
-                accessibilityRole="button"
-                accessibilityLabel={item.label}
-                onPress={() => runCommand(item.command)}
-                style={({ pressed }) => [
-                  styles.toolbarButton,
-                  pressed && editable ? styles.toolbarButtonPressed : null,
-                  !editable ? styles.toolbarButtonDisabled : null
-                ]}
-              >
-                <Icon size={15} color={editable ? colors.textPrimary : colors.textMuted} />
-              </Pressable>
-            )
-          })}
-        </ScrollView>
-      </View>
+      <MobileRichMarkdownToolbar editable={editable} onCommand={runCommand} />
       <WebView
         ref={webViewRef}
         source={{ html, baseUrl: EDITOR_DOCUMENT_URL }}
@@ -278,32 +159,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     backgroundColor: colors.bgBase
-  },
-  toolbar: {
-    minHeight: 42,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderSubtle,
-    backgroundColor: colors.bgPanel
-  },
-  toolbarContent: {
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6
-  },
-  toolbarButton: {
-    minWidth: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.button,
-    paddingHorizontal: spacing.xs
-  },
-  toolbarButtonPressed: {
-    backgroundColor: colors.bgRaised
-  },
-  toolbarButtonDisabled: {
-    opacity: 0.55
   },
   webView: {
     flex: 1,

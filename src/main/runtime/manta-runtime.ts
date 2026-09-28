@@ -1,8 +1,19 @@
 import { installRuntimeLinearCommandSurface } from './runtime-linear-command-surface'
 import { MantaRuntimeWithResolveWaiter } from './manta-runtime-resolve-waiter'
 import type { RuntimeCommandSurfaceHost } from './manta-runtime-core'
+import { registerWorktreeChangeInvalidator } from '../ipc/worktree-change-invalidators'
+import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
 
-class MantaRuntimeService extends MantaRuntimeWithResolveWaiter {}
+class MantaRuntimeService extends MantaRuntimeWithResolveWaiter {
+  constructor(...args: ConstructorParameters<typeof MantaRuntimeWithResolveWaiter>) {
+    super(...args)
+    // Why: the runtime listing re-runs a scan the worktree-change generation overtook and re-lists
+    // through this runtime's scan cache, so a worktree change must reach both. The desktop IPC
+    // module registers the generation bump at load; a headless host never loads it.
+    registerDetectedWorktreeScanInvalidation()
+    registerWorktreeChangeInvalidator((repoId) => this.invalidateWorktreeCatalog(repoId))
+  }
+}
 type MantaRuntimeServiceExport = RuntimeCommandSurfaceHost<MantaRuntimeService>
 const MantaRuntimeServiceExport = MantaRuntimeService as unknown as {
   new (...args: ConstructorParameters<typeof MantaRuntimeService>): MantaRuntimeServiceExport

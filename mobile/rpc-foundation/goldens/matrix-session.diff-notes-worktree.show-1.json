@@ -3,9 +3,9 @@
   "family": "session.diff-notes",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
-  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
-  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "baseline": "2077956254c707d904c066ca890dc25f3671fb70",
+  "lockfileSha256": "9317f3a98ab047f9f96fe26fd8531b8a632ac5954064b322f41a904148cbf6bb",
+  "recorderSha256": "0317fe2aebe4743ce5e7ae194531aa91b4fe0a84df457640851fe6dfdb9362af",
   "adapterSha256": "42334358b5e5966001639653b553f15033f6e201d785107871fe056536f0a5e2",
   "scenarioSha256": "e54684bad13aa8b8b4794e06351c709053b1c4c6d87776ecdbb1dd1b4406a694",
   "platform": "darwin",
@@ -341,15 +341,6 @@
         }
       }
     },
-    "cf4fa55e3a8d": {
-      "name": "unhandled-rejection",
-      "ordinal": 3,
-      "value": {
-        "category": "Error",
-        "isRpcDeliveryUnknown": true,
-        "message": ""
-      }
-    },
     "d5df7c9e19e0": {
       "name": "worktree.show#1",
       "ordinal": 1,
@@ -383,25 +374,6 @@
             "ok": false
           }
         }
-      }
-    },
-    "d638e32b9559": {
-      "name": "unhandled-rejection",
-      "ordinal": 3,
-      "value": {
-        "category": "Error",
-        "isRpcDeliveryUnknown": true,
-        "message": "transport failure"
-      }
-    },
-    "da8252771fbd": {
-      "name": "unhandled-rejection",
-      "ordinal": 3,
-      "value": {
-        "category": "RpcIncompatibleReplyError",
-        "code": "incompatible_reply",
-        "isRpcDeliveryUnknown": false,
-        "message": "The host sent a reply this app could not read (worktree.show)"
       }
     },
     "e28b1ad79121": {
@@ -510,7 +482,7 @@
             "mount": "eb79a9b3682a"
           },
           "state": "432aeb4f1709",
-          "effects": ["da8252771fbd"]
+          "effects": []
         }
       },
       {
@@ -522,7 +494,7 @@
             "mount": "eb79a9b3682a"
           },
           "state": "432aeb4f1709",
-          "effects": ["da8252771fbd"]
+          "effects": []
         }
       },
       {
@@ -606,7 +578,7 @@
             "mount": "eb79a9b3682a"
           },
           "state": "432aeb4f1709",
-          "effects": ["d638e32b9559"]
+          "effects": []
         }
       },
       {
@@ -618,7 +590,7 @@
             "mount": "eb79a9b3682a"
           },
           "state": "432aeb4f1709",
-          "effects": ["cf4fa55e3a8d"]
+          "effects": []
         }
       }
     ]

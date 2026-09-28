@@ -52,6 +52,10 @@ describe('OpenCode status plugin module contract', () => {
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
+    // Why: the generated plugin self-disables when this names a different major,
+    // so an inherited value from the developer's own Manta pane would leave
+    // `hooks.event` undefined and fail the contract for the wrong reason.
+    delete process.env.ORCA_OPENCODE_AGENT
     delete process.env.MANTA_AGENT_HOOK_ENDPOINT
     process.env.MANTA_AGENT_HOOK_PORT = '59999'
     process.env.MANTA_AGENT_HOOK_TOKEN = 'test-token'

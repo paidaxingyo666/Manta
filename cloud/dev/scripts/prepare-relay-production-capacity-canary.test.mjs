@@ -115,7 +115,7 @@ describe('production Relay capacity cell admission', () => {
 
   it('admits the same-cap Asia and migration-only cells only under the same-cap allowlist', () => {
     for (const cellId of [
-      'production-gce-c27', 'production-gce-c28', 'production-gce-c29',
+      'production-gce-c27', 'production-gce-c28', 'production-gce-c29', 'production-gce-c30',
       // Migration-only canaries: the US-only capacity rollout never touches them either.
       'production-gce-c17', 'production-gce-c18'
     ]) {
@@ -134,7 +134,7 @@ describe('production Relay capacity cell admission', () => {
         paceWindowMs: 0
       })
     }
-    for (const cellId of ['production-gce-c12', 'production-gce-c30']) {
+    for (const cellId of ['production-gce-c12', 'production-gce-c31']) {
       const hostname = cellId.slice('production-gce-'.length)
       assert.throws(() => parseProductionCapacityCellArguments([
         '--director-origin', 'https://relay.onorca.dev',
@@ -166,6 +166,36 @@ describe('production Relay capacity cell admission', () => {
       general: ['production-gce-c25']
     })
     assert.doesNotMatch(fake.calls.map(({ path }) => path).join(','), /\/v1\/admin\/drain/)
+  })
+
+  it('stamps the roll isolation on isolate and never on activate', async () => {
+    // The stamp is what lets the director tell a cell parked for a restart from
+    // an evacuation target or an Asia rollback, both of which must keep their
+    // hosts. Only this call site may send it.
+    const isolate = canaryFetch()
+    await prepareProductionCapacityCell(
+      { ...config, mode: 'isolate' },
+      { fetch: isolate.fetch, token: 'token' }
+    )
+    const isolateApply = isolate.calls.find(
+      ({ path }) => path === '/v1/admin/admission-selector/apply'
+    )
+    assert.deepEqual(isolateApply.body.rollIsolatedCells, [config.cellId])
+
+    // Restore has to be a real apply, not the no-op an already-general cell
+    // takes, or the assertion below proves nothing.
+    isolate.calls.length = 0
+    const restored = await prepareProductionCapacityCell(
+      { ...config, mode: 'activate' },
+      { fetch: isolate.fetch, token: 'token' }
+    )
+    assert.equal(restored.admissionState, 'general')
+    const restoreApply = isolate.calls.find(
+      ({ path }) => path === '/v1/admin/admission-selector/apply'
+    )
+    assert.ok(restoreApply, 'restore must issue an apply')
+    assert.equal(restoreApply.body.rollIsolatedCells, undefined)
+    assert.ok(restoreApply.body.membership.general.includes(config.cellId))
   })
 
   it('drains the selected cell independently after durable isolation', async () => {

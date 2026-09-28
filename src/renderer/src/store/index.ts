@@ -20,6 +20,7 @@ import { createWorkspaceSpaceSlice } from './slices/workspace-space'
 import {
   createClaudeUsageSlice,
   createCodexUsageSlice,
+  createMuseUsageSlice,
   createOpenCodeUsageSlice
 } from './slices/usage-provider-slices'
 import { createBrowserSlice } from './slices/browser'
@@ -43,6 +44,7 @@ import { createRecentlyClosedTabsSlice } from './slices/recently-closed-tabs'
 import { createMantaProfilesSlice } from './slices/manta-profiles'
 import { createMantaRelayHostsSlice } from './slices/manta-relay-hosts'
 import { createNewIssueDraftSlice } from './slices/new-issue-draft'
+import { createFeedbackDraftSlice } from './slices/feedback-draft'
 import { createTaskCreationDraftsSlice } from './slices/task-creation-drafts'
 import { createRemoteServerUpdatesSlice } from './slices/remote-server-updates'
 import { createTerminalQuickCommandHostsSlice } from './slices/terminal-quick-command-hosts'
@@ -95,6 +97,7 @@ export const useAppStore = create<AppState>()(
         ...createClaudeUsageSlice(...a),
         ...createCodexUsageSlice(...a),
         ...createOpenCodeUsageSlice(...a),
+        ...createMuseUsageSlice(...a),
         ...createBrowserSlice(...a),
         ...createRateLimitSlice(...a),
         ...createSshSlice(...a),
@@ -116,6 +119,7 @@ export const useAppStore = create<AppState>()(
         ...createMantaProfilesSlice(...a),
         ...createMantaRelayHostsSlice(...a),
         ...createNewIssueDraftSlice(...a),
+        ...createFeedbackDraftSlice(...a),
         ...createTaskCreationDraftsSlice(...a),
         ...createRemoteServerUpdatesSlice(...a),
         ...createTerminalQuickCommandHostsSlice(...a)

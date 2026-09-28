@@ -79,7 +79,9 @@ if (ignoreModules.length > 0) {
 const NATIVE_MODULES = [
   'node-pty',
   'cpu-features',
-  ...(rebuildPlatform === 'win32' ? ['@manta/windows-registry', '@vscode/windows-process-tree'] : [])
+  ...(rebuildPlatform === 'win32'
+    ? ['@manta/windows-registry', '@vscode/windows-process-tree']
+    : [])
 ]
 const onlyModules = NATIVE_MODULES.filter((m) => !ignoreModules.includes(m))
 /** Whether this rebuild targets something other than the machine running it. */
@@ -151,6 +153,7 @@ try {
   // delete fails EPERM when the addon is loaded -- exactly the running-Orca case
   // the catch below is written for. Outside, it aborted `pnpm install` with a
   // raw stack instead of the "close running Manta/Electron processes" message.
+  assertNodePtyConptySourceDeniesMsysBreakaway()
   if (
     rebuildPlatform === 'win32' &&
     modulesToRebuild.includes('@vscode/windows-process-tree') &&
@@ -254,6 +257,22 @@ function assertNodePtyConptyDeniesMsysBreakaway() {
     nodePtyDir: resolve(projectDir, 'node_modules', 'node-pty'),
     rebuildArch,
     crossHost: isCrossHostRebuild
+  })
+}
+
+/**
+ * Refuse to compile node-pty source that cannot yield the denial. Why before the
+ * rebuild: the gate above would spend the compile and then advise "rebuild from
+ * source" -- the step that just ran. Only the source is read; the addon is not
+ * touched, so a locked binary cannot turn this into a spurious EPERM.
+ */
+function assertNodePtyConptySourceDeniesMsysBreakaway() {
+  if (rebuildPlatform !== 'win32' || !modulesToRebuild.includes('node-pty')) {
+    return
+  }
+  const { assertNodePtySourceDeniesMsysBreakaway } = requireLocal('./node-pty-job-ownership.cjs')
+  assertNodePtySourceDeniesMsysBreakaway({
+    nodePtyDir: resolve(projectDir, 'node_modules', 'node-pty')
   })
 }
 

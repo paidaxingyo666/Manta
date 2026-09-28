@@ -3,9 +3,9 @@
   "family": "session.tab-documents",
   "namedDeltas": [],
   "runnerVersion": 1,
-  "baseline": "5d8e3db2e5be70fde38e8cdf4b9828cc0b6d0f53",
-  "lockfileSha256": "463cdf82f68f06ece75f827f4bba5adc613a9928357cc2bc72a3b99f1e2bf281",
-  "recorderSha256": "37022778dc0c1e972ea4ce00e286478442edb4450e7acb382dd8b3240ce3ac1c",
+  "baseline": "2077956254c707d904c066ca890dc25f3671fb70",
+  "lockfileSha256": "9317f3a98ab047f9f96fe26fd8531b8a632ac5954064b322f41a904148cbf6bb",
+  "recorderSha256": "0317fe2aebe4743ce5e7ae194531aa91b4fe0a84df457640851fe6dfdb9362af",
   "adapterSha256": "a3daf9a05d05424959baf77feb45cb0c076d77d8c49e877941ed612cc1e5ce95",
   "scenarioSha256": "f46cef9d1c6a5ed6d8b6f1d180cdf5c666f52e043b70feb07e5fccee885ceeda",
   "platform": "darwin",
@@ -13,7 +13,12 @@
   "projectionVersion": 2,
   "goldenFormatVersion": 5,
   "values": {
-    "3d7bb913821e": {
+    "44abbe2af7aa": {
+      "name": "markdown.readTab#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"markdown.readTab\",\"params\":{\"worktree\":\"id:workspace-1\",\"tabId\":\"tab-md\"}}"
+    },
+    "c6cea5310098": {
       "file": {},
       "markdown": {
         "tab-md": {
@@ -27,11 +32,6 @@
           "status": "ready"
         }
       }
-    },
-    "44abbe2af7aa": {
-      "name": "markdown.readTab#1",
-      "ordinal": 2,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"markdown.readTab\",\"params\":{\"worktree\":\"id:workspace-1\",\"tabId\":\"tab-md\"}}"
     },
     "d4be01606497": {
       "name": "files.read#1",
@@ -131,7 +131,7 @@
           "settlements": {
             "markdown": "eb79a9b3682a"
           },
-          "state": "3d7bb913821e",
+          "state": "c6cea5310098",
           "effects": []
         }
       }

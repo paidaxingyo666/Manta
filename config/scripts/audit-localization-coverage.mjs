@@ -18,9 +18,9 @@ import {
 } from './localization-copy-classification.mjs'
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'])
-// Why: test-only modules live beside their spec as `*-test-harness.ts` / `*-fixtures.ts` here, not under `__tests__/`.
+// Why: test-only modules live beside their spec as `*-test-harness.ts` / `*-test-rig.ts` / `*-fixtures.ts` here, not under `__tests__/`.
 const TEST_SUPPORT_FILE_PATTERN =
-  /[.-](?:test-harness|test-fixtures?|test-state|test-support|fixtures?)\.[cm]?[jt]sx?$/
+  /[.-](?:test-harness|test-rig|test-fixtures?|test-state|test-support|fixtures?)\.[cm]?[jt]sx?$/
 const SKIP_PATH_PARTS = new Set([
   '.git',
   'dist',

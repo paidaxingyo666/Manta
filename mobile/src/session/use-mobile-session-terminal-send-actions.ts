@@ -16,6 +16,7 @@ import {
   TERMINAL_INPUT_SEND_OPTIONS
 } from '../terminal/terminal-send-request'
 import { normalizeTerminalTextInput } from '../terminal/terminal-text-input-normalization'
+import { useTerminalTextFieldSubmitBinding } from '../terminal/use-terminal-text-field-submit-binding'
 import { useAgentSendKeyboardDismissal } from './use-agent-send-keyboard-dismissal'
 import type { MobileSessionTab } from './mobile-session-route-types'
 import { useMobileSessionTabActionSheetOpener } from './use-mobile-session-tab-action-targets'
@@ -46,7 +47,9 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     sendingRef,
     bufferedTerminalDraftState,
     getSendCompletionGeneration,
+    getLiveInteractionGeneration,
     handleLiveInputAccessoryBytes,
+    handleLiveInputSubmit,
     canSend,
     scheduleDelayedAction,
     showToast
@@ -65,6 +68,28 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     dismissSoftwareKeyboard,
     getSendCompletionGeneration
   )
+
+  const submitLiveInput = useCallback(() => {
+    const submit = handleLiveInputSubmit()
+    const sendOrigin = {
+      tab: activeSessionTab,
+      generation: getSendCompletionGeneration(),
+      interaction: getLiveInteractionGeneration()
+    }
+    void submit.then((accepted) =>
+      dismissKeyboardAfterAgentSend(
+        sendOrigin,
+        accepted && sendOrigin.interaction === getLiveInteractionGeneration()
+      )
+    )
+  }, [activeSessionTab, dismissKeyboardAfterAgentSend, handleLiveInputSubmit])
+  const bindLiveInputField = useTerminalTextFieldSubmitBinding(liveInputRef, submitLiveInput)
+  // Per-render, like handleSend itself: the binding refreshes its handler every commit, so there is
+  // no identity here worth pretending is stable.
+  const submitBufferedDraft = (): void => {
+    void handleSend()
+  }
+  const bindCommandField = useTerminalTextFieldSubmitBinding(commandInputRef, submitBufferedDraft)
 
   async function handleSend() {
     // Why: the return key still submits while offline; hold the composed text instead of firing a doomed RPC (#6713).
@@ -249,7 +274,10 @@ export function useMobileSessionTerminalSendActions(scope: MobileSessionTerminal
     openSessionTabActionSheet,
     openSessionTabActionSheetAfterKeyboardDismiss,
     dismissSoftwareKeyboard,
-    dismissKeyboardAfterAgentSend
+    dismissKeyboardAfterAgentSend,
+    bindLiveInputField,
+    bindCommandField,
+    submitLiveInput
   }
 }
 
