@@ -76,6 +76,8 @@ import {
 } from '../shared/pty-startup-ingress'
 import { resolvePtyOwnerBackend, type PtyOwnerBackend } from '../shared/pty-owner-backend'
 import { RecentPtyOutputBuffer } from '../main/runtime/recent-pty-output-buffer'
+import { TerminalShellRecoveryBarrier } from '../main/daemon/terminal-shell-recovery-barrier'
+import { confirmPtyShellForeground } from '../main/daemon/pty-subprocess/pty-shell-foreground-confirmation'
 import {
   resolveAgentForegroundProcessesBatch,
   resolveRemoteForegroundEvidence,
@@ -246,6 +248,7 @@ type ManagedPty = {
   forceKillSent?: boolean
   gracefulKillSent?: boolean
   startupIngress?: PtyStartupIngress
+  recoveryBarrier?: TerminalShellRecoveryBarrier
   startupIngressIntent?: ReturnType<typeof parsePtyStartupIngressIntent>
   ownerBackend: PtyOwnerBackend
   agentSessionOwners?: AgentSessionOwnerBinding[]
@@ -960,11 +963,19 @@ export class PtyHandler {
           : {}
       )
     }
-    managed.startupIngress ??= new PtyStartupIngress({
+    const isDead = (): boolean => managed.disposed === true
+    const recoveryBarrier = new TerminalShellRecoveryBarrier({
+      confirmShellForeground: () =>
+        confirmPtyShellForeground({ process: managed.pty, shellPath: managed.shellPath, isDead }),
+      release: emitIngressData,
+      isAlive: () => !isDead()
+    })
+    managed.recoveryBarrier = recoveryBarrier
+    managed.startupIngress = new PtyStartupIngress({
       ...(managed.startupIngressIntent ? { intent: managed.startupIngressIntent } : {}),
       ownerBackend: managed.ownerBackend,
       write: (data) => managed.pty.write(data),
-      onEmission: emitIngressData
+      onEmission: (emission) => recoveryBarrier.accept(emission)
     })
     const startup = managed.startupCommand
     if (startup?.waitForShellReady) {
@@ -1054,6 +1065,10 @@ export class PtyHandler {
       managed.startupCommand = undefined
     }
     managed.startupIngress?.drainAndClose()
+    // Why after drainAndClose: drained ingress bytes re-enter the barrier; a
+    // teardown mid-proof must still deliver the held prompt before exit.
+    managed.recoveryBarrier?.flushPending()
+    managed.recoveryBarrier?.dispose()
   }
 
   private notifyExitListener(managed: ManagedPty): void {
