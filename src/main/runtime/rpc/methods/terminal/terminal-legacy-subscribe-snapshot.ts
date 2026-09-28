@@ -61,12 +61,20 @@ export async function publishLegacyBinaryInitialSnapshot(
   if (state.closed) {
     return
   }
-  // Why: missing model state (not blank snapshot text) signals a never-attached PTY; a renderer-sourced snapshot already proves attachment, so skip the remount.
+  // Why: missing model state (not blank snapshot text) signals a never-attached PTY; any renderer answer proves a pane, and the answer is null when the host's flag is unset or stale after a pane closed over a live PTY, which falls back to the mount wait.
+  const needsRendererScreen =
+    missingHeadlessStateBeforeMobileFit && serialized?.source !== 'renderer'
+  let rendererReady =
+    needsRendererScreen &&
+    (await runtime.serializeRendererTerminalBuffer(ptyId, { scrollbackRows: 0 })) !== null
+  if (state.closed) {
+    return
+  }
   const mountRequested =
-    missingHeadlessStateBeforeMobileFit &&
-    serialized?.source !== 'renderer' &&
+    needsRendererScreen &&
+    !rendererReady &&
     (rendererMountRequestedBeforePty || runtime.requestRendererTerminalTabMount(params.terminal))
-  if (missingHeadlessStateBeforeMobileFit && mountRequested) {
+  if (mountRequested) {
     // Why: an idle legacy PTY emits no later byte, so wait for a settle proving this remount completed before replaying its screen.
     const mountWaitController = new AbortController()
     const abortMountWait = (): void => mountWaitController.abort()
@@ -98,41 +106,47 @@ export async function publishLegacyBinaryInitialSnapshot(
         deadlineTimer.unref()
       }
     })
-    const rendererReady = await Promise.race([rendererReadyPromise, initialDeadline])
+    rendererReady = await Promise.race([rendererReadyPromise, initialDeadline])
     if (deadlineTimer) {
       clearTimeout(deadlineTimer)
     }
     if (state.closed || signal.aborted) {
       return
     }
-    if (rendererReady) {
-      read = await runtime.readTerminal(params.terminal)
-      const stableRendererSnapshot = await serializeStableMobileRendererSnapshot(
-        runtime,
-        ptyId,
-        // The same frame, because this snapshot is published by the scrollback send below rather
-        // than by one of its own: the `resized` it used to name is a frame nothing here sends.
-        mobileSnapshotByteBudget(params.snapshotByteBudget, state.streamId, scrollbackFrame)
-      )
-      if (state.closed) {
-        return
-      }
-      if (stableRendererSnapshot?.data.length) {
-        serialized = stableRendererSnapshot
-        const trailingOutput = state.pendingOutput.flatMap((item) => {
-          const output = getOutputAfterSnapshotSeq(item, stableRendererSnapshot.seq)
-          const seq = item.meta?.seq
-          return output && typeof seq === 'number' ? [{ data: output.data, seq }] : []
-        })
-        runtime.replaceHeadlessTerminalFromRendererSnapshotForRecovery(
-          ptyId,
-          stableRendererSnapshot,
-          trailingOutput
-        )
-      }
-    } else {
+    if (!rendererReady) {
       // Why: a renderer can settle after the bounded initial response; keep observing so an idle PTY self-heals without bytes.
       state.lateRendererReadyPromise = rendererReadyPromise
+    }
+  }
+  if (rendererReady) {
+    read = await runtime.readTerminal(params.terminal)
+    const stableRendererSnapshot = await serializeStableMobileRendererSnapshot(
+      runtime,
+      ptyId,
+      // The same frame, because this snapshot is published by the scrollback send below rather
+      // than by one of its own: the `resized` it used to name is a frame nothing here sends.
+      mobileSnapshotByteBudget(params.snapshotByteBudget, state.streamId, scrollbackFrame)
+    )
+    if (state.closed) {
+      return
+    }
+    // Why: a blank screen may be a parked pane that has not hydrated, and a seq-less screen has no
+    // seam against buffered output, so it is safe only when nothing is pending to replay twice.
+    if (
+      stableRendererSnapshot?.data.length &&
+      (typeof stableRendererSnapshot.seq === 'number' || state.pendingOutput.length === 0)
+    ) {
+      serialized = stableRendererSnapshot
+      const trailingOutput = state.pendingOutput.flatMap((item) => {
+        const output = getOutputAfterSnapshotSeq(item, stableRendererSnapshot.seq)
+        const seq = item.meta?.seq
+        return output && typeof seq === 'number' ? [{ data: output.data, seq }] : []
+      })
+      runtime.replaceHeadlessTerminalFromRendererSnapshotForRecovery(
+        ptyId,
+        stableRendererSnapshot,
+        trailingOutput
+      )
     }
   }
   let initialOutputOverflowed = false
