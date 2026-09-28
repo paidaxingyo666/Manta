@@ -16,7 +16,7 @@ import { RUN_PANE_KEY_MATCH_SUFFIX_SQL } from './db/pane-key-match'
 import {
   currentRunCoordinatorOrcaSessionId,
   currentRunCoordinatorOrcaSessionIdSql
-} from './db/runs/run-coordinator-orca-session'
+} from './db/runs/run-coordinator-manta-session'
 import { resolveOrchestrationMigrationStartVersion } from './orchestration-schema-version-skew'
 
 const SESSION_ID = testOrcaSessionId('5f0c1d9e-2b7a-4c3e-8f61-0a9d2e7b4c11')

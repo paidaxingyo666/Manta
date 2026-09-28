@@ -23,7 +23,7 @@ import { getStructuredAgentSessionHost } from '../../native-chat/agent-session-w
 import type { MantaRuntimeService } from '../manta-runtime'
 import type { OrchestrationSessionCaller } from '../orchestration/orchestration-caller-identity'
 import { OrchestrationError } from '../orchestration/orchestration-error'
-import { canonicalOrcaSessionId } from '../orchestration/canonical-orca-session-id'
+import { canonicalOrcaSessionId } from '../orchestration/canonical-manta-session-id'
 import type { OrchestrationDb } from '../orchestration/db'
 import {
   resolveDeclaredCallerParty,

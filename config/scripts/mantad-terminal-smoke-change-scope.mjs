@@ -7,7 +7,7 @@ const ENTRY_POINTS = [
   ORCAD_ENTRY_POINT,
   ...Object.values(ORCAD_CHILD_ENTRY_POINTS),
   'src/cli/index.ts',
-  'config/scripts/build-orcad-bun.mjs',
+  'config/scripts/build-mantad-bun.mjs',
   'config/scripts/build-mantad.mjs',
   'config/scripts/ensure-native-runtime.mjs',
   'config/scripts/rebuild-native-deps.mjs',
@@ -30,7 +30,7 @@ export async function classifyOrcadTerminalSmokeChanges(
     (file) =>
       ENTRY_POINTS.includes(file) ||
       file === '.github/workflows/pr.yml' ||
-      file.startsWith('config/scripts/orcad-terminal-smoke-') ||
+      file.startsWith('config/scripts/mantad-terminal-smoke-') ||
       file.startsWith('config/scripts/runtime-serve-terminal-smoke') ||
       // createRequire-loaded native probes are invisible to esbuild's import graph.
       (file.startsWith('config/scripts/') && file.endsWith('.cjs')) ||

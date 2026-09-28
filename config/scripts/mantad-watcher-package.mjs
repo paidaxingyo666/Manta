@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { join, resolve } from 'node:path'
 import { x as extractTar } from 'tar'
 import { parseAllDocuments } from 'yaml'
-import { ORCAD_BUN_TARGETS } from '../../src/shared/orcad-bun-runtime.ts'
+import { ORCAD_BUN_TARGETS } from '../../src/shared/mantad-bun-runtime.ts'
 
 const root = resolve(import.meta.dirname, '../..')
 const require = createRequire(import.meta.url)
@@ -50,7 +50,7 @@ export async function materializeWatcherPackage(target) {
   const { version } = require('@parcel/watcher/package.json')
   const lockfile = parseWatcherLockfile(await readFile(join(root, 'pnpm-lock.yaml'), 'utf8'))
   const { integrity, url } = watcherPackageIdentity(target, version, lockfile)
-  const cache = join(root, 'out', '.orcad-watchers', version, target)
+  const cache = join(root, 'out', '.mantad-watchers', version, target)
   const archivePath = join(cache, 'package.tgz')
   await mkdir(cache, { recursive: true })
   let bytes

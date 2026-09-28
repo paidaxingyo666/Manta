@@ -99,9 +99,9 @@ export class RelayAgentHookRuntime {
       },
       {}
     )
-    delete context.env.ORCA_OPENCODE_AGENT
+    delete context.env.MANTA_OPENCODE_AGENT
     if (opencodeAgent) {
-      env.ORCA_OPENCODE_AGENT = opencodeAgent
+      env.MANTA_OPENCODE_AGENT = opencodeAgent
       const sourceDir = resolveOpenCodeSourceConfigDir(context.env, context.shell)
       const inheritedRelayOverlay = sourceDir
         ? this.pluginOverlay.isRelayOverlayPath(sourceDir)

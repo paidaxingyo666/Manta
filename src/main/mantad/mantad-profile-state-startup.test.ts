@@ -24,11 +24,11 @@ vi.mock('../manta-profiles/profile-index-store', () => ({
 vi.mock('../ssh/ssh-host-key-store', () => ({
   initSshHostKeyStoreFile: initSshHostKeyStoreFileMock
 }))
-vi.mock('./orcad-profile-state-telemetry', () => ({
+vi.mock('./mantad-profile-state-telemetry', () => ({
   emitOrcadProfileStateAuthoritySelected: emitMock
 }))
 
-const { createOrcadProfileStateStartup } = await import('./orcad-profile-state-startup')
+const { createOrcadProfileStateStartup } = await import('./mantad-profile-state-startup')
 
 beforeEach(() => {
   vi.resetAllMocks()

@@ -48,7 +48,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   // (an inherited MANTA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
   const ENV_KEYS = [
     'MANTA_PANE_KEY',
-    'ORCA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_AGENT',
     'MANTA_AGENT_HOOK_ENDPOINT',
     'MANTA_AGENT_HOOK_PORT',
     'MANTA_AGENT_HOOK_TOKEN'
@@ -65,7 +65,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
-    process.env.ORCA_OPENCODE_AGENT = agent
+    process.env.MANTA_OPENCODE_AGENT = agent
     delete process.env.MANTA_AGENT_HOOK_ENDPOINT
     process.env.MANTA_AGENT_HOOK_PORT = '59999'
     process.env.MANTA_AGENT_HOOK_TOKEN = 'test-token'
@@ -97,7 +97,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   }
 
   it('does not register hooks for the other pane variant', async () => {
-    process.env.ORCA_OPENCODE_AGENT = agent === 'opencode' ? 'opencode2' : 'opencode'
+    process.env.MANTA_OPENCODE_AGENT = agent === 'opencode' ? 'opencode2' : 'opencode'
     const module = await loadPluginModule(
       agent === 'opencode2'
         ? _internals.getOpenCode2PluginSource()

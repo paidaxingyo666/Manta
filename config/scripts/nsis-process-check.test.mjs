@@ -6,7 +6,7 @@ import { runProcessSync } from '../../src/shared/child-process/run-process'
 
 const hooks = readFileSync(new URL('../nsis/manta-installer-hooks.nsh', import.meta.url), 'utf8')
 const processCheck = readFileSync(
-  new URL('../nsis/orca-process-check.nsh', import.meta.url),
+  new URL('../nsis/manta-process-check.nsh', import.meta.url),
   'utf8'
 )
 const require = createRequire(import.meta.url)
@@ -29,7 +29,7 @@ function readPowerShellProbe(source = processCheck) {
 
 describe('NSIS process-check integration', () => {
   it('loads the capability hook through the installer and uninstaller include', () => {
-    expect(hooks).toContain('!include "${__FILEDIR__}\\orca-process-check.nsh"')
+    expect(hooks).toContain('!include "${__FILEDIR__}\\manta-process-check.nsh"')
     expect(processCheck).toMatch(/!macro customCheckAppRunning\b/)
     expect(processCheck).toContain('!include "getProcessInfo.nsh"')
     expect(processCheck).toMatch(/^Var pid$/m)

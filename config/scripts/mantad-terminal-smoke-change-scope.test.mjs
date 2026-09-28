@@ -51,7 +51,7 @@ describe('the actual terminal smoke dependency graph', () => {
     'src/main/worker-thread-entry-path.ts',
     'src/cli/index.ts',
     'config/scripts/runtime-serve-terminal-smoke.mjs',
-    'config/scripts/build-orcad-bun.mjs',
+    'config/scripts/build-mantad-bun.mjs',
     'config/scripts/build-mantad.mjs',
     'config/scripts/profile-state-worker-smoke.mjs',
     'config/scripts/install-dev-cli.mjs',

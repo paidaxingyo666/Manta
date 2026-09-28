@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { handoffToBundledOrcad } from './orcad-bundled-runtime'
-import { ORCAD_BUN_VERSION } from '../../shared/orcad-bun-runtime'
+import { handoffToBundledOrcad } from './mantad-bundled-runtime'
+import { ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
 import { MANTAD_VERSION_FILENAME } from '../../shared/mantad-artifacts'
 
 const fixture = vi.hoisted(() => ({

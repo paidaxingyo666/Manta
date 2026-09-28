@@ -22,7 +22,7 @@ import { viewportPoint } from './viewport-cell'
 import { attachSurfaceWheelHandler } from './wheel-scroll'
 
 /** A surface that has already been wired, so a re-mount does not stack handlers. */
-type TerminalGestureSurface = HTMLElement & { __orcaSurfaceHandlersAttached?: boolean }
+type TerminalGestureSurface = HTMLElement & { __mantaSurfaceHandlersAttached?: boolean }
 
 /** The live touch gesture: the last point, the velocity, and the pinch it may be in. */
 export type TerminalTouchState = {

@@ -4,7 +4,7 @@ import type {
   WatcherProcessCallback,
   WatcherProcessHooks
 } from '../ipc/parcel-watcher-process-subscription'
-import { preflightOrcadBunNativeRuntime } from './orcad-bun-native-preflight'
+import { preflightOrcadBunNativeRuntime } from './mantad-bun-native-preflight'
 
 const fixture = vi.hoisted(() => ({
   temp: vi.fn(),

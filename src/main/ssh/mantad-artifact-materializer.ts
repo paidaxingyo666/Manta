@@ -17,14 +17,14 @@ import {
   mantadArtifactFilenames,
   orcadTemplateCommonFilenames
 } from '../../shared/mantad-artifacts'
-import type { OrcadBunTarget } from '../../shared/orcad-bun-runtime'
-import { findOrcadCachePath } from './orcad-cache-path'
+import type { OrcadBunTarget } from '../../shared/mantad-bun-runtime'
+import { findOrcadCachePath } from './mantad-cache-path'
 import {
   fileSha256,
   materializeCachedOrcadBunRuntime,
   verifyFileSha256,
   type OrcadBunRuntimeMaterializeOptions
-} from './orcad-bun-runtime-materializer'
+} from './mantad-bun-runtime-materializer'
 
 const TemplateTargetSchema = z
   .object({
@@ -268,12 +268,12 @@ export function getOrcadTemplateCandidates(): string[] {
     candidates.push(process.env.ORCA_ORCAD_TEMPLATE_PATH)
   }
   if (process.resourcesPath) {
-    candidates.push(join(process.resourcesPath, 'orcad-template'))
+    candidates.push(join(process.resourcesPath, 'mantad-template'))
   }
   const appPath = getAppEnvironment().getAppPath()
   candidates.push(
-    join(appPath, 'out', 'orcad-template'),
-    join(appPath, 'resources', 'orcad-template')
+    join(appPath, 'out', 'mantad-template'),
+    join(appPath, 'resources', 'mantad-template')
   )
   return [...new Set(candidates)]
 }

@@ -204,7 +204,7 @@ describe('WSL CLI PowerShell boundary', () => {
         await writeFile(bridgePath, buildWslBridgeScript({ userDataPath, cliEntryPath }), 'utf8')
         await writeFile(
           cliEntryPath,
-          'console.error("to stderr"); const e = process.env; console.log(JSON.stringify({ argv: process.argv.slice(2), owner: e.MANTA_USER_DATA_PATH, app: e.MANTA_APP_EXECUTABLE, nodeOptions: e.NODE_OPTIONS ?? null, stashed: e.MANTA_NODE_OPTIONS, cliDir: e.ORCA_WSL_CLI_DIR ?? null }))\n',
+          'console.error("to stderr"); const e = process.env; console.log(JSON.stringify({ argv: process.argv.slice(2), owner: e.MANTA_USER_DATA_PATH, app: e.MANTA_APP_EXECUTABLE, nodeOptions: e.NODE_OPTIONS ?? null, stashed: e.MANTA_NODE_OPTIONS, cliDir: e.MANTA_WSL_CLI_DIR ?? null }))\n',
           'utf8'
         )
         const result = spawnSync(
@@ -228,7 +228,7 @@ describe('WSL CLI PowerShell boundary', () => {
               ...process.env,
               MANTA_APP_EXECUTABLE: '',
               NODE_OPTIONS: '--max-old-space-size=4096',
-              ORCA_WSL_CLI_DIR: 'C:\\guest-only'
+              MANTA_WSL_CLI_DIR: 'C:\\guest-only'
             }
           }
         )

@@ -65,7 +65,7 @@ function evaluateBundle(options: { prompt?: string | null } = {}) {
   new Function(RICH_MARKDOWN_EDITOR_DOCUMENT_SCRIPT)()
   const handle = window.__mantaRichMarkdown!
   evaluated.push(() => {
-    Reflect.deleteProperty(globalThis, '__orcaRichMarkdown')
+    Reflect.deleteProperty(globalThis, '__mantaRichMarkdown')
   })
   return { posted, commands, viewportListeners, handle }
 }

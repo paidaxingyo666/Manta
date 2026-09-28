@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ORCAD_PROFILE_PREFLIGHT_FLAG,
   ORCAD_STARTUP_PREFLIGHT_FLAG
-} from '../../shared/orcad-profile-preflight'
+} from '../../shared/mantad-profile-preflight'
 
 /**
  * The precondition is only worth anything if it runs first. A loader failure is not
@@ -14,8 +14,8 @@ const { order, profileProbe } = vi.hoisted(() => {
   return { order, profileProbe: vi.fn(async () => {}) }
 })
 
-vi.mock('./orcad-bundled-runtime', () => ({ handoffToBundledOrcad: () => false }))
-vi.mock('./orcad-profile-preflight', () => ({
+vi.mock('./mantad-bundled-runtime', () => ({ handoffToBundledOrcad: () => false }))
+vi.mock('./mantad-profile-preflight', () => ({
   preflightBundledOrcadStartup: async () => {
     order.push('profile-admission')
   },

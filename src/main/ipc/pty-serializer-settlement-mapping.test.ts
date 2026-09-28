@@ -466,13 +466,13 @@ describe('registerPtyHandlers', () => {
     await handlers.get('pty:spawn')!(null, {
       cols: 80,
       rows: 24,
-      env: { MANTA_TERMINAL_HANDLE: 'term_untrusted', ORCA_WSL_CLI_DIR: 'C:\\stale' }
+      env: { MANTA_TERMINAL_HANDLE: 'term_untrusted', MANTA_WSL_CLI_DIR: 'C:\\stale' }
     })
 
     const spawnCall = spawnMock.mock.calls.at(-1)!
     const env = spawnCall[2].env as Record<string, string>
     expect(env.MANTA_TERMINAL_HANDLE).toBe('term_trusted')
-    expect(env.ORCA_WSL_CLI_DIR).toBeUndefined()
+    expect(env.MANTA_WSL_CLI_DIR).toBeUndefined()
     expect(runtime.preAllocateHandleForPty).toHaveBeenCalledWith(expect.any(String))
   })
   it('forwards the trusted Manta terminal handle into managed WSL terminals', async () => {
@@ -509,7 +509,7 @@ describe('registerPtyHandlers', () => {
     expect(env.MANTA_TERMINAL_HANDLE).toBe('term_wsl')
     expect(env.MANTA_USER_DATA_PATH).toBe('/tmp/manta-user-data')
     expect(env.MANTA_CLI_COMMAND).toBe('manta-ide')
-    expect(env.ORCA_WSL_CLI_DIR).toBe('C:\\manta-user-data\\wsl-managed-cli\\hash')
+    expect(env.MANTA_WSL_CLI_DIR).toBe('C:\\manta-user-data\\wsl-managed-cli\\hash')
     expect(env.WSLENV?.split(':')).toEqual(
       expect.arrayContaining([
         'MANTA_TERMINAL_HANDLE/u',
@@ -550,7 +550,7 @@ describe('registerPtyHandlers', () => {
         shellOverride: 'wsl.exe',
         env: {
           MANTA_USER_DATA_PATH: '/tmp/stale-manta-user-data',
-          ORCA_WSL_CLI_DIR: '/tmp/stale-wsl-cli'
+          MANTA_WSL_CLI_DIR: '/tmp/stale-wsl-cli'
         }
       })
     } finally {
@@ -563,6 +563,6 @@ describe('registerPtyHandlers', () => {
     const env = spawnCall[2].env as Record<string, string>
     expect(spawnCall[0]).toBe('wsl.exe')
     expect(env.MANTA_USER_DATA_PATH).toBe('/tmp/manta-user-data')
-    expect(env.ORCA_WSL_CLI_DIR).toBeUndefined()
+    expect(env.MANTA_WSL_CLI_DIR).toBeUndefined()
   })
 })

@@ -13,7 +13,7 @@ import { startOrcadWithLifecycle } from './mantad-lifecycle'
 import { MantadBindAddressError } from './mantad-bind-address'
 import { MantadInstanceLockError } from './mantad-instance-lock'
 import { ProfileStateAccessError } from '../persistence/profile-state/profile-state-access'
-import { OrcadBundledRuntimeError } from './orcad-bundled-runtime'
+import { OrcadBundledRuntimeError } from './mantad-bundled-runtime'
 
 describe('parseArgs', () => {
   it('accepts --bind and leaves it unset when absent', () => {

@@ -1,5 +1,5 @@
 import { MantadBindAddressError } from './mantad-bind-address'
-import { OrcadBundledRuntimeError } from './orcad-bundled-runtime'
+import { OrcadBundledRuntimeError } from './mantad-bundled-runtime'
 import { MantadInstanceLockError } from './mantad-instance-lock'
 import { ProfileStateAccessError } from '../persistence/profile-state/profile-state-access'
 

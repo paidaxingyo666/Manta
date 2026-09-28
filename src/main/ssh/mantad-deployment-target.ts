@@ -1,4 +1,4 @@
-import type { OrcadBunTarget } from '../../shared/orcad-bun-runtime'
+import type { OrcadBunTarget } from '../../shared/mantad-bun-runtime'
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import type { RemoteHostPlatform } from './ssh-remote-platform'

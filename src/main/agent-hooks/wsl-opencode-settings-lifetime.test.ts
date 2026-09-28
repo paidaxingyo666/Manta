@@ -227,7 +227,10 @@ describe.skipIf(process.platform === 'win32')('WSL public-manager settings lifet
           if (!dir) {
             throw new Error('missing enabled overlay')
           }
-          expect(readFileSync(join(dir, 'plugins', `manta-${agent}-status.js`), 'utf8')).toBe(
+          // The opencode2 file keeps its shipped on-disk name.
+          const pluginFile =
+            agent === 'opencode' ? 'manta-opencode-status.js' : 'orca-opencode2-status.js'
+          expect(readFileSync(join(dir, 'plugins', pluginFile), 'utf8')).toBe(
             agent === 'opencode' ? sources.opencodePluginSource : sources.opencode2PluginSource
           )
         } else {

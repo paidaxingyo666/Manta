@@ -24,7 +24,7 @@ import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { smokeProfileStateWorkers } from './profile-state-worker-smoke.mjs'
 import { materializeWatcherPackage } from './mantad-watcher-package.mjs'
-import { stageOrcadWindowsProcessTree } from './orcad-windows-process-tree.mjs'
+import { stageOrcadWindowsProcessTree } from './mantad-windows-process-tree.mjs'
 import {
   ORCAD_BUILD_TARGET_FILENAME,
   ORCAD_EMOJI_SHORTCODE_DATASET,
@@ -34,8 +34,8 @@ import {
   MANTAD_VERSION_FILENAME,
   ORCAD_RIPGREP_ARTIFACTS
 } from '../../src/shared/mantad-artifacts.ts'
-import { computeOrcadFullVersion } from './orcad-artifact-version.mjs'
-import { ORCAD_BUN_VERSION } from '../../src/shared/orcad-bun-runtime.ts'
+import { computeOrcadFullVersion } from './mantad-artifact-version.mjs'
+import { ORCAD_BUN_VERSION } from '../../src/shared/mantad-bun-runtime.ts'
 import { mantadAgentBrowserNativeName } from '../../src/shared/mantad-agent-browser-name.ts'
 
 const ROOT = join(import.meta.dirname, '..', '..')

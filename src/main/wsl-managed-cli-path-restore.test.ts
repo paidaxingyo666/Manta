@@ -43,12 +43,12 @@ function run(
 
 describe.each(SHELLS)('WSL_MANAGED_CLI_PATH_RESTORE in $name', (shell) => {
   it.skipIf(!shell.enabled)('leads PATH with a directory holding an executable CLI', () => {
-    const result = run(shell, { ORCA_WSL_CLI_DIR: root, MANTA_CLI_COMMAND: 'manta-dev' })
+    const result = run(shell, { MANTA_WSL_CLI_DIR: root, MANTA_CLI_COMMAND: 'manta-dev' })
     expect(result).toMatchObject({ code: 0, stdout: `${root}:/usr/bin:/bin`, stderr: '' })
   })
 
   it.skipIf(!shell.enabled)('warns and keeps PATH when the CLI cannot run', () => {
-    const result = run(shell, { ORCA_WSL_CLI_DIR: root, MANTA_CLI_COMMAND: 'manta-ide' })
+    const result = run(shell, { MANTA_WSL_CLI_DIR: root, MANTA_CLI_COMMAND: 'manta-ide' })
     expect(result).toMatchObject({ code: 0, stdout: '/usr/bin:/bin' })
     expect(result.stderr).toContain('Manta CLI unavailable')
   })

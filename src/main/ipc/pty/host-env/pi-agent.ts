@@ -133,7 +133,7 @@ export function getInheritedAgentHookEnvKeysToDelete(
   // Why: providers merge process.env after cleanup; delete stale hook keys without dropping fresh coordinates buildPtyHostEnv set.
   return [
     ...AGENT_HOOK_RUNTIME_ENV_KEYS,
-    'ORCA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_AGENT',
     'MANTA_OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_SOURCE_CONFIG_DIR'
   ].filter((key) => env[key] === undefined)

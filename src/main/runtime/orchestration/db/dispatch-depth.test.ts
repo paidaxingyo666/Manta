@@ -6,7 +6,7 @@ import {
 } from '../../structured-worker-identity'
 import { OrchestrationDb } from '../db'
 import { AmbiguousDispatchParentError } from './dispatch-depth'
-import { backfillStructuredWorkerOrcaSessionIds } from './schema/structured-worker-orca-session-backfill'
+import { backfillStructuredWorkerOrcaSessionIds } from './schema/structured-worker-manta-session-backfill'
 
 /**
  * These pin the fence Manta documented but never enforced: before this feature a

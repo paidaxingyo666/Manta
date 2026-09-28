@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
-import { stageOrcadWindowsProcessTree } from './orcad-windows-process-tree.mjs'
+import { stageOrcadWindowsProcessTree } from './mantad-windows-process-tree.mjs'
 import { windowsProcessTreeAddonPath } from './windows-process-tree-gyp-rebuild.mjs'
 
 const windowsHost = { platform: 'win32', arch: 'x64' }

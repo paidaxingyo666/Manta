@@ -11,7 +11,7 @@ import {
   resolveStructuredWorkerIdentity,
   resolveStructuredWorkerIdentityForSession
 } from '../structured-worker-authority'
-import { canonicalOrcaSessionId } from './canonical-orca-session-id'
+import { canonicalOrcaSessionId } from './canonical-manta-session-id'
 import type { OrchestrationDb } from './db'
 import { mailboxAddressOf, type OrchestrationCallerIdentity } from './orchestration-caller-identity'
 import { OrchestrationError } from './orchestration-error'

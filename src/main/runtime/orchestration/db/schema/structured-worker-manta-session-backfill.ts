@@ -6,7 +6,7 @@ import {
   isStructuredWorkerHandle,
   sessionIdFromStructuredWorkerIncarnation
 } from '../../../structured-worker-identity'
-import { currentRunCoordinatorOrcaSessionIdSql } from '../runs/run-coordinator-orca-session'
+import { currentRunCoordinatorOrcaSessionIdSql } from '../runs/run-coordinator-manta-session'
 
 const CURRENT_COORDINATOR_ORCA_SESSION_ID_SQL = currentRunCoordinatorOrcaSessionIdSql('runs')
 

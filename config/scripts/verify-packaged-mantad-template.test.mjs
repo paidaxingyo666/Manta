@@ -7,10 +7,10 @@ import {
   ORCAD_TEMPLATE_MANIFEST_FILENAME,
   ORCAD_TEMPLATE_TARGETS_DIR
 } from '../../src/shared/mantad-artifacts.ts'
-import { writeOrcadTemplateTestFixture } from './orcad-template-test-fixture.mjs'
+import { writeOrcadTemplateTestFixture } from './mantad-template-test-fixture.mjs'
 
 const require = createRequire(import.meta.url)
-const { verifyPackagedOrcadTemplate } = require('./verify-packaged-orcad-template.cjs')
+const { verifyPackagedOrcadTemplate } = require('./verify-packaged-mantad-template.cjs')
 const builderConfig = require('../electron-builder.config.cjs')
 const roots = []
 
@@ -81,13 +81,13 @@ describe('verifyPackagedOrcadTemplate', () => {
     for (const platform of ['win', 'mac', 'linux']) {
       expect(
         builderConfig[platform].extraResources.some(
-          (resource) => typeof resource === 'object' && resource.to.startsWith('orcad-template')
+          (resource) => typeof resource === 'object' && resource.to.startsWith('mantad-template')
         )
       ).toBe(false)
     }
     const { scripts } = JSON.parse(await readFile(join(process.cwd(), 'package.json'), 'utf8'))
     for (const name of ['build:desktop', 'build:release', 'build:release:parallel']) {
-      expect(scripts[name]).not.toContain('build:orcad-template')
+      expect(scripts[name]).not.toContain('build:mantad-template')
     }
   })
 })

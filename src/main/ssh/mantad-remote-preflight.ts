@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto'
-import { ORCAD_BUN_VERSION } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
 import { orcadBunRuntimeFilename } from '../../shared/mantad-artifacts'
 import {
   ORCAD_PROFILE_PREFLIGHT_FLAG,
   ORCAD_PROFILE_PREFLIGHT_TIMEOUT_MS,
   parseOrcadProfilePreflight
-} from '../../shared/orcad-profile-preflight'
+} from '../../shared/mantad-profile-preflight'
 import { assertPosixOrcadHost } from './mantad-remote-host-support'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { shellEscape } from './ssh-connection-utils'

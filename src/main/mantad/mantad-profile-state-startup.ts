@@ -5,7 +5,7 @@ import {
   initMantaProfilePaths
 } from '../manta-profiles/profile-index-store'
 import { initSshHostKeyStoreFile } from '../ssh/ssh-host-key-store'
-import { emitOrcadProfileStateAuthoritySelected } from './orcad-profile-state-telemetry'
+import { emitOrcadProfileStateAuthoritySelected } from './mantad-profile-state-telemetry'
 
 export type OrcadProfileStateProfile = {
   dataFile: string

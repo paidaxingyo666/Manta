@@ -9,7 +9,7 @@ import {
 } from './runs/run-coordinator-mail-routing'
 import { createTables } from './schema/create-tables'
 import { migrate } from './schema/migrate'
-import { backfillStructuredWorkerOrcaSessionIds } from './schema/structured-worker-orca-session-backfill'
+import { backfillStructuredWorkerOrcaSessionIds } from './schema/structured-worker-manta-session-backfill'
 
 class OrchestrationDbCore {
   db: Database.Database

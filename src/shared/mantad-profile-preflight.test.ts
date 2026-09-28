@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { parseOrcadProfilePreflight } from './orcad-profile-preflight'
+import { parseOrcadProfilePreflight } from './mantad-profile-preflight'
 
 const response = {
   type: 'manta_profile_state_ready',

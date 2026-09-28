@@ -93,12 +93,12 @@ export function buildPtyHostEnv(
     source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
     preserveExplicitPrimary: true
   })
-  delete baseEnv.ORCA_OPENCODE_AGENT
+  delete baseEnv.MANTA_OPENCODE_AGENT
   if (openCodeAgent) {
     // Why: OPENCODE_CONFIG_DIR is a single path, not a colon-list; mirror the user's value into an overlay so their plugins and Manta's status plugin coexist. See docs/opencode-config-dir-collision.md.
     const openCodeStatusService =
       openCodeAgent === 'opencode2' ? openCode2HookService : openCodeHookService
-    baseEnv.ORCA_OPENCODE_AGENT = openCodeAgent
+    baseEnv.MANTA_OPENCODE_AGENT = openCodeAgent
     // WSL owns its config writes; only the guest overlay may enter a WSL pane.
     if (!opts.isWsl) {
       Object.assign(baseEnv, openCodeStatusService.buildPtyEnv(id, preexistingOpenCodeConfigDir))
@@ -281,7 +281,7 @@ export function buildPtyHostEnv(
   }
 
   // Why: an inherited copy (e.g. Manta launched from a WSL pane) names another launch's CLI.
-  delete baseEnv.ORCA_WSL_CLI_DIR
+  delete baseEnv.MANTA_WSL_CLI_DIR
   // Why: WSL shells need the managed userData root for shell-ready wrappers; dev-mode terminals need the same export so `manta` targets the live dev instance.
   if (opts.isWsl) {
     baseEnv.MANTA_USER_DATA_PATH = opts.userDataPath
@@ -289,7 +289,7 @@ export function buildPtyHostEnv(
     baseEnv.MANTA_CLI_COMMAND = getWslCliCommandName(opts.isPackaged)
     const managedCliDir = getManagedWslCliDir(opts)
     if (managedCliDir) {
-      baseEnv.ORCA_WSL_CLI_DIR = managedCliDir
+      baseEnv.MANTA_WSL_CLI_DIR = managedCliDir
     }
   } else {
     if (!opts.isPackaged) {

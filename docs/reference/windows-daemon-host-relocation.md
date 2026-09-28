@@ -27,7 +27,7 @@ works. `Restricted` disallows script files, not inline commands. A packaged trac
 showed that fallback successfully killing the relocated `Manta.exe` during an update; the
 genuine-uninstall cleanup guard was not responsible.
 
-Manta's `customCheckAppRunning` in `config/nsis/orca-process-check.nsh` tests the actual inline
+Manta's `customCheckAppRunning` in `config/nsis/manta-process-check.nsh` tests the actual inline
 `Get-CimInstance Win32_Process` query with terminating errors. Success selects the path-scoped
 branch; any other result retains the upstream fallback. The hook reuses upstream process
 selection, retry, permission and installation-mode handling. It neither overrides execution

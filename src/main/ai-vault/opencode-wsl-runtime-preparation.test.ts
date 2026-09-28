@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ORCAD_BUN_RELEASE_ASSETS } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_RELEASE_ASSETS } from '../../shared/mantad-bun-runtime'
 import { runProcess } from '../../shared/child-process/run-process'
 import type * as preparationModule from './opencode-wsl-runtime-preparation'
 
@@ -24,7 +24,7 @@ vi.mock('../wsl/wsl-runner', () => ({ runWslProcess: mocks.run }))
 vi.mock('../wsl-running-path-filter', () => ({
   filterPathsToRunningWslDistrosAsync: mocks.running
 }))
-vi.mock('../ssh/orcad-bun-runtime-materializer', () => ({
+vi.mock('../ssh/mantad-bun-runtime-materializer', () => ({
   materializeCachedOrcadBunRuntime: mocks.download
 }))
 vi.mock('../ssh/relay-bundle-paths', () => ({ relayBundleCandidates: mocks.bundles }))

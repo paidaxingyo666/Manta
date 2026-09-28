@@ -1,6 +1,6 @@
 import type { RunRow } from './types'
 import { isEquivalentPaneKey } from './db/pane-key-match'
-import { currentRunCoordinatorOrcaSessionId } from './db/runs/run-coordinator-orca-session'
+import { currentRunCoordinatorOrcaSessionId } from './db/runs/run-coordinator-manta-session'
 import { formatOrcaSessionAddress, type OrcaSessionId } from '../../../shared/manta-session-address'
 
 /**

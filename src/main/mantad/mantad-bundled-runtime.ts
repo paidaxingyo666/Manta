@@ -7,7 +7,7 @@ import {
   MANTAD_VERSION_FILENAME,
   orcadBunRuntimeFilename
 } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_VERSION } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
 
 export class OrcadBundledRuntimeError extends Error {}
 export const ORCAD_BUNDLED_LAUNCHER_ENV = 'ORCA_BUNDLED_LAUNCHER_CHANNEL'

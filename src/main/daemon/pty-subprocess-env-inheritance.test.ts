@@ -126,12 +126,12 @@ describe('createPtySubprocess', () => {
       MANTA_PANE_KEY: process.env.MANTA_PANE_KEY,
       MANTA_TAB_ID: process.env.MANTA_TAB_ID,
       MANTA_WORKTREE_ID: process.env.MANTA_WORKTREE_ID,
-      ORCA_WSL_CLI_DIR: process.env.ORCA_WSL_CLI_DIR
+      MANTA_WSL_CLI_DIR: process.env.MANTA_WSL_CLI_DIR
     }
     process.env.MANTA_PANE_KEY = 'parent-tab:parent-leaf'
     process.env.MANTA_TAB_ID = 'parent-tab'
     process.env.MANTA_WORKTREE_ID = 'parent-worktree'
-    process.env.ORCA_WSL_CLI_DIR = 'C:/parent/wsl-managed-cli'
+    process.env.MANTA_WSL_CLI_DIR = 'C:/parent/wsl-managed-cli'
 
     try {
       await createPtySubprocess({ sessionId: 'test', cols: 80, rows: 24 })
@@ -149,7 +149,7 @@ describe('createPtySubprocess', () => {
     expect(env.MANTA_PANE_KEY).toBeUndefined()
     expect(env.MANTA_TAB_ID).toBeUndefined()
     expect(env.MANTA_WORKTREE_ID).toBeUndefined()
-    expect(env.ORCA_WSL_CLI_DIR).toBeUndefined()
+    expect(env.MANTA_WSL_CLI_DIR).toBeUndefined()
   })
 
   it('preserves explicit child Manta pane identity over parent env', async () => {

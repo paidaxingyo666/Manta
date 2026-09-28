@@ -12,7 +12,7 @@ import { bunProfileQualification } from './bun-profile-qualification.mjs'
 
 const ROOT = resolve(import.meta.dirname, '../..')
 const BUILD_SCRIPTS = [
-  'config/scripts/build-orcad-bun.mjs',
+  'config/scripts/build-mantad-bun.mjs',
   'config/scripts/build-mantad.mjs',
   'config/scripts/build-windows-process-tree-relay-addon.mjs',
   'config/scripts/run-bun-profile-tests.mjs',

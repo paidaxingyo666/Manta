@@ -21,7 +21,7 @@ export function getStatusPluginFactorySource(options: {
     '// destructuring form throw synchronously and crash OpenCode with an opaque',
     '// UnknownError before any event is ever dispatched.',
     'export const MantaOpenCodeStatusPlugin = async (_ctx) => {',
-    `  if (process.env.ORCA_OPENCODE_AGENT && process.env.ORCA_OPENCODE_AGENT !== '${expectedAgent}') return {};`,
+    `  if (process.env.MANTA_OPENCODE_AGENT && process.env.MANTA_OPENCODE_AGENT !== '${expectedAgent}') return {};`,
     '  const client = _ctx?.client;',
     '  const factoryID = ++nextFactoryID;',
     '  activeFactoryIDs.add(factoryID);',

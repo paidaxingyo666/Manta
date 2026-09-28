@@ -58,7 +58,7 @@ The subagent still ran in the "after" capture (`ses_f32f2519dffeNSA1jG2Z8JVJyv`,
 
 ```sh
 # Log POSTs on a free loopback port, then:
-MANTA_PANE_KEY=tab:leaf ORCA_OPENCODE_AGENT=opencode2 \
+MANTA_PANE_KEY=tab:leaf MANTA_OPENCODE_AGENT=opencode2 \
 MANTA_AGENT_HOOK_PORT=<port> MANTA_AGENT_HOOK_TOKEN=<token> \
   opencode2 --standalone --prompt '<delegate something to one subagent>'
 ```

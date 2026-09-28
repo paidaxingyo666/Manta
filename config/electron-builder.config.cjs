@@ -222,7 +222,7 @@ module.exports = {
     // extraResources. Shipping them in app.asar bloats the desktop bundle.
     '!src{,/**/*}',
     '!out/mantad{,/**/*}',
-    '!out/orcad-template{,/**/*}',
+    '!out/mantad-template{,/**/*}',
     '!out/.mantad-*{,/**/*}',
     '!config{,/**/*}',
     '!docs{,/**/*}',

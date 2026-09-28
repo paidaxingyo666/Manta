@@ -19,14 +19,14 @@ import {
   orcadTemplateCommonFilenames
 } from '../../src/shared/mantad-artifacts.ts'
 import { mantadAgentBrowserNativeName } from '../../src/shared/mantad-agent-browser-name.ts'
-import { ORCAD_TEMPLATE_TARGETS } from '../../src/shared/orcad-bun-runtime.ts'
+import { ORCAD_TEMPLATE_TARGETS } from '../../src/shared/mantad-bun-runtime.ts'
 import { runProcessSync } from './script-child-process.mjs'
 import { materializeWatcherPackage } from './mantad-watcher-package.mjs'
-import { verifyPackagedOrcadTemplate } from './verify-packaged-orcad-template.cjs'
+import { verifyPackagedOrcadTemplate } from './verify-packaged-mantad-template.cjs'
 
 const root = resolve(import.meta.dirname, '../..')
-const outputDir = join(root, 'out', 'orcad-template')
-const buildDir = join(root, 'out', '.orcad-template-build')
+const outputDir = join(root, 'out', 'mantad-template')
+const buildDir = join(root, 'out', '.mantad-template-build')
 const commonArtifacts = orcadTemplateCommonFilenames()
 
 function copy(source, destination, executable = false) {
@@ -53,7 +53,7 @@ function buildCommonArtifacts() {
   rmSync(buildDir, { recursive: true, force: true })
   const result = runProcessSync({
     program: process.execPath,
-    args: [join(root, 'config/scripts/build-orcad-bun.mjs'), '--out-dir', buildDir],
+    args: [join(root, 'config/scripts/build-mantad-bun.mjs'), '--out-dir', buildDir],
     cwd: root,
     stdio: 'inherit',
     timeoutMs: null
@@ -116,7 +116,7 @@ async function main() {
   )
   verifyPackagedOrcadTemplate(join(root, 'out'))
   rmSync(buildDir, { recursive: true, force: true })
-  process.stdout.write(`[build-orcad-template] ok — ${ORCAD_TEMPLATE_TARGETS.length} targets\n`)
+  process.stdout.write(`[build-mantad-template] ok — ${ORCAD_TEMPLATE_TARGETS.length} targets\n`)
 }
 
 await main()

@@ -63,7 +63,7 @@ async function withManagedCli(
     const directory = getManagedWslCliDir({ isPackaged: false, userDataPath })
     expect(directory).not.toBeNull()
     Object.assign(env, {
-      ORCA_WSL_CLI_DIR: directory ?? '',
+      MANTA_WSL_CLI_DIR: directory ?? '',
       MANTA_CLI_COMMAND: 'manta-dev',
       MANTA_TERMINAL_HANDLE: 'term_managed_fixture'
     })
@@ -100,7 +100,7 @@ it.skipIf(!enabled)(
       expect(result.stdout).toContain('"handle":"term_managed_fixture"')
       expect((await shell('manta-dev --exit')).code).toBe(23)
 
-      env.ORCA_WSL_CLI_DIR = join(root, 'missing-cli')
+      env.MANTA_WSL_CLI_DIR = join(root, 'missing-cli')
       // An unusable CLI warns but never blocks the shell.
       const missing = await shell('echo SHELL_CONTINUED')
       expect(missing.code).toBe(0)

@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { runProcess, runProcessSync } from '../../../shared/child-process/run-process'
 import { orcadBunRuntimeFilename } from '../../../shared/mantad-artifacts'
-import { ORCAD_BUN_VERSION } from '../../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_VERSION } from '../../../shared/mantad-bun-runtime'
 import { removeTreeSync } from '../../../shared/windows-transient-lock-removal'
 
 const runtimePath =

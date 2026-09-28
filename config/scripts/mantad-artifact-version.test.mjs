@@ -7,10 +7,10 @@ import {
   ORCAD_RIPGREP_ARTIFACTS,
   mantadArtifactFilenames
 } from '../../src/shared/mantad-artifacts.ts'
-import { ORCAD_BUN_TARGETS } from '../../src/shared/orcad-bun-runtime.ts'
+import { ORCAD_BUN_TARGETS } from '../../src/shared/mantad-bun-runtime.ts'
 import { mantadAgentBrowserNativeName } from '../../src/shared/mantad-agent-browser-name.ts'
 import { readOrcadArtifactIdentity } from '../../src/main/mantad/mantad-artifact-identity.ts'
-import { computeOrcadFullVersion } from './orcad-artifact-version.mjs'
+import { computeOrcadFullVersion } from './mantad-artifact-version.mjs'
 
 const directories = []
 afterEach(() => {

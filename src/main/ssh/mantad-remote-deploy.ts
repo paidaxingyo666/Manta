@@ -4,7 +4,7 @@
  * preserve current state and the prelaunch snapshot for explicit recovery.
  */
 import type { SshConnection } from './ssh-connection'
-import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/orcad-profile-preflight'
+import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/mantad-profile-preflight'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { MANTAD_INSTALL_MODEL } from './remote-install-model'
 import { writeRelayFile } from './ssh-relay-install-transfers'
@@ -42,8 +42,8 @@ import { computeLocalOrcadBuildHash } from './mantad-local-build-hash'
 import { preflightInstalledOrcad } from './mantad-remote-preflight'
 import { assertPosixOrcadHost } from './mantad-remote-host-support'
 import { installOrcadBundle } from './mantad-remote-install'
-import { materializeOrcadArtifact } from './orcad-artifact-materializer'
-import { resolveOrcadDeploymentTarget } from './orcad-deployment-target'
+import { materializeOrcadArtifact } from './mantad-artifact-materializer'
+import { resolveOrcadDeploymentTarget } from './mantad-deployment-target'
 
 export type OrcadDeployOptions = {
   conn: SshConnection

@@ -14,7 +14,7 @@ const hooks = fileURLToPath(
   new URL('../../../config/nsis/manta-installer-hooks.nsh', import.meta.url)
 )
 const capabilityCheck = fileURLToPath(
-  new URL('../../../config/nsis/orca-process-check.nsh', import.meta.url)
+  new URL('../../../config/nsis/manta-process-check.nsh', import.meta.url)
 )
 
 // CI-only patch: the installer and its embedded uninstaller share these macros.

@@ -72,7 +72,7 @@ export function buildWslBridgeScript(app?: {
     ? [
         `$env:MANTA_USER_DATA_PATH = ${quotePowerShellLiteral(app.userDataPath)}`,
         // Why: WSLENV /p maps this guest-only dir back; an app the CLI starts must not inherit it.
-        'Remove-Item Env:ORCA_WSL_CLI_DIR -ErrorAction SilentlyContinue',
+        'Remove-Item Env:MANTA_WSL_CLI_DIR -ErrorAction SilentlyContinue',
         ...(app.cliEntryPath ? buildDevCliEnv(app.cliEntryPath) : [])
       ]
     : []

@@ -1,5 +1,5 @@
 import type { OrchestrationDb } from '../orchestration-db'
-import { currentRunCoordinatorSessionAddressSql } from './run-coordinator-orca-session'
+import { currentRunCoordinatorSessionAddressSql } from './run-coordinator-manta-session'
 
 /** Mail to an active Dispatch assignee's address in the same Run is that worker's, not coordinator mail. */
 export function activeDispatchOwnsAddressSql(runIdSql: string, addressSql: string): string {

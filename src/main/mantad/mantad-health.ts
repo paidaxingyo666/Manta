@@ -17,7 +17,7 @@ import {
   getDaemonEndpointFacts,
   readDaemonPidRecord
 } from '../daemon/daemon-init'
-import type { OrcadProfileStateAuthoritySelection } from './orcad-profile-state-telemetry'
+import type { OrcadProfileStateAuthoritySelection } from './mantad-profile-state-telemetry'
 
 /**
  * How much a green self-test actually proves.

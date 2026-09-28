@@ -38,7 +38,13 @@ let root: string
 let config: string
 let custom: string
 let options: BuildPtyHostEnvOptions
-const plugin = (dir: string, agent: string) => join(dir, 'plugins', `manta-${agent}-status.js`)
+// The opencode2 file keeps its shipped on-disk name.
+const plugin = (dir: string, agent: string) =>
+  join(
+    dir,
+    'plugins',
+    agent === 'opencode2' ? 'orca-opencode2-status.js' : 'manta-opencode-status.js'
+  )
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'orca-opencode-disabled-'))
@@ -59,7 +65,7 @@ beforeEach(() => {
     'OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
-    'ORCA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_AGENT',
     'ZDOTDIR'
   ]) {
     vi.stubEnv(key, undefined)
@@ -93,7 +99,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
           disabledTuiAgents: disabled
         }
       )
-      expect(env.ORCA_OPENCODE_AGENT).toBe(fallback)
+      expect(env.MANTA_OPENCODE_AGENT).toBe(fallback)
       const selected = env.OPENCODE_CONFIG_DIR ?? config
       for (const agent of ['opencode', 'opencode2']) {
         expect(existsSync(plugin(selected, agent))).toBe(agent === fallback)
@@ -117,7 +123,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
             { ...options, ...selection, disabledTuiAgents: disabled }
           )
           const selected = disabled.includes(agent) ? undefined : agent
-          expect(env.ORCA_OPENCODE_AGENT).toBe(selected)
+          expect(env.MANTA_OPENCODE_AGENT).toBe(selected)
           expect(existsSync(plugin(config, agent))).toBe(selected === agent)
           expect(existsSync(plugin(config, agent === 'opencode' ? 'opencode2' : 'opencode'))).toBe(
             false
@@ -132,7 +138,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
     const installed = plugin(config, 'opencode')
     writeFileSync(installed, '// already installed sentinel')
     const env = buildPtyHostEnv('second', {}, { ...options, disabledTuiAgents: ['opencode'] })
-    expect(env.ORCA_OPENCODE_AGENT).toBe('opencode2')
+    expect(env.MANTA_OPENCODE_AGENT).toBe('opencode2')
     expect(readFileSync(installed, 'utf8')).toBe('// already installed sentinel')
     buildPtyHostEnv('third', {}, options)
     expect(readFileSync(installed, 'utf8')).toContain('/hook/opencode')
@@ -155,7 +161,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
       expect(env.OPENCODE_CONFIG_DIR).toBe(custom)
       expect(env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
       expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
-      expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+      expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
       expect(readFileSync(plugin(first.OPENCODE_CONFIG_DIR, 'opencode'), 'utf8')).toBe(original)
       expect(env.MANTA_AGENT_HOOK_PORT).toBe(enabled ? '12345' : undefined)
     }
@@ -168,12 +174,12 @@ describe('OpenCode installation uses the current enabled agents', () => {
         {
           OPENCODE_CONFIG_DIR: primary,
           MANTA_OPENCODE_CONFIG_DIR: fixture.guestOverlay,
-          ORCA_OPENCODE_AGENT: 'opencode'
+          MANTA_OPENCODE_AGENT: 'opencode'
         },
         { ...options, disabledTuiAgents: ['opencode', 'opencode2'] }
       )
       expect(env.OPENCODE_CONFIG_DIR).toBe(primary === custom ? custom : undefined)
-      expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+      expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
     }
   })
 
@@ -213,7 +219,7 @@ it.each(['source', 'no-source', 'user-config'])(
     )
     vi.stubEnv('OPENCODE_CONFIG_DIR', kind === 'user-config' ? custom : fixture.guestOverlay)
     vi.stubEnv('MANTA_OPENCODE_CONFIG_DIR', fixture.guestOverlay)
-    vi.stubEnv('ORCA_OPENCODE_AGENT', 'opencode')
+    vi.stubEnv('MANTA_OPENCODE_AGENT', 'opencode')
     if (kind === 'source') {
       vi.stubEnv('MANTA_OPENCODE_SOURCE_CONFIG_DIR', custom)
     }
@@ -225,7 +231,7 @@ it.each(['source', 'no-source', 'user-config'])(
       envToDelete: getInheritedAgentHookEnvKeysToDelete(prepared)
     })
     expect(result.OPENCODE_CONFIG_DIR).toBe(kind === 'no-source' ? undefined : custom)
-    expect(result.ORCA_OPENCODE_AGENT).toBeUndefined()
+    expect(result.MANTA_OPENCODE_AGENT).toBeUndefined()
     expect(result.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(result.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
   }
@@ -258,7 +264,7 @@ it.each([
   )
   vi.stubEnv('MANTA_OPENCODE_CONFIG_DIR', fixture.guestOverlay)
   vi.stubEnv('MANTA_OPENCODE_SOURCE_CONFIG_DIR', scenario.source ? previous : undefined)
-  vi.stubEnv('ORCA_OPENCODE_AGENT', 'opencode')
+  vi.stubEnv('MANTA_OPENCODE_AGENT', 'opencode')
   const request = {
     sessionId: 'fixture',
     cols: 80,
@@ -277,7 +283,7 @@ it.each([
   }
   expect(result.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
   expect(result.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
-  expect(result.ORCA_OPENCODE_AGENT).toBeUndefined()
+  expect(result.MANTA_OPENCODE_AGENT).toBeUndefined()
 })
 
 it.each(['opencode', 'opencode2'] as const)(
@@ -306,7 +312,7 @@ it.each(['opencode', 'opencode2'] as const)(
     )
     expect(existsSync(plugin(result.OPENCODE_CONFIG_DIR, agent))).toBe(true)
     expect(result.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBe(custom)
-    expect(result.ORCA_OPENCODE_AGENT).toBe(agent)
+    expect(result.MANTA_OPENCODE_AGENT).toBe(agent)
   }
 )
 
@@ -360,7 +366,7 @@ it.each([true, false])(
     expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
-    expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+    expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
     expect(env.MANTA_AGENT_HOOK_ENDPOINT).toBe('/guest/endpoint.json')
     expect(existsSync(config)).toBe(false)
   }

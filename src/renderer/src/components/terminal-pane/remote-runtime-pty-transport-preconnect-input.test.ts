@@ -78,9 +78,9 @@ describe('remote terminal preconnect input', () => {
 
   it('keeps the complete line typed before a parked terminal attaches', async () => {
     const terminal = await createTransport()
-    expect(terminal.sendInput('before-')).toBe(true)
+    expect(terminal.sendInput('before-', 'driving')).toBe(true)
     terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
-    expect(terminal.sendInput('attach\r')).toBe(true)
+    expect(terminal.sendInput('attach\r', 'driving')).toBe(true)
     await vi.waitFor(() => expect(subscriptionSendBinary).toHaveBeenCalled())
     expect(sentInput()).toBe('')
     expect(runtimeCall).not.toHaveBeenCalledWith(
@@ -104,7 +104,7 @@ describe('remote terminal preconnect input', () => {
       sessionId: 'remote:env-1@@terminal-1',
       callbacks: {}
     })
-    expect(terminal.sendInput('restored-web-pane\r')).toBe(true)
+    expect(terminal.sendInput('restored-web-pane\r', 'driving')).toBe(true)
     await finishSubscribe()
     await connecting
     await vi.waitFor(() => expect(sentInput()).toBe('restored-web-pane\r'))
@@ -114,8 +114,8 @@ describe('remote terminal preconnect input', () => {
     'discards retained input when the pane calls %s before attach completes',
     async (action) => {
       const terminal = await createTransport()
-      expect(terminal.sendInput('stale\r')).toBe(true)
-      const accepted = terminal.sendInputAccepted?.('\x03')
+      expect(terminal.sendInput('stale\r', 'driving')).toBe(true)
+      const accepted = terminal.sendInputAccepted?.('\x03', 'driving')
       terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
       await vi.waitFor(() => expect(subscriptionSendBinary).toHaveBeenCalled())
       terminal[action]?.()
@@ -130,18 +130,18 @@ describe('remote terminal preconnect input', () => {
 
   it('never replays a cached command into a replacement handle', async () => {
     const terminal = await createTransport()
-    expect(terminal.sendInput('old-command\r')).toBe(true)
+    expect(terminal.sendInput('old-command\r', 'driving')).toBe(true)
     resolvedPaneHandle = 'terminal-replacement'
     terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
     await finishSubscribe()
     expect(sentInput()).toBe('')
-    expect(terminal.sendInput('new-command\r')).toBe(true)
+    expect(terminal.sendInput('new-command\r', 'driving')).toBe(true)
     await vi.waitFor(() => expect(sentInput()).toBe('new-command\r'))
   })
 
   it('discards input when the persisted target belongs to another environment', async () => {
     const terminal = await createTransport()
-    expect(terminal.sendInput('foreign-host\r')).toBe(true)
+    expect(terminal.sendInput('foreign-host\r', 'driving')).toBe(true)
     terminal.attach({ existingPtyId: 'remote:other-env@@terminal-1', callbacks: {} })
     await finishSubscribe()
     expect(sentInput()).toBe('')
@@ -152,7 +152,7 @@ describe('remote terminal preconnect input', () => {
       await import('@/runtime/runtime-environment-revision')
     replaceRuntimeEnvironmentRevisions([{ id: 'env-1', createdAt: 1 }])
     const terminal = await createTransport()
-    expect(terminal.sendInput('old-pairing\r')).toBe(true)
+    expect(terminal.sendInput('old-pairing\r', 'driving')).toBe(true)
     terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
     await vi.waitFor(() => expect(subscriptionSendBinary).toHaveBeenCalled())
     replaceRuntimeEnvironmentRevisions([{ id: 'env-1', createdAt: 2 }])
@@ -171,9 +171,9 @@ describe('remote terminal preconnect input', () => {
       return originalCall?.(request)
     })
     const terminal = await createTransport()
-    expect(terminal.sendInput('before-interrupt')).toBe(true)
-    const accepted = terminal.sendInputAccepted?.('\x03')
-    expect(terminal.sendInput('after-interrupt\r')).toBe(true)
+    expect(terminal.sendInput('before-interrupt', 'driving')).toBe(true)
+    const accepted = terminal.sendInputAccepted?.('\x03', 'driving')
+    expect(terminal.sendInput('after-interrupt\r', 'driving')).toBe(true)
     terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
     await finishSubscribe()
     await expect(accepted).resolves.toBe(true)
@@ -189,7 +189,7 @@ describe('remote terminal preconnect input', () => {
 
   it('discards the first attach queue when a second attach supersedes it', async () => {
     const terminal = await createTransport()
-    expect(terminal.sendInput('first-attach\r')).toBe(true)
+    expect(terminal.sendInput('first-attach\r', 'driving')).toBe(true)
     terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
     await vi.waitFor(() => expect(subscriptionSendBinary).toHaveBeenCalled())
     resolvedPaneHandle = 'terminal-2'
@@ -213,7 +213,7 @@ describe('remote terminal preconnect input', () => {
         return { ...original, isTerminalInputTooLargeWithDeferredMeasurement: measuring }
       })
       const terminal = await createTransport()
-      const accepted = terminal.sendInputAccepted?.('\x03')
+      const accepted = terminal.sendInputAccepted?.('\x03', 'driving')
       terminal.attach({ existingPtyId: 'remote:env-1@@terminal-1', callbacks: {} })
       await finishSubscribe()
       await vi.waitFor(() => expect(measuring).toHaveBeenCalledOnce())

@@ -19,12 +19,12 @@ import {
   ORCAD_BUN_RELEASE_ASSETS,
   ORCAD_BUN_VERSION,
   orcadBunReleaseUrl
-} from '../../src/shared/orcad-bun-runtime.ts'
+} from '../../src/shared/mantad-bun-runtime.ts'
 import { runProcessSync } from './script-child-process.mjs'
 import { getZipExtractorCommand } from './zip-extractor-command.mjs'
 
 const root = resolve(import.meta.dirname, '../..')
-const cacheRoot = join(root, 'out', '.orcad-bun-runtime', `v${ORCAD_BUN_VERSION}`)
+const cacheRoot = join(root, 'out', '.mantad-bun-runtime', `v${ORCAD_BUN_VERSION}`)
 
 export function currentTarget() {
   if (process.platform === 'darwin') {
@@ -171,6 +171,6 @@ async function main() {
   }
 }
 
-if (process.argv[1]?.endsWith('build-orcad-bun.mjs')) {
+if (process.argv[1]?.endsWith('build-mantad-bun.mjs')) {
   await main()
 }

@@ -357,7 +357,7 @@ describe('registerPtyHandlers', () => {
                 ...(launchAgent ? { launchAgent } : {})
               })
               expect(spy.mock.calls.map(([, agent]) => agent)).toEqual([expectedAgent])
-              expect(env.ORCA_OPENCODE_AGENT).toBe(expectedAgent)
+              expect(env.MANTA_OPENCODE_AGENT).toBe(expectedAgent)
               expect(env.OPENCODE_CONFIG_DIR).toBe(guestDirs[expectedAgent])
               expect(env.MANTA_OPENCODE_CONFIG_DIR).toBe(guestDirs[expectedAgent])
             })

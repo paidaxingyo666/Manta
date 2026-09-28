@@ -28,7 +28,7 @@ type Post = { hook_event_name: string; sessionID?: string }
 
 const ENV_KEYS = [
   'MANTA_PANE_KEY',
-  'ORCA_OPENCODE_AGENT',
+  'MANTA_OPENCODE_AGENT',
   'MANTA_AGENT_HOOK_ENDPOINT',
   'MANTA_AGENT_HOOK_PORT',
   'MANTA_AGENT_HOOK_TOKEN'
@@ -47,7 +47,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin OpenCode 2 lineage'
       savedEnv[key] = process.env[key]
     }
     process.env.MANTA_PANE_KEY = 'tab-1:leaf-1'
-    process.env.ORCA_OPENCODE_AGENT = agent
+    process.env.MANTA_OPENCODE_AGENT = agent
     delete process.env.MANTA_AGENT_HOOK_ENDPOINT
     process.env.MANTA_AGENT_HOOK_PORT = '59999'
     process.env.MANTA_AGENT_HOOK_TOKEN = 'test-token'

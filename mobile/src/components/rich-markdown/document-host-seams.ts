@@ -94,7 +94,7 @@ declare global {
   interface Window {
     ReactNativeWebView?: { postMessage: (message: string) => void }
     /** The native host's handle on the document, installed by the bundle's entry. */
-    __orcaRichMarkdown?: RichMarkdownEditorApi
+    __mantaRichMarkdown?: RichMarkdownEditorApi
   }
 }
 

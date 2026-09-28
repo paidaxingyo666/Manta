@@ -22,18 +22,18 @@ import {
   mantadArtifactFilenames,
   orcadTemplateCommonFilenames
 } from '../../shared/mantad-artifacts'
-import type { OrcadBunTarget } from '../../shared/orcad-bun-runtime'
+import type { OrcadBunTarget } from '../../shared/mantad-bun-runtime'
 import { z } from 'zod'
 import { readOrcadArtifactIdentity } from '../mantad/mantad-artifact-identity'
 import {
   assembleOrcadArtifact,
   materializeOrcadArtifact,
   resetOrcadArtifactMaterializationsForTests
-} from './orcad-artifact-materializer'
-import { materializeCachedOrcadBunRuntime } from './orcad-bun-runtime-materializer'
-import type * as BunRuntimeMaterializer from './orcad-bun-runtime-materializer'
+} from './mantad-artifact-materializer'
+import { materializeCachedOrcadBunRuntime } from './mantad-bun-runtime-materializer'
+import type * as BunRuntimeMaterializer from './mantad-bun-runtime-materializer'
 
-vi.mock('./orcad-bun-runtime-materializer', async (importOriginal) => {
+vi.mock('./mantad-bun-runtime-materializer', async (importOriginal) => {
   const actual = await importOriginal<typeof BunRuntimeMaterializer>()
   return { ...actual, materializeCachedOrcadBunRuntime: vi.fn() }
 })

@@ -3,7 +3,7 @@ import {
   emitOrcadProfileStateAuthoritySelected,
   formatOrcadProfileStateAuthoritySelected,
   type OrcadProfileStateAuthoritySelection
-} from './orcad-profile-state-telemetry'
+} from './mantad-profile-state-telemetry'
 
 const selection: OrcadProfileStateAuthoritySelection = {
   backend: 'sqlite',

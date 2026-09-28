@@ -4,7 +4,7 @@ export function bunProfileTestPaths({ artifact = false } = {}) {
     'src/main/persistence/loading-store/profile-state',
     'src/main/sqlite',
     'src/main/mantad/mantad-entry.test.ts',
-    'src/main/mantad/mantad-push-startup.test.ts',
+    // Fork omits upstream's mantad-push-startup.test.ts: it keeps its own push path (7b03817426).
     ...(artifact
       ? [
           'src/main/daemon/pty-subprocess/bun-pty-process.integration.test.ts',

@@ -524,7 +524,7 @@ describe('deployOrcad', () => {
         'recovery requires a fresh host terminal census'
       )
       expect(result.outcome === 'installed-not-activated' && result.reason).toContain(
-        '/home/u/.manta-remote/mantad-state-snapshots/'
+        '/home/u/.manta-remote/orcad-state-snapshots/'
       )
       expect(mockExec.mock.calls.some(([, command]) => command.includes('echo RESTORED'))).toBe(
         false

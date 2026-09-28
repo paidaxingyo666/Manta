@@ -7,7 +7,7 @@ import {
   ORCAD_TEMPLATE_TARGETS_DIR,
   orcadTemplateCommonFilenames
 } from '../../src/shared/mantad-artifacts.ts'
-import { ORCAD_TEMPLATE_TARGETS } from '../../src/shared/orcad-bun-runtime.ts'
+import { ORCAD_TEMPLATE_TARGETS } from '../../src/shared/mantad-bun-runtime.ts'
 
 async function write(path, contents) {
   await mkdir(dirname(path), { recursive: true })
@@ -16,7 +16,7 @@ async function write(path, contents) {
 }
 
 export async function writeOrcadTemplateTestFixture(resourcesDir) {
-  const templateDir = join(resourcesDir, 'orcad-template')
+  const templateDir = join(resourcesDir, 'mantad-template')
   const commonFilenames = orcadTemplateCommonFilenames()
   const commonSha256 = {}
   for (const filename of commonFilenames) {

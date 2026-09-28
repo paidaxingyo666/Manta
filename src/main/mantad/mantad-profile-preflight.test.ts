@@ -1,11 +1,11 @@
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProcessResult, ProcessSpec } from '../../shared/child-process/run-process'
-import { ORCAD_BUN_VERSION } from '../../shared/orcad-bun-runtime'
-import { ORCAD_STARTUP_PREFLIGHT_FLAG } from '../../shared/orcad-profile-preflight'
-import { OrcadBundledRuntimeError } from './orcad-bundled-runtime'
-import { resolveMantadExitCode } from './orcad-exit-code'
-import { preflightBundledOrcadStartup, runOrcadProfilePreflight } from './orcad-profile-preflight'
+import { ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
+import { ORCAD_STARTUP_PREFLIGHT_FLAG } from '../../shared/mantad-profile-preflight'
+import { OrcadBundledRuntimeError } from './mantad-bundled-runtime'
+import { resolveMantadExitCode } from './mantad-exit-code'
+import { preflightBundledOrcadStartup, runOrcadProfilePreflight } from './mantad-profile-preflight'
 
 const fixture = vi.hoisted(() => ({
   identity: vi.fn(),
@@ -14,13 +14,13 @@ const fixture = vi.hoisted(() => ({
   native: vi.fn(),
   run: vi.fn<(spec: ProcessSpec) => Promise<ProcessResult>>()
 }))
-vi.mock('./orcad-artifact-identity', () => ({ readOrcadArtifactIdentity: fixture.identity }))
+vi.mock('./mantad-artifact-identity', () => ({ readOrcadArtifactIdentity: fixture.identity }))
 vi.mock('./mantad-app-paths', () => ({ resolveMantadInstallRoot: () => '/slot' }))
 vi.mock('node:fs/promises', () => ({ readFile: fixture.readVersion }))
 vi.mock('../persistence/profile-state/profile-state-runtime-preflight', () => ({
   preflightProfileStateRuntime: fixture.sql
 }))
-vi.mock('./orcad-bun-native-preflight', () => ({
+vi.mock('./mantad-bun-native-preflight', () => ({
   preflightOrcadBunNativeRuntime: fixture.native
 }))
 vi.mock('../../shared/child-process/run-process', () => ({ runProcess: fixture.run }))

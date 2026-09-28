@@ -9,7 +9,7 @@ import {
   mantadArtifactFilenames,
   mantadArtifactHashPrefix
 } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_TARGETS } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_TARGETS } from '../../shared/mantad-bun-runtime'
 import { mantadAgentBrowserNativeName } from '../../shared/mantad-agent-browser-name'
 
 /** Hash installed bytes in the build's order; a version marker is not proof of delivery. */

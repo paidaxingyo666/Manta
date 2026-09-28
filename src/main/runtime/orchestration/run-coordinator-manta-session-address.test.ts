@@ -13,7 +13,7 @@ import {
   structuredWorkerProcessIncarnation
 } from '../structured-worker-identity'
 import { OrchestrationDb } from './db'
-import { backfillStructuredWorkerOrcaSessionIds } from './db/schema/structured-worker-orca-session-backfill'
+import { backfillStructuredWorkerOrcaSessionIds } from './db/schema/structured-worker-manta-session-backfill'
 
 const CHAT_SESSION_ID = testOrcaSessionId('3a5c7e9b-1d4f-4a6c-8b0e-2f4a6c8e0b14')
 const CHAT_ADDRESS = formatOrcaSessionAddress(CHAT_SESSION_ID)

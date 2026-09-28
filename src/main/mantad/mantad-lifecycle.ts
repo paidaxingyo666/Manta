@@ -1,8 +1,8 @@
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveMantadBrowserProvider } from './mantad-browser-provider'
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
-import { ORCAD_BUNDLED_LAUNCHER_ENV } from './orcad-bundled-runtime'
-import { resolveMantadExitCode } from './orcad-exit-code'
+import { ORCAD_BUNDLED_LAUNCHER_ENV } from './mantad-bundled-runtime'
+import { resolveMantadExitCode } from './mantad-exit-code'
 import {
   acquireProfileStateRuntimeAdmission,
   type ProfileStateRuntimeAdmission

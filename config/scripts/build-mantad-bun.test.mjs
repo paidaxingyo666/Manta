@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { afterEach, describe, expect, it } from 'vitest'
-import { bunExecutableName, findBunExecutable } from './build-orcad-bun.mjs'
+import { bunExecutableName, findBunExecutable } from './build-mantad-bun.mjs'
 
 const temporaryDirs = []
 

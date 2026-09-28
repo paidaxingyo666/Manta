@@ -1,5 +1,5 @@
 import type { OrchestrationDb } from '../orchestration-db'
-import { currentRunCoordinatorSessionAddressSql } from '../runs/run-coordinator-orca-session'
+import { currentRunCoordinatorSessionAddressSql } from '../runs/run-coordinator-manta-session'
 
 const ORCA_SESSION_ID_COLUMNS = [
   ['runs', 'coordinator_orca_session_id', 'TEXT'],

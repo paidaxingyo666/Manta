@@ -5,12 +5,12 @@ import {
   MANTAD_VERSION_FILENAME,
   orcadBunRuntimeFilename
 } from '../../src/shared/mantad-artifacts.ts'
-import { ORCAD_BUN_VERSION } from '../../src/shared/orcad-bun-runtime.ts'
+import { ORCAD_BUN_VERSION } from '../../src/shared/mantad-bun-runtime.ts'
 import {
   ORCAD_PROFILE_PREFLIGHT_FLAG,
   parseOrcadProfilePreflight
-} from '../../src/shared/orcad-profile-preflight.ts'
-import { currentTarget } from './build-orcad-bun.mjs'
+} from '../../src/shared/mantad-profile-preflight.ts'
+import { currentTarget } from './build-mantad-bun.mjs'
 import { runProcessSync } from './script-child-process.mjs'
 import { bunProfileTestPaths } from './bun-profile-test-paths.mjs'
 
@@ -59,7 +59,7 @@ if (artifact) {
   process.stdout.write(`${JSON.stringify({ target, ...response })}\n`)
 } else {
   run(process.execPath, [
-    join(root, 'config/scripts/build-orcad-bun.mjs'),
+    join(root, 'config/scripts/build-mantad-bun.mjs'),
     '--runtime-only',
     '--out-dir',
     runtimeDir

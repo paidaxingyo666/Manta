@@ -86,7 +86,7 @@ export const MANTAD_ARTIFACTS: readonly OrcadArtifact[] = [
 
 /** Written after the artifacts, so it is never an input to its own hash. */
 export const MANTAD_VERSION_FILENAME = '.version'
-export const ORCAD_TEMPLATE_MANIFEST_FILENAME = 'orcad-template.json'
+export const ORCAD_TEMPLATE_MANIFEST_FILENAME = 'mantad-template.json'
 export const ORCAD_TEMPLATE_TARGETS_DIR = 'targets'
 
 /** Written last by the installer; its absence means a torn install. */

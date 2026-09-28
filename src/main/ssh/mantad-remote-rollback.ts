@@ -14,7 +14,7 @@
  * failure this is meant to avoid, arrived at from the other side.
  */
 import type { SshConnection } from './ssh-connection'
-import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/orcad-profile-preflight'
+import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/mantad-profile-preflight'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { MANTAD_INSTALL_MODEL } from './remote-install-model'
 import { computeRemoteInstallDir } from './ssh-relay-versioned-install'

@@ -7,14 +7,14 @@ import { waitForPromiseWithSignal } from '../../shared/abort-signal-reason'
 import { isDefinitiveAbsence } from '../../shared/definitive-filesystem-absence'
 import { getZipExtractorCommand } from '../../shared/zip-extractor-command'
 import { getMainHttpClient, type MainHttpClient } from '../network/http-client'
-import { findOrcadCachePath } from './orcad-cache-path'
+import { findOrcadCachePath } from './mantad-cache-path'
 import { orcadBunRuntimeFilename } from '../../shared/mantad-artifacts'
 import {
   ORCAD_BUN_RELEASE_ASSETS,
   ORCAD_BUN_VERSION,
   orcadBunReleaseUrl,
   type OrcadBunTarget
-} from '../../shared/orcad-bun-runtime'
+} from '../../shared/mantad-bun-runtime'
 
 const MAX_BUN_ARCHIVE_BYTES = 200 * 1024 * 1024
 
@@ -88,7 +88,7 @@ export async function materializeCachedOrcadBunRuntime(
 /**
  * Why the extractor needs a message of its own: `unzip` is absent from a minimal POSIX install,
  * and a bare `spawn unzip ENOENT` names neither the missing tool nor the override. A misconfigured
- * `ORCA_UNZIP_BIN` whose parent is a file reports ENOTDIR instead, which is the same verdict.
+ * `MANTA_UNZIP_BIN` whose parent is a file reports ENOTDIR instead, which is the same verdict.
  *
  * The errno is the program path's, not the caller's: `runProcess` leaves cwd unset, so the child
  * inherits the parent's without resolving it. Measured on macOS, Linux and Windows — spawn still
@@ -111,7 +111,7 @@ async function extractArchive(
     if (isDefinitiveAbsence(error)) {
       throw new Error(
         `Bun archive extraction could not run ${command.file}: install ${command.label}, ` +
-          'or set ORCA_UNZIP_BIN to an unzip-compatible extractor.',
+          'or set MANTA_UNZIP_BIN to an unzip-compatible extractor.',
         { cause: error }
       )
     }

@@ -5,7 +5,7 @@ import {
   structuredWorkerProcessIncarnation
 } from '../../../structured-worker-identity'
 import { OrchestrationDb } from '../orchestration-db'
-import { backfillStructuredWorkerOrcaSessionIds } from './structured-worker-orca-session-backfill'
+import { backfillStructuredWorkerOrcaSessionIds } from './structured-worker-manta-session-backfill'
 
 const SESSION_A = '0d2f4b6a-8c1e-4a3b-9d5f-7e0a2c4b6d81'
 const SESSION_B = '1e3a5c7b-9d2f-4b4c-8e6a-0f1b3d5c7e92'
