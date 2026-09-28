@@ -6,6 +6,7 @@ import type { TuiAgent } from './tui-agent'
 export const RESUMABLE_TUI_AGENTS = [
   'claude',
   'codex',
+  'qoder',
   'gemini',
   'antigravity',
   'opencode',
@@ -194,6 +195,7 @@ export function extractAgentProviderSession(
     // Native-chat agents: also capture the hook's authoritative transcript_path,
     // since recent Claude Code names the transcript file with a UUID that differs
     // from the hook session_id (so the id-based glob no longer finds it).
+    case 'qoder':
     case 'claude':
     case 'codex': {
       const id = readSessionId(payload, ['session_id'])
@@ -279,6 +281,8 @@ export function getAgentResumeArgv(
       return providerSession.key === 'session_id' ? ['claude', '--resume', id] : null
     case 'codex':
       return providerSession.key === 'session_id' ? ['codex', 'resume', id] : null
+    case 'qoder':
+      return providerSession.key === 'session_id' ? ['qodercli', '--resume', id] : null
     case 'gemini':
       return providerSession.key === 'session_id' ? ['gemini', '--resume', id] : null
     case 'antigravity':

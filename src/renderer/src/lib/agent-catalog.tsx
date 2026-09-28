@@ -135,6 +135,13 @@ export const getAgentCatalog = createLocalizedCatalog((): AgentCatalogEntry[] =>
     homepageUrl: 'https://deepseek-harness.github.io/deepseek-harness/'
   },
   {
+    id: 'qoder',
+    label: translate('auto.lib.agent.catalog.qoder_label', 'Qoder CLI'),
+    cmd: 'qodercli',
+    faviconDomain: 'qoder.com',
+    homepageUrl: 'https://docs.qoder.com/cli/overview'
+  },
+  {
     id: 'zcode',
     label: translate('auto.lib.agent.catalog.zcode_label', 'ZCode'),
     cmd: 'zcode',

@@ -234,6 +234,18 @@ export function evaluateTuiIdle(input: TuiIdleEvaluationInput): TuiIdleVerdict {
   if (blockedReason) {
     return { kind: 'blocked', reason: blockedReason }
   }
+  // Qoder publishes "Ready" before its trust dialog is dismissed; only its composer proves input is live.
+  if (input.agent === 'qoder') {
+    if (
+      hasFreshWorkingFirstPartyStatus(input.firstPartyStatus) ||
+      input.record.lastAgentStatus === 'working'
+    ) {
+      return WORKING
+    }
+    return input.readPositiveBodyEvidence()
+      ? READY_STRONG
+      : { kind: 'pending', quietForeground: false }
+  }
   // Why the title before the body: both are tier 1, so either settles, but the title is a
   // memoized lookup and the body is a fresh multi-KB scan. Same verdict, cheaper order.
   if (hasExplicitIdleTitle(input.record, input.rendererTitle) || input.readPositiveBodyEvidence()) {
@@ -325,7 +337,7 @@ export function ptyTuiIdleEvidence(
     record: pty,
     readTailBlockedReason: () => detectTerminalWaitBlockedReason(waitText()),
     readPositiveBodyEvidence: () =>
-      source.getAdoptedPtyIdleStatus(pty) === 'idle' ||
+      (agent !== 'qoder' && source.getAdoptedPtyIdleStatus(pty) === 'idle') ||
       isKnownReadyPromptBody(waitText(), agent, () => source.readScreenLines(pty.ptyId)),
     readMuseReadyBodyEvidence: () => isMuseReadyPromptPreview(waitText()),
     agent,

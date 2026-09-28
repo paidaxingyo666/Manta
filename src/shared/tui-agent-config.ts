@@ -41,7 +41,7 @@ export type TuiAgentConfig = {
   /** Claude Code follows pasted text only where the user's typed words ask, so dispatch briefs need a typed lead line. */
   pasteNeedsTypedRequest?: boolean
   /** Pre-write a trust artifact so the agent's first-launch "trust this folder?" menu doesn't consume the bracketed paste (see agent-trust-presets.ts). */
-  preflightTrust?: 'cursor' | 'copilot' | 'codex' | 'antigravity'
+  preflightTrust?: 'cursor' | 'copilot' | 'codex' | 'antigravity' | 'qoder'
   /** Agent-specific signal that the composer is ready for paste, stronger than the default quiet-render window. */
   draftPasteReadySignal?: DraftPasteReadySignal
   /** Hard deadline for the agent's composer readiness signal. */
@@ -183,6 +183,11 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     argvPromptSeparator: '--',
     // Why: Prime Agent embeds Pi's TUI and decodes CSI-u the same way (see pi above).
     windowsShiftEnterEncoding: 'csi-u'
+  },
+  qoder: {
+    detectCmd: 'qodercli',
+    promptInjectionMode: 'flag-prompt-interactive',
+    preflightTrust: 'qoder'
   },
   gemini: {
     detectCmd: 'gemini',

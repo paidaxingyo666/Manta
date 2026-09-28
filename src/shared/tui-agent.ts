@@ -11,6 +11,7 @@ export type TuiAgent =
   | 'mimo-code'
   | 'pi' // Pi (pi.dev)
   | 'omp' // OMP (omp.sh)
+  | 'qoder' // Qoder CLI
   | 'gemini' // Gemini CLI
   | 'antigravity' // Google Antigravity CLI
   | 'aider' // Aider

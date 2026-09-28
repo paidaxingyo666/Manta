@@ -1,3 +1,4 @@
+import { isQoderHeadlessCommand } from './qoder-headless-command'
 import { isAnteHeadlessOneShotCommand } from './ante-headless-command'
 import { isDshNonInteractiveCommand } from './dsh-launch-command'
 import { isMuseHeadlessOneShotCommand } from './muse-headless-command'
@@ -15,6 +16,7 @@ import type { TuiAgent } from './tui-agent'
 const HEADLESS_ONE_SHOT_MATCHERS: Partial<
   Record<TuiAgent, (tokens: readonly string[]) => boolean>
 > = {
+  qoder: isQoderHeadlessCommand,
   claude: isPrintModeHeadlessOneShotCommand,
   trae: isPrintModeHeadlessOneShotCommand,
   'prime-agent': isPrimeAgentHeadlessOneShotCommand,
