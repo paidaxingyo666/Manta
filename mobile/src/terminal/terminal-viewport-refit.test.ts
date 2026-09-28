@@ -156,8 +156,8 @@ describe('terminal viewport refit', () => {
     expect(sessionSource).toContain('notifyTerminalFrame({ width, height })')
     expect(sessionSource).toContain('notifyTerminalFrameHeight(Math.round(frame.height))')
     expect(sessionSource).toContain('notifyTerminalFrameWidth()')
-    // One seam for both facts: on the page they come apart, because the shell shortens the WebView
-    // and the keyboard covers nothing the screen has to lift for.
+    // One seam for both facts: they come apart for a floating keyboard, which is open yet covers
+    // nothing the screen has to lift for.
     expect(sessionSource).toContain('const softKeyboard = useSoftKeyboard()')
     expect(sessionSource).toContain('notifyKeyboardVisibility(softKeyboard.visible)')
     expect(sessionSource).toContain('setKeyboardHeight(softKeyboard.height)')

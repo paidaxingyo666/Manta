@@ -148,8 +148,6 @@ async function openSessionWithTerminalTab() {
     faultGrant,
     grants: [faultGrant, ...sessionGrants()],
     pageRoutes: PAGE_ROUTE_PATTERNS,
-    // The page claims an identity only against a shell that says it swaps one in.
-    accepts: [pageClientIdentity.accept],
     streams: ['session.tabs.subscribe', 'terminal.subscribe'],
     replies: {
       'worktree.show': { worktree: { id: WORKTREE, name: WORKTREE, path: `/tmp/${WORKTREE}` } },

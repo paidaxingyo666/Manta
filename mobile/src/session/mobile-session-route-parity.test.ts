@@ -200,14 +200,18 @@ const HEAD_TIMER_CLEANUP_SHA256 = 'c73f1d1c2cc89642f3d727d6f3b6b81860a9d6f342345
 // 47 rows before and after; native was measured only on main's bundle (47), and the wrapper is a
 // flex:1 View around the same flex:1 frame, so its box is the frame's.
 // Count unchanged: `'frame-not-laid-out'`, the gate awaiting the frame's first layout, replaced `'measuring-viewport'`.
+// 530 -> 532, and the host-JSX hash: the tab bar and the accessory bar take a ref that gives the
+// page `keyboardShouldPersistTaps` ('handled', 'always'), which react-native-web ignores. Natively
+// the ref is undefined. 532 -> 531: the live input's reopen flag reads the host OS, not an 'android' literal.
 const HEAD_RUNTIME_STRING_SHA256 =
-  '83ae65d5c5ae056504f4d08bb4aa524b42d82f70d8e44035ccdd6a2d9021a387'
-// Moved by both of the dock's fields: their refs, and the live one's submit handler, are the seam's now.
+  'ab8cc43940d3a3e0fdb8df3bdc178b9b61e51c7ccd55a944933862a3c290e8e3'
+// Moved by both of the dock's fields: their refs, and the live one's submit handler, are the seam's now;
+// their keyboard type and remount key read the host OS.
 // Moved again when the terminal frame kept its laid-out width unrounded, for every fit.
 // Again when the frame's onLayout wrote one frame ref and notified a new width imperatively.
 // Again when the frame's first laid-out layout alone subscribes a held-back document.
 // Again when the frame's onLayout made one `notifyTerminalFrame` call.
-const HEAD_HOST_JSX_SHA256 = '8ab32926fff2e610ab92bde8437283a11ad2328c6343cd862a1c00b2ed8ed5a6'
+const HEAD_HOST_JSX_SHA256 = 'f71b1ee495f67a6e389abf597948ffdff1f9a4a10cde6abefd2611ea4dd94245'
 const HEAD_LEAF_JSX_SHA256 = '62eb05c6e2ac0be6d553a141fc8aa1641fcb0c678777d5d539f490aab8648417'
 const HEAD_STYLE_REFERENCE_SHA256 =
   '56a005a1f65b30c11092e3422caef67810e1ec50f66fdd06471c370138b1eeb6'
@@ -650,7 +654,7 @@ describe('mobile session route extraction parity', () => {
 
   it('preserves runtime strings, styles, and the expanded JSX tree', () => {
     const strings = readRuntimeStrings()
-    expect(strings).toHaveLength(530)
+    expect(strings).toHaveLength(531)
     expect(hash(strings)).toBe(HEAD_RUNTIME_STRING_SHA256)
     const jsx = readJsxFacts(readDefinitions())
     expect(jsx.host).toHaveLength(125)

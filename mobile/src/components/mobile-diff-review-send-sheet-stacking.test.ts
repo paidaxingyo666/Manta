@@ -40,7 +40,6 @@ vi.mock('expo-haptics', () => ({
   NotificationFeedbackType: {}
 }))
 vi.mock('expo-clipboard', () => ({ setStringAsync: vi.fn() }))
-vi.mock('../platform/keyboard-occlusion', () => ({ useKeyboardAvoidingPadding: () => 0 }))
 vi.mock('./mobile-diff-review-screen-styles', () => ({
   mobileDiffReviewStyles: new Proxy({}, { get: () => ({}) })
 }))
