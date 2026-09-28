@@ -11,6 +11,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
+import { agentJournalSubmissionKey } from '../../../shared/agent-session-journal-item-key'
 import { computeAgentSessionPayloadFingerprint } from '../../../shared/agent-session-mutation-envelope'
 import type { AgentSessionMutationEnvelope } from '../../../shared/agent-session-wire'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
@@ -21,6 +22,7 @@ import {
   HOST_TEST_SESSION as SESSION,
   HOST_TEST_THREAD as THREAD,
   hostTestAttachParams,
+  hostTestDrawnRowIds,
   hostTestMessage,
   hostTestOperationId,
   resetHostTestOperationIds
@@ -206,6 +208,15 @@ describe('a send into a published session whose child ended before startup', () 
     expect(journalStatuses().slice(rowsBefore)).toEqual([
       expect.stringMatching(/stopped before it finished starting: .*not signed in/)
     ])
+    // Accepted before the restart it needed, so the chat draws it above the row naming the cause.
+    const snapshot = host.journalSnapshot(SESSION)
+    const causeRow = snapshot.items.findLast((item) => item.body.kind === 'status')?.itemId
+    const shown = [agentJournalSubmissionKey(held), causeRow]
+    expect(
+      hostTestDrawnRowIds(snapshot, [
+        { clientMessageId: held, text: 'still not signed in' }
+      ]).filter((id) => shown.includes(id))
+    ).toEqual(shown)
     // The failed restart moved the fence twice: the acquisition, and the exit that released it.
     expect(store.getRecord(SESSION)?.lease.runtimeFence).toBe(releasedFence + 2)
     expect(store.getRecord(SESSION)?.lease.claimStatus).toBe('released')

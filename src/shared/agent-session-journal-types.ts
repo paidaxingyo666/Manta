@@ -327,6 +327,13 @@ export type AgentJournalProducerLinkage = {
   attempt?: number
 }
 
+/** Where the journal placed an item: the sequence of the row that created it,
+ *  then its place among that row's writes. The timeline's only ordering key. */
+export type AgentJournalPosition = {
+  sequence: number
+  index: number
+}
+
 /** One reduced timeline entry. `sequence` orders the list; `observedAt` is the
  *  provider's own clock and may sort earlier than a later sequence when the row
  *  was recovered after a crash. */
@@ -335,6 +342,9 @@ export type AgentJournalRenderItem = AgentJournalProducerLinkage & {
   revision: number
   body: AgentJournalItemBody
   sequence: number
+  /** Place among the writes of the row at `sequence`, which one lifecycle batch
+   *  shares across every item it creates. Absent ⇒ 0, and on a host that predates it. */
+  sequenceIndex?: number
   observedAt: number
   /** Set when the row was appended by crash reconciliation rather than live. */
   recovered?: true
