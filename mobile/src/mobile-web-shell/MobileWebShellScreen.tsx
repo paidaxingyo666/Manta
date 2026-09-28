@@ -33,6 +33,7 @@ import { useMobileWebShellSession } from './use-mobile-web-shell-session'
 import { usePageHostSnapshot } from './use-page-host-snapshot'
 import { SHELL_OPENING_LABEL, ShellPageCover, ShellWaitingFrame } from './ShellWaitingFrame'
 import { pageSafeAreaInsets, usePublishedSafeAreaInsets } from './page-safe-area-insets'
+import { translate } from '../i18n/i18n'
 
 function failureMessage(reason: MobileWebShellFailureCause): string {
   switch (reason) {
@@ -75,9 +76,9 @@ function Fetching({ state }: { state: Extract<MobileWebShellSessionState, { kind
   return (
     <Centered>
       <ActivityIndicator color={colors.textSecondary} accessibilityLabel="Downloading workspace" />
-      <Text style={styles.waitingLabel}>Downloading workspace</Text>
+      <Text style={styles.waitingLabel}>{translate("m.MobileWebShellScreen.be7789dffb", "Downloading workspace")}</Text>
       <Text style={styles.progress} testID="mobile-web-shell-progress">
-        {`${state.completedAssets}/${state.totalAssets} files · ${state.receivedBytes}/${state.totalBytes} bytes`}
+        {translate("m.MobileWebShellScreen.b735c4e986", "{{value0}}/{{value1}} files · {{value2}}/{{value3}} bytes", { value0: state.completedAssets, value1: state.totalAssets, value2: state.receivedBytes, value3: state.totalBytes })}
       </Text>
     </Centered>
   )
@@ -104,7 +105,7 @@ function Failed({
           testID="mobile-web-shell-retry"
           onPress={onRetry}
         >
-          <Text style={styles.retryLabel}>Try again</Text>
+          <Text style={styles.retryLabel}>{translate("m.MobileWebShellScreen.3506ff8c3d", "Try again")}</Text>
         </Pressable>
       ) : null}
     </Centered>
@@ -343,7 +344,7 @@ export function MobileWebShellScreen({
     return (
       <Centered>
         <Text style={styles.waitingLabel} testID="mobile-web-shell-offline">
-          Connect to this host to download the workspace
+          {translate("m.MobileWebShellScreen.8eb61c3a16", "Connect to this host to download the workspace")}
         </Text>
       </Centered>
     )
@@ -352,7 +353,7 @@ export function MobileWebShellScreen({
     return <Fetching state={state} />
   }
   if (state.kind !== 'ready') {
-    return <Waiting label={state.kind === 'activating' ? SHELL_OPENING_LABEL : 'Checking host'} />
+    return <Waiting label={state.kind === 'activating' ? SHELL_OPENING_LABEL : translate("m.MobileWebShellScreen.a5432aa51c", "Checking host")} />
   }
   return (
     <View

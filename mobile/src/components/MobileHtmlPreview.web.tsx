@@ -6,6 +6,7 @@ import { htmlPreviewWithInertLinks } from './html-preview-inert-links'
 import { useHtmlPreviewLinkGrant } from './use-html-preview-link-grant'
 // The native component's own prop type, so a change to it fails here rather than drifting.
 import type { MobileHtmlPreviewProps } from './MobileHtmlPreview'
+import { translate } from '../i18n/i18n'
 
 /**
  * The `sandbox` the preview frame carries, and the whole of what makes it safe to render an
@@ -96,7 +97,7 @@ export function MobileHtmlPreview({ html, renderSource }: MobileHtmlPreviewProps
           accessibilityLabel="Preview rendered HTML"
         >
           <Eye size={13} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.toggleText}>Preview</Text>
+          <Text style={styles.toggleText}>{translate("m.MobileHtmlPreview.web.7880175474", "Preview")}</Text>
         </Pressable>
         <Pressable
           style={[styles.toggle, mode === 'source' && styles.toggleActive]}
@@ -107,7 +108,7 @@ export function MobileHtmlPreview({ html, renderSource }: MobileHtmlPreviewProps
           accessibilityLabel="View HTML source"
         >
           <Code size={13} color={colors.textSecondary} strokeWidth={2.2} />
-          <Text style={styles.toggleText}>Source</Text>
+          <Text style={styles.toggleText}>{translate("m.MobileHtmlPreview.web.d2946f80c8", "Source")}</Text>
         </Pressable>
       </View>
       {/* The Source tab shows what the author wrote, never the rewrite: the rewrite is a rendering
@@ -129,7 +130,7 @@ function PreviewFrame({ html, linksOpen }: { html: string; linksOpen: boolean })
   return (
     <View style={styles.frame}>
       <iframe
-        title="HTML preview"
+        title={translate("m.MobileHtmlPreview.web.d6b4eeb035", "HTML preview")}
         sandbox={linksOpen ? MOBILE_HTML_PREVIEW_SANDBOX : MOBILE_HTML_PREVIEW_SEALED_SANDBOX}
         srcDoc={html}
         style={IFRAME_STYLE}

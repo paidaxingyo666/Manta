@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native'
 import { AuthFailedBannerActions } from './AuthFailedBannerActions'
 import { authFailedBannerStyles as styles } from './auth-failed-banner-styles'
+import { translate } from '../i18n/i18n'
 
 // Why: auth-failed is no longer necessarily terminal (issue #5200) — a
 // transient rejection can latch it even though the desktop still lists this
@@ -20,7 +21,7 @@ export function AuthFailedBanner({
   return (
     <View style={styles.banner}>
       <Text style={styles.text}>
-        Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.
+        {translate("m.AuthFailedBanner.22b7ca421f", "Authentication failed — try reconnecting first; if it keeps failing, re-pair from desktop.")}
       </Text>
       <View style={styles.actions}>
         <AuthFailedBannerActions

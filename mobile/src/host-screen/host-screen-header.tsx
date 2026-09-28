@@ -17,6 +17,7 @@ import { classifyConnection, type ConnectionVerdict } from '../transport/connect
 import { colors } from '../theme/mobile-theme'
 import { hostScreenStyles as styles } from './host-screen-styles'
 import type { HostScreenController } from './use-host-screen-controller'
+import { translate } from '../i18n/i18n'
 
 function isErrorVerdict(v: ConnectionVerdict): boolean {
   return v.kind === 'warning' || v.kind === 'unreachable' || v.kind === 'auth-failed'
@@ -96,7 +97,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                       accessibilityLabel="Reconnect"
                       hitSlop={8}
                     >
-                      <Text style={styles.reconnectButtonText}>Reconnect</Text>
+                      <Text style={styles.reconnectButtonText}>{translate("m.host.screen.header.36278ad08f", "Reconnect")}</Text>
                     </Pressable>
                   )
                 })()}
@@ -159,7 +160,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                 ]}
                 numberOfLines={1}
               >
-                Filter{settings.activeFilterCount > 0 ? ` ${settings.activeFilterCount}` : ''}
+                {translate("m.host.screen.header.a70d48d09a", "Filter")}{settings.activeFilterCount > 0 ? ` ${settings.activeFilterCount}` : ''}
               </Text>
             </Pressable>
 
@@ -184,12 +185,12 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
               <Layers size={14} color={colors.textSecondary} />
               <Text style={styles.sortLabel} numberOfLines={1}>
                 {state.groupMode === 'none'
-                  ? 'Group'
+                  ? translate("m.host.screen.header.b1a9a55bbb", "Group")
                   : state.groupMode === 'workspaceStatus'
-                    ? 'Status'
+                    ? translate("m.host.screen.header.ae01b0eaa5", "Status")
                     : state.groupMode === 'repo'
-                      ? 'Repo'
-                      : 'PR'}
+                      ? translate("m.host.screen.header.8379065e14", "Repo")
+                      : translate("m.host.screen.header.c3f52b3427", "PR")}
               </Text>
             </Pressable>
           </View>
@@ -295,7 +296,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                 settings.activeFilterCount > 0 && styles.filterChipTextActive
               ]}
             >
-              Filter{settings.activeFilterCount > 0 ? ` (${settings.activeFilterCount})` : ''}
+              {translate("m.host.screen.header.a70d48d09a", "Filter")}{settings.activeFilterCount > 0 ? ` (${settings.activeFilterCount})` : ''}
             </Text>
           </Pressable>
 
@@ -320,12 +321,12 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
             <Layers size={14} color={colors.textSecondary} />
             <Text style={styles.sortLabel} numberOfLines={1}>
               {state.groupMode === 'none'
-                ? 'Group'
+                ? translate("m.host.screen.header.b1a9a55bbb", "Group")
                 : state.groupMode === 'workspaceStatus'
-                  ? 'Status'
+                  ? translate("m.host.screen.header.ae01b0eaa5", "Status")
                   : state.groupMode === 'repo'
-                    ? 'Repo'
-                    : 'PR'}
+                    ? translate("m.host.screen.header.8379065e14", "Repo")
+                    : translate("m.host.screen.header.c3f52b3427", "PR")}
             </Text>
           </Pressable>
 

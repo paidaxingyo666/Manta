@@ -10,6 +10,7 @@ import {
 } from '../storage/preferences'
 import { colors } from '../theme/mobile-theme'
 import { troubleshootScreenStyles as styles } from './troubleshoot-screen-styles'
+import { translate } from '../i18n/i18n'
 
 /**
  * The one caller of `saveMobileWebShellEnabled`, and the one way into the hybrid shell route that
@@ -92,7 +93,7 @@ export function MobileWebShellDevRow() {
       >
         <LayoutTemplate size={16} color={colors.textPrimary} />
         <Text style={styles.diagnosticButtonLabel}>
-          Open hybrid shell for the first paired host
+          {translate("m.mobile.web.shell.dev.row.207f2d9a20", "Open hybrid shell for the first paired host")}
         </Text>
       </Pressable>
     </View>

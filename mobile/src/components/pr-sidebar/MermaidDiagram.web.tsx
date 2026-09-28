@@ -5,6 +5,7 @@ import { colors, radii, spacing, typography } from '../../theme/mobile-theme'
 import type { MermaidDiagramProps } from './MermaidDiagram'
 import { MERMAID_DIAGRAM_CONFIG } from './mermaid-diagram-config'
 import { loadPageMermaid } from './mermaid-page-engine'
+import { translate } from '../../i18n/i18n'
 
 /**
  * Web sibling: the same diagram, drawn by mermaid in this document.
@@ -98,7 +99,7 @@ function MermaidFrame({ children }: { children: ReactNode }) {
   return (
     <View style={styles.frame} testID="mermaid-diagram">
       <View style={styles.label}>
-        <Text style={styles.labelText}>mermaid</Text>
+        <Text style={styles.labelText}>{translate("m.MermaidDiagram.web.bd13862940", "mermaid")}</Text>
       </View>
       {children}
     </View>

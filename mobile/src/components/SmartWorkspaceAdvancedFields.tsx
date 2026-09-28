@@ -2,6 +2,7 @@ import { Platform, StyleSheet, Switch, Text, TextInput, View } from 'react-nativ
 import type { MobileComposerSource } from '../tasks/use-mobile-composer-source'
 import { colors, radii, spacing } from '../theme/mobile-theme'
 import { TEXT_INPUT_FONT_SIZE } from '../platform/text-input-font-size'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   composer: MobileComposerSource
@@ -18,12 +19,12 @@ export function SmartWorkspaceAdvancedFields({ composer, selectedRepoIsGit }: Pr
     <>
       {selection ? (
         <View style={styles.field}>
-          <Text style={styles.label}>Name</Text>
+          <Text style={styles.label}>{translate("m.SmartWorkspaceAdvancedFields.8ee790c3a4", "Name")}</Text>
           <TextInput
             style={styles.input}
             value={composer.name}
             onChangeText={composer.setName}
-            placeholder="Workspace name"
+            placeholder={translate("m.SmartWorkspaceAdvancedFields.309ff35d45", "Workspace name")}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -33,12 +34,12 @@ export function SmartWorkspaceAdvancedFields({ composer, selectedRepoIsGit }: Pr
 
       {showBranchOverride ? (
         <View style={styles.field}>
-          <Text style={styles.label}>Branch name</Text>
+          <Text style={styles.label}>{translate("m.SmartWorkspaceAdvancedFields.0804d94c43", "Branch name")}</Text>
           <TextInput
             style={styles.input}
             value={composer.branchNameOverride ?? ''}
             onChangeText={composer.handleBranchNameOverrideChange}
-            placeholder="Derived from name"
+            placeholder={translate("m.SmartWorkspaceAdvancedFields.2e49b532ce", "Derived from name")}
             placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
@@ -50,7 +51,7 @@ export function SmartWorkspaceAdvancedFields({ composer, selectedRepoIsGit }: Pr
         <View style={styles.field}>
           <View style={styles.reuseRow}>
             <Text style={styles.reuseLabel} numberOfLines={1}>
-              Reuse branch “{composer.reuseEligibleBranch}”
+              {translate("m.SmartWorkspaceAdvancedFields.935335d212", "Reuse branch “")}{composer.reuseEligibleBranch}”
             </Text>
             <Switch
               value={composer.reuseSelectedBranch}

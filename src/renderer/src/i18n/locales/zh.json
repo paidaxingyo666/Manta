@@ -79,7 +79,7 @@
       },
       "userAgent": {
         "title": "浏览器身份",
-        "description": "为每个浏览器配置文件和页面选择用户代理。本机模式会禁用 Google 登录。更改在重新启动后生效。",
+        "description": "为每个浏览器配置文件和页面选择用户智能体。本机模式会禁用 Google 登录。更改在重新启动后生效。",
         "remoteUnsupported": "使用 Manta CLI 管理远程主机上的浏览器身份。",
         "loading": "加载中…",
         "resetRequired": "身份数据必须在更改之前显式重置。",
@@ -4713,7 +4713,6 @@
           "1b6ad2ca5c": "已检查。",
           "3fc62a61eb_other": "已检查 {{value0}} 个安装位置。",
           "3fc62a61eb_one": "已检查 {{value0}} 个安装位置。",
-          "3fc62a61eb": "放置",
           "157de228b4": "检查技能",
           "69236de8d6": "检查中…",
           "27672470d9": "打开链接不会安装任何内容。请先查看这个不可变版本。",
@@ -6362,14 +6361,14 @@
           "d9657ac204": "终端会话关闭请求已发送。",
           "e8f25bd903": "无法完成终端清理。",
           "a702d4196e": "这将关闭所有工作区中的每个终端标签页，并请求关闭其当前终端会话。任何未保存的终端工作将丢失。守护进程本身将继续运行，可以立即打开新终端。此操作不可撤销。",
-          "01d6b7c64e": "打开终端，代理将重新启动。远程主机上的终端不受影响。",
+          "01d6b7c64e": "打开终端，智能体将重新启动。远程主机上的终端不受影响。",
           "922548bc66": "重启终端服务？"
         },
         "MacFolderAccessFixDialog": {
           "stepAllow": "在文件和文件夹下允许 Manta",
           "openSystemSettings": "打开系统设置",
           "stepRestart": "重启 Manta 的终端服务",
-          "restartConsequence": "打开终端，代理将重新启动。",
+          "restartConsequence": "打开终端，智能体将重新启动。",
           "restarting": "正在重新启动...",
           "restart": "重新启动",
           "restartFailed": "重启失败。从设置 → 终端 → 管理会话重试。",
@@ -7230,7 +7229,7 @@
           "editor_preview_tabs": "浏览文件时重复使用预览选项卡",
           "editor_preview_tabs_description": "单击资源管理器中的文件，或点击 Markdown 源中的链接，可以重复使用每组一个斜体预览选项卡，而不是打开一个新选项卡。编辑、双击或固定可以使该选项卡保持打开状态。关闭此选项可为每个文件提供自己的选项卡。",
           "confirm_running_terminal_close": "关闭运行终端前确认",
-          "confirm_running_terminal_close_description": "关闭终端时，在停止正在运行的代理或命令之前询问。"
+          "confirm_running_terminal_close_description": "关闭终端时，在停止正在运行的智能体或命令之前询问。"
         },
         "GeneralSupportSection": {
           "af7d9f4396": "感谢您的支持！",
@@ -9328,7 +9327,7 @@
             },
             "userAgent": {
               "identity": "身份",
-              "userAgent": "用户代理",
+              "userAgent": "用户智能体",
               "native": "原生",
               "cleaned": "清洁过的",
               "restart": "重新启动"
@@ -9762,7 +9761,7 @@
             "afa37a34e1": "关闭",
             "running_terminal": "跑步",
             "terminal": "终端",
-            "agent": "代理",
+            "agent": "智能体",
             "command": "命令",
             "confirm": "确认",
             "close": "关闭",
@@ -13255,8 +13254,7 @@
               "compare": {
                 "summary": {
                   "dd72a6fd37_other": "领先 {{value2}} {{value0}} 个提交",
-                  "dd72a6fd37_one": "领先 {{value2}} {{value0}} 个提交",
-                  "dd72a6fd37": "{{value0}} 在 {{value2}} 之前提交 {{value1}}"
+                  "dd72a6fd37_one": "领先 {{value2}} {{value0}} 个提交"
                 }
               },
               "conflict": {
@@ -17251,8 +17249,8 @@
       },
       "NativeChatResumeOnRestartModal": {
         "title": "恢复中断的聊天？",
-        "body": "当 Manta 关闭时，这些聊天正在工作。恢复会将每个聊天还原到停止的位置及其完整上下文，并要求代理在继续之前检查它正在做的事情。您自己的提示不会重新发送。",
-        "updateBody": "当 Manta 安装更新时，这些聊天正在工作。恢复会将每个聊天还原到停止的位置及其完整上下文，并要求代理在继续之前检查它正在做的事情。您自己的提示不会重新发送。",
+        "body": "当 Manta 关闭时，这些聊天正在工作。恢复会将每个聊天还原到停止的位置及其完整上下文，并要求智能体在继续之前检查它正在做的事情。您自己的提示不会重新发送。",
+        "updateBody": "当 Manta 安装更新时，这些聊天正在工作。恢复会将每个聊天还原到停止的位置及其完整上下文，并要求智能体在继续之前检查它正在做的事情。您自己的提示不会重新发送。",
         "resuming": "正在恢复…",
         "untitled": "无标题聊天",
         "listLabel": "将恢复的聊天",
@@ -17280,8 +17278,8 @@
         "activityApproval": "等待您的批准：{{value0}}",
         "activityQuestion": "等待您的回答：{{value0}}",
         "activityMidReply": "回复进行中",
-        "activitySubagentOne": "子代理运行中：{{value0}}",
-        "activitySubagentMany": "{{value0}} 个子代理运行中",
+        "activitySubagentOne": "子智能体运行中：{{value0}}",
+        "activitySubagentMany": "{{value0}} 个子智能体运行中",
         "activityMonitorOne": "正在监控：{{value0}}",
         "activityMonitorMany": "正在监控 {{value0}} 个后台任务"
       },
@@ -17377,7 +17375,7 @@
         "conflict": "另一个 Manta 窗口或终端仍持有此会话。请将其关闭，然后重试。",
         "ownershipUnknown": "Manta 仍在确认哪个进程持有此会话。请稍候，然后重试。",
         "notAttached": "聊天未能重新连接。请重试，或将其打开以开始新的轮次。",
-        "dispatchRejected": "代理拒绝了“continue”消息。请打开聊天并自行发送一条。",
+        "dispatchRejected": "智能体拒绝了“continue”消息。请打开聊天并自行发送一条。",
         "unsupported": "此聊天无法由 Manta 恢复。请将其打开以查看停止位置。",
         "fallback": "Manta 无法恢复此聊天。请将其打开以手动继续。"
       },
@@ -17612,7 +17610,7 @@
         "runWebSearchMany": "网络搜索 {{value0}} 次",
         "runIntegrationOne": "使用 1 集成",
         "runIntegrationMany": "使用 {{value0}} 集成",
-        "runAgentOne": "然 1 代理",
+        "runAgentOne": "然 1 智能体",
         "runAgentMany": "然 {{value0}} 特工",
         "runPlanOne": "更新了计划",
         "runPlanMany": "更新计划 {{value0}} 次",
@@ -17634,8 +17632,8 @@
         "runLiveWebSearchMany": "搜索网络 {{value0}} 次",
         "runLiveIntegrationOne": "使用 1 集成",
         "runLiveIntegrationMany": "使用 {{value0}} 集成",
-        "runLiveAgentOne": "运行 1 个代理",
-        "runLiveAgentMany": "运行 {{value0}} 代理",
+        "runLiveAgentOne": "运行 1 个智能体",
+        "runLiveAgentMany": "运行 {{value0}} 智能体",
         "runLivePlanOne": "更新计划",
         "runLivePlanMany": "更新计划 {{value0}} 次",
         "runLiveToolOne": "使用 1 个工具",
@@ -17706,7 +17704,6 @@
         }
       },
       "launchPromptNotDelivered": "未送达 — 请检查终端",
-      "structuredSessionCloseFailed": "无法关闭此聊天会话",
       "taskList": {
         "title": "任务",
         "completed": "已完成",
@@ -17784,38 +17781,6 @@
         "groupWorkflows": "工作流程",
         "groupTasks": "任务"
       },
-      "handoff": {
-        "stage": {
-          "finishingChat": "正在结束聊天会话…",
-          "finishingTerminal": "正在结束智能体终端…",
-          "openingTerminal": "正在打开智能体终端…",
-          "resumingChat": "正在恢复聊天会话…",
-          "verifyingTerminal": "正在验证智能体终端…",
-          "verifyingChat": "正在验证聊天会话…",
-          "recovering": "正在恢复智能体会话…",
-          "manualRecovery": "智能体会话需要恢复"
-        },
-        "switchingOwner": "正在切换会话所有者…",
-        "mode": {
-          "switching": "正在切换",
-          "terminal": "终端",
-          "chat": "聊天"
-        },
-        "switchingAfterTurn": "将在本轮结束后切换",
-        "returningAfterTurn": "将在本轮结束后返回",
-        "cancel": "取消",
-        "switchAfterTurn": "本轮结束后切换",
-        "stopTurnAndSwitch": "停止本轮并切换",
-        "openAgentTui": "打开智能体 TUI",
-        "returnAfterTurn": "本轮结束后返回",
-        "returnToChat": "返回聊天",
-        "agentOpenOnHost": "智能体已在 {{value0}} 的终端中打开。",
-        "agentOpen": "智能体已在终端中打开。",
-        "exitTerminal": "退出智能体终端即可继续在聊天中操作。",
-        "retryProof": "重新验证",
-        "retry": "重试",
-        "details": "详情"
-      },
       "railLabel": "您的留言",
       "railImageMessage": "图片附件",
       "railEmptyMessage": "信息",
@@ -17825,7 +17790,6 @@
         "questionCount": "{{value0}} 问题"
       },
       "structuredSessionLaunchFailed": "无法打开 {{value0}} 聊天",
-      "structuredSessionCloseFailedDescription": "终端已保持打开，以便仍可恢复提供方。",
       "structuredSessionLaunchFailedDescription": "Manta 无法打开结构化 {{value0}} 聊天。详情请查看日志。",
       "subagents": {
         "state": {
@@ -17853,7 +17817,7 @@
       },
       "drop": {
         "title": "拖放以附加到此聊天",
-        "subtitle": "文件将作为代理可以读取的路径添加到您的消息中。"
+        "subtitle": "文件将作为智能体可以读取的路径添加到您的消息中。"
       },
       "copyCode": "复制代码",
       "goal": {
@@ -18230,7 +18194,7 @@
     "settings": {
       "TerminalInteraction": {
         "copyTrimsGutter": "修剪副本上的装订线",
-        "copyTrimsGutterDescription": "将左侧装订线代理输出绘制在后面，因此复制的文本不会缩进。仅删除每个选定行共享的缩进。"
+        "copyTrimsGutterDescription": "将左侧装订线智能体输出绘制在后面，因此复制的文本不会缩进。仅删除每个选定行共享的缩进。"
       },
       "terminal": {
         "clipboard": {
@@ -18429,7 +18393,7 @@
     },
     "userAgentMigration": {
       "degradedDescription": "无法检查旧的浏览器身份选择。在浏览器设置中选择 Cleaned 或 Native；更改在重新启动后生效。",
-      "description": "每个配置文件的用户代理设置已被删除。在浏览器设置中选择 Cleaned 或 Native；更改在重新启动后生效。",
+      "description": "每个配置文件的用户智能体设置已被删除。在浏览器设置中选择 Cleaned 或 Native；更改在重新启动后生效。",
       "title": "浏览器身份现在是应用程序范围内的",
       "openSettings": "打开设置"
     }
@@ -18508,7 +18472,7 @@
       "ageHours": "2小时",
       "ageMinutes": "12分钟",
       "ageYesterday": "1天",
-      "agentsInstruction": "您的代理也可以搜索。让它“找到我们修复登录超时的那次会话”。",
+      "agentsInstruction": "您的智能体也可以搜索。让它“找到我们修复登录超时的那次会话”。",
       "consentInstruction": "随时可在以下位置更改或关闭",
       "continueInBackground": "在后台继续",
       "demoHit1Age": "3天",
@@ -18534,10 +18498,10 @@
       "demoRoleAssistant": "助手",
       "demoRoleUser": "用户",
       "enableFailed": "无法开启会话搜索。请重试。",
-      "indexingDescription": "Manta 正在读取您过去的代理会话记录，以便您可以搜索它们。这可能需要几分钟。",
-      "indexingTitle": "正在索引您的代理会话",
+      "indexingDescription": "Manta 正在读取您过去的智能体会话记录，以便您可以搜索它们。这可能需要几分钟。",
+      "indexingTitle": "正在索引您的智能体会话",
       "progressStarting": "正在查找您的会话…",
-      "readyDescription": "现在可以通过会话内容找到此电脑上的每个代理会话。",
+      "readyDescription": "现在可以通过会话内容找到此电脑上的每个智能体会话。",
       "readyTitle": "会话搜索已就绪",
       "readyToast": "会话搜索已就绪",
       "readyToastOpen": "打开",
@@ -18547,7 +18511,7 @@
       "recent2Title": "更新 lockfile",
       "recent3Text": "这是按领域分组的记录初稿。",
       "recent3Title": "发布说明草稿",
-      "settingsLink": "设置 → 代理会话搜索",
+      "settingsLink": "设置 → 智能体会话搜索",
       "startSearching": "开始搜索"
     }
   },
@@ -18595,7 +18559,7 @@
       "sortRelevance": "最相关的",
       "sortNewest": "最新",
       "sortResultsAriaLabel": "排序结果：{{value0}}",
-      "consent": "启用全文搜索吗？ Manta 根据本地代理记录在此计算机上构建索引，包括完整对话和每个工具输出最多 3,072 个字符。内容未经过编辑。经过身份验证的配对客户端可以搜索它。",
+      "consent": "启用全文搜索吗？ Manta 根据本地智能体记录在此计算机上构建索引，包括完整对话和每个工具输出最多 3,072 个字符。内容未经过编辑。经过身份验证的配对客户端可以搜索它。",
       "remoteDisabled": "此计算机上已禁用搜索。在该计算机上启用转录索引以搜索其会话。",
       "notReady": "搜索索引尚未准备好。稍后再试。",
       "noService": "在此计算机上无法进行搜索。它可能需要 Manta 更新或具有搜索支持的运行时。",
@@ -18631,17 +18595,17 @@
       "advanced": "高级",
       "deleteIndexCopy": "清除搜索数据",
       "deleteTitle": "清除这台计算机上的搜索数据吗？",
-      "deleteEnabled": "关闭搜索并从此计算机中删除可搜索副本。您的代理会话不受影响。",
-      "deleteDisabled": "从此计算机中删除可搜索副本。您的代理会话不受影响。",
+      "deleteEnabled": "关闭搜索并从此计算机中删除可搜索副本。您的智能体会话不受影响。",
+      "deleteDisabled": "从此计算机中删除可搜索副本。您的智能体会话不受影响。",
       "delete": "清除",
       "cleared": "搜索数据已清除。",
       "clearError": "无法清除搜索数据。再试一次。",
       "webUnsupported": "从该计算机上的 Manta 桌面应用程序打开会话搜索。",
-      "title": "代理会话搜索",
-      "description": "在此计算机和任何配对的 Manta 服务器上搜索您的代理所说和所做的一切。",
+      "title": "智能体会话搜索",
+      "description": "在此计算机和任何配对的 Manta 服务器上搜索您的智能体所说和所做的一切。",
       "searchDescription": "打开此计算机和配对服务器的会话搜索，或清除搜索数据。",
       "indexComputers": "在会话内搜索",
-      "computersConsent": "每台计算机都保留自己的代理对话和工具输出的可搜索副本。没有任何东西离开那台计算机。",
+      "computersConsent": "每台计算机都保留自己的智能体对话和工具输出的可搜索副本。没有任何东西离开那台计算机。",
       "serverVersion": "Manta v{{version}}",
       "rowSwitchLabel": "搜索 {{host}} 上的会话",
       "serverOffline": "离线",
@@ -18654,16 +18618,16 @@
       "showMore": "显示 {{count}} 更多",
       "showFewer": "显示较少",
       "openInSidebar": "在侧边栏中打开",
-      "openInSidebarCopy": "输入您记得的内容，或询问代理：“找到我们修复登录超时的会话。”",
+      "openInSidebarCopy": "输入您记得的内容，或询问智能体：“找到我们修复登录超时的会话。”",
       "open": "打开",
       "enableOnAll": "在所有计算机上启用"
     }
   },
   "aiVault": {
     "subagents": {
-      "loading": "正在加载子代理...",
-      "loadError": "无法加载所有子代理。",
-      "empty": "未找到子代理。"
+      "loading": "正在加载子智能体...",
+      "loadError": "无法加载所有子智能体。",
+      "empty": "未找到子智能体。"
     }
   },
   "common": {

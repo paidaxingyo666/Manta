@@ -5,6 +5,7 @@ import { processGenerationStore } from '../mobile-web-shell/process-generation-s
 import { loadHosts } from '../transport/host-store'
 import { formatUpdateFailure } from './mobile-web-shell-update-failure-copy'
 import { troubleshootScreenStyles as styles } from './troubleshoot-screen-styles'
+import { translate } from '../i18n/i18n'
 
 type Line = { readonly hostId: string; readonly text: string }
 
@@ -53,7 +54,7 @@ export function MobileWebShellUpdateFailureRow() {
   }
   return (
     <View testID="mobile-web-shell-update-failures">
-      <Text style={styles.sectionHeading}>Workspace updates</Text>
+      <Text style={styles.sectionHeading}>{translate("m.mobile.web.shell.update.failure.row.baaf70a40f", "Workspace updates")}</Text>
       <View style={styles.section}>
         <View style={styles.accordionBody}>
           {lines.map((line) => (

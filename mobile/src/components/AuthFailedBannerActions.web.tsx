@@ -1,5 +1,6 @@
 import { Pressable, Text } from 'react-native'
 import { authFailedBannerStyles as styles } from './auth-failed-banner-styles'
+import { translate } from '../i18n/i18n'
 
 /**
  * The page offers Re-pair alone: its push of `/pair-scan` is handed to the shell
@@ -18,9 +19,9 @@ export function AuthFailedBannerActions({
   return (
     <>
       <Pressable style={styles.action} onPress={onRepair}>
-        <Text style={styles.actionText}>Re-pair</Text>
+        <Text style={styles.actionText}>{translate("m.AuthFailedBannerActions.web.cc4297959e", "Re-pair")}</Text>
       </Pressable>
-      <Text style={styles.note}>Reconnect or remove this host from the Manta app.</Text>
+      <Text style={styles.note}>{translate("m.AuthFailedBannerActions.web.4e38949c67", "Reconnect or remove this host from the Manta app.")}</Text>
     </>
   )
 }

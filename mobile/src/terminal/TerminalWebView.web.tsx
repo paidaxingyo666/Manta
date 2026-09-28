@@ -6,6 +6,7 @@ import { TERMINAL_WEBVIEW_FRAME_STYLES } from './terminal-webview-frame-styles'
 import type { TerminalWebViewCommand } from './terminal-webview-messages'
 import { mountTerminalWebDocument, type TerminalWebDocument } from './terminal-web-document-mount'
 import { useTerminalWebViewController } from './use-terminal-webview-controller'
+import { translate } from '../i18n/i18n'
 
 type Props = TerminalWebViewProps
 
@@ -85,9 +86,7 @@ export const TerminalWebView = forwardRef<TerminalWebViewHandle, Props>(
         receiveRef.current?.({
           type: 'error',
           fatal: true,
-          message: `terminal document failed to start - ${
-            error instanceof Error ? error.message : String(error)
-          }`
+          message: translate("m.TerminalWebView.web.cbc943bb24", "terminal document failed to start - {{value0}}", { value0: error instanceof Error ? error.message : String(error) })
         })
         return
       }

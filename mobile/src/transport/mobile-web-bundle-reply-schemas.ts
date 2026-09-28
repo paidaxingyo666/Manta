@@ -14,6 +14,7 @@ import {
   MOBILE_WEB_BUNDLE_MAX_TOTAL_BYTES,
   SHA256_PATTERN
 } from '../../../src/shared/mobile-web-bundle/manifest-contract'
+import { translate } from '../i18n/i18n'
 
 // Hoisted, never built inside a reader: a schema constructed per parse cost 2275 ns against 156 ns
 // for the same shape hoisted (#21311).
@@ -93,7 +94,7 @@ export const MobileWebBundleManifestReadSchema = z
       context.addIssue({
         code: 'custom',
         path: ['assets'],
-        message: 'assets sum to more than the contract total'
+        message: translate("m.mobile.web.bundle.reply.schemas.a4b34ca918", "assets sum to more than the contract total")
       })
       return
     }
@@ -106,7 +107,7 @@ export const MobileWebBundleManifestReadSchema = z
       context.addIssue({
         code: 'custom',
         path: ['buildId'],
-        message: 'buildId must be the content hash of the asset list'
+        message: translate("m.mobile.web.bundle.reply.schemas.ec97bc1e04", "buildId must be the content hash of the asset list")
       })
     }
   })

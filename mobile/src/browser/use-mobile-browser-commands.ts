@@ -25,6 +25,7 @@ import {
 } from './browser-touch-geometry'
 import type { BrowserPointerModifier } from './MobileBrowserPointerModifiers'
 import type { BrowserDialogState } from './mobile-browser-stream-events'
+import { translate } from '../i18n/i18n'
 
 const TOUCH_CLICK_RADIUS_DIP = 14
 type PendingWheelCommand = {
@@ -270,7 +271,7 @@ export function useMobileBrowserCommands(args: MobileBrowserCommandArgs) {
           : {
               ...current,
               pending: undefined,
-              ...(result === null ? { error: 'That answer did not reach the page.' } : {})
+              ...(result === null ? { error: translate("m.use.mobile.browser.commands.42f3af2dc3", "That answer did not reach the page.") } : {})
             }
       )
     },

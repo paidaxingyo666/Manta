@@ -4,6 +4,7 @@ import {
   type MobileRelayEndpoint
 } from '../../../src/shared/mobile-relay-credential-contract'
 import { relayConnectWebSocketUrl } from './mobile-relay-connect-url'
+import { translate } from '../i18n/i18n'
 
 const MobileAccessEndpointSchema = z
   .object({
@@ -31,14 +32,14 @@ export const MobileRelayHostOverlaySchema = z
   .strict()
   .superRefine((overlay, context) => {
     if ((overlay.relayHostId === undefined) !== (overlay.relay === undefined)) {
-      context.addIssue({ code: 'custom', message: 'Relay identity and endpoint must coexist' })
+      context.addIssue({ code: 'custom', message: translate("m.mobile.relay.host.overlay.0a36dc1b70", "Relay identity and endpoint must coexist") })
       return
     }
     if (overlay.relay && overlay.relay.relayHostId !== overlay.relayHostId) {
       context.addIssue({
         code: 'custom',
         path: ['relayHostId'],
-        message: 'Relay host identity mismatch'
+        message: translate("m.mobile.relay.host.overlay.7becc2880a", "Relay host identity mismatch")
       })
     }
     const relayEndpointCount = overlay.endpoints.filter(({ kind }) => kind === 'relay').length
@@ -46,7 +47,7 @@ export const MobileRelayHostOverlaySchema = z
       context.addIssue({
         code: 'custom',
         path: ['endpoints'],
-        message: 'Expected exactly one endpoint for configured relay metadata'
+        message: translate("m.mobile.relay.host.overlay.97129930cc", "Expected exactly one endpoint for configured relay metadata")
       })
     }
   })

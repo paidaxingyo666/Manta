@@ -33,6 +33,7 @@ import { fileDirectoryRead, legacyFileListRead } from './mobile-file-explorer-op
 import { fileExplorerStyles as styles } from './mobile-file-explorer-styles'
 import { MobileFileExplorerRow } from './mobile-file-explorer-row'
 import { navigateToMobileFilePreview } from './mobile-file-preview-navigation'
+import { translate } from '../i18n/i18n'
 
 export function MobileFileExplorerPanel(props: {
   hostId: string
@@ -313,11 +314,11 @@ export function MobileFileExplorerPanel(props: {
       )}
       <View style={styles.titleBlock}>
         <Text style={styles.title} numberOfLines={1}>
-          Files
+          {translate("m.MobileFileExplorerPanel.f288e834ba", "Files")}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
           {worktreeLabel}
-          {legacyListTruncated ? ' - Showing first 5000' : ''}
+          {legacyListTruncated ? translate("m.MobileFileExplorerPanel.528997afc8", "- Showing first 5000") : ''}
         </Text>
       </View>
     </View>
@@ -340,13 +341,13 @@ export function MobileFileExplorerPanel(props: {
       <Text style={styles.errorText}>{error}</Text>
       {rootRetry ? (
         <Pressable style={styles.retryButton} onPress={rootRetry}>
-          <Text style={styles.retryText}>Retry</Text>
+          <Text style={styles.retryText}>{translate("m.MobileFileExplorerPanel.2d2d213ae8", "Retry")}</Text>
         </Pressable>
       ) : null}
     </View>
   ) : rows.length === 0 ? (
     <View style={styles.state}>
-      <Text style={styles.emptyText}>No files found</Text>
+      <Text style={styles.emptyText}>{translate("m.MobileFileExplorerPanel.09a641d5f9", "No files found")}</Text>
     </View>
   ) : (
     <FlatList
