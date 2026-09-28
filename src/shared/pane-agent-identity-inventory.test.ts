@@ -308,7 +308,8 @@ const INVENTORY: readonly InventoryGroup[] = [
       ['src/renderer/src/components/terminal-pane/agent-completion-title-observer.ts', 2],
       ['src/renderer/src/components/terminal-pane/pty-connection/shell-command-inference.ts', 4],
       ['src/renderer/src/components/terminal-pane/pty-output-title-observer.ts', 2],
-      ['src/shared/terminal-output-side-effects.ts', 3]
+      ['src/shared/terminal-output-side-effects.ts', 3],
+      ['src/shared/tui-agent-rest-signal.ts', 2]
     ]
   },
   {

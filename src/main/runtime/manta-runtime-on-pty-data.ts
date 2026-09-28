@@ -4,6 +4,7 @@ import type { TerminalOutputSourceRange } from '../../shared/terminal-output-sou
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
 import { appendNormalizedToTailBuffer } from './terminal-tail-buffer'
 import { normalizeTerminalChunk } from './terminal-ansi-normalization'
+import { observeTerminalCommandPaint } from './terminal-command-paint'
 import {
   appendCompletedTerminalTranscript,
   buildPreview,
@@ -91,6 +92,7 @@ export class MantaRuntimeWithOnPtyData extends MantaRuntimeWithPreparePtyExecuti
       pty.lastOutputAt = at
       const normalized = normalizeTerminalChunk(data, pty.tailPendingAnsi)
       pty.tailPendingAnsi = normalized.pendingAnsi
+      observeTerminalCommandPaint(pty, data, normalized.text)
       const nextTail = appendNormalizedToTailBuffer(
         pty.tailBuffer,
         pty.tailPartialLine,
