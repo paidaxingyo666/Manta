@@ -4,6 +4,7 @@ import { normalizeMantaCloudEndpointOverrides } from '../../shared/manta-cloud-e
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { signOutCurrentMantaProfile } from '../manta-profiles/profile-cloud-service'
 import { relaunchApp } from '../app-relaunch'
+import { flushActiveProfileBeforeRelaunch } from '../manta-profiles/profile-persistence-deadline'
 
 export type RegisterMantaCloudEndpointHandlerOptions = {
   onBeforeSignOut?: () => void
@@ -32,6 +33,10 @@ export function registerMantaCloudEndpointHandler(
       options.onBeforeSignOut?.()
       await signOutCurrentMantaProfile(getProfileUserDataPath()).catch(() => undefined)
       store.updateSettings({ mantaCloudEndpoints: next })
+      // Why flush before scheduling the relaunch: settings persist in the background now, and
+      // the quit path only gets a bounded drain. A relaunch that outran the write would come
+      // back on the old relay with no error, so a failed flush rejects and the dialog says so.
+      await flushActiveProfileBeforeRelaunch(store)
       try {
         await options.onBeforeRelaunch?.()
       } catch (error) {
