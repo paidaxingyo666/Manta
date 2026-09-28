@@ -482,21 +482,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/install-node-dependencies
-
-      # Why: the check rebuilds every package in the manifest from a pinned upstream
-      # commit — @xterm/xterm and its three addons, each built twice (once unmodified to
-      # prove the toolchain still reproduces the published bundles, once patched). Caching
-      # the npm metadata and the shallow clone keeps the repeated cost to the builds
-      # themselves; the key is the manifest, so a commit, package or toolchain bump
-      # invalidates it.
-      - name: Restore upstream xterm build inputs
-        uses: actions/cache@v5
+      # The generator uses Node built-ins and installs its own upstream toolchain.
+      - uses: actions/setup-node@v6
         with:
-          path: |
-            ~/.npm
-            ${{ runner.temp }}/xterm-patch-build/upstream/.git
-          key: xterm-upstream-${{ hashFiles('config/patches/xterm-upstream.json') }}
+          node-version-file: package.json
+          package-manager-cache: false
+
+      # Rebuild both pristine and patched bundles; reuse only the pinned toolchain.
+      - uses: ./.github/actions/prepare-xterm-dependencies
 
       - name: Verify xterm patches match the pinned upstream build
         env:
