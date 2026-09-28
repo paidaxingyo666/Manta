@@ -17656,7 +17656,7 @@
         "thinking": "思考",
         "workingFor": "已工作 {{value0}}",
         "workedFor": "工作了 {{value0}}",
-        "toggleDetails": "切换本轮详情"
+        "toggleDetails": "切换回合详情"
       },
       "jumpToLatest": "跳到最新消息",
       "toggle": {
@@ -18196,10 +18196,10 @@
     },
     "cmd-j": {
       "paletteSessionAge": {
-        "minutes": "{{value0}} 分钟",
-        "hours": "{{value0}} 小时",
-        "days": "{{value0}} 天",
-        "underOneMinute": "<1 分钟"
+        "minutes": "{{value0}}分",
+        "hours": "{{value0}}小时",
+        "days": "{{value0}}天",
+        "underOneMinute": "<1分钟"
       }
     },
     "settings": {

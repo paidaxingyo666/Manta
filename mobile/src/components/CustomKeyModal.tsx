@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { View, Text, Pressable, TextInput, Switch } from 'react-native'
 import { ChevronLeft } from 'lucide-react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
 import {
@@ -9,17 +10,47 @@ import {
   type TerminalShortcutModifier
 } from '../terminal/terminal-accessory-keys'
 import { customKeyModalStyles as styles } from './CustomKeyModal.styles'
+import { persistMirrored } from '../storage/mirrored-storage-keys'
 import { translate } from '../i18n/i18n'
 import {
-  loadCustomKeys,
-  saveCustomKeys,
   shortcutModifierCatalog,
   specialKeyGroups,
-  SPECIAL_KEY_BY_ID,
-  type CustomKey,
-  type Props,
-  type Step
+  SPECIAL_KEY_BY_ID
 } from './custom-key-modal-catalog'
+
+const CUSTOM_ACCESSORY_KEYS_STORAGE_KEY = 'manta:custom-accessory-keys'
+
+export type CustomKey = {
+  id: string
+  label: string
+  bytes: string
+  enter: boolean
+}
+
+type Step = 'choose-type' | 'shortcut-combo' | 'special-keys' | 'text-macro'
+
+type Props = {
+  visible: boolean
+  onClose: () => void
+  onKeysChanged: (keys: CustomKey[]) => void
+  onManageShortcuts?: () => void
+}
+
+export async function loadCustomKeys(): Promise<CustomKey[]> {
+  try {
+    const raw = await AsyncStorage.getItem(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as CustomKey[]) : []
+  } catch {
+    return []
+  }
+}
+
+export async function saveCustomKeys(keys: CustomKey[]): Promise<void> {
+  // Through the one write path, which notes the mirror on an accepted write and on nothing else
+  // (ruling 35). There is no rollback here any more because there is nothing to undo: on the page
+  // a value over the cap rejects, and a rejected write never reached the map.
+  await persistMirrored(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY, JSON.stringify(keys))
+}
 
 export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortcuts }: Props) {
   const [step, setStep] = useState<Step>('choose-type')

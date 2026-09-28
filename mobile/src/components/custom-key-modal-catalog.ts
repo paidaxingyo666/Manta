@@ -1,11 +1,7 @@
 /**
- * The picker catalogs and the shapes they produce.
- *
- * Split from the modal because these labels are localized — `localizedConstant`
- * rebuilds them per language — and the component is long enough without them.
+ * The custom-key picker's catalogs, split from the modal because their labels are localized —
+ * `localizedConstant` rebuilds them per language.
  */
-
-import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import {
   TERMINAL_SHORTCUT_SPECIAL_KEYS,
@@ -14,18 +10,6 @@ import {
 } from '../terminal/terminal-accessory-keys'
 import { translate } from '../i18n/i18n'
 import { localizedConstant } from '../i18n/localized-constant'
-import { persistMirrored } from '../storage/mirrored-storage-keys'
-
-const CUSTOM_ACCESSORY_KEYS_STORAGE_KEY = 'manta:custom-accessory-keys'
-
-export type CustomKey = {
-  id: string
-  label: string
-  bytes: string
-  enter: boolean
-}
-
-export type Step = 'choose-type' | 'shortcut-combo' | 'special-keys' | 'text-macro'
 
 // Why: Alt is rendered with the ⌥ glyph because on macOS hosts the Option key
 // is the only modifier that produces an ESC-prefixed byte sequence terminals
@@ -74,26 +58,3 @@ export const specialKeyGroups = localizedConstant(
 export const SPECIAL_KEY_BY_ID: Record<string, TerminalShortcutSpecialKey> = Object.fromEntries(
   TERMINAL_SHORTCUT_SPECIAL_KEYS.map((key) => [key.id, key])
 )
-
-export type Props = {
-  visible: boolean
-  onClose: () => void
-  onKeysChanged: (keys: CustomKey[]) => void
-  onManageShortcuts?: () => void
-}
-
-export async function loadCustomKeys(): Promise<CustomKey[]> {
-  try {
-    const raw = await AsyncStorage.getItem(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as CustomKey[]) : []
-  } catch {
-    return []
-  }
-}
-
-export async function saveCustomKeys(keys: CustomKey[]): Promise<void> {
-  // Through the one write path, which notes the mirror on an accepted write and on nothing else
-  // (ruling 35). There is no rollback here any more because there is nothing to undo: on the page
-  // a value over the cap rejects, and a rejected write never reached the map.
-  await persistMirrored(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY, JSON.stringify(keys))
-}

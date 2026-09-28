@@ -274,7 +274,7 @@ describe('read-only skill freshness inventory', () => {
         status: 'current',
         providers: ['agent-skills', 'claude']
       })
-      expect(getSkillFreshnessDisplayStatus(inventory, 'orca-cli')).toBe('up-to-date')
+      expect(getSkillFreshnessDisplayStatus(inventory, 'manta-cli')).toBe('up-to-date')
     }
   )
 

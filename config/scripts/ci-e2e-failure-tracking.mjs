@@ -14,7 +14,7 @@ export function trackE2eFailures(failures, records, now = new Date()) {
       typeof record.message === 'string' &&
       record.message.length > 0 &&
       /^@[\w-]+(?:\/[\w-]+)?$/.test(record.owner ?? '') &&
-      /^https:\/\/github\.com\/stablyai\/manta\/issues\/\d+$/.test(record.issue ?? '') &&
+      /^https:\/\/github\.com\/stablyai\/orca\/issues\/\d+$/.test(record.issue ?? '') &&
       /^\d{4}-\d{2}-\d{2}$/.test(record.expires ?? '') &&
       Number.isFinite(expiry.getTime()) &&
       expiry.toISOString().slice(0, 10) === record.expires &&
