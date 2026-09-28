@@ -121,6 +121,8 @@ module.exports = new Proxy(
   {
     StyleSheet: { create: (styles) => styles, hairlineWidth: 1 },
     memo: identity,
+    // Called at import by react-i18next, which the fork's translate() brings in.
+    createContext: () => ({ Provider: identity, Consumer: identity }),
     default: identity
   },
   { get: (target, key) => (key in target ? target[key] : identity) }

@@ -44,14 +44,14 @@ index e1728feb219c362dfa2ecb602ff99f830d520757..265b9792403601c286bc341f9d046dcd
 +  return attrs ? getOscLinkOpenSequence(terminal, getOscLinkId(attrs)) : '';
 +}
 +
-+// PATCH(manta): a non-reflowing shrink (always the alternate buffer) leaves each
++// PATCH(orca): a non-reflowing shrink (always the alternate buffer) leaves each
 +// line at its old length; cells past the grid are not on screen and would wrap
 +// into extra rows on replay, so serialize only the terminal's width.
 +function visibleCellCount(line: IBufferLine, cols: number): number {
 +  return Math.min(line.length, cols);
 +}
 +
-+// PATCH(manta): a wide glyph whose trailing half fell past the grid cannot be
++// PATCH(orca): a wide glyph whose trailing half fell past the grid cannot be
 +// replayed in the last column (it would wrap and shift every row below), so it
 +// is serialized as a blank that keeps the row exactly the grid's width.
 +function isClippedWideCell(line: IBufferLine, col: number, cols: number, cell: IBufferCell): boolean {
@@ -127,7 +127,7 @@ index e1728feb219c362dfa2ecb602ff99f830d520757..265b9792403601c286bc341f9d046dcd
      if (this._nullCellCount > 0 && !equalBg(this._cursorStyle, this._backgroundCell)) {
        // use clear right to set background.
        this._currentRow += `\u001b[${this._nullCellCount}X`;
-+      // PATCH(manta): the erase paints this row, so _serializeString must not trim it as trailing blank.
++      // PATCH(orca): the erase paints this row, so _serializeString must not trim it as trailing blank.
 +      this._lastBackgroundCursorRow = this._lastCursorRow;
 +      this._lastBackgroundCursorCol = this._lastCursorCol;
      }
@@ -179,12 +179,12 @@ index e1728feb219c362dfa2ecb602ff99f830d520757..265b9792403601c286bc341f9d046dcd
          if (flagsChanged) {
            if (cell.isInverse() !== oldCell.isInverse()) { sgrSeq.push(cell.isInverse() ? 7 : 27); }
 -          if (cell.isBold() !== oldCell.isBold()) { sgrSeq.push(cell.isBold() ? 1 : 22); }
-+          // PATCH(manta): bold (1) and dim (2) share the single reset param 22, so
++          // PATCH(orca): bold (1) and dim (2) share the single reset param 22, so
 +          // they must be diffed as one intensity group with the clearing 22 emitted
 +          // BEFORE any re-set. Upstream's independent per-flag diff could emit
 +          // "1;22" (bold set, then wiped by dim's clear — \x1b[2mA\x1b[22m\x1b[1mB
 +          // loses B's bold on round-trip) or a bare "22" that drops a still-set
-+          // bold/dim, garbling Manta's hidden-terminal snapshot restores.
++          // bold/dim, garbling Orca's hidden-terminal snapshot restores.
 +          const boldChanged = cell.isBold() !== oldCell.isBold();
 +          const dimChanged = cell.isDim() !== oldCell.isDim();
 +          if (boldChanged || dimChanged) {
@@ -201,7 +201,7 @@ index e1728feb219c362dfa2ecb602ff99f830d520757..265b9792403601c286bc341f9d046dcd
            if (cell.isInvisible() !== oldCell.isInvisible()) { sgrSeq.push(cell.isInvisible() ? 8 : 28); }
            if (cell.isItalic() !== oldCell.isItalic()) { sgrSeq.push(cell.isItalic() ? 3 : 23); }
 -          if (cell.isDim() !== oldCell.isDim()) { sgrSeq.push(cell.isDim() ? 2 : 22); }
-+          // PATCH(manta): dim handled in the intensity group above.
++          // PATCH(orca): dim handled in the intensity group above.
            if (cell.isStrikethrough() !== oldCell.isStrikethrough()) { sgrSeq.push(cell.isStrikethrough() ? 9 : 29); }
          }
        }
@@ -265,7 +265,7 @@ index e1728feb219c362dfa2ecb602ff99f830d520757..265b9792403601c286bc341f9d046dcd
        }
  
 -      this._currentRow += cell.getChars();
-+      // PATCH(manta): styling alone leaves restored OSC 8 links looking live but unclickable.
++      // PATCH(orca): styling alone leaves restored OSC 8 links looking live but unclickable.
 +      this._currentRow += this._setOscLink(getOscLinkId(cell));
 +
 +      if (materializeEmptyCell) {
@@ -288,7 +288,7 @@ index e1728feb219c362dfa2ecb602ff99f830d520757..265b9792403601c286bc341f9d046dcd
      // the fixup is only required for data without scrollback
      // because it will always be placed at last line otherwise
      if (this._buffer.length - this._firstRow <= this._terminal.rows) {
-+      // PATCH(manta): keep trailing background-only rows, unless the cursor is wrap-pending:
++      // PATCH(orca): keep trailing background-only rows, unless the cursor is wrap-pending:
 +      // relative moves back from those rows cannot re-create that state.
 +      if (
 +        this._lastBackgroundCursorRow > this._lastContentCursorRow &&
