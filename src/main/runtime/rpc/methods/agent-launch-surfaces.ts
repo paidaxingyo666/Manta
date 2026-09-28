@@ -4,8 +4,8 @@
  * Both halves are deliberately the plain, user-facing forms: a structured session created for the
  * worktree exactly as `agentSession.create` creates one, and a terminal agent created exactly as a
  * new agent tab is. Orchestration's own factories are NOT reusable here — a worker's session
- * carries a dispatch hold, a mailbox and a background tab that a launch the user asked for must
- * not take — which is why the executor injects this rather than branching.
+ * carries a redrive subscription, a mailbox and a background tab that a launch the user asked for
+ * must not take — which is why the executor injects this rather than branching.
  *
  * Delivering the launch text is here for the same reason: it is the wire-shaped half. Each surface
  * takes it differently — a structured session commits it to a transcript, a terminal agent takes it

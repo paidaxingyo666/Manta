@@ -10,10 +10,7 @@ vi.mock('./structured-agent-session-read-restore', () => ({
   restoreStructuredAgentSessionRead: restoreRead
 }))
 
-import {
-  restoreOneStructuredAgentSessionRead,
-  restoreStructuredAgentSessionsOnRestart
-} from './structured-agent-session-restart-restore'
+import { restoreStructuredAgentSessionsOnRestart } from './structured-agent-session-restart-restore'
 
 const NO_OPEN_DEPS = {
   store: { getRecord: () => null, listRecords: () => [] },
@@ -97,21 +94,20 @@ describe('restart journal restoration', () => {
       return restored
     })
 
-    await restoreOneStructuredAgentSessionRead(
-      {
-        openDeps: NO_OPEN_DEPS,
-        reconcile: async () => null,
-        resolveRecovery: async () => {
-          calls.push('resolveRecovery')
-        },
-        serialize: async (_sessionId, task) => task(),
-        hasSession: () => false,
-        onReadable: (_sessionId, readable) => {
-          calls.push(readable === restored ? 'onReadable:restored' : 'onReadable')
-        }
+    await restoreStructuredAgentSessionsOnRestart({
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the restore reads only the record's session id here.
+      records: [{ sessionId: 'session-1' } as AgentSessionRecord],
+      openDeps: NO_OPEN_DEPS,
+      reconcile: async () => null,
+      resolveRecovery: async () => {
+        calls.push('resolveRecovery')
       },
-      'session-1'
-    )
+      serialize: async (_sessionId, task) => task(),
+      hasSession: () => false,
+      onReadable: (_sessionId, readable) => {
+        calls.push(readable === restored ? 'onReadable:restored' : 'onReadable')
+      }
+    })
 
     expect(calls).toEqual(['resolveRecovery', 'open', 'onReadable:restored'])
   })
@@ -122,17 +118,16 @@ describe('restart journal restoration', () => {
       reset: null
     })
 
-    await restoreOneStructuredAgentSessionRead(
-      {
-        openDeps: NO_OPEN_DEPS,
-        reconcile: async () => null,
-        resolveRecovery: async () => undefined,
-        serialize: async (_sessionId, task) => task(),
-        hasSession: () => true,
-        onReadable: () => undefined
-      },
-      'session-1'
-    )
+    await restoreStructuredAgentSessionsOnRestart({
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the restore reads only the record's session id here.
+      records: [{ sessionId: 'session-1' } as AgentSessionRecord],
+      openDeps: NO_OPEN_DEPS,
+      reconcile: async () => null,
+      resolveRecovery: async () => undefined,
+      serialize: async (_sessionId, task) => task(),
+      hasSession: () => true,
+      onReadable: () => undefined
+    })
 
     // The open is where the settlement runs, and a session already open is not opened again.
     expect(restoreRead).not.toHaveBeenCalled()

@@ -102,22 +102,25 @@ async function settleExits(): Promise<void> {
   await eventually(async () => {
     await adapter.drainObservedExits()
     await Promise.all(lifecycle)
-    expect(host.journalSnapshot(SESSION).items.length).toBeGreaterThan(0)
+    expect((await host.journalSnapshot(SESSION)).items.length).toBeGreaterThan(0)
   })
   await Promise.all(lifecycle)
 }
 
+/** A view of the chat: a subscription, which reads the chat and starts nothing. */
+function view(id: string): Promise<() => void> {
+  return host.subscribe({ id, sessionId: SESSION, emit: () => undefined })
+}
+
 /** The chat as it renders: the user's messages and the error rows, in journal order. */
-function timeline(): string[] {
-  return host
-    .journalSnapshot(SESSION)
-    .items.flatMap((item) =>
-      item.body.kind === 'message'
-        ? ['message']
-        : item.body.kind === 'status' && item.body.tone === 'error'
-          ? [item.body.text]
-          : []
-    )
+async function timeline(): Promise<string[]> {
+  return (await host.journalSnapshot(SESSION)).items.flatMap((item) =>
+    item.body.kind === 'message'
+      ? ['message']
+      : item.body.kind === 'status' && item.body.tone === 'error'
+        ? [item.body.text]
+        : []
+  )
 }
 
 async function send(text: string): Promise<string> {
@@ -171,37 +174,37 @@ describe('a fresh chat whose Claude start fails', () => {
       if (!createStillStarting) {
         await settleExits()
       }
-      // Two surfaces bind, as a pane and a second window do; exit recovery sees a holder.
-      await host.hold(SESSION, SURFACE)
-      await host.hold(SESSION, 'desktop-chat:2')
+      // Two surfaces bind, as a pane and a second window do.
+      const unsubscribe = await view(SURFACE)
+      await view('desktop-chat:2')
       if (createStillStarting) {
         // The views bound to the create's child itself, before it exited.
-        expect(timeline()).toEqual([])
+        expect(await timeline()).toEqual([])
         releaseCreate()
       }
       await settleExits()
       const startFailure = `The provider stopped before it finished starting: ${LAUNCH_FAILURE}.`
       // Opening the chat: the create's start, once, and its row.
       expect(claude.connections).toHaveLength(1)
-      expect(timeline()).toEqual([startFailure])
+      expect(await timeline()).toEqual([startFailure])
 
       const sent = await send('reply with exactly: alpha')
-      await eventually(() =>
+      await eventually(async () =>
         expect(
-          host.journalSnapshot(SESSION).submissions.find((s) => s.clientMessageId === sent)
+          (await host.journalSnapshot(SESSION)).submissions.find((s) => s.clientMessageId === sent)
         ).toMatchObject({ dispatchState: 'rejected', reason: startFailure })
       )
       await settleExits()
       // The send's own start, once, and one row for it below the message.
       expect(claude.connections).toHaveLength(2)
-      expect(timeline()).toEqual([startFailure, 'message', startFailure])
+      expect(await timeline()).toEqual([startFailure, 'message', startFailure])
 
-      // Switching away and back re-takes the view's hold; it starts nothing and adds no row.
-      host.release(SESSION, SURFACE)
-      await host.hold(SESSION, SURFACE)
+      // Switching away and back re-subscribes; it starts nothing and adds no row.
+      unsubscribe()
+      await view(SURFACE)
       await settleExits()
       expect(claude.connections).toHaveLength(2)
-      expect(timeline()).toEqual([startFailure, 'message', startFailure])
+      expect(await timeline()).toEqual([startFailure, 'message', startFailure])
     }
   )
 })

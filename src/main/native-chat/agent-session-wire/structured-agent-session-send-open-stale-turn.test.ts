@@ -39,7 +39,10 @@ afterEach(async () => {
 })
 
 /** A host that dies mid-turn, relaunched over a copy of its files taken at the crash. */
-async function relaunchAfterCrashMidTurn(probe: AgentSessionOwnerProbe) {
+async function relaunchAfterCrashMidTurn(
+  probe: AgentSessionOwnerProbe,
+  { reconcile = true }: { reconcile?: boolean } = {}
+) {
   const dying = hostTestState()
   await attach()
   const events = dying.acquire.mock.calls[0]?.[0].events
@@ -76,16 +79,17 @@ async function relaunchAfterCrashMidTurn(probe: AgentSessionOwnerProbe) {
     probeOwner: async () => probe,
     now: () => NOW
   })
-  await host.reconcileRestartLeases()
+  if (reconcile) {
+    await host.reconcileRestartLeases()
+  }
   replaceHostTestState({ store, host })
   return { host, acquire }
 }
 
 /** Neither proof of the old owner's death is an observed exit, so the turn ends `unverifiable`. */
-function turnStates(host: StructuredAgentSessionHost) {
-  return host
-    .journalSnapshot(SESSION)
-    .items.flatMap((item) => readAgentJournalTurn(item.body) ?? [])
+async function turnStates(host: StructuredAgentSessionHost) {
+  return (await host.journalSnapshot(SESSION)).items
+    .flatMap((item) => readAgentJournalTurn(item.body) ?? [])
     .map((turn) => turn.state)
 }
 
@@ -110,16 +114,16 @@ it.each(PROBES)(
     await expect(host.send(CALLER, { envelope: sendEnvelope, body })).resolves.toMatchObject({
       ok: true
     })
-    await eventually(() =>
+    await eventually(async () =>
       expect(
-        host
-          .journalSnapshot(SESSION)
-          .submissions.find((entry) => entry.clientMessageId === sendEnvelope.clientOperationId)
+        (await host.journalSnapshot(SESSION)).submissions.find(
+          (entry) => entry.clientMessageId === sendEnvelope.clientOperationId
+        )
       ).toMatchObject({ dispatchState: 'rejected' })
     )
 
     expect(acquire).toHaveBeenCalledOnce()
-    expect(turnStates(host)).toEqual(['unverifiable'])
+    expect(await turnStates(host)).toEqual(['unverifiable'])
     await host.flushAllStreamedEvents()
   }
 )
@@ -131,7 +135,20 @@ it.each(PROBES)(
 
     await host.revealSession(SESSION)
 
-    expect(turnStates(host)).toEqual(['unverifiable'])
+    expect(await turnStates(host)).toEqual(['unverifiable'])
     await host.flushAllStreamedEvents()
   }
 )
+
+// On desktop the chat on screen at relaunch reads before startup reconciles the leases.
+it('settles it when a read reaches the chat before the startup reconcile', async () => {
+  const { host } = await relaunchAfterCrashMidTurn({ outcome: 'pid-absent' }, { reconcile: false })
+  expect(hostTestState().store.getRecord(SESSION)?.lease.claimStatus).toBe('live')
+
+  await host.history({ sessionId: SESSION, direction: 'tail' })
+  await host.reconcileRestartLeases()
+  await host.restoreReadableSessions([SESSION])
+
+  expect(await turnStates(host)).toEqual(['unverifiable'])
+  await host.flushAllStreamedEvents()
+})

@@ -609,7 +609,10 @@ describe('MantaRuntimeService', () => {
       condition: 'tui-idle',
       timeoutMs: 50
     })
-    await vi.waitFor(() => expect(serializeProviderBuffer).toHaveBeenCalledTimes(4))
+    // The probe's read starts a microtask late; a 50 ms poll would race the wait's 50 ms timeout.
+    await vi.waitFor(() => expect(serializeProviderBuffer).toHaveBeenCalledTimes(4), {
+      interval: 1
+    })
     runtime.onPtyData('pty-legacy', '\x1b[H', Date.now())
     lateReadySnapshot.resolve({
       data: READY_SCREEN,
