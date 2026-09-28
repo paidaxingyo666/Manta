@@ -236,6 +236,10 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     detectCmd: 'cline',
     promptInjectionMode: 'stdin-after-start'
   },
+  freebuff: {
+    detectCmd: 'freebuff',
+    promptInjectionMode: 'stdin-after-start'
+  },
   codebuff: {
     detectCmd: 'codebuff',
     promptInjectionMode: 'stdin-after-start'

@@ -33,6 +33,7 @@ export const TUI_AGENT_AUTO_PICK_ORDER = [
   'autohand',
   'cline',
   'codebuff',
+  'freebuff',
   'command-code',
   'continue',
   'cursor',
