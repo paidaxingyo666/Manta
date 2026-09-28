@@ -52,8 +52,14 @@ export function isAgentString(english) {
   if (typeof english !== 'string') {
     return false
   }
-  const lower = english.toLowerCase()
+  // A browser's user agent is 用户代理, not an AI agent.
+  const lower = english.toLowerCase().replace(/user[- ]?agent/g, '')
   return lower.includes('agent') && !lower.includes('proxy')
+}
+
+/** 代理 → 智能体, leaving 用户代理 (User-Agent) alone in a string that also names an agent. */
+function toForkWord(zh) {
+  return zh.replace(/(?<!用户)代理/g, FORK_WORD)
 }
 
 /**
@@ -96,7 +102,7 @@ function fixOverrideModule(file, english) {
     if (!isAgentString(en)) {
       continue
     }
-    lines[i] = zhLine[1] + zhLine[2].split(UPSTREAM_WORD).join(FORK_WORD) + zhLine[3]
+    lines[i] = zhLine[1] + toForkWord(zhLine[2]) + zhLine[3]
     changed += 1
   }
   if (changed > 0) {
@@ -125,7 +131,7 @@ function main() {
           next = next.split(from).join(to)
         }
         if (next.includes(UPSTREAM_WORD) && isAgentString(lookup(here))) {
-          next = next.split(UPSTREAM_WORD).join(FORK_WORD)
+          next = toForkWord(next)
         }
         if (next !== value) {
           node[key] = next

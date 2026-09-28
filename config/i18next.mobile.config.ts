@@ -17,6 +17,8 @@ export default defineConfig({
       '**/__tests__/**',
       '**/__snapshots__/**',
       '**/assets/**',
+      // Build outputs of `postinstall` (bundled mermaid, terminal engine): minified `t(0)` calls read as keys.
+      '**/*.generated.*',
       // The translate() wrapper calls i18n.t() with a variable key; extraction
       // cannot resolve it and reports a phantom entry.
       'mobile/src/i18n/i18n.ts'

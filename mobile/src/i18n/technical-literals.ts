@@ -29,6 +29,8 @@ export const TECHNICAL_LITERALS = new Set([
   // Protocol and format acronyms
   'SSH',
   'HTTPS',
+  // A URL field's placeholder: the scheme the user types.
+  'https://',
   'URL',
   'API',
   'JSON',

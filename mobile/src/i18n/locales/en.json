@@ -2288,19 +2288,6 @@
         "4e38949c67": "Reconnect or remove this host from the Manta app.",
         "cc4297959e": "Re-pair"
       }
-    },
-    "mermaid": {
-      "page": {
-        "engine": {
-          "generated": {
-            "a8dd56a650": "data(label)",
-            "d2b139dcdd": "Token Type: ->{{value0}}<- static 'PUSH_MODE' value cannot refer to a Lexer Mode ->{{value1}}<-which does not exist",
-            "fa5acb06dd": "The same RegExp pattern ->{{value0}}<-has been used in all of the following Token Types: {{value1}} <-",
-            "d0ecae3178": "\\angl",
-            "8324efb718": "\\fbox"
-          }
-        }
-      }
     }
   },
   "mobile": {
