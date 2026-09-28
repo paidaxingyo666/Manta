@@ -455,7 +455,9 @@ describe('PR workflow parallelism', () => {
     expect(electronCacheResolution.if).toBe(
       "inputs.native-runtime == 'electron' || inputs.cache-electron-package == 'true'"
     )
-    expect(electronCache.if).toBe(electronCacheResolution.if)
+    expect(electronCache.if).toBe(
+      "(github.event_name != 'pull_request' || runner.os != 'Linux') && steps.electron-package-cache.outputs.version != ''"
+    )
     expect(electronCache.uses).toBe('actions/cache@v5')
     expect(electronCache.with.key).toContain('steps.electron-package-cache.outputs.version')
     expect(dependencyAction.inputs['cache-electron-package'].default).toBe('false')

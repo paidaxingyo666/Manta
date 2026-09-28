@@ -16,7 +16,21 @@ it('warms the same Linux Node runtime the PR shards restore', () => {
   const primer = readWorkflow('pr').jobs.test_native_cache
   expect(arm['runs-on']).toBe(primer['runs-on'])
   expect(arm.steps.at(-1).run).toBe('node config/scripts/ensure-native-runtime.mjs --check-only')
-  expect(install.with).toEqual(primer.steps.find((step) => step.uses === install.uses).with)
+  expect(install.with).toMatchObject(primer.steps.find((step) => step.uses === install.uses).with)
+})
+
+it('populates shared Electron archives on both Linux architectures without changing the Node ABI', () => {
+  for (const name of ['warm', 'warm-linux-arm']) {
+    const steps = workflow.jobs[name].steps
+    const install = steps.find(
+      (step) => step.uses === './.github/actions/install-node-dependencies'
+    )
+    expect(install.with['native-runtime']).toBe('node')
+    expect(install.with['cache-electron-package']).toBe('true')
+    const populate = steps.find((step) => step.name === 'Populate shared Electron archive')
+    expect(populate.run).toBe('node config/scripts/install-electron-package-binary.mjs')
+    expect(steps.indexOf(populate)).toBeGreaterThan(steps.indexOf(install))
+  }
 })
 
 it('publishes incremental state under a key and prefix that new PRs restore', () => {
