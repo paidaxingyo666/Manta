@@ -69,7 +69,7 @@ async function proveIdlePromptCycle(
 
     // Interrupt only after the child is ready, not during a transient shell fork.
     proc.write(
-      "node -e \"console.log(['MANTA','FOREGROUND_READY'].join('_')); setInterval(() => {}, 1000)\"\r"
+      "node -e \"console.log(['ORCA','FOREGROUND_READY'].join('_')); setInterval(() => {}, 1000)\"\r"
     )
     await vi.waitFor(() => expect(output).toContain('ORCA_FOREGROUND_READY'), {
       timeout: 10_000
