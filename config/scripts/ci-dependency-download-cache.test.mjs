@@ -48,7 +48,11 @@ describe('CI dependency download caches', () => {
       action.runs.steps.findIndex((step) => step.name === 'Install dependencies')
     )
     const saves = action.runs.steps.filter((step) => step.uses === 'actions/cache/save@v5')
-    expect(saves).toEqual([])
+    expect(saves).toHaveLength(1)
+    expect(saves[0].name).toBe('Save pnpm verification record on main')
+    expect(saves[0].if).toContain("github.ref == 'refs/heads/main'")
+    expect(saves[0].if).toContain("github.event_name != 'pull_request'")
+    expect(saves[0].with.path).toBe('${{ steps.verification-cache.outputs.path }}')
   })
 
   it('restores Windows packaging downloads from the release cache without a PR upload', () => {
