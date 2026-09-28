@@ -152,8 +152,13 @@ repair. Each step is there because skipping it once let something through:
 3. **Twin audit** — `orca-X` beside `manta-X` is a rename that landed as a copy.
 4. **Regenerate** the skill manifest and mobile localization, and check every
    `en.json` key has a `zh.json` entry.
-5. **Root gates, all fifteen.** `pnpm lint` is fifteen commands and `oxlint`
-   is the first; when it exits non-zero the other fourteen never run.
+5. **Root gates, every one.** `pnpm lint` is nineteen `&&`-chained commands, so
+   the script runs them one by one — chained, the first failure hides the rest.
+   One local-only difference is tolerated: CI runs the native import-cycle
+   check *before* installing mobile deps, so `mobile/tsconfig.json`'s `extends`
+   does not resolve there and no mobile import is followed. Locally it is, and
+   upstream's own mobile cycles (two on 2026-09-28) show up; the script reports
+   those as a warning, not a failure.
 6. **Mobile gates, separately.** `mobile/` has its own oxlint, oxfmt config and
    lockfile; the root commands touch none of them. `--frozen-lockfile` is the
    point — plain `pnpm install` rewrites the lockfile and hides that it was
@@ -162,6 +167,22 @@ repair. Each step is there because skipping it once let something through:
    `.electron` tests launch real Electron and time out at 32s under parallel
    load. `browser-route-tcp-egress` fails on any machine whose DNS answers
    `remote-browser.test`.
+   Also local-only: `tests/e2e/relay-region-*.unit.test.ts` and
+   `tests/e2e/cross-version-wire/**` (`ci-unit-files.mjs` excludes both), and
+   the `mobile-web-app-*-render` tests until `pnpm exec playwright install
+   chromium-headless-shell webkit` has fetched the browsers upstream's
+   Playwright bump asks for.
+
+**Files the merge takes wholesale lose the fork's edits inside them.** On
+2026-09-28 three were caught only by tests: `mobile/rpc-foundation/pilot-scenarios.json`
+(the fork's notification scenarios), the tasks and session-route parity pins,
+and `CustomKeyModal.tsx` (back to inline English catalogs). For a fork-edited
+file upstream also touched, diff the fork's side against the old base
+(`git log refs/sync/mirror --grep "Mirror-Of: <old upstream>"`) and replay just
+those hunks. Recording goldens are then re-recorded with
+`RPC_FOUNDATION_MODE=--record RPC_FOUNDATION_RECORD=1`, and the content diff —
+not the header digests — is what to read: resolve each golden's value pool
+and compare, because pool keys move whenever content does.
 
 **A KEEP entry is a decision the rule cannot make twice.** `orca-cli` is on
 the keep list because it is a backwards-compatible skill alias — renaming it
