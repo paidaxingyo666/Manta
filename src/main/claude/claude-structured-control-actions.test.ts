@@ -91,7 +91,8 @@ describe('cancelClaudeTurn', () => {
         {
           clientMessageId: 'client-1',
           state: 'rejected',
-          reason: 'provider_cancelled_before_start'
+          reason: 'provider_cancelled_before_start',
+          rejection: { kind: 'cancelled' }
         }
       ]
     ])

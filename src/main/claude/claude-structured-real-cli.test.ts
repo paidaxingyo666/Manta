@@ -375,7 +375,8 @@ describe.skipIf(!realClaudeAvailable)('Claude structured real CLI handshake', ()
           sessionId: 'real-cli-handshake',
           clientMessageId: 'real-cli-queued-stop-b',
           state: 'rejected',
-          reason: 'provider_cancelled_before_start'
+          reason: 'provider_cancelled_before_start',
+          rejection: { kind: 'cancelled' }
         })
       } finally {
         await adapter.closeAll()

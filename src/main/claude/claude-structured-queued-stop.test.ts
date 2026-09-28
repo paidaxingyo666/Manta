@@ -136,7 +136,8 @@ const WITHDRAWN = [
     sessionId: 'session-1',
     clientMessageId: 'client-b',
     state: 'rejected',
-    reason: DISPATCH_REJECTED_CANCELLED
+    reason: DISPATCH_REJECTED_CANCELLED,
+    rejection: { kind: 'cancelled' }
   }
 ]
 
