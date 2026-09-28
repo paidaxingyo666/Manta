@@ -139,11 +139,13 @@ describe('attach', () => {
     })
     const params = attachParams()
 
+    // Manta's own store fault: the child is gone, but nothing blames the provider.
     const refused = {
       ok: false,
       refusal: {
         code: 'agent_session_operation_invalid',
-        message: 'agent_session_provider_handle_stale_fence',
+        details: { ownerVerdict: 'exited' },
+        message: "Codex couldn't restart. Send your message to try again.",
         ownerVerdict: 'exited'
       }
     }
@@ -161,7 +163,10 @@ describe('attach', () => {
 
     await expect(host.attach(CALLER, attachParams())).resolves.toMatchObject({
       ok: false,
-      refusal: { message: 'commit failed', ownerVerdict: 'exited' }
+      refusal: {
+        message: "Codex couldn't restart. Send your message to try again.",
+        ownerVerdict: 'exited'
+      }
     })
 
     expect(releaseAcquisition).toHaveBeenCalledWith({ sessionId: SESSION })

@@ -13,6 +13,7 @@ import type {
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { CodexAppServerRequestError } from '../../codex/codex-app-server-request-error'
 import {
   HOST_TEST_NOW as NOW,
   HOST_TEST_SESSION as SESSION,
@@ -378,12 +379,17 @@ describe('a send with no live owner', () => {
     await loseOwner()
     acquire.mockRejectedValue(new Error('Not signed in. Run codex login'))
     const params = sendParams('while signed out')
-    const cause =
-      'The provider stopped before it finished starting: Not signed in. Run codex login.'
+    // The acquire's error is Manta's wrapper, not the provider's words: it goes to the log. No exit
+    // was observed, so the chat does not say the provider stopped.
+    const cause = "Codex couldn't restart. Send your message to try again."
 
     const id = await accept(params)
 
-    expect(await settled(id)).toMatchObject({ dispatchState: 'rejected', reason: cause })
+    expect(await settled(id)).toMatchObject({
+      dispatchState: 'rejected',
+      reason: cause,
+      rejection: { kind: 'restartFailed' }
+    })
     expect(dispatch).not.toHaveBeenCalled()
     // Accepted, so the ledger answers a resend with the rejection rather than a second attempt.
     expect(
@@ -391,6 +397,38 @@ describe('a send with no live owner', () => {
     ).toMatchObject({ outcome: { status: 'succeeded' } })
     // One row, in the error tone, so the reason outlives the error strip.
     expect(await errorStatuses()).toEqual([cause])
+  })
+
+  it("keeps Codex's own words behind a refused resume without saying the provider stopped", async () => {
+    await loseOwner()
+    const said = `no rollout found for thread id ${THREAD}`
+    acquire.mockRejectedValue(
+      new CodexAppServerRequestError('thread/resume', -32600, `thread/resume failed: ${said}`, said)
+    )
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+    const id = await accept(sendParams('after the thread went away'))
+
+    // The sentence names no cause and quotes nothing; Codex's words ride in the fact for Details.
+    const rejection = {
+      kind: 'restartFailed',
+      detail: { text: said, audience: 'person' },
+      refusal: { code: 'agent_session_operation_invalid', details: { ownerVerdict: 'exited' } }
+    }
+    expect(await settled(id)).toMatchObject({
+      dispatchState: 'rejected',
+      reason: "Codex couldn't restart. Send your message to try again.",
+      rejection
+    })
+    expect(await errorStatuses()).toEqual([
+      "Codex couldn't restart. Send your message to try again."
+    ])
+    // Manta's own text is logged once where the start failed.
+    expect(warn).toHaveBeenCalledWith(
+      '[agent-session] provider start failed:',
+      expect.objectContaining({ message: `thread/resume failed: ${said}` })
+    )
+    warn.mockRestore()
   })
 
   it('restarts again for a Retry under a new id, and replays a resend of the same id', async () => {
@@ -445,8 +483,14 @@ describe('a send with no live owner', () => {
 
     expect(unresumable).toMatchObject({
       dispatchState: 'rejected',
-      reason:
-        "Codex couldn't restart: This execution host cannot resume the requested structured agent session. Start a new chat to continue."
+      reason: "Codex couldn't restart. Start a new chat to continue.",
+      rejection: {
+        kind: 'restartFailed',
+        refusal: {
+          code: 'structured_agent_session_unsupported',
+          details: { reason: 'hostUnsupported' }
+        }
+      }
     })
   })
 
@@ -465,8 +509,13 @@ describe('a send with no live owner', () => {
 
     const id = await accept(sendParams('owner being settled'))
 
-    const cause = "Codex couldn't restart: Another runtime is still adjudicating this lease."
-    expect(await settled(id)).toMatchObject({ dispatchState: 'rejected', reason: cause })
+    // The refusal's prose stays out of the chat; its code rides in the fact.
+    const cause = "Codex couldn't restart. Send your message to try again."
+    expect(await settled(id)).toMatchObject({
+      dispatchState: 'rejected',
+      reason: cause,
+      rejection: { kind: 'restartFailed', refusal: { code: 'execution_owner_reconciling' } }
+    })
     expect(acquire).not.toHaveBeenCalled()
     expect(await errorStatuses()).toEqual([cause])
   })
@@ -480,9 +529,11 @@ describe('a send with no live owner', () => {
 
     const id = await accept(sendParams('bookkeeping failed'))
 
+    // Manta's own fault: reported to the log, and the chat says only that Manta failed.
     expect(await settled(id)).toMatchObject({
       dispatchState: 'rejected',
-      reason: "Codex couldn't restart: spawn-token mint failed."
+      reason: "Manta ran into a problem, so this didn't go through. Try again.",
+      rejection: { kind: 'hostFault' }
     })
     expect(hostErrors).toContainEqual(
       expect.objectContaining({ message: 'spawn-token mint failed' })
@@ -559,7 +610,7 @@ describe('a write fenced to an owner the pane has not seen replaced', () => {
 
     expect(await settled(id)).toMatchObject({
       dispatchState: 'rejected',
-      reason: expect.stringContaining('Not signed in')
+      rejection: { kind: 'restartFailed' }
     })
     expect(store.getRecord(SESSION)?.lease.runtimeFence).toBeGreaterThan(seenFence + 1)
     const published = frames.slice(subscribed)

@@ -430,7 +430,10 @@ describe('structured session acquisition options', () => {
       })
     ).resolves.toEqual({
       ok: false,
-      refusal: { code: 'agent_session_operation_invalid', message: 'model list unavailable' }
+      refusal: {
+        code: 'agent_session_operation_invalid',
+        message: "Codex couldn't restart. Send your message to try again."
+      }
     })
     expect(releaseAcquisition).toHaveBeenCalledOnce()
     expect(store.getRecord(SESSION)?.lease.ownerProcess).toBeNull()
@@ -521,12 +524,16 @@ describe('structured session acquisition options', () => {
           onAttached: () => {}
         })
 
-      // A proven exit before the journal opens is answered once, as the refusal its replay gives.
+      // A proven exit before the journal opens is answered once, as the refusal its replay gives;
+      // no exit was observed, so it names no situation.
       const failed = perform(store, CREATE_OPERATION, null)
       await (exitProven && failurePoint !== 'journal'
         ? expect(failed).resolves.toEqual({
             ok: false,
-            refusal: { code: 'agent_session_operation_invalid', message: injected.message }
+            refusal: {
+              code: 'agent_session_operation_invalid',
+              message: "Codex couldn't restart. Send your message to try again."
+            }
           })
         : expect(failed).rejects.toThrow(
             exitProven ? injected.message : 'agent_session_acquisition_exit_unproven'

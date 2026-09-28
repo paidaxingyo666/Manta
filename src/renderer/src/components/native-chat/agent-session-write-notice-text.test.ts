@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { i18n } from '@/i18n/i18n'
 import en from '@/i18n/locales/en.json'
+import { agentSessionWriteNoticeEnglish } from '../../../../shared/agent-session-refusal-notice'
 import {
   AGENT_SESSION_WRITE_NOTICE_COPY,
-  agentSessionWriteNoticeEnglish,
   type AgentSessionWriteNoticeSentence
-} from '../../../../shared/agent-session-refusal-notice'
+} from '../../../../shared/agent-session-write-notice-copy'
 import { agentSessionWriteNoticeText } from './agent-session-write-notice-text'
 
 const SENTENCES = Object.keys(AGENT_SESSION_WRITE_NOTICE_COPY).filter(

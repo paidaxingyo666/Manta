@@ -7,11 +7,14 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  agentSessionFailureFact,
+  type SubmissionRejectionFact
+} from '../../../shared/agent-session-failure'
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
 import { computeAgentSessionPayloadFingerprint } from '../../../shared/agent-session-mutation-envelope'
 import type { AgentSessionSubscribeEvent } from '../../../shared/agent-session-wire'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
-import { providerStartupFailureOutcome } from './structured-agent-session-dead-generation-settlement'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
 import {
   HOST_TEST_NOW as NOW,
@@ -25,7 +28,11 @@ import {
 
 const CALLER = { callerKey: 'client-1' }
 const EXIT_REASON = 'Claude Code is not signed in. Sign in with the Claude CLI'
-const ADAPTER_FAILURE = 'Claude Code exited before it finished starting: not signed in'
+const ADAPTER_FAILURE = agentSessionFailureFact('notSignedIn')
+const ADAPTER_FAILURE_TEXT =
+  'Codex is not signed in for the selected account. Sign in, then send your message again.'
+// The exit's reason is Manta's log text; the row says only that the start stopped.
+const EXIT_TEXT = 'Codex stopped before it finished starting. Send your message to try again.'
 // The first child (generation-1) is lost at setup; the send starts generation-2.
 const START_ROW = agentJournalItemKey({
   provider: 'manta',
@@ -40,8 +47,8 @@ let root: string
 let store: AgentSessionRecordStore
 let host: StructuredAgentSessionHost
 let generation = 0
-let settleStart: (failure: string | undefined) => void = () => {}
-let awaitStarted = vi.fn<() => Promise<string | undefined>>()
+let settleStart: (failure: SubmissionRejectionFact | undefined) => void = () => {}
+let awaitStarted = vi.fn<() => Promise<SubmissionRejectionFact | undefined>>()
 let frames: AgentSessionSubscribeEvent[] = []
 
 function exitBeforeProof(): Promise<void> {
@@ -106,7 +113,9 @@ beforeEach(async () => {
   resetHostTestOperationIds()
   generation = 0
   frames = []
-  awaitStarted = vi.fn(() => new Promise<string | undefined>((resolve) => (settleStart = resolve)))
+  awaitStarted = vi.fn(
+    () => new Promise<SubmissionRejectionFact | undefined>((resolve) => (settleStart = resolve))
+  )
   store = await AgentSessionRecordStore.open({ directory: join(root, 'store'), hostId: 'local' })
   host = new StructuredAgentSessionHost({
     store,
@@ -156,14 +165,15 @@ describe('a queued message whose start fails and whose child then exits', () => 
     await eventually(async () =>
       expect(await submission(queued)).toMatchObject({
         dispatchState: 'rejected',
-        reason: ADAPTER_FAILURE
+        reason: ADAPTER_FAILURE_TEXT,
+        rejection: ADAPTER_FAILURE
       })
     )
     await exitBeforeProof()
     await host.flushStreamedEvents(SESSION)
 
-    expect(await startRows()).toEqual([ADAPTER_FAILURE])
-    expect(publishedStartRows()).toEqual([ADAPTER_FAILURE])
+    expect(await startRows()).toEqual([ADAPTER_FAILURE_TEXT])
+    expect(publishedStartRows()).toEqual([ADAPTER_FAILURE_TEXT])
   })
 
   it('leaves the row to the loop when the exit lands while the message still waits', async () => {
@@ -177,9 +187,8 @@ describe('a queued message whose start fails and whose child then exits', () => 
     )
     await host.flushStreamedEvents(SESSION)
 
-    const outcome = providerStartupFailureOutcome(EXIT_REASON)
-    expect(await startRows()).toEqual([outcome])
+    expect(await startRows()).toEqual([EXIT_TEXT])
     // Written once, after the message was settled, not first by the exit and again by the loop.
-    expect(publishedStartRows()).toEqual([outcome])
+    expect(publishedStartRows()).toEqual([EXIT_TEXT])
   })
 })

@@ -115,7 +115,18 @@ describe("a saved message's last failure", () => {
 
   it.each<StructuredAgentSessionAttemptFailure>([
     { kind: 'refused', code: 'agent_session_checkpoint_stale' },
+    { kind: 'refused', code: 'agent_session_conflict', details: { reason: 'chatStarting' } },
+    {
+      kind: 'refused',
+      code: 'agent_session_ownership_unknown',
+      details: { reason: 'ownerUnproven', ownerVerdict: 'unverifiable' }
+    },
     { kind: 'rejected', reason: 'Claude messages support at most 20 images' },
+    {
+      kind: 'rejected',
+      reason: 'Claude accepts at most 20 images in one message, so this message was not sent.',
+      rejection: { kind: 'attachmentInvalid', attachment: { reason: 'tooMany', limit: 20 } }
+    },
     { kind: 'rejected', reason: null },
     { kind: 'failed' }
   ])('reads back $kind as it was saved', (lastFailure) => {
@@ -136,5 +147,62 @@ describe("a saved message's last failure", () => {
     const read = readOutbox('session-a')
     expect(read.map((saved) => saved.clientMessageId)).toEqual(['client-1', 'client-2'])
     expect(read.every((saved) => saved.lastFailure === undefined)).toBe(true)
+  })
+
+  // Written by a build that kept only the code or the reason; it reads as that build meant it.
+  it('reads an entry saved before failures carried details as it was', () => {
+    localStorage.setItem(
+      'manta:desktopStructuredAgentSessionOutbox:v1:session-a',
+      JSON.stringify([
+        {
+          ...entry('session-a', 'client-1'),
+          lastFailure: { kind: 'refused', code: 'agent_session_checkpoint_stale' }
+        },
+        { ...entry('session-a', 'client-2'), lastFailure: { kind: 'rejected', reason: 'Nope.' } }
+      ])
+    )
+
+    expect(readOutbox('session-a').map((saved) => saved.lastFailure)).toEqual([
+      { kind: 'refused', code: 'agent_session_checkpoint_stale' },
+      { kind: 'rejected', reason: 'Nope.' }
+    ])
+  })
+
+  it('keeps only what a newer build saved that this one can place', () => {
+    localStorage.setItem(
+      'manta:desktopStructuredAgentSessionOutbox:v1:session-a',
+      JSON.stringify([
+        {
+          ...entry('session-a', 'client-1'),
+          lastFailure: {
+            kind: 'refused',
+            code: 'agent_session_checkpoint_stale',
+            details: { reason: 'fromTheFuture', currentFence: 4 }
+          }
+        },
+        {
+          ...entry('session-a', 'client-2'),
+          lastFailure: {
+            kind: 'rejected',
+            reason: 'Claude stopped before it finished starting.',
+            rejection: { kind: 'providerStartFailed', detail: { text: 'exit 1', audience: 'log' } }
+          }
+        },
+        {
+          ...entry('session-a', 'client-3'),
+          lastFailure: { kind: 'rejected', reason: 'Nope.', rejection: { kind: 'fromTheFuture' } }
+        }
+      ])
+    )
+
+    expect(readOutbox('session-a').map((saved) => saved.lastFailure)).toEqual([
+      { kind: 'refused', code: 'agent_session_checkpoint_stale' },
+      {
+        kind: 'rejected',
+        reason: 'Claude stopped before it finished starting.',
+        rejection: { kind: 'providerStartFailed' }
+      },
+      { kind: 'rejected', reason: 'Nope.' }
+    ])
   })
 })

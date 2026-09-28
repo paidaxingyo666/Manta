@@ -24,10 +24,14 @@ import type {
   AgentSessionRecord
 } from '../../../shared/agent-session-record'
 import {
-  AGENT_SESSION_WIRE_REFUSAL_CODES,
+  AgentSessionRefusalError,
+  agentSessionRefusalFromReference,
+  agentSessionRefusalReference,
+  isAgentSessionWireRefusalCode,
+  refuse,
   type AgentSessionMutationEnvelope,
-  type AgentSessionWireRefusal,
-  type AgentSessionWireRefusalCode
+  type AgentSessionRefusalReference,
+  type AgentSessionWireRefusal
 } from '../../../shared/agent-session-wire'
 import {
   agentSessionFingerprintConflict,
@@ -118,10 +122,11 @@ export function admitAttachOrRefuse(
   if (params.providerHandle && params.providerHandle.kind !== params.provider) {
     return {
       ok: false,
-      refusal: {
-        code: 'agent_session_operation_invalid',
-        message: `A ${params.provider} session requires a ${params.provider} provider handle.`
-      }
+      refusal: refuse(
+        'agent_session_operation_invalid',
+        { reason: 'requestMalformed' },
+        `A ${params.provider} session requires a ${params.provider} provider handle.`
+      )
     }
   }
   const fingerprint = computeAgentSessionPayloadFingerprint({
@@ -331,16 +336,21 @@ export function classifyStoreFailure(
   record: AgentSessionRecord | null = null
 ): AgentSessionWireRefusal {
   const rawCode = error instanceof Error ? error.message : String(error)
-  if (!(AGENT_SESSION_WIRE_REFUSAL_CODES as readonly string[]).includes(rawCode)) {
+  if (!isAgentSessionWireRefusalCode(rawCode)) {
     throw error
   }
-  const code = rawCode as AgentSessionWireRefusalCode
-  return {
-    code,
-    // Why: a latched session is exactly where a bare store code strands the user.
-    message:
-      structuredAgentSessionRefusalMessage(code, record) ??
-      `The session store refused this call: ${code}.`,
-    ...(code === 'agent_session_checkpoint_stale' && currentFence !== null ? { currentFence } : {})
-  }
+  // A refusal error's message is its code, so its details are this code's.
+  const emitted: AgentSessionRefusalReference =
+    error instanceof AgentSessionRefusalError
+      ? agentSessionRefusalReference(error.refusal)
+      : { code: rawCode }
+  // Why: a latched session is exactly where a bare store code strands the user.
+  const told = structuredAgentSessionRefusalMessage(emitted, record)
+  const reference = told?.reference ?? emitted
+  return agentSessionRefusalFromReference(
+    reference.code === 'agent_session_checkpoint_stale' && currentFence !== null
+      ? { code: reference.code, details: { ...reference.details, currentFence } }
+      : reference,
+    told?.message ?? `The session store refused this call: ${rawCode}.`
+  )
 }

@@ -8,6 +8,7 @@ import {
   structuredAgentSessionSendRequest,
   type StructuredAgentSessionOutboxEntry
 } from '../../../shared/structured-agent-session-outbox'
+import { agentSessionRefusalFailure } from '../../../shared/agent-session-write-failure'
 import { createStructuredAgentSessionOperationId } from '../../../shared/structured-agent-session-mutation'
 import {
   mutateStructuredAgentSessionLaunchPrompt,
@@ -111,7 +112,7 @@ async function dispatchStructuredLaunchPrompt(
       mutateEntry(entry, (current) =>
         requeueStructuredAgentSessionSendRefusal(
           current,
-          result.refusal.code,
+          agentSessionRefusalFailure(result.refusal),
           () => createStructuredAgentSessionOperationId(createBrowserUuid),
           entry.lastAttemptAt !== null
         )

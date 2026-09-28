@@ -6,6 +6,8 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import {
   AgentSessionRecoveryCapsule,
   AGENT_SESSION_RECOVERY_CAPSULE_FILE
@@ -279,7 +281,12 @@ it('keeps a resume retryable when its agent started but refused the continuation
   }))
   state.dispatch.mockResolvedValueOnce({
     state: 'rejected',
-    reason: 'the provider refused the turn'
+    ...agentSessionFailureWords(
+      agentSessionFailureFact('providerRejected', {
+        detail: { text: 'the provider refused the turn', audience: 'log' }
+      }),
+      { surface: 'rejection' }
+    )
   })
 
   const first = await host.restartResume.continueAfterRestart([SESSION], 'modal')

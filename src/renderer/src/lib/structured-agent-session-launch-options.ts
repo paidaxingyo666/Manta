@@ -25,7 +25,7 @@ import {
   agentSessionRefusalFailure,
   agentSessionRpcErrorFailure,
   type AgentSessionWriteFailure
-} from '../../../shared/agent-session-refusal-notice'
+} from '../../../shared/agent-session-write-failure'
 
 /** The options a launch starts with, replaced whole so readers can compare by identity. */
 export type StructuredLaunchSelection = {

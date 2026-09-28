@@ -1,3 +1,5 @@
+import type { AgentSessionFailureWordsContext } from '../../../shared/agent-session-failure-words'
+import { structuredAgentSessionFailureWordsContext } from './structured-agent-session-send-preparation'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import type { StructuredAgentSessionEndedEvent } from './structured-agent-session-adapter'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
@@ -71,6 +73,7 @@ export async function settleUnexpectedStructuredAgentSessionExit<
         fence: child.fence,
         cause: 'exit',
         reason: unexpectedEvent.reason,
+        ...(unexpectedEvent.failure ? { failure: unexpectedEvent.failure } : {}),
         duringStartup: exitedDuringStartup,
         // The adapter publishes an exit only once it saw the root go, first-hand or proven.
         rootGone: true
@@ -103,6 +106,7 @@ export async function settleUnexpectedStructuredAgentSessionExit<
         stableSettlementId,
         verdict: { state: 'interrupted', completedAt: observedAt },
         exitedDuringStartup,
+        failureTextContext: structuredAgentSessionFailureWordsContext(record),
         // A failed start always says why: no response was running to carry the reason.
         showUnexpectedExitOutcome:
           exitedDuringStartup ||
@@ -151,6 +155,7 @@ async function retryUnexpectedExitSettlement(input: {
   stableSettlementId: string
   verdict: StructuredAgentSessionTurnVerdict
   exitedDuringStartup: boolean
+  failureTextContext: AgentSessionFailureWordsContext
   showUnexpectedExitOutcome?: boolean
 }): Promise<boolean> {
   return settleStructuredAgentSessionDeadGeneration({
@@ -161,7 +166,8 @@ async function retryUnexpectedExitSettlement(input: {
     verdict: input.verdict,
     pendingSubmissionReason: 'provider_exited_before_acknowledgement',
     showUnexpectedExitOutcome: input.showUnexpectedExitOutcome,
-    unexpectedExitReason: input.event.reason,
+    ...(input.event.failure ? { exitFailure: input.event.failure } : {}),
+    failureTextContext: input.failureTextContext,
     ...(input.exitedDuringStartup
       ? { exitedDuringStartup: { generation: input.event.acquisitionGeneration } }
       : {}),

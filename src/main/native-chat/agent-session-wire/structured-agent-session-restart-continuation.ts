@@ -7,6 +7,11 @@
 // reports what happened.
 
 import type { AgentJournalMessageItem } from '../../../shared/agent-session-journal-types'
+import {
+  readAgentSessionFailureFact,
+  type UnreadAgentSessionFailureFact
+} from '../../../shared/agent-session-failure'
+import type { AgentSessionRefusalReference } from '../../../shared/agent-session-wire-refusals'
 import type {
   AgentSessionMutationEnvelope,
   AgentSessionMutationResult,
@@ -39,6 +44,8 @@ export type StructuredAgentSessionContinuationOutcome = {
   sessionId: string
   outcome: 'continued' | 'pending' | 'unknown' | 'refused'
   reason?: string
+  /** The refusal that kept the agent from starting; `reason` is then its code. */
+  refusal?: AgentSessionRefusalReference
 }
 
 /** The slice of the host one continuation needs. Structural so this module never imports the host. */
@@ -129,7 +136,11 @@ export class RestartContinuationSupersededError extends AgentSessionPreDispatchE
   }
 }
 
-type ContinuationSubmission = { dispatchState?: string; reason?: string | null }
+type ContinuationSubmission = {
+  dispatchState?: string
+  reason?: string | null
+  rejection?: UnreadAgentSessionFailureFact
+}
 
 export type StructuredAgentSessionContinuationDeps = {
   /** Runtime fence as it stands now; null when this host has no record of the session. */
@@ -310,10 +321,13 @@ function refusedBy(
   sessionId: string,
   submission: ContinuationSubmission
 ): StructuredAgentSessionContinuationOutcome {
+  // A start the agent was refused files that refusal's code, which the failure guidance keys on.
+  const refusal = readAgentSessionFailureFact(submission.rejection)?.refusal
   return {
     sessionId,
     outcome: 'refused',
-    reason: submission.reason ?? 'agent_session_dispatch_rejected'
+    reason: refusal?.code ?? submission.reason ?? 'agent_session_dispatch_rejected',
+    ...(refusal ? { refusal } : {})
   }
 }
 

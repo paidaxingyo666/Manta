@@ -24,6 +24,8 @@ import {
   hostTestOperationId,
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 
 const CALLER = { callerKey: 'client-1' }
 
@@ -237,14 +239,15 @@ describe('settling a send the provider proves it received after the ack window',
       sessionId: SESSION,
       clientMessageId: params.envelope.clientOperationId,
       state: 'rejected',
-      reason: DISPATCH_REJECTED_CANCELLED
+      ...agentSessionFailureWords(agentSessionFailureFact('cancelled'), { surface: 'rejection' })
     })
 
     expect(await submissions()).toMatchObject([
       {
         clientMessageId: params.envelope.clientOperationId,
         dispatchState: 'rejected',
-        reason: DISPATCH_REJECTED_CANCELLED
+        reason: DISPATCH_REJECTED_CANCELLED,
+        rejection: { kind: 'cancelled' }
       }
     ])
   })

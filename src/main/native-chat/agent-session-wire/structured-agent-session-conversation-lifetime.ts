@@ -6,6 +6,10 @@
 // because the queue is not reentrant.
 
 import { TUI_AGENT_DISPLAY_NAMES } from '../../../shared/tui-agent-display-names'
+import {
+  AgentSessionRefusalError,
+  agentSessionRefusalError
+} from '../../../shared/agent-session-wire-refusals'
 import type { StructuredAgentSessionConversations } from './structured-agent-session-conversations'
 import {
   abandonQueuedStructuredAgentSessionMessages,
@@ -98,19 +102,25 @@ export function createStructuredAgentSessionConversationLifetime(host: {
       }
       const record = deps().store.getRecord(sessionId)
       if (!record) {
-        throw new Error('agent_session_identity_required')
+        throw agentSessionRefusalError('agent_session_identity_required', {
+          reason: 'recordMissing'
+        })
       }
       if (!adapterSupportsRecord(deps().adapter, record)) {
-        throw new Error('structured_agent_session_unsupported')
+        throw agentSessionRefusalError('structured_agent_session_unsupported', {
+          reason: 'hostUnsupported'
+        })
       }
       return serialize(sessionId, async () => {
         // Read at the open itself: a read queued before quit began runs after it.
         if (disposed) {
-          throw new Error(AGENT_SESSION_NOT_ATTACHED.code)
+          throw new AgentSessionRefusalError(AGENT_SESSION_NOT_ATTACHED)
         }
         const session = await host.open(sessionId)
         if (!session) {
-          throw new Error('agent_session_identity_required')
+          throw agentSessionRefusalError('agent_session_identity_required', {
+            reason: 'recordMissing'
+          })
         }
         return session
       })

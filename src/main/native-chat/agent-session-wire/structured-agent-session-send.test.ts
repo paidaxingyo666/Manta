@@ -23,6 +23,8 @@ import {
   HOST_TEST_THREAD as THREAD,
   hostTestMessage
 } from './structured-agent-session-host-test-data'
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 
 let store: AgentSessionRecordStore
 let host: StructuredAgentSessionHost
@@ -176,7 +178,9 @@ describe('send', () => {
     dispatch
       .mockImplementationOnce(async () => ({
         state: 'rejected' as const,
-        reason: 'provider_write_failed: broken pipe'
+        ...agentSessionFailureWords(agentSessionFailureFact('writeFailed'), {
+          surface: 'rejection'
+        })
       }))
       .mockImplementationOnce(async () => accepted())
     const body = hostTestMessage('never written')
@@ -185,7 +189,7 @@ describe('send', () => {
     await host.send(CALLER, params)
     await expect(delivered(params.envelope.clientOperationId)).resolves.toMatchObject({
       dispatchState: 'rejected',
-      reason: 'provider_write_failed: broken pipe'
+      reason: 'provider_write_failed'
     })
     // What the user's Retry does with a rejection: a fresh client message id,
     // which is a first delivery by construction and cannot duplicate the frame

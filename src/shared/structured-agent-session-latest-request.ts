@@ -14,7 +14,7 @@ import type {
 import { agentJournalSubmissionKey } from './agent-session-journal-item-key'
 import { isRootAgentJournalItem } from './agent-session-journal-producer'
 import { readAgentJournalTurn, readAgentJournalTurnOutcome } from './agent-session-turn-record'
-import { dispatchRejectionVerdict } from './structured-agent-session-dispatch-rejection'
+import { classifyDispatchRejection } from './structured-agent-session-dispatch-rejection'
 import { isUnansweredStructuredAgentSessionDispatch } from './structured-agent-session-unanswered-dispatch'
 
 export type StructuredAgentSessionLatestRequest = {
@@ -55,7 +55,7 @@ export function latestStructuredAgentSessionRequest(
     const submission = rejected.get(item.itemId)
     if (
       submission &&
-      dispatchRejectionVerdict(submission.reason) === 'failure' &&
+      classifyDispatchRejection(submission).verdict === 'failure' &&
       !deliveredIntoRunningTurn(items, index, submission)
     ) {
       return {
@@ -94,7 +94,7 @@ export function hasStructuredAgentSessionRequest(
         submission.dispatchState === 'accepted' ||
         isUnansweredStructuredAgentSessionDispatch(submission, currentFence) ||
         (submission.dispatchState === 'rejected' &&
-          dispatchRejectionVerdict(submission.reason) === 'failure')
+          classifyDispatchRejection(submission).verdict === 'failure')
     )
   )
 }

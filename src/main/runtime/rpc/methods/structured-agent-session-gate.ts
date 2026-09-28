@@ -8,6 +8,7 @@
 // for old mobile clients while structured chat is enabled so they receive a fallback row, and that
 // path constructs the host. `agentSession.*` stays refused either way, which is what this gate is for.
 
+import { agentSessionRefusalError } from '../../../../shared/agent-session-wire-refusals'
 import { getStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-registry'
 import type { StructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-host'
 import type { StructuredAgentSessionCaller } from '../../../native-chat/agent-session-wire/structured-agent-session-host-types'
@@ -27,7 +28,9 @@ export function supportsStructuredSessions(ctx: RpcContext): boolean {
 
 export function requireStructuredCapability(ctx: RpcContext): void {
   if (!supportsStructuredSessions(ctx)) {
-    throw new Error('structured_agent_session_unsupported')
+    throw agentSessionRefusalError('structured_agent_session_unsupported', {
+      reason: 'clientCapabilityMissing'
+    })
   }
 }
 
@@ -35,7 +38,9 @@ export function requireStructuredHost(ctx: RpcContext): StructuredAgentSessionHo
   requireStructuredCapability(ctx)
   const host = getStructuredAgentSessionHost()
   if (!host) {
-    throw new Error('structured_agent_session_unsupported')
+    throw agentSessionRefusalError('structured_agent_session_unsupported', {
+      reason: 'hostDisabled'
+    })
   }
   return host
 }
@@ -64,11 +69,15 @@ export function requireStructuredHost(ctx: RpcContext): StructuredAgentSessionHo
  */
 export function requireStructuredCleanupHost(ctx: RpcContext): StructuredAgentSessionHost {
   if (!supportsStructuredAgentSessionCapability(ctx)) {
-    throw new Error('structured_agent_session_unsupported')
+    throw agentSessionRefusalError('structured_agent_session_unsupported', {
+      reason: 'clientCapabilityMissing'
+    })
   }
   const host = getStructuredAgentSessionHost()
   if (!host) {
-    throw new Error('structured_agent_session_unsupported')
+    throw agentSessionRefusalError('structured_agent_session_unsupported', {
+      reason: 'hostDisabled'
+    })
   }
   return host
 }

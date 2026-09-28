@@ -21,6 +21,7 @@ import {
 import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { settleStaleStructuredAgentSessionState } from './structured-agent-session-dead-generation-settlement'
+import { structuredAgentSessionFailureWordsContext } from './structured-agent-session-send-preparation'
 import type {
   StructuredAgentSessionHostDeps,
   StructuredAgentSessionHostSession
@@ -112,7 +113,8 @@ export async function openStructuredAgentSessionConversationJournal(
         sessionId,
         fence,
         acquisitionGeneration: null,
-        deathEvidence: record.lease.deathEvidence ?? null
+        deathEvidence: record.lease.deathEvidence ?? null,
+        failureTextContext: structuredAgentSessionFailureWordsContext(record)
       })
     }
   } catch (error) {

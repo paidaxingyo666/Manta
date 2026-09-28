@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AgentJournalSubmission } from '../../../shared/agent-session-journal-types'
 import { projectStructuredAgentSessionStatus } from '../../../shared/structured-agent-session-projection'
-import { releaseStructuredAgentSessionUnansweredDispatches } from './structured-agent-session-host-mutations'
+import { releaseStructuredAgentSessionUnansweredDispatches } from './structured-agent-session-unanswered-dispatch-release'
 
 const FENCE = 7
 

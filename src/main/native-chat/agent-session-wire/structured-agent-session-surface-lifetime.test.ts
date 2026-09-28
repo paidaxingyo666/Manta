@@ -25,7 +25,6 @@ import {
 import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
 import { abandonStructuredAgentSessionHost } from './structured-agent-session-host-test-abandon'
-import { unexpectedProviderExitOutcome } from './structured-agent-session-dead-generation-settlement'
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
 import type { StructuredAgentSessionStatusSink } from './structured-agent-session-status-feed'
 import {
@@ -37,6 +36,11 @@ import {
   hostTestOperationId,
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
+
+const UNEXPECTED_PROVIDER_EXIT_OUTCOME =
+  'Codex stopped while this response was in progress. You can continue in this conversation.'
 
 const CALLER = { callerKey: 'client-1' }
 /** Short enough to keep the suite fast; the host clock below decides what is idle. */
@@ -217,7 +221,12 @@ beforeEach(async () => {
     }
   })
   closeSession = vi.fn(async () => true)
-  dispatch = vi.fn(async () => ({ state: 'rejected' as const, reason: 'unused' }))
+  dispatch = vi.fn(async () => ({
+    state: 'rejected' as const,
+    ...agentSessionFailureWords(agentSessionFailureFact('providerRejected'), {
+      surface: 'rejection'
+    })
+  }))
   store = await AgentSessionRecordStore.open({ directory: join(root, 'store'), hostId: 'local' })
   openHost()
 })
@@ -690,11 +699,11 @@ describe('an unexpected provider exit', () => {
     const history = await host.history({ sessionId: SESSION, direction: 'tail' })
     expect(history.ok && history.page.submissions[0]?.dispatchState).toBe('unknown')
     // A send whose delivery outcome is unknown IS work in progress, so the reassuring outcome is
-    // written — carrying the cause, and never the old bare `Provider exited: <reason>` row.
+    // written — its failure fact beside it, and never the old bare `Provider exited: <reason>` row.
     const statuses = history.ok
       ? history.page.items.flatMap((item) => (item.body.kind === 'status' ? [item.body.text] : []))
       : []
-    expect(statuses).toEqual([unexpectedProviderExitOutcome('provider exited')])
+    expect(statuses).toEqual([UNEXPECTED_PROVIDER_EXIT_OUTCOME])
     expect(statuses.some((text) => text.startsWith('Provider exited'))).toBe(false)
 
     dispatch.mockResolvedValueOnce({
@@ -776,15 +785,19 @@ describe('an unexpected provider exit', () => {
     )
     expect(acquire).toHaveBeenCalledTimes(2)
     // The new child's acquire settled the turn from the release's evidence: ended at the exit's
-    // receipt, with the exit's own reason in the row.
+    // receipt. The evidence is Manta's log text, so the row says only that the provider stopped.
     const history = await host.history({ sessionId: SESSION, direction: 'tail' })
     const items = history.ok ? history.page.items : []
     expect(items.map((item) => readAgentJournalTurn(item.body)).filter(Boolean)).toContainEqual(
       expect.objectContaining({ turnId: 'turn-1', state: 'interrupted', completedAt: NOW })
     )
-    expect(
-      items.flatMap((item) => (item.body.kind === 'status' ? [item.body.text] : []))
-    ).toContain(unexpectedProviderExitOutcome('provider exited'))
+    const statuses = items.flatMap((item) => (item.body.kind === 'status' ? [item.body] : []))
+    expect(statuses).toContainEqual({
+      kind: 'status',
+      text: UNEXPECTED_PROVIDER_EXIT_OUTCOME,
+      failure: { kind: 'providerExited' }
+    })
+    expect(statuses.map((status) => status.text).join('\n')).not.toContain('provider exited')
   })
 })
 

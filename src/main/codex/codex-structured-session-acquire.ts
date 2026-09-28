@@ -203,7 +203,7 @@ export async function acquireCodexStructuredSession(input: {
     primaryThreadId = opened.threadId
     const restoreAdmission = translator?.restoreThread(opened.threadId, opened.thread ?? {})
     if (restoreAdmission && !restoreAdmission.accepted) {
-      throw new AgentSessionAcquisitionRefusal(
+      throw AgentSessionAcquisitionRefusal.historyTooLarge(
         'Codex thread history exceeds the bounded restore queue; history was not partially imported.'
       )
     }

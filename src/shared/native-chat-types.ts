@@ -10,6 +10,7 @@ import type {
   AgentSessionBackgroundTask,
   AgentSessionBackgroundTaskRunState
 } from './agent-session-background-task-wire'
+import type { AgentSessionFailureFact } from './agent-session-failure'
 import type {
   AgentJournalMessageSendMode,
   AgentJournalPosition
@@ -54,6 +55,8 @@ export type NativeChatTextBlock = {
       truncated: boolean
     }
   }
+  /** On a status line that reports a failure: what failed, typed. */
+  failure?: AgentSessionFailureFact
 }
 
 /** A tool invocation by the agent. `input` is the (already-serialized) tool

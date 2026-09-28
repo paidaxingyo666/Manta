@@ -4,10 +4,10 @@
 // which is the whole reason it was split out.
 
 import { describe, expect, it } from 'vitest'
+import type { AgentSessionFailureFact } from './agent-session-failure'
 import type { AgentJournalSubmission } from './agent-session-journal-types'
 import type { AgentSessionMutationResult, AgentSessionSendResult } from './agent-session-wire'
 import {
-  dispatchWriteFailureReason,
   DISPATCH_REJECTED_CANCELLED,
   DISPATCH_REJECTED_QUEUE_FULL
 } from './structured-agent-session-dispatch-rejection'
@@ -31,7 +31,10 @@ const entry: StructuredAgentSessionOutboxEntry = createStructuredAgentSessionOut
   queuedAt: 1
 })
 
-function rejectedWith(reason: string | null): AgentSessionMutationResult<AgentSessionSendResult> {
+function rejectedWith(
+  reason: string | null,
+  extra: { rejection?: AgentSessionFailureFact; replayed?: boolean } = {}
+): AgentSessionMutationResult<AgentSessionSendResult> {
   const submission: AgentJournalSubmission = {
     clientMessageId: 'client-1',
     fence: 1,
@@ -40,15 +43,16 @@ function rejectedWith(reason: string | null): AgentSessionMutationResult<AgentSe
     providerItemId: null,
     reason,
     submittedAt: 10,
-    resolvedAt: 10
+    resolvedAt: 10,
+    ...(extra.rejection ? { rejection: extra.rejection } : {})
   }
   return {
     ok: true,
-    replayed: false,
+    replayed: extra.replayed ?? false,
     fence: 1,
     cursor: { epoch: 'epoch-1', sequence: 10 },
     value: { clientMessageId: 'client-1', submission }
-  } as AgentSessionMutationResult<AgentSessionSendResult>
+  }
 }
 
 function notice(reason: string | null): string | undefined {
@@ -78,7 +82,7 @@ describe('what a rejection shows the user', () => {
   })
 
   it('never puts the transport marker on screen', () => {
-    const shown = notice(dispatchWriteFailureReason(new Error('broken pipe')))
+    const shown = notice('provider_write_failed: broken pipe')
     // `provider_write_failed: broken pipe` names nothing a person can act on.
     expect(shown).not.toContain('provider_write_failed')
     expect(shown).not.toContain('broken pipe')
@@ -92,11 +96,52 @@ describe('what a rejection shows the user', () => {
     )
   })
 
-  it('names the cause of a start that died before it could take the message', () => {
-    // The host words this reason for the user: the child's own diagnostic, nothing internal.
-    const reason =
-      'The provider stopped before it finished starting: claude stream-json exited (code 1): claude: not signed in.'
+  it('shows the sentence a host wrote for the person reading it', () => {
+    const reason = 'The provider stopped before it finished starting.'
     expect(notice(reason)).toBe(reason)
+  })
+
+  it('never puts the legacy not_delivered marker on screen', () => {
+    // Released clients printed it as it was; it is a marker, not a sentence.
+    expect(notice('not_delivered')).toBe('Your message was not sent.')
+  })
+
+  it.each([
+    ['the legacy marker alone', undefined],
+    ['the marker and its typed fact', { kind: 'cancelled' as const }]
+  ])('fails nothing for a Stop-withdrawn send, first reply or replay: %s', (_label, rejection) => {
+    for (const replayed of [false, true]) {
+      const disposition = disposeStructuredAgentSessionSendResult({
+        entries: [entry],
+        entry,
+        blockedClientMessageId: null,
+        result: rejectedWith(DISPATCH_REJECTED_CANCELLED, { rejection, replayed }),
+        createOperationId: () => 'unused'
+      })
+      expect(disposition).toEqual({
+        entries: [],
+        error: null,
+        blockedClientMessageId: null,
+        retryWithFreshClientMessageId: null
+      })
+    }
+  })
+
+  it('reads a withdrawal off the typed fact whatever the reason says', () => {
+    const result = rejectedWith('Withdrawn.', { rejection: { kind: 'cancelled' } })
+    if (!result.ok) {
+      throw new Error('expected rejected submission fixture')
+    }
+    expect(reconcileStructuredAgentSessionOutbox([entry], [result.value.submission])).toEqual([])
+    expect(
+      disposeStructuredAgentSessionSendResult({
+        entries: [entry],
+        entry,
+        blockedClientMessageId: null,
+        result,
+        createOperationId: () => 'unused'
+      }).error
+    ).toBeNull()
   })
 
   it('claims no cause when the rejection names none', () => {
@@ -142,6 +187,57 @@ describe('what a refusal shows the user', () => {
         structuredAgentSessionAttemptFailureParts(disposition.entries[0]!.lastFailure!)
       )
     ).toBe('Your message was not sent.')
+  })
+
+  it("keeps the reason the host named, and says it on the message's Retry row", () => {
+    const disposition = disposeStructuredAgentSessionSendResult({
+      entries: [entry],
+      entry,
+      blockedClientMessageId: null,
+      result: {
+        ok: false,
+        refusal: {
+          code: 'agent_session_conflict',
+          message: 'The chat is still starting.',
+          details: { reason: 'chatStarting' }
+        }
+      },
+      createOperationId: () => 'unused'
+    })
+
+    const lastFailure = disposition.entries[0]?.lastFailure
+    expect(lastFailure).toEqual({
+      kind: 'refused',
+      code: 'agent_session_conflict',
+      details: { reason: 'chatStarting' }
+    })
+    expect(
+      agentSessionWriteNoticeEnglish(structuredAgentSessionAttemptFailureParts(lastFailure!))
+    ).toBe(
+      'The agent is still starting. Your message was not sent. Wait for the agent to finish starting.'
+    )
+  })
+
+  it("keeps a rejected message's typed fact without the provider's detail", () => {
+    const disposition = disposeStructuredAgentSessionSendResult({
+      entries: [entry],
+      entry,
+      blockedClientMessageId: null,
+      result: rejectedWith('An image on this message is empty, so the message was not sent.', {
+        rejection: {
+          kind: 'attachmentInvalid',
+          attachment: { reason: 'empty' },
+          detail: { text: 'image block 2: zero bytes', audience: 'log' }
+        }
+      }),
+      createOperationId: () => 'unused'
+    })
+
+    expect(disposition.entries[0]?.lastFailure).toEqual({
+      kind: 'rejected',
+      reason: 'An image on this message is empty, so the message was not sent.',
+      rejection: { kind: 'attachmentInvalid', attachment: { reason: 'empty' } }
+    })
   })
 
   it('keeps a failed request as a fact, not a transport error string', () => {

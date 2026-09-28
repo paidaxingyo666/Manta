@@ -161,6 +161,36 @@ describe('what a structured refusal says on the phone', () => {
     })
   })
 
+  it('says what the host named as the reason, in the same words as desktop', async () => {
+    const result = await requestStructuredAgentSessionMutation({
+      client: fakeClient(async () => ({
+        ok: true,
+        result: {
+          ok: false,
+          refusal: {
+            code: 'agent_session_operation_invalid',
+            message: 'This conversation has been cleared. Use the current conversation.',
+            details: { reason: 'conversationCleared' }
+          }
+        },
+        _meta: { runtimeId: 'runtime-1' }
+      })),
+      method: 'agentSession.send',
+      fingerprintMethod: 'agentSession.send',
+      sessionId: 'session-1',
+      expectedRuntimeFence: 1,
+      fields: { body: 'hello' },
+      clientOperationId: `1900000000000-${'e'.repeat(32)}`
+    })
+
+    expect(result).toEqual({
+      status: 'refused',
+      code: 'agent_session_operation_invalid',
+      message:
+        'This conversation has been cleared. Your message was not sent. Open the current conversation to continue.'
+    })
+  })
+
   const stop = {
     method: 'agentSession.cancel',
     fingerprintMethod: 'agentSession.cancel',

@@ -147,4 +147,47 @@ describe('a chat write the host refused', () => {
     expect(mocks.toastError).not.toHaveBeenCalled()
     expect(result.current.error).toBeNull()
   })
+
+  it('says the reason the host named, for a Stop and for a command', async () => {
+    mocks.call.mockImplementation((_target, method) =>
+      method === 'agentSession.options'
+        ? Promise.resolve(OPTIONS)
+        : Promise.resolve({
+            ok: false,
+            refusal:
+              method === 'agentSession.cancel'
+                ? {
+                    code: 'agent_session_conflict',
+                    message: 'The chat is still starting.',
+                    details: { reason: 'chatStarting' }
+                  }
+                : {
+                    code: 'agent_session_operation_invalid',
+                    message: 'Wait for the current turn to finish before using this command.',
+                    details: { reason: 'turnActive' }
+                  }
+          })
+    )
+    const { result } = renderHook(() =>
+      useStructuredAgentSession({
+        sessionId: 'session-1',
+        target: LOCAL_TARGET,
+        agent: 'claude',
+        isVisible: true
+      })
+    )
+
+    await act(async () => {
+      await expect(result.current.cancel('turn-1')).resolves.toBeNull()
+      await expect(result.current.runConversationCommand('compact')).resolves.toEqual({
+        accepted: false,
+        error:
+          "The agent is still responding. The command didn't run. Wait for the agent to finish responding, or stop it."
+      })
+    })
+
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      "The agent is still starting. The agent wasn't stopped. Wait for the agent to finish starting."
+    )
+  })
 })

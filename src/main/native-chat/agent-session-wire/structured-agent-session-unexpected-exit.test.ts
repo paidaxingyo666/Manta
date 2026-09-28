@@ -7,15 +7,15 @@ import {
   agentSessionRecordFixture
 } from '../../../shared/agent-session-record.test-fixture'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
-import {
-  settleStaleStructuredAgentSessionState,
-  unexpectedProviderExitOutcome
-} from './structured-agent-session-dead-generation-settlement'
+import { settleStaleStructuredAgentSessionState } from './structured-agent-session-dead-generation-settlement'
 import {
   settleUnexpectedStructuredAgentSessionExit,
   type StructuredAgentSessionUnexpectedExitContext,
   type StructuredAgentSessionUnexpectedExitSession
 } from './structured-agent-session-unexpected-exit'
+
+const exitOutcome = (agent: string): string =>
+  `${agent} stopped while this response was in progress. You can continue in this conversation.`
 
 const SESSION = 'session-1'
 const GENERATION = 'generation-1'
@@ -219,7 +219,11 @@ describe('provider-exit settlement', () => {
             provider: 'manta',
             clientMessageId: `provider-exit:${SESSION}:7:${GENERATION}`
           },
-          body: { kind: 'status', text: unexpectedProviderExitOutcome('provider exited') }
+          body: {
+            kind: 'status',
+            text: exitOutcome('The agent'),
+            failure: { kind: 'providerExited' }
+          }
         },
         {
           kind: 'item',
@@ -307,7 +311,8 @@ describe('provider-exit settlement', () => {
           expect.objectContaining({
             body: {
               kind: 'status',
-              text: unexpectedProviderExitOutcome('provider exited after completing the turn')
+              text: exitOutcome('Claude'),
+              failure: { kind: 'providerExited' }
             }
           })
         ])
@@ -355,7 +360,11 @@ describe('provider-exit settlement', () => {
       expect.objectContaining({
         mutations: [
           expect.objectContaining({
-            body: { kind: 'status', text: unexpectedProviderExitOutcome('provider exited') }
+            body: {
+              kind: 'status',
+              text: exitOutcome('Claude'),
+              failure: { kind: 'providerExited' }
+            }
           })
         ]
       })

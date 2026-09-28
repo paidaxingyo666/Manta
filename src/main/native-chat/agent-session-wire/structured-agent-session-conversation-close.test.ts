@@ -2,7 +2,6 @@
 // list and a send each see only the one that happened. Ticks are driven by hand.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DISPATCH_REJECTED_HOST_RESTARTED } from '../../../shared/structured-agent-session-dispatch-rejection'
 import { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import type { AgentSessionStatusSummary } from '../../../shared/agent-session-wire'
 import { readStructuredSessionGateFacts } from '../../runtime/orchestration/structured-mailbox-pointer-host'
@@ -248,8 +247,8 @@ describe('a start that never finishes (P2-15)', () => {
       ...args
     ) {
       // Not the open's sweep of an earlier process's leftovers.
-      if (args[1] !== DISPATCH_REJECTED_HOST_RESTARTED) {
-        order.push(`rejected: ${args[1]}`)
+      if (args[1].rejection.kind !== 'hostRestarted') {
+        order.push(`rejected: ${args[1].reason}`)
       }
       return reject.apply(this, args)
     })

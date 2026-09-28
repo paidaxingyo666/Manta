@@ -30,6 +30,7 @@ import {
   type ClaudeAcquireCallbacks
 } from './claude-structured-session-state'
 import { resolveClaudeAcquisitionError } from './claude-structured-session-close'
+import { withObservedProviderExit } from '../native-chat/agent-session-wire/structured-agent-session-failure-text'
 import { readClaudeTranscriptEntryUuid } from './claude-transcript-entry-uuid'
 import { persistClaudeTurnResumePoint } from './claude-structured-resume-point'
 import { withAgentSessionCreatePhase } from '../observability/agent-session-instrumentation'
@@ -58,7 +59,9 @@ export async function acquireClaudeSession({
   // A managed-account switch is mid-swap of the pinned credential home; refuse here,
   // before this acquisition cancels the previous attempt and closes the live session.
   if (isClaudeAuthSwitchInProgress()) {
-    throw new AgentSessionPreSpawnError(new Error(CLAUDE_AUTH_SWITCH_IN_PROGRESS_MESSAGE))
+    throw new AgentSessionPreSpawnError(new Error(CLAUDE_AUTH_SWITCH_IN_PROGRESS_MESSAGE), {
+      reason: 'accountSwitchInProgress'
+    })
   }
   const sessionId = input.identity.sessionId
   const prompts = new ClaudePromptRegistry()
@@ -178,6 +181,8 @@ export async function acquireClaudeSession({
             initProof.reject(error)
           },
           onExit: (error) => {
+            // The child exited on its own; marked in place, as the fault report may hold this error.
+            withObservedProviderExit(error)
             childEnded ??= error
             initProof.reject(error)
             callbacks.handleExit(sessionId, attempt, error)

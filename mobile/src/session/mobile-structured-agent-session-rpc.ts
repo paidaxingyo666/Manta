@@ -10,13 +10,15 @@ import type {
 import { structuredAgentSessionPayloadFingerprint } from '../../../src/shared/structured-agent-session-mutation'
 import {
   agentSessionRefusalNotice,
-  agentSessionRpcErrorFailure,
   agentSessionWriteFailureNotice,
-  agentSessionWriteKindForMethod,
   agentSessionWriteNoticeEnglish,
-  agentSessionWriteNoticeParts,
-  type AgentSessionWriteKind
+  agentSessionWriteNoticeParts
 } from '../../../src/shared/agent-session-refusal-notice'
+import {
+  agentSessionRpcErrorFailure,
+  agentSessionWriteKindForMethod,
+  type AgentSessionWriteKind
+} from '../../../src/shared/agent-session-write-failure'
 import { structuredSessionOperationId } from './structured-session-operation-id'
 import { isRpcDeliveryUnknown } from '../transport/rpc-delivery-ambiguity'
 import type { RpcClient } from '../transport/rpc-client'

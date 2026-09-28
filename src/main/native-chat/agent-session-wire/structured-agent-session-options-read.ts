@@ -5,9 +5,10 @@
 // exists. A pick made at rest is written to the record as intent, through the same transition a live
 // pick takes, so the next start applies it.
 
-import type {
-  AgentSessionOptionResult,
-  AgentSessionOptionsResult
+import {
+  refuse,
+  type AgentSessionOptionResult,
+  type AgentSessionOptionsResult
 } from '../../../shared/agent-session-wire'
 import { decodeStructuredAgentSessionOptionValue } from '../../../shared/structured-agent-session-option-codec'
 import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
@@ -64,10 +65,11 @@ export async function recordStructuredAgentSessionOptionIntent(
   if (!record || !accepted) {
     return {
       ok: false,
-      refusal: {
-        code: 'agent_session_operation_invalid',
-        message: `${record?.provider ?? 'This session'} has no session option named ${input.key}`
-      }
+      refusal: refuse(
+        'agent_session_operation_invalid',
+        { reason: 'optionRejected' },
+        `${record?.provider ?? 'This session'} has no session option named ${input.key}`
+      )
     }
   }
   const options = { ...record.options, [input.key]: input.value }

@@ -9,7 +9,8 @@
 // reentrant, so every public entry point takes it once and calls these.
 
 import { isQueuedAgentJournalSubmission } from '../../../shared/agent-session-queued-submission'
-import { DISPATCH_REJECTED_PROVIDER_CLOSED } from '../../../shared/structured-agent-session-dispatch-rejection'
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import {
   evictStructuredAgentSession,
   STRUCTURED_AGENT_SESSION_EVICTION_STEPS,
@@ -59,7 +60,7 @@ export async function abandonQueuedStructuredAgentSessionMessages(
   await journal
     .rejectQueuedSubmissions(
       structuredAgentSessionConversationFence(deps.store, sessionId),
-      DISPATCH_REJECTED_PROVIDER_CLOSED
+      agentSessionFailureWords(agentSessionFailureFact('chatClosed'), { surface: 'rejection' })
     )
     .catch((error: unknown) => deps.onEventSinkError?.({ sessionId, error }))
 }

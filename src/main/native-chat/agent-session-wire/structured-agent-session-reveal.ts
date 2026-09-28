@@ -10,6 +10,7 @@
 // a send does. And a journal it cannot open is not a refusal — the chat shows that failure with a
 // Retry, so the tab is worth publishing either way.
 
+import { agentSessionRefusalError } from '../../../shared/agent-session-wire-refusals'
 import { adapterSupportsRecord } from './structured-agent-session-provider-support'
 import { StructuredAgentSessionReadableRestorer } from './structured-agent-session-readable-restorer'
 import { StructuredAgentSessionRestartRestoreGate } from './structured-agent-session-restart-restore-gate'
@@ -26,10 +27,12 @@ export async function revealStructuredAgentSession(
 ): Promise<StructuredAgentSessionReveal> {
   const record = deps.store.getRecord(sessionId)
   if (!record) {
-    throw new Error('agent_session_identity_required')
+    throw agentSessionRefusalError('agent_session_identity_required', { reason: 'recordMissing' })
   }
   if (!adapterSupportsRecord(deps.adapter, record)) {
-    throw new Error('structured_agent_session_unsupported')
+    throw agentSessionRefusalError('structured_agent_session_unsupported', {
+      reason: 'hostUnsupported'
+    })
   }
   // Lease state is not consulted on purpose: this neither claims the lease nor spawns a child, so a
   // contested or reconciling chat still reveals and the send that follows adjudicates it. Refusing

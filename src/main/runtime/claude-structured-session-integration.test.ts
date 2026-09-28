@@ -364,9 +364,28 @@ describe('a structured Claude session over agentSession.*', () => {
     claudeAuthPolicy = { stripAuthEnv: true }
     // The default overlay carries ANTHROPIC_AUTH_TOKEN, which the terminal path
     // refuses at spawn-env.ts:25 rather than letting it beat the pinned account.
-    const refused = await call('agentSession.create', createIntentParams())
+    const params = createIntentParams()
+    const sentence =
+      'This Claude launch sets its own Anthropic sign-in variables. Remove them to use a managed Claude account.'
+    const refused = await call('agentSession.create', params)
 
-    expect(JSON.stringify(refused)).toContain('explicit Anthropic auth environment')
+    // The thrown answer keeps its wire code; only its words are the ones its replay reads.
+    expect(refused).toMatchObject({
+      ok: false,
+      error: { code: 'runtime_error', message: sentence }
+    })
+    // Its replay reads the same sentence, beside the situation it names.
+    expect(await call('agentSession.create', params)).toMatchObject({
+      ok: true,
+      result: {
+        ok: false,
+        refusal: {
+          code: 'agent_session_operation_invalid',
+          details: { reason: 'managedAccountEnvOverride' },
+          message: sentence
+        }
+      }
+    })
     // Refused before spawn: no provider child was ever opened.
     expect(claude.connections).toHaveLength(0)
   })
@@ -379,11 +398,11 @@ describe('a structured Claude session over agentSession.*', () => {
     await waitForStructuredAgentSessionRecovery()
 
     const guidance = itemsOf(await subscribe()).find((item) => item.body?.kind === 'status')
+    // The adapter typed the refusal, so the row names the situation rather than quoting Manta.
     expect(guidance?.body).toMatchObject({
       kind: 'status',
-      text: expect.stringMatching(
-        /stopped before it finished starting: .*not signed in.*Claude CLI.*CLAUDE_CONFIG_DIR/s
-      )
+      text: 'Claude is not signed in for the selected account. Sign in, then send your message again.',
+      failure: { kind: 'notSignedIn' }
     })
     expect(leaseOf(SESSION)).toMatchObject({ claimStatus: 'released', handoffStage: null })
     // A failed start is not auto-resumed into the same failure.
@@ -393,7 +412,7 @@ describe('a structured Claude session over agentSession.*', () => {
   // The root's death is first-hand. Its descendants were never snapshottable, or one was seen
   // alive; either way the lease follows the root, so the reservation goes with it.
   it.each(['unverifiable', 'live'] as const)(
-    'releases a session whose CLI self-exited during create with its tree %s, with its diagnostic intact',
+    'releases a session whose CLI self-exited during create with its tree %s, refused in a sentence',
     async (tree) => {
       claude.setSelfExit({
         message: 'claude stream-json exited (code 1): claude: not signed in',
@@ -409,7 +428,8 @@ describe('a structured Claude session over agentSession.*', () => {
           ok: false,
           refusal: {
             code: 'agent_session_operation_invalid',
-            message: expect.stringContaining('claude: not signed in'),
+            // The CLI's stderr is log text; the person reads what the chat's start failure says.
+            message: 'Claude stopped before it finished starting. Send your message to try again.',
             ownerVerdict: 'exited'
           }
         }
@@ -444,7 +464,7 @@ describe('a structured Claude session over agentSession.*', () => {
         ok: false,
         refusal: {
           code: 'agent_session_operation_invalid',
-          message: expect.stringContaining('claude: not signed in'),
+          message: 'Claude stopped before it finished starting. Send your message to try again.',
           ownerVerdict: 'exited'
         }
       }

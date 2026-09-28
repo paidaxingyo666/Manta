@@ -101,9 +101,15 @@ function exitBeforeProof(): Promise<void> {
     type: 'ended',
     ...currentChild(),
     reason: EXIT_REASON,
+    failure: { kind: 'providerExited', detail: { text: EXIT_REASON, audience: 'log' } },
     cause: 'unexpected-exit',
     startupUnproven: true
   })
+}
+
+const STARTUP_FAILURE = {
+  kind: 'providerStartFailed',
+  detail: { text: EXIT_REASON, audience: 'log' }
 }
 
 async function journalStatuses(): Promise<string[]> {
@@ -201,14 +207,15 @@ describe('a send into a published session whose child ended before startup', () 
     // host admitted, so nothing pins the session and Retry stays offered, and one row names the cause.
     expect(await submission(held)).toMatchObject({
       dispatchState: 'rejected',
-      reason: expect.stringContaining(EXIT_REASON),
+      reason: 'Codex stopped before it finished starting. Send your message to try again.',
+      rejection: STARTUP_FAILURE,
       recovered: true
     })
     expect(
       (await host.journalSnapshot(SESSION)).submissions.filter((e) => e.dispatchState === 'pending')
     ).toEqual([])
     expect((await journalStatuses()).slice(rowsBefore)).toEqual([
-      expect.stringMatching(/stopped before it finished starting: .*not signed in/)
+      'Codex stopped before it finished starting. Send your message to try again.'
     ])
     // Accepted before the restart it needed, so the chat draws it above the row naming the cause.
     const snapshot = await host.journalSnapshot(SESSION)
@@ -254,12 +261,13 @@ describe('a send while the child of the first start is still proving itself', ()
 
     expect(await submission(held)).toMatchObject({
       dispatchState: 'rejected',
-      reason: expect.stringContaining(EXIT_REASON),
+      reason: 'Codex stopped before it finished starting. Send your message to try again.',
+      rejection: STARTUP_FAILURE,
       recovered: true
     })
     expect(acquire).toHaveBeenCalledOnce()
     expect(await journalStatuses()).toEqual([
-      expect.stringMatching(/stopped before it finished starting: .*not signed in/)
+      'Codex stopped before it finished starting. Send your message to try again.'
     ])
     expect(store.getRecord(SESSION)?.lease.runtimeFence).toBe(fence + 1)
   })

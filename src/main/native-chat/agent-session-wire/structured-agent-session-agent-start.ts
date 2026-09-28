@@ -5,12 +5,24 @@
 // serialize, with the attach it is given, so the eligibility it reads is the one the attach acts
 // on.
 
+import {
+  providerDiagnosticOf,
+  type ProviderDiagnostic
+} from '../../../shared/agent-session-failure'
+import {
+  agentSessionRefusalFromReference,
+  readAgentSessionRefusalReference,
+  refuse,
+  refuseUnclassified,
+  type AgentSessionRefusalDetailsByCode,
+  type AgentSessionWireRefusalCode
+} from '../../../shared/agent-session-wire-refusals'
+import { agentSessionWriteNoticeEnglish } from '../../../shared/agent-session-refusal-notice'
 import type {
   AgentSessionAttachResult,
   AgentSessionMutationResult,
   AgentSessionWireRefusal
 } from '../../../shared/agent-session-wire'
-import { isAgentSessionWireRefusalCode } from '../../../shared/agent-session-wire-refusals'
 import { terminalOwnerRefusalMessage } from '../../../shared/agent-session-legacy-handoff-lease'
 import type { StructuredAgentSessionAttachContext } from './structured-agent-session-attach-context'
 import { attachStructuredAgentSessionUnderSerialize } from './structured-agent-session-attach-orchestration'
@@ -25,7 +37,13 @@ import {
  *  someone else is settling from an owner that will not come back. */
 export type StructuredAgentSessionResumeOutcome =
   | { ok: true }
-  | { ok: false; refusal: AgentSessionWireRefusal }
+  | {
+      ok: false
+      refusal: AgentSessionWireRefusal
+      /** What the provider said about the failed start, for the chat's own record; host-side
+       *  only, never on the refusal. */
+      diagnostic?: ProviderDiagnostic
+    }
 
 /** The attach's caller key: the ledger row a start settles is Manta's own. */
 const AGENT_START_CALLER_KEY = 'trusted-local:agent-start'
@@ -47,13 +65,11 @@ export async function ensureStructuredAgentSessionAgent(
   if (!started.ok || context.sessions.get(sessionId)?.child) {
     return started
   }
-  return {
-    ok: false,
-    refusal: {
-      code: 'agent_session_ownership_unknown',
-      message: 'The session attached without a provider child to write to.'
-    }
-  }
+  return refuseResume(
+    'agent_session_ownership_unknown',
+    { reason: 'noProviderChild' },
+    'The session attached without a provider child to write to.'
+  )
 }
 
 /** The same, for an operation's admission: a start that throws is that operation's refusal. */
@@ -61,13 +77,17 @@ export function ensureStructuredAgentSessionAgentForOperation(
   context: StructuredAgentSessionAttachContext,
   sessionId: string
 ): Promise<StructuredAgentSessionResumeOutcome> {
-  return ensureStructuredAgentSessionAgent(context, sessionId).catch((error: unknown) => ({
-    ok: false,
-    refusal: {
-      code: 'agent_session_owner_restart_failed',
-      message: error instanceof Error ? error.message : String(error)
+  return ensureStructuredAgentSessionAgent(context, sessionId).catch((error: unknown) => {
+    // The error is Manta's own and goes to the log; the refusal says only that the start failed.
+    console.warn('[agent-session] starting the agent for an operation failed:', error)
+    return {
+      ok: false,
+      refusal: refuseUnclassified(
+        'agent_session_owner_restart_failed',
+        agentSessionWriteNoticeEnglish(['restartFailed'])
+      )
     }
-  }))
+  })
 }
 
 async function startStructuredAgentSessionAgent(
@@ -86,11 +106,16 @@ async function startStructuredAgentSessionAgent(
   await context.runtimeState.resolveRecovery(sessionId)
   const record = context.deps.store.getRecord(sessionId)
   if (!record) {
-    return refuse('agent_session_identity_required', 'No structured session exists by that id.')
+    return refuseResume(
+      'agent_session_identity_required',
+      { reason: 'recordMissing' },
+      'No structured session exists by that id.'
+    )
   }
   if (!adapterSupportsRecord(context.deps.adapter, record)) {
-    return refuse(
+    return refuseResume(
       'structured_agent_session_unsupported',
+      { reason: 'hostUnsupported' },
       'This execution host cannot resume the requested structured agent session.'
     )
   }
@@ -100,25 +125,32 @@ async function startStructuredAgentSessionAgent(
   )
   if (!params) {
     return record.lease.unreconciled
-      ? refuse(
+      ? refuseResume(
           'execution_owner_reconciling',
+          { reason: 'hostReconciling' },
           'This host has not yet adjudicated the session lease.'
         )
       : record.lease.claimStatus === 'conflicted'
-        ? refuse('agent_session_conflict', terminalOwnerRefusalMessage(record.lease))
-        : refuse(
+        ? refuseResume(
+            'agent_session_conflict',
+            { reason: 'claimConflicted' },
+            terminalOwnerRefusalMessage(record.lease)
+          )
+        : refuseResume(
             'agent_session_ownership_unknown',
+            { reason: 'notResumable' },
             'The session lease is not one this host may resume.'
           )
   }
   let attached: AgentSessionMutationResult<AgentSessionAttachResult>
+  let acquisitionError: unknown
   try {
-    attached = await attachStructuredAgentSessionUnderSerialize(
-      context,
-      callerKey,
-      params,
-      startedFor === undefined ? {} : { startedFor }
-    )
+    attached = await attachStructuredAgentSessionUnderSerialize(context, callerKey, params, {
+      ...(startedFor === undefined ? {} : { startedFor }),
+      onAcquisitionFailed: (error) => {
+        acquisitionError = error
+      }
+    })
   } catch (error) {
     // The attach settles an acquisition that failed — the ledger row, the released lease — before
     // it rethrows the cause. That row is the answer: a failure it recorded is this resume's
@@ -131,11 +163,19 @@ async function startStructuredAgentSessionAgent(
       error
     )
     if (settled) {
-      return settled
+      return withDiagnostic(settled.refusal, error)
     }
     throw error
   }
-  return attached.ok ? { ok: true } : { ok: false, refusal: attached.refusal }
+  return attached.ok ? { ok: true } : withDiagnostic(attached.refusal, acquisitionError)
+}
+
+function withDiagnostic(
+  refusal: AgentSessionWireRefusal,
+  error: unknown
+): StructuredAgentSessionResumeOutcome {
+  const diagnostic = providerDiagnosticOf(error)
+  return { ok: false, refusal, ...(diagnostic ? { diagnostic } : {}) }
 }
 
 function settledResumeRefusal(
@@ -144,24 +184,29 @@ function settledResumeRefusal(
   operationId: string,
   sessionId: string,
   error: unknown
-): StructuredAgentSessionResumeOutcome | null {
+): { ok: false; refusal: AgentSessionWireRefusal } | null {
   const outcome = context.deps.store.getOperationRow(callerKey, operationId)?.outcome
-  if (outcome?.status !== 'failed' || !isAgentSessionWireRefusalCode(outcome.code)) {
+  const reference =
+    outcome?.status === 'failed'
+      ? readAgentSessionRefusalReference({ code: outcome.code, details: outcome.details })
+      : undefined
+  if (outcome?.status !== 'failed' || !reference) {
     return null
   }
   return failedCreateRefusal(
-    {
-      code: outcome.code,
-      message: outcome.message ?? (error instanceof Error ? error.message : String(error))
-    },
+    agentSessionRefusalFromReference(
+      reference,
+      outcome.message ?? (error instanceof Error ? error.message : String(error))
+    ),
     outcome.status,
     context.deps.store.getRecord(sessionId)
   )
 }
 
-function refuse(
-  code: AgentSessionWireRefusal['code'],
+function refuseResume<C extends AgentSessionWireRefusalCode>(
+  code: C,
+  details: NoInfer<AgentSessionRefusalDetailsByCode[C]>,
   message: string
 ): StructuredAgentSessionResumeOutcome {
-  return { ok: false, refusal: { code, message } }
+  return { ok: false, refusal: refuse(code, details, message) }
 }

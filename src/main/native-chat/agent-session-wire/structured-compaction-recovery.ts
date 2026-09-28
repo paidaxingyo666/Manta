@@ -1,3 +1,5 @@
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 
@@ -26,13 +28,21 @@ export async function settleInterruptedCompaction(
   if (command?.command !== 'compact' || command.phase !== 'prepared') {
     return
   }
-  const error = 'Previous compaction completion could not be confirmed after session recovery.'
+  const words = agentSessionFailureWords(agentSessionFailureFact('compactionUnconfirmed'), {
+    surface: 'row'
+  })
   await journal.appendItem(
     { provider: 'manta', clientMessageId: `compact:${command.operationId}` },
-    { kind: 'status', text: error },
+    { kind: 'status', ...words },
     { fence }
   )
-  const recovered = { ...command, phase: 'committed' as const, state: 'unknown' as const, error }
+  const recovered = {
+    ...command,
+    phase: 'committed' as const,
+    state: 'unknown' as const,
+    error: words.text,
+    failure: words.failure
+  }
   await store.setConversationCommand(sessionId, fence, recovered)
   await store.recordOperationOutcome({
     callerKey: command.callerKey,

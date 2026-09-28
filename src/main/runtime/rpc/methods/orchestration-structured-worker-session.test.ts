@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgentJournalSubmission } from '../../../../shared/agent-session-journal-types'
-import { dispatchWriteFailureReason } from '../../../../shared/structured-agent-session-dispatch-rejection'
+import { DISPATCH_REJECTED_WRITE_FAILED } from '../../../../shared/structured-agent-session-dispatch-rejection'
 
 const hostRef: { current: unknown } = { current: null }
 const createSpy = vi.fn()
@@ -314,13 +314,33 @@ describe('structured worker dispatch preamble', () => {
     expect(isUnknownWorkerStartOutcome(error, 'dispatch_input')).toBe(false)
   })
 
+  it('ends the message with one period whether the reason is a sentence or a marker', async () => {
+    const sentence = await send(
+      hostWithSubmission({
+        dispatchState: 'rejected',
+        reason: 'The provider stopped before this message was sent.'
+      })
+    ).catch((thrown: unknown) => thrown)
+    expect(sentence).toMatchObject({
+      message:
+        'The dispatch preamble was not delivered: The provider stopped before this message was sent.'
+    })
+    const marker = await send(
+      hostWithSubmission({ dispatchState: 'unknown', reason: 'provider child exited' })
+    ).catch((thrown: unknown) => thrown)
+    expect(marker).toMatchObject({
+      message:
+        'The dispatch preamble was submitted but not acknowledged (unknown): provider child exited.'
+    })
+  })
+
   it('reports a refused transport write as undelivered, never as unknown', async () => {
     // The state a provably-unwritten frame now settles. Nothing reached the provider,
     // so there is no running turn for a coordinator to go and look at.
     const error = await send(
       hostWithSubmission({
         dispatchState: 'rejected',
-        reason: dispatchWriteFailureReason(new Error('broken pipe'))
+        reason: DISPATCH_REJECTED_WRITE_FAILED
       })
     ).catch((thrown: unknown) => thrown)
     expect((error as { code?: string }).code).toBe('dispatch_preamble_undelivered')

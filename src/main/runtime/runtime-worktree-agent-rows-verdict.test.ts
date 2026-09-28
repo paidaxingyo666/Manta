@@ -2,6 +2,8 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { agentSessionFailureFact } from '../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../shared/agent-session-failure-words'
 import { makeStructuredAgentStatusSubject } from '../../shared/agent-status-subject'
 import { agentSessionRecordFixture } from '../../shared/agent-session-record.test-fixture'
 import type {
@@ -128,7 +130,13 @@ describe('a request that failed reads as failed through the feed, the ingest and
       fence: 1,
       handoverRecorded: true
     })
-    await journal.rejectQueuedSubmissions(1, 'Claude is not signed in.')
+    await journal.rejectQueuedSubmissions(
+      1,
+      agentSessionFailureWords(agentSessionFailureFact('notSignedIn'), {
+        surface: 'rejection',
+        agentName: 'Claude'
+      })
+    )
 
     const summary = publishedSummary(journal)
     expect(summary).toMatchObject({ status: 'idle', turnOutcome: 'failure', latestPrompt: 'hello' })
@@ -205,7 +213,10 @@ describe('a request that failed reads as failed through the feed, the ingest and
       fence: 1,
       handoverRecorded: true
     })
-    await journal.rejectQueuedSubmissions(1, 'provider_cancelled_before_start')
+    await journal.rejectQueuedSubmissions(
+      1,
+      agentSessionFailureWords(agentSessionFailureFact('cancelled'), { surface: 'rejection' })
+    )
 
     expect(publishedSummary(journal)).toMatchObject({ status: null })
     expect(ingest(publishedSummary(journal)).ps).toBeUndefined()

@@ -11,6 +11,7 @@ import {
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import { parseAgentSessionResumeMarker } from '../../../shared/agent-session-resume-marker'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import type { StructuredAgentSessionHostDeps } from './structured-agent-session-host-types'
 import { StructuredAgentSessionResumeAdmission } from './structured-agent-session-restart-resume-runner'
 import {
   adapter,
@@ -43,7 +44,11 @@ export async function startAgent(state: {
 
 export async function interruptedRestart(
   work: 'turn' | 'submission' | 'send-after-reply' | 'children' = 'turn',
-  historyBoundaryConsistent = true
+  historyBoundaryConsistent = true,
+  /** What the restarted host proves about the recorded owner; gone unless a test says otherwise. */
+  probeOwner: NonNullable<StructuredAgentSessionHostDeps['probeOwner']> = async () => ({
+    outcome: 'pid-absent'
+  })
 ) {
   const previous = hostTestState()
   await attach()
@@ -130,7 +135,7 @@ export async function interruptedRestart(
     journalRoot: previous.root,
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-next',
-    probeOwner: async () => ({ outcome: 'pid-absent' }),
+    probeOwner,
     recoveryCapsule: new AgentSessionRecoveryCapsule(previous.root),
     now: () => clock.now
   })

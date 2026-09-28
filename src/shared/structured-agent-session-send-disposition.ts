@@ -10,19 +10,17 @@
 import type { AgentJournalSubmission } from './agent-session-journal-types'
 import type { AgentSessionMutationResult, AgentSessionSendResult } from './agent-session-wire'
 import {
-  agentSessionRefusalFailure,
   agentSessionWriteNoticeEnglish,
   agentSessionWriteNoticeParts,
-  agentSessionWriteNotDoneParts,
-  type AgentSessionWriteNoticePart
+  agentSessionWriteNotDoneParts
 } from './agent-session-refusal-notice'
-import {
-  dispatchRejectionReasonIsInternal,
-  dispatchRejectionWasTransportWriteFailure
-} from './structured-agent-session-dispatch-rejection'
+import type { AgentSessionWriteNoticePart } from './agent-session-write-notice-copy'
+import { agentSessionRefusalFailure } from './agent-session-write-failure'
+import { classifyDispatchRejection } from './structured-agent-session-dispatch-rejection'
 import {
   classifyStructuredAgentSessionSendFailure,
   requeueStructuredAgentSessionSendRefusal,
+  structuredAgentSessionRejectedFailure,
   type StructuredAgentSessionAttemptFailure,
   type StructuredAgentSessionOutboxEntry
 } from './structured-agent-session-outbox'
@@ -136,14 +134,13 @@ export function structuredAgentSessionRejectionParts(
   if (reason === null) {
     return ['notDoneSend']
   }
-  if (dispatchRejectionWasTransportWriteFailure(reason)) {
+  const rejection = classifyDispatchRejection({ reason })
+  if (rejection.kind === 'writeFailed') {
     return ['unreachable', ...agentSessionWriteNotDoneParts(write)]
   }
-  // Any other reason we minted is an internal cause with no user-facing meaning;
-  // only a provider's own explanation is worth reading verbatim.
-  return dispatchRejectionReasonIsInternal(reason)
-    ? agentSessionWriteNotDoneParts(write)
-    : [{ text: reason }]
+  // A legacy marker is an internal cause with no user-facing meaning; any other reason is a
+  // sentence written to be read — the provider's, or the host's own.
+  return rejection.kind ? agentSessionWriteNotDoneParts(write) : [{ text: reason }]
 }
 
 /** What the Retry row says about why its message did not go through. */
@@ -166,16 +163,17 @@ export function disposeStructuredAgentSessionSendResult(
     const refusedIndex = input.entries.findIndex(
       (candidate) => candidate.clientMessageId === input.entry.clientMessageId
     )
+    const refusal = agentSessionRefusalFailure(result.refusal)
     const entries = input.entries.map((candidate) =>
       candidate.clientMessageId === input.entry.clientMessageId
         ? withLastFailure(
             requeueStructuredAgentSessionSendRefusal(
               candidate,
-              result.refusal.code,
+              refusal,
               input.createOperationId,
               input.entry.lastAttemptAt !== null
             ),
-            agentSessionRefusalFailure(result.refusal)
+            refusal
           )
         : candidate
     )
@@ -210,12 +208,26 @@ export function disposeStructuredAgentSessionSendResult(
       retryWithFreshClientMessageId: null
     }
   }
+  // A Stop's withdrawal failed nothing, first reply or replay: the entry leaves as the reconcile
+  // drops it, with no notice.
+  if (
+    submission.dispatchState === 'rejected' &&
+    classifyDispatchRejection(submission).category === 'withdrawn'
+  ) {
+    return {
+      entries: dropEntry(input),
+      error: null,
+      blockedClientMessageId: input.blockedClientMessageId,
+      retryWithFreshClientMessageId: null
+    }
+  }
   if (submission.dispatchState === 'rejected') {
     return {
-      entries: replaceEntryState(input, 'rejected', {
-        kind: 'rejected',
-        reason: submission.reason
-      }),
+      entries: replaceEntryState(
+        input,
+        'rejected',
+        structuredAgentSessionRejectedFailure(submission)
+      ),
       error: null,
       blockedClientMessageId: input.blockedClientMessageId,
       retryWithFreshClientMessageId: input.entry.clientMessageId

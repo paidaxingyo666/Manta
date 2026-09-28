@@ -7,6 +7,8 @@
 // rewritten in place, so a host that cannot read a row refuses to write the
 // journal rather than skipping or compacting past it.
 
+import type { UnreadAgentSessionFailureFact } from './agent-session-failure'
+import type { AgentSessionFailureRowWords } from './agent-session-failure-words'
 import type { AgentType } from './agent-status-types'
 import type { AgentSessionQuestionAnswer } from './agent-session-question-answer'
 import type { AgentJournalTurnOutcome } from './agent-turn-outcome'
@@ -257,9 +259,8 @@ export type AgentJournalThreadGoalState =
   | { state: 'set'; goal: AgentJournalThreadGoal }
   | { state: 'cleared' }
 
-export type AgentJournalStatusItem = {
+type AgentJournalStatusItemFields = {
   kind: 'status'
-  text: string
   /** Optional display hints; unknown values retain the ordinary text fallback. */
   presentation?: string
   tone?: string
@@ -277,6 +278,19 @@ export type AgentJournalStatusItem = {
   /** Present on thread-goal transitions; absent on rows from older hosts. */
   threadGoal?: AgentJournalThreadGoalState
 }
+
+/** A status row that reports no failure; its text is its writer's own. */
+export type AgentJournalPlainStatusItem = AgentJournalStatusItemFields & {
+  text: string
+  failure?: undefined
+}
+
+export type AgentJournalStatusItem =
+  | AgentJournalPlainStatusItem
+  | (AgentJournalStatusItemFields &
+      /** A row that reports a failure: what failed, typed, beside the sentence older clients print,
+       *  both from `agentSessionFailureWords`. Absent on rows from older hosts. */
+      AgentSessionFailureRowWords)
 
 /** The durable record of one root turn. `running` exposes cancellation while
  *  the provider can still accept it; the item is revised to a terminal state,
@@ -367,8 +381,11 @@ export type AgentJournalSubmission = {
   dispatchState: AgentJournalDispatchState
   /** Provider item identity adopted on accept; null otherwise. */
   providerItemId: string | null
-  /** Terminal reason on `rejected`. */
+  /** Terminal reason on `rejected`: a sentence a person can read, or one of the legacy markers
+   *  older clients already recognise. On `unknown`, the doubt marker. */
   reason: string | null
+  /** On `rejected`, why, typed; absent on rows from older hosts. */
+  rejection?: UnreadAgentSessionFailureFact
   submittedAt: number
   resolvedAt: number | null
   /** Set when crash reconciliation resolved the dispatch, not the provider. A live

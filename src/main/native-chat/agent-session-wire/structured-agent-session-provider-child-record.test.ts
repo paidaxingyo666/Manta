@@ -12,14 +12,13 @@ import type {
   AgentSessionStatusSummary,
   AgentSessionSubscribeEvent
 } from '../../../shared/agent-session-wire'
+import { DISPATCH_REJECTED_CANCELLED } from '../../../shared/structured-agent-session-dispatch-rejection'
 import {
-  DISPATCH_REJECTED_CANCELLED,
-  DISPATCH_REJECTED_PROVIDER_CLOSED
-} from '../../../shared/structured-agent-session-dispatch-rejection'
-import {
-  providerStartupFailureOutcome,
-  unexpectedProviderExitOutcome
-} from './structured-agent-session-dead-generation-settlement'
+  agentSessionFailureFact,
+  type AgentSessionFailureFact,
+  type SubmissionRejectionFact
+} from '../../../shared/agent-session-failure'
+import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
 import { openAgentSessionJournal } from '../agent-session-journal/journal-store-factory'
 import { journalDirectoryFor } from '../agent-session-journal/journal-paths'
@@ -173,14 +172,22 @@ async function submission(id: string): Promise<AgentJournalSubmission | undefine
   )
 }
 
-async function statusRows(): Promise<{ itemId: string; text: string; tone?: string }[]> {
+async function statusRows(): Promise<
+  {
+    itemId: string
+    text: string
+    tone?: string
+    failure?: AgentSessionFailureFact
+  }[]
+> {
   return (await host.journalSnapshot(SESSION)).items.flatMap((item) =>
     item.body.kind === 'status'
       ? [
           {
             itemId: item.itemId,
             text: item.body.text,
-            ...(item.body.tone ? { tone: item.body.tone } : {})
+            ...(item.body.tone ? { tone: item.body.tone } : {}),
+            ...(item.body.failure ? { failure: item.body.failure } : {})
           }
         ]
       : []
@@ -201,6 +208,8 @@ function exit(child: ReturnType<typeof currentChild>, reason: string, startupUnp
     type: 'ended',
     ...child,
     reason,
+    // As an adapter reports it: the exit's stderr as a log detail.
+    failure: { kind: 'providerExited', detail: { text: reason, audience: 'log' } },
     cause: 'unexpected-exit',
     ...(startupUnproven ? { startupUnproven } : {})
   })
@@ -347,7 +356,9 @@ describe('settling an earlier child before the next one takes its message', () =
     )
     expect(
       items.flatMap((item) => (item.body.kind === 'status' ? [item.body.text] : []))
-    ).toContain(unexpectedProviderExitOutcome('provider exited'))
+    ).toContain(
+      'Codex stopped while this response was in progress. You can continue in this conversation.'
+    )
     // Handed over at the new child's fence, which the attach reserved after settling.
     const newFence = store.getRecord(SESSION)!.lease.runtimeFence
     expect(newFence).toBeGreaterThan(releasedFence)
@@ -356,14 +367,21 @@ describe('settling an earlier child before the next one takes its message', () =
   })
 })
 
+const START_EXIT = 'claude stream-json exited (code 1)'
+const START_TEXT = 'Codex stopped before it finished starting. Send your message to try again.'
+const START_FAILURE: SubmissionRejectionFact = {
+  kind: 'providerStartFailed',
+  detail: { text: START_EXIT, audience: 'log' }
+}
+
 describe('a published child that dies while it proves its start', () => {
-  const EXIT = 'claude stream-json exited (code 1)'
-  const TEXT = providerStartupFailureOutcome(EXIT)
+  const EXIT = START_EXIT
+  const TEXT = START_TEXT
 
   it.each([['the loop sees the start fail first'], ['the exit is processed first']])(
     'leaves one error row keyed by the start, and every queued message rejected with it: %s (R2)',
     async (order) => {
-      const settled = deferred<string>()
+      const settled = deferred<SubmissionRejectionFact>()
       adapterExtras = { awaitStarted: vi.fn(() => settled.promise) }
       await restartHost()
       acquire.mockImplementation(spawnStartingChild)
@@ -375,9 +393,9 @@ describe('a published child that dies while it proves its start', () => {
 
       if (order === 'the exit is processed first') {
         await exit(child, EXIT, true)
-        settled.resolve(TEXT)
+        settled.resolve(START_FAILURE)
       } else {
-        settled.resolve(TEXT)
+        settled.resolve(START_FAILURE)
         await eventually(async () =>
           expect((await submission(second))?.dispatchState).toBe('rejected')
         )
@@ -391,11 +409,17 @@ describe('a published child that dies while it proves its start', () => {
         {
           itemId: `manta:${encodeURIComponent(`start-failure:${child.acquisitionGeneration}`)}`,
           text: TEXT,
-          tone: 'error'
+          tone: 'error',
+          failure: START_FAILURE
         }
       ])
-      expect(await submission(first)).toMatchObject({ dispatchState: 'rejected', reason: TEXT })
-      expect(await submission(second)).toMatchObject({ dispatchState: 'rejected', reason: TEXT })
+      for (const id of [first, second]) {
+        expect(await submission(id)).toMatchObject({
+          dispatchState: 'rejected',
+          reason: TEXT,
+          rejection: START_FAILURE
+        })
+      }
       expect(rejectedIn(events, second)).toBe(true)
       expect(dispatch).not.toHaveBeenCalled()
       expect(acquire).toHaveBeenCalledTimes(2)
@@ -411,11 +435,11 @@ function startForOperation() {
 }
 
 describe('a start another operation made that dies while a sent message waits on it', () => {
-  const EXIT = 'claude stream-json exited (code 1)'
-  const TEXT = providerStartupFailureOutcome(EXIT)
+  const EXIT = START_EXIT
+  const TEXT = START_TEXT
 
   it("is the message's own failed start: one error row, the message rejected, no second start (R2)", async () => {
-    adapterExtras = { awaitStarted: vi.fn(async () => TEXT) }
+    adapterExtras = { awaitStarted: vi.fn(async () => START_FAILURE) }
     await restartHost()
     acquire.mockImplementation(spawnStartingChild)
     // An operation that needs the agent starts a child that has not proven its start.
@@ -441,7 +465,8 @@ describe('a start another operation made that dies while a sent message waits on
       {
         itemId: `manta:${encodeURIComponent(`start-failure:${operationChild.acquisitionGeneration}`)}`,
         text: TEXT,
-        tone: 'error'
+        tone: 'error',
+        failure: START_FAILURE
       }
     ])
     expect(rejectedIn(events, id)).toBe(true)
@@ -514,9 +539,17 @@ describe('a child that ends before its message is handed over', () => {
     const events = await subscribe()
 
     await eventually(async () => expect((await submission(id))?.dispatchState).toBe('rejected'))
-    expect((await submission(id))?.reason).toContain('codex app-server crashed')
+    // The exit's stderr rides beside the sentence, never in it.
+    const failure = {
+      kind: 'providerExited',
+      detail: { text: 'codex app-server crashed', audience: 'log' }
+    }
+    expect(await submission(id)).toMatchObject({
+      reason: 'Codex stopped before this message was sent.',
+      rejection: failure
+    })
     expect(await statusRows()).toEqual([
-      { itemId: expect.any(String), text: (await submission(id))?.reason, tone: 'error' }
+      { itemId: expect.any(String), text: (await submission(id))?.reason, tone: 'error', failure }
     ])
     expect(rejectedIn(events, id)).toBe(true)
     await eventually(() => expect(host['conversationDelivery'].loop.isRunning(SESSION)).toBe(false))
@@ -587,7 +620,7 @@ describe('a quit with a message still queued', () => {
 
     expect(await afterRelaunch(id)).toMatchObject({
       dispatchState: 'rejected',
-      reason: DISPATCH_REJECTED_PROVIDER_CLOSED
+      ...agentSessionFailureWords(agentSessionFailureFact('chatClosed'), { surface: 'rejection' })
     })
   })
 
@@ -615,7 +648,7 @@ describe('a quit with a message still queued', () => {
     expect(dispatch).not.toHaveBeenCalled()
     expect(await afterRelaunch(id)).toMatchObject({
       dispatchState: 'rejected',
-      reason: DISPATCH_REJECTED_PROVIDER_CLOSED
+      ...agentSessionFailureWords(agentSessionFailureFact('chatClosed'), { surface: 'rejection' })
     })
   })
 })
@@ -683,8 +716,8 @@ describe('how a stopped child ends the start its loop was waiting on', () => {
     expect(await statusRows()).toEqual([])
   })
 
-  it('fails the start after a host stop, with the stop as the reason (R2)', async () => {
-    const reason = 'Claude never finished starting, so Manta stopped it.'
+  it("fails the start after a host stop, as a start Manta stopped rather than the provider's (R2)", async () => {
+    const reason = 'the start watchdog fired'
     const second = await stoppedWhileStarting(() =>
       host['serialize'](SESSION, () =>
         stopStructuredAgentSessionAgentUnderSerialize(host['lifetimeContext'](), SESSION, {
@@ -695,9 +728,14 @@ describe('how a stopped child ends the start its loop was waiting on', () => {
     )
 
     await eventually(async () => expect((await submission(second))?.dispatchState).toBe('rejected'))
-    expect((await submission(second))?.reason).toBe(reason)
+    // The sentence is the constructor's, not the reason the stop was given.
+    const text = 'Codex never finished starting, so Manta stopped it.'
+    expect(await submission(second)).toMatchObject({
+      reason: text,
+      rejection: { kind: 'hostStopped' }
+    })
     expect(await statusRows()).toEqual([
-      { itemId: expect.any(String), text: reason, tone: 'error' }
+      { itemId: expect.any(String), text, tone: 'error', failure: { kind: 'hostStopped' } }
     ])
     expect(dispatch).not.toHaveBeenCalled()
   })

@@ -7,11 +7,15 @@ import { computeAgentSessionPayloadFingerprint } from '../../shared/agent-sessio
 import type { AgentSessionSubscribeEvent } from '../../shared/agent-session-wire'
 import { hostTestMessage } from '../native-chat/agent-session-wire/structured-agent-session-host-test-data'
 import { waitForStructuredAgentSessionRecovery } from './structured-agent-session-runtime'
-import { createScriptedClaudeRuntime } from './structured-claude-scripted-runtime-test-support'
+import {
+  createScriptedClaudeRuntime,
+  scriptedClaudeExitError
+} from './structured-claude-scripted-runtime-test-support'
 
 const SESSION = 'claude-resumed-start'
 const CALLER = { callerKey: 'client-1' }
 const DIAGNOSTIC = 'claude stream-json exited (code 1): claude: not signed in'
+const STARTUP_TEXT = 'Claude stopped before it finished starting. Send your message to try again.'
 
 let claude = createScriptedClaudeRuntime([SESSION])
 
@@ -62,18 +66,19 @@ describe('a reopened Claude chat whose CLI dies before initialize', () => {
     // Accepted first; the delivery loop starts the second child after.
     await vi.waitFor(() => expect(claude.children(SESSION)).toHaveLength(2))
 
-    claude.child(SESSION).exit(new Error(DIAGNOSTIC))
+    claude.child(SESSION).exit(scriptedClaudeExitError(DIAGNOSTIC))
     await waitForStructuredAgentSessionRecovery()
 
-    await vi.waitFor(() =>
-      expect(statusTexts(events)).toContainEqual(
-        expect.stringMatching(/stopped before it finished starting: .*not signed in/)
-      )
-    )
+    await vi.waitFor(() => expect(statusTexts(events)).toContainEqual(STARTUP_TEXT))
     // Never written, so it did not happen: refused, not left in doubt.
     const submission = (await host.journalSnapshot(SESSION)).submissions.find(
       (entry) => entry.clientMessageId === (sent.ok && sent.value.clientMessageId)
     )
-    expect(submission).toMatchObject({ dispatchState: 'rejected' })
+    // The stderr the exit carried is beside the sentence, as a log detail, and never in it.
+    expect(submission).toMatchObject({
+      dispatchState: 'rejected',
+      reason: STARTUP_TEXT,
+      rejection: { kind: 'providerStartFailed', detail: { text: DIAGNOSTIC, audience: 'log' } }
+    })
   })
 })

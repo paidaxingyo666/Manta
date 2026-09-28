@@ -3,6 +3,10 @@
 // action removes them — or files what went wrong. Starting the chat's agent again withdraws them.
 
 import { randomUUID } from 'node:crypto'
+import {
+  AgentSessionRefusalError,
+  agentSessionRefusalFromReference
+} from '../../../shared/agent-session-wire-refusals'
 import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { AgentSessionRecoveryCapsule } from '../../runtime/agent-session-recovery-capsule'
 import type {
@@ -231,8 +235,12 @@ export function createStructuredAgentSessionRestartResume(
       )
       if ('done' in started) {
         continued.push(started.done)
-        if (started.done.outcome === 'refused') {
-          throw new Error(started.done.reason ?? 'agent_session_continuation_refused')
+        const { outcome, reason, refusal } = started.done
+        if (outcome === 'refused') {
+          // Thrown as a refusal so the filed failure keeps its details beside the code.
+          throw refusal
+            ? new AgentSessionRefusalError(agentSessionRefusalFromReference(refusal, refusal.code))
+            : new Error(reason ?? 'agent_session_continuation_refused')
         }
         return
       }

@@ -1,3 +1,4 @@
+import type { AgentJournalDispatchRejection } from '../../../shared/agent-session-failure-words'
 import type {
   AgentJournalCursor,
   AgentJournalItemBody,
@@ -31,7 +32,10 @@ export type ResolveDispatchInput = {
 } & (
   | { state: 'accepted'; providerIdentity: AgentJournalItemIdentity }
   | { state: 'pending' }
-  | { state: 'rejected' | 'unknown'; reason?: string | null }
+  /** `reason` is what released clients print, `rejection` what newer ones read: both from
+   *  `agentSessionFailureWords`, never written by hand. */
+  | ({ state: 'rejected' } & AgentJournalDispatchRejection)
+  | { state: 'unknown'; reason?: string | null }
 )
 
 export type JournalAppendResult = {

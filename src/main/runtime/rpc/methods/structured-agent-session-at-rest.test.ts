@@ -26,6 +26,7 @@ import {
   restTestSend,
   type RestTestRig
 } from '../../../native-chat/agent-session-wire/structured-agent-session-rest-test-rig'
+import * as providerSupport from '../../../native-chat/agent-session-wire/structured-agent-session-provider-support'
 import { MantaRuntimeService } from '../../manta-runtime'
 import type { RpcResponse } from '../core'
 import { RpcDispatcher } from '../dispatcher'
@@ -87,6 +88,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  vi.restoreAllMocks()
   setStructuredAgentSessionHost(null)
   await rig.dispose()
 })
@@ -196,6 +198,42 @@ describe('the accessor', () => {
 
     await expect(read).rejects.toThrow()
     expect(rig.host.hasSession(SESSION)).toBe(false)
+  })
+
+  it('refuses a read it cannot open with the reason, under the same code and message', async () => {
+    const [missing] = await call('agentSession.history', {
+      sessionId: 'session-never-created',
+      direction: 'tail'
+    })
+    expect(missing).toMatchObject({
+      ok: false,
+      error: {
+        code: 'agent_session_identity_required',
+        message: 'agent_session_identity_required',
+        data: {
+          refusal: {
+            code: 'agent_session_identity_required',
+            details: { reason: 'recordMissing' }
+          }
+        }
+      }
+    })
+
+    await restingChat()
+    vi.spyOn(providerSupport, 'adapterSupportsRecord').mockReturnValue(false)
+    const [unsupported] = await call('agentSession.history', {
+      sessionId: SESSION,
+      direction: 'tail'
+    })
+    expect(unsupported).toMatchObject({
+      ok: false,
+      error: {
+        // Not a passthrough code: released clients match the message, as before.
+        code: 'runtime_error',
+        message: 'structured_agent_session_unsupported',
+        data: { refusal: { details: { reason: 'hostUnsupported' } } }
+      }
+    })
   })
 
   it('opens a corrupt journal through the recovering open and still accepts a send (P2-03)', async () => {
@@ -376,9 +414,13 @@ describe('every close withdraws what is queued (P2-29)', () => {
     )
 
     await close()
+    // A close's rejection is a sentence with its fact beside it, never a marker.
     await vi.waitFor(() =>
-      expect(JSON.stringify(reader)).toContain('provider_closed_before_delivery')
+      expect(JSON.stringify(reader)).toContain(
+        '"reason":"The chat closed before this message was sent.","submittedAt"'
+      )
     )
+    expect(JSON.stringify(reader)).toContain('"rejection":{"kind":"chatClosed"}')
     expect(rig.host.hasSession(SESSION)).toBe(false)
     expect(rig.adapter.acquire).not.toHaveBeenCalled()
   })

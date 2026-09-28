@@ -1,4 +1,5 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
+import { agentSessionRefusalError } from '../../shared/agent-session-wire-refusals'
 import { MantaRuntimeWithGetWorktreePs } from './manta-runtime-get-worktree-ps'
 import { supportsCodexStructuredLocation } from '../codex/codex-structured-location-support'
 import { supportsClaudeStructuredLocation } from '../claude/claude-structured-location-support'
@@ -156,7 +157,9 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
   ): Promise<AgentSessionAttachParams> {
     const support = await this.getStructuredAgentSessionCreateSupport(input.worktree, input.agent)
     if (!support.supported) {
-      throw new Error('structured_agent_session_unsupported')
+      throw agentSessionRefusalError('structured_agent_session_unsupported', {
+        reason: 'hostUnsupported'
+      })
     }
     const settings = this.requireStore().getSettings()
     const launchEnv = resolveTuiAgentLaunchEnv(input.agent, settings.agentDefaultEnv)

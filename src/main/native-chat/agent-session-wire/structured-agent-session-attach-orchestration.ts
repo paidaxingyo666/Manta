@@ -1,3 +1,4 @@
+import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import { recoverStructuredRewind } from './structured-rewind-recovery'
 import { recoverInterruptedCompaction } from './structured-compaction-recovery'
 // The host's attach, lifted out of the host class.
@@ -14,7 +15,7 @@ import type {
   AgentSessionTurnActivity
 } from '../../../shared/agent-session-wire'
 import type { AgentSessionAttachParams } from './structured-agent-session-attach'
-import { performAttach } from './structured-agent-session-attach-flow'
+import { performAttach, type AttachFlowInput } from './structured-agent-session-attach-flow'
 import { stampFailedCreateOwnerVerdict } from './structured-agent-session-failed-create-refusal'
 import {
   pinnedAgentSessionLaunchArgs,
@@ -22,6 +23,7 @@ import {
 } from './structured-agent-session-launch-env'
 import { refuseAgentSessionMutation } from './structured-agent-session-mutation-admission'
 import { settleStaleStructuredAgentSessionState } from './structured-agent-session-dead-generation-settlement'
+import { structuredAgentSessionFailureWordsContext } from './structured-agent-session-send-preparation'
 import type { StructuredAgentSessionAttachContext } from './structured-agent-session-attach-context'
 import type {
   StructuredAgentSessionProviderChild,
@@ -43,6 +45,7 @@ import {
 
 export type StructuredAgentSessionAttachOptions = {
   recordPhase?: AgentSessionCreatePhaseRecorder
+  onAcquisitionFailed?: AttachFlowInput['onAcquisitionFailed']
   /** The queued message a start is for; see `StructuredAgentSessionProviderChild.startedFor`. */
   startedFor?: string
 }
@@ -123,7 +126,8 @@ async function runAttach(
   const attemptSink = context.runtimeState.mintEventSink(sessionId)
   // Read before the reserve clears it: how the previous generation ended decides how whatever it
   // left running is settled.
-  const priorDeathEvidence = context.deps.store.getRecord(sessionId)?.lease.deathEvidence ?? null
+  const priorRecord = context.deps.store.getRecord(sessionId)
+  const priorDeathEvidence = priorRecord?.lease.deathEvidence ?? null
   const attempt: { candidate: AttachCandidate | null; committed: boolean } = {
     candidate: null,
     committed: false
@@ -153,6 +157,7 @@ async function runAttach(
       params,
       now: () => context.now(),
       recordPhase,
+      ...(options.onAcquisitionFailed ? { onAcquisitionFailed: options.onAcquisitionFailed } : {}),
       openConversation: async (record) => {
         const conversation = await context.openConversation(record.sessionId, {
           acquisition: true
@@ -180,7 +185,8 @@ async function runAttach(
             sessionId,
             fence,
             acquisitionGeneration,
-            deathEvidence: priorDeathEvidence
+            deathEvidence: priorDeathEvidence,
+            failureTextContext: structuredAgentSessionFailureWordsContext(priorRecord)
           })
         }
         await bindAndDrain(eventSink, attached.journal, fence, (activity) =>
@@ -249,6 +255,8 @@ function endReleasedChild(
       fence: child.fence,
       cause: 'attach-failed',
       reason: cause instanceof Error ? cause.message : String(cause),
+      // Manta failed to attach; the provider said nothing.
+      failure: agentSessionFailureFact('hostFault'),
       duringStartup: child.phase === 'starting',
       ...verdict
     })

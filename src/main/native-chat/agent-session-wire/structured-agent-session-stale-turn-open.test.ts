@@ -4,7 +4,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
-import { unexpectedProviderExitOutcome } from './structured-agent-session-dead-generation-settlement'
 import { setStructuredAgentSessionHost } from './structured-agent-session-registry'
 import {
   collectSubscriber,
@@ -77,7 +76,10 @@ describe('a turn its gone agent left running', () => {
     await rig.host.subscribe({ id: 'reader', sessionId: SESSION, emit: reader.emit })
 
     expect(await workingTurnState()).toBe('interrupted')
-    expect(JSON.stringify(reader.events)).toContain(unexpectedProviderExitOutcome('killed'))
+    // The death evidence is Manta's log text: the row says only that the provider stopped.
+    expect(JSON.stringify(reader.events)).toContain(
+      'Codex stopped while this response was in progress. You can continue in this conversation.'
+    )
     expect(rig.adapter.acquire).toHaveBeenCalledOnce()
   })
 
