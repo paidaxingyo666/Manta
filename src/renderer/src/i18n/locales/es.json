@@ -3347,7 +3347,8 @@
             "floatingTerminalNewActivity": "{{label}}, nueva actividad",
             "codexSignInSuccess": "Sesión iniciada en Codex",
             "codexSignInError": "No se pudo iniciar sesión en Codex. Inténtalo de nuevo.",
-            "cursorUsageMenu": "Uso de Cursor"
+            "cursorUsageMenu": "Uso de Cursor",
+            "hiddenUsageProviders": "También: {{value0}}"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Conectar una cuenta",

@@ -3674,7 +3674,8 @@
             "floatingTerminalNewActivity": "{{label}}, 새 활동",
             "codexSignInSuccess": "Codex에 로그인했습니다",
             "codexSignInError": "Codex 로그인에 실패했습니다. 다시 시도해 주세요.",
-            "cursorUsageMenu": "Cursor 사용량"
+            "cursorUsageMenu": "Cursor 사용량",
+            "hiddenUsageProviders": "그 외: {{value0}}"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "계정 연결",

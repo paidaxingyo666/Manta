@@ -3674,7 +3674,8 @@
             "floatingTerminalNewActivity": "{{label}}，有新活动",
             "codexSignInSuccess": "已登录 Codex",
             "codexSignInError": "Codex 登录失败，请重试。",
-            "cursorUsageMenu": "Cursor 用量"
+            "cursorUsageMenu": "Cursor 用量",
+            "hiddenUsageProviders": "另有：{{value0}}"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "连接账户",

@@ -3769,7 +3769,8 @@
             "floatingTerminalNewActivity": "{{label}}, nouvelle activité",
             "codexSignInSuccess": "Connecté à Codex",
             "codexSignInError": "Échec de la connexion à Codex. Veuillez réessayer.",
-            "cursorUsageMenu": "Utilisation Cursor"
+            "cursorUsageMenu": "Utilisation Cursor",
+            "hiddenUsageProviders": "Aussi : {{value0}}"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "Connecter un compte",
