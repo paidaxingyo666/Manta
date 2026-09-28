@@ -37,15 +37,23 @@ async function readStructuredAgentSessionOptionsAtRest(
     saved.fastMode === undefined
       ? null
       : decodeStructuredAgentSessionOptionValue('fastMode', saved.fastMode)
+  // An unknown model is one the client already treats as unconfirmed.
+  const model = saved.model ?? models.find((entry) => entry.isDefault)?.id ?? ''
+  // As a live child answers: the pick, else what Claude runs for this model when none is sent.
+  // A live Codex child answers only the effort its thread reported, never the model's default.
+  const effort =
+    saved.effort ??
+    (record.provider === 'claude'
+      ? models.find((entry) => entry.id === model)?.defaultEffort
+      : undefined)
   return {
     models,
     ...(catalog.origin !== 'unknown' && catalog.fastModeSupport
       ? { fastModeSupport: catalog.fastModeSupport }
       : {}),
     current: {
-      // An unknown model is one the client already treats as unconfirmed.
-      model: saved.model ?? models.find((model) => model.isDefault)?.id ?? '',
-      ...(saved.effort ? { effort: saved.effort } : {}),
+      model,
+      ...(effort ? { effort } : {}),
       ...(typeof fastMode === 'boolean' ? { fastMode } : {})
     }
   }
