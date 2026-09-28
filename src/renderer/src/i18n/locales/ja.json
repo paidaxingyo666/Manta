@@ -17705,7 +17705,9 @@
         "startedN": "{{value0}} サブ Agent をキックオフしました",
         "ranOne": "1 人のサブ Agent を実行しました",
         "ranN": "{{value0}} サブ Agent を実行しました",
-        "tokens": "{{value0}} トークン"
+        "tokens": "{{value0}} トークン",
+        "unnamed": "サブ Agent",
+        "writtenBy": "サブ Agent {{value0}} による出力"
       },
       "conversationCommand": {
         "pendingWork": "このコマンドを使用する前に、保留中の作業とメッセージが完了するまで待ってください。",

@@ -17705,7 +17705,9 @@
         "startedN": "{{value0}} 하위 에이전트가 시작되었습니다.",
         "ranOne": "하위 에이전트 1개 실행",
         "ranN": "{{value0}} 하위 에이전트를 실행했습니다.",
-        "tokens": "{{value0}} 토큰"
+        "tokens": "{{value0}} 토큰",
+        "unnamed": "하위 에이전트",
+        "writtenBy": "하위 에이전트 {{value0}}의 출력"
       },
       "conversationCommand": {
         "pendingWork": "이 명령을 사용하기 전에 보류 중인 작업과 메시지가 완료될 때까지 기다리십시오.",

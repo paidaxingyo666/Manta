@@ -64,6 +64,7 @@ export const NativeChatTranscriptRow = memo(function NativeChatTranscriptRow({
           deliveryNotice={context.deliveryNotices?.get(message.id)}
           structuredActivityUi={context.showTurnStatus}
           folded={slot.folded}
+          subagentLabel={slot.subagentLabel}
           runtimeContext={context.runtimeContext}
         />
       )}

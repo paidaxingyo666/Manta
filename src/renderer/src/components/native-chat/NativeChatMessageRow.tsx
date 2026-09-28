@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef } from 'react'
-import { Goal, RotateCcw } from 'lucide-react'
+import { Bot, Goal, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import CommentMarkdown, {
   type CommentMarkdownLinkClickHandler
@@ -11,6 +11,8 @@ import type {
   NativeChatToolCallBlock
 } from '../../../../shared/native-chat-types'
 import { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
+import { agentJournalItemSubagentId } from '../../../../shared/agent-session-journal-producer'
+import { NATIVE_CHAT_SUBAGENT_ATTRIBUTION_COPY } from '../../../../shared/native-chat-subagent-attribution'
 import { NativeChatToolRun } from './NativeChatToolRun'
 import { NativeChatCodeBlock } from './NativeChatCodeBlock'
 import { NativeChatNoticeRow } from './NativeChatNoticeRow'
@@ -47,6 +49,7 @@ export const MessageRow = memo(function MessageRow({
   deliveryNotice,
   structuredActivityUi = true,
   folded = false,
+  subagentLabel,
   runtimeContext
 }: {
   message: NativeChatMessage
@@ -65,6 +68,8 @@ export const MessageRow = memo(function MessageRow({
   structuredActivityUi?: boolean
   /** Behind a folded turn: the row keeps only what outlives the turn. */
   folded?: boolean
+  /** The roster's name for the subagent that wrote this row, when one names it. */
+  subagentLabel?: string
   runtimeContext?: RuntimeFileOperationArgs | null
 }): React.JSX.Element | null {
   const rowRef = useRef<HTMLDivElement | null>(null)
@@ -193,6 +198,24 @@ export const MessageRow = memo(function MessageRow({
   // Plain assistant prose is the copyable unit; reasoning/system asides stay
   // chrome-free. Controls reveal on hover/keyboard focus and stay visible on touch.
   const showControls = !isReasoning && !isSystem && markdown.length > 0
+  // A subagent's row sits where it happened but speaks as that subagent, never as
+  // the agent the reader is talking to.
+  const subagentName =
+    agentJournalItemSubagentId(message) === null
+      ? null
+      : (subagentLabel ??
+        translate(
+          'components.native-chat.subagents.unnamed',
+          NATIVE_CHAT_SUBAGENT_ATTRIBUTION_COPY.unnamed
+        ))
+  const subagentCaption =
+    subagentLabel === undefined
+      ? subagentName
+      : translate(
+          'components.native-chat.subagents.writtenBy',
+          NATIVE_CHAT_SUBAGENT_ATTRIBUTION_COPY.writtenBy,
+          { value0: subagentLabel }
+        )
 
   return (
     <div
@@ -201,9 +224,22 @@ export const MessageRow = memo(function MessageRow({
         'group relative max-w-full select-text text-sm leading-relaxed text-foreground',
         // Reasoning is the agent thinking aloud — quieter, italic, like an aside.
         isReasoning && 'border-l-2 border-border/60 pl-3 italic text-muted-foreground',
+        subagentName !== null && !isReasoning && 'border-l-2 border-border/60 pl-3',
         isSystem && 'text-xs text-muted-foreground'
       )}
     >
+      {subagentName !== null ? (
+        <div
+          role="note"
+          aria-label={subagentCaption ?? undefined}
+          className="mb-1 flex min-h-5 items-center gap-1.5 not-italic text-muted-foreground"
+        >
+          <Bot aria-hidden className="size-3.5 shrink-0" />
+          <code aria-hidden className="min-w-0 truncate font-mono text-[11px]">
+            {subagentName}
+          </code>
+        </div>
+      ) : null}
       <NativeChatImageAttachments
         blocks={prose}
         runtimeContext={runtimeContext}
