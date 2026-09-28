@@ -17556,6 +17556,7 @@
           "subtitle": "스크립트를 읽을 수 없습니다. 계속 작업하려면 terminal로 다시 전환하세요.",
           "retryingSubtitle": "스크립트를 읽을 수 없습니다. Manta가 계속 다시 불러오기를 시도합니다."
         },
+        "reconnecting": "이 채팅에 다시 연결하는 중…",
         "pairHost": "호스트를 페어링하여 에이전트 채팅 기록을 확인하세요.",
         "notAgent": {
           "title": "여기에는 대화가 없습니다.",

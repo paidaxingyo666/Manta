@@ -22,6 +22,7 @@ import {
 } from './native-chat-disclosure-store'
 import { NativeChatTranscriptItems } from './NativeChatTranscriptItems'
 import type { NativeChatTranscriptRowContext } from './NativeChatTranscriptRow'
+import type { NativeChatDeliveryNotice } from './NativeChatMessageRow'
 import {
   buildNativeChatTranscriptSlots,
   nativeChatSlotIndexOf
@@ -69,7 +70,7 @@ export function NativeChatMessageList({
   allowFileUriLinks = false,
   workingStartedAt,
   settledTurns,
-  failedDeliveryMessageIds,
+  deliveryNotices,
   showTurnStatus = true,
   showLiveTurnActivity = true,
   turnActivity,
@@ -90,7 +91,7 @@ export function NativeChatMessageList({
   settledTurns?: NativeChatSettledTurns
   onLinkClick?: CommentMarkdownLinkClickHandler
   allowFileUriLinks?: boolean
-  failedDeliveryMessageIds?: ReadonlySet<string>
+  deliveryNotices?: ReadonlyMap<string, NativeChatDeliveryNotice>
   /** Turn timing and disclosure are available on structured agent sessions. */
   showTurnStatus?: boolean
   /** Whether the active turn's foreground activity row should be visible. */
@@ -328,7 +329,7 @@ export function NativeChatMessageList({
       revealedDiff,
       taskListPredecessors,
       expandedTurnIds,
-      failedDeliveryMessageIds,
+      deliveryNotices,
       allowFileUriLinks,
       runtimeContext,
       onLinkClick,
@@ -340,7 +341,7 @@ export function NativeChatMessageList({
       allowFileUriLinks,
       expandSignal,
       expandedTurnIds,
-      failedDeliveryMessageIds,
+      deliveryNotices,
       onLinkClick,
       revealDiff,
       revealedDiff,

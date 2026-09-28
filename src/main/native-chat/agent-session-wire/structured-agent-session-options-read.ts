@@ -12,6 +12,7 @@ import {
 } from '../../../shared/agent-session-wire'
 import { decodeStructuredAgentSessionOptionValue } from '../../../shared/structured-agent-session-option-codec'
 import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
+import { journalOpenReadRefusal } from '../agent-session-journal/journal-open-failure'
 import { isClaudeStructuredOptionKey } from '../../claude/claude-structured-options'
 import { isCodexTurnOptionKey } from '../../codex/codex-structured-turn-start'
 import type { StructuredAgentSessionHostDeps } from './structured-agent-session-host-types'
@@ -96,7 +97,9 @@ export async function readStructuredAgentSessionOptions(
 ): Promise<AgentSessionOptionsResult> {
   const { adapter, store } = context.deps
   const live = await context.serialize(sessionId, async () => {
-    const session = await context.openConversation(sessionId)
+    const session = await context.openConversation(sessionId).catch((error: unknown) => {
+      throw journalOpenReadRefusal(error)
+    })
     const child = session?.child
     if (!child) {
       return null

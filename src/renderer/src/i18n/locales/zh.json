@@ -17521,6 +17521,7 @@
           "subtitle": "无法读取记录。请切回终端继续工作。",
           "retryingSubtitle": "无法读取记录。Manta 会继续尝试加载。"
         },
+        "reconnecting": "正在重新连接此聊天…",
         "pairHost": "配对主机以查看智能体聊天记录。",
         "notAgent": {
           "title": "这里没有对话",

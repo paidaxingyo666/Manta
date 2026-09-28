@@ -1,5 +1,6 @@
 import { memo, useCallback, useRef } from 'react'
-import { Goal } from 'lucide-react'
+import { Goal, RotateCcw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import CommentMarkdown, {
   type CommentMarkdownLinkClickHandler
 } from '@/components/sidebar/CommentMarkdown'
@@ -23,6 +24,10 @@ import {
 import type { NativeChatDiffReveal } from './native-chat-turn-diffs'
 import type { RuntimeFileOperationArgs } from '@/runtime/runtime-file-client'
 
+/** What a user message says under it when it did not go through, with its own Retry when the
+ *  surface can send it again. */
+export type NativeChatDeliveryNotice = { text: string; onRetry?: () => void }
+
 /** One message: its prose first, then a collapsible run folding all of the
  *  turn's tool activity. Monochrome per STYLEGUIDE: user prompts read as a
  *  lifted card, assistant prose as body copy, reasoning de-emphasized.
@@ -39,7 +44,7 @@ export const MessageRow = memo(function MessageRow({
   onScrollMessageToTop,
   onLinkClick,
   allowFileUriLinks = false,
-  deliveryFailed = false,
+  deliveryNotice,
   structuredActivityUi = true,
   folded = false,
   runtimeContext
@@ -56,7 +61,7 @@ export const MessageRow = memo(function MessageRow({
   onScrollMessageToTop: (el: HTMLElement) => void
   onLinkClick?: CommentMarkdownLinkClickHandler
   allowFileUriLinks?: boolean
-  deliveryFailed?: boolean
+  deliveryNotice?: NativeChatDeliveryNotice
   structuredActivityUi?: boolean
   /** Behind a folded turn: the row keeps only what outlives the turn. */
   folded?: boolean
@@ -167,12 +172,18 @@ export const MessageRow = memo(function MessageRow({
             <NativeChatMessageTimestamp timestamp={message.timestamp} focusable />
           </div>
         ) : null}
-        {deliveryFailed ? (
-          <div className="max-w-[85%] text-[11px] text-destructive/80">
-            {translate(
-              'components.native-chat.launchPromptNotDelivered',
-              'Not delivered — check the terminal'
-            )}
+        {deliveryNotice ? (
+          <div className="flex max-w-[85%] items-center gap-2 text-[11px] text-destructive/80">
+            <span className="min-w-0 break-words">{deliveryNotice.text}</span>
+            {deliveryNotice.onRetry ? (
+              <Button type="button" variant="ghost" size="xs" onClick={deliveryNotice.onRetry}>
+                <RotateCcw className="size-3" />
+                {translate(
+                  'auto.components.native.chat.NativeChatStructuredSession.a5e7f14068',
+                  'Retry'
+                )}
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </div>

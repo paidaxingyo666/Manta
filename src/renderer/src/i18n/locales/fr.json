@@ -17620,6 +17620,7 @@
           "subtitle": "La transcription n'a pas pu être lue. Rebasculez sur le terminal pour continuer à travailler.",
           "retryingSubtitle": "La transcription n'a pas pu être lue. Manta continue d'essayer de la charger."
         },
+        "reconnecting": "Reconnexion à ce chat…",
         "pairHost": "Associez un hôte pour consulter l'historique de chat des agents.",
         "notAgent": {
           "title": "Aucune conversation ici",
