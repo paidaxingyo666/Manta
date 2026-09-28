@@ -167,7 +167,8 @@ export const AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY =
   'agent-session.pending-send-result.v1' as const
 // Why: a send is now answered once the host accepts it, before any agent has it. A client without
 // this cannot show a message rejected after that answer, so the host holds its reply until the
-// message is handed over or rejected.
+// message is handed over or rejected. Transitional: drop the hold once no supported desktop or
+// mobile client lacks the capability; mobile must first show a rejected message in place.
 export const AGENT_SESSION_ACCEPTED_SEND_RUNTIME_CAPABILITY =
   'agent-session.accepted-send.v1' as const
 // Why: paired clients advertise Claude-structured support so the host can gate its agent-specific
