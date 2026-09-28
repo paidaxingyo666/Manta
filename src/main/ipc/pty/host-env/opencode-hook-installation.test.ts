@@ -59,7 +59,7 @@ beforeEach(() => {
     'OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
-    'ORCA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_AGENT',
     'ZDOTDIR'
   ]) {
     vi.stubEnv(key, undefined)
@@ -93,7 +93,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
           disabledTuiAgents: disabled
         }
       )
-      expect(env.ORCA_OPENCODE_AGENT).toBe(fallback)
+      expect(env.MANTA_OPENCODE_AGENT).toBe(fallback)
       const selected = env.OPENCODE_CONFIG_DIR ?? config
       for (const agent of ['opencode', 'opencode2']) {
         expect(existsSync(plugin(selected, agent))).toBe(agent === fallback)
@@ -117,7 +117,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
             { ...options, ...selection, disabledTuiAgents: disabled }
           )
           const selected = disabled.includes(agent) ? undefined : agent
-          expect(env.ORCA_OPENCODE_AGENT).toBe(selected)
+          expect(env.MANTA_OPENCODE_AGENT).toBe(selected)
           expect(existsSync(plugin(config, agent))).toBe(selected === agent)
           expect(existsSync(plugin(config, agent === 'opencode' ? 'opencode2' : 'opencode'))).toBe(
             false
@@ -132,7 +132,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
     const installed = plugin(config, 'opencode')
     writeFileSync(installed, '// already installed sentinel')
     const env = buildPtyHostEnv('second', {}, { ...options, disabledTuiAgents: ['opencode'] })
-    expect(env.ORCA_OPENCODE_AGENT).toBe('opencode2')
+    expect(env.MANTA_OPENCODE_AGENT).toBe('opencode2')
     expect(readFileSync(installed, 'utf8')).toBe('// already installed sentinel')
     buildPtyHostEnv('third', {}, options)
     expect(readFileSync(installed, 'utf8')).toContain('/hook/opencode')
@@ -155,7 +155,7 @@ describe('OpenCode installation uses the current enabled agents', () => {
       expect(env.OPENCODE_CONFIG_DIR).toBe(custom)
       expect(env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
       expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
-      expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+      expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
       expect(readFileSync(plugin(first.OPENCODE_CONFIG_DIR, 'opencode'), 'utf8')).toBe(original)
       expect(env.MANTA_AGENT_HOOK_PORT).toBe(enabled ? '12345' : undefined)
     }
@@ -168,12 +168,12 @@ describe('OpenCode installation uses the current enabled agents', () => {
         {
           OPENCODE_CONFIG_DIR: primary,
           MANTA_OPENCODE_CONFIG_DIR: fixture.guestOverlay,
-          ORCA_OPENCODE_AGENT: 'opencode'
+          MANTA_OPENCODE_AGENT: 'opencode'
         },
         { ...options, disabledTuiAgents: ['opencode', 'opencode2'] }
       )
       expect(env.OPENCODE_CONFIG_DIR).toBe(primary === custom ? custom : undefined)
-      expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+      expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
     }
   })
 
@@ -213,7 +213,7 @@ it.each(['source', 'no-source', 'user-config'])(
     )
     vi.stubEnv('OPENCODE_CONFIG_DIR', kind === 'user-config' ? custom : fixture.guestOverlay)
     vi.stubEnv('MANTA_OPENCODE_CONFIG_DIR', fixture.guestOverlay)
-    vi.stubEnv('ORCA_OPENCODE_AGENT', 'opencode')
+    vi.stubEnv('MANTA_OPENCODE_AGENT', 'opencode')
     if (kind === 'source') {
       vi.stubEnv('MANTA_OPENCODE_SOURCE_CONFIG_DIR', custom)
     }
@@ -225,7 +225,7 @@ it.each(['source', 'no-source', 'user-config'])(
       envToDelete: getInheritedAgentHookEnvKeysToDelete(prepared)
     })
     expect(result.OPENCODE_CONFIG_DIR).toBe(kind === 'no-source' ? undefined : custom)
-    expect(result.ORCA_OPENCODE_AGENT).toBeUndefined()
+    expect(result.MANTA_OPENCODE_AGENT).toBeUndefined()
     expect(result.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(result.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
   }
@@ -258,7 +258,7 @@ it.each([
   )
   vi.stubEnv('MANTA_OPENCODE_CONFIG_DIR', fixture.guestOverlay)
   vi.stubEnv('MANTA_OPENCODE_SOURCE_CONFIG_DIR', scenario.source ? previous : undefined)
-  vi.stubEnv('ORCA_OPENCODE_AGENT', 'opencode')
+  vi.stubEnv('MANTA_OPENCODE_AGENT', 'opencode')
   const request = {
     sessionId: 'fixture',
     cols: 80,
@@ -277,7 +277,7 @@ it.each([
   }
   expect(result.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
   expect(result.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
-  expect(result.ORCA_OPENCODE_AGENT).toBeUndefined()
+  expect(result.MANTA_OPENCODE_AGENT).toBeUndefined()
 })
 
 it.each(['opencode', 'opencode2'] as const)(
@@ -306,7 +306,7 @@ it.each(['opencode', 'opencode2'] as const)(
     )
     expect(existsSync(plugin(result.OPENCODE_CONFIG_DIR, agent))).toBe(true)
     expect(result.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBe(custom)
-    expect(result.ORCA_OPENCODE_AGENT).toBe(agent)
+    expect(result.MANTA_OPENCODE_AGENT).toBe(agent)
   }
 )
 
@@ -360,8 +360,136 @@ it.each([true, false])(
     expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
-    expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+    expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
     expect(env.MANTA_AGENT_HOOK_ENDPOINT).toBe('/guest/endpoint.json')
     expect(existsSync(config)).toBe(false)
   }
 )
+
+// Why: pre-1.4.209 panes exported Manta's retired <userData>/opencode-hooks/shared dir. OpenCode 2
+// treats OPENCODE_CONFIG_DIR as the only config dir, so inheriting it loaded a stale plugin and hid
+// the user's global config.
+describe.each([
+  { name: 'marked', marked: true },
+  { name: 'unmarked', marked: false }
+])('inherited retired shared hooks dir ($name)', ({ marked }) => {
+  it.each([
+    { agent: 'opencode', hooksDir: 'opencode-hooks' },
+    { agent: 'opencode', hooksDir: 'opencode2-hooks' },
+    { agent: 'opencode2', hooksDir: 'opencode-hooks' },
+    { agent: 'opencode2', hooksDir: 'opencode2-hooks' }
+  ] as const)('drops $hooksDir for $agent panes', ({ agent, hooksDir }) => {
+    const legacy = join(fixture.userData, hooksDir, 'shared')
+    mkdirSync(join(legacy, 'plugins'), { recursive: true })
+    const env = buildPtyHostEnv(
+      'pane',
+      marked
+        ? { OPENCODE_CONFIG_DIR: legacy, MANTA_OPENCODE_CONFIG_DIR: legacy }
+        : { OPENCODE_CONFIG_DIR: legacy },
+      { ...options, launchAgent: agent }
+    )
+    expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
+    expect(env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
+    expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
+    expect(existsSync(plugin(config, agent))).toBe(true)
+    expect(existsSync(join(fixture.userData, `${agent}-config-overlays`))).toBe(false)
+  })
+})
+
+it('keeps a user config dir that merely sits beside the retired hooks dir', () => {
+  const neighbour = join(fixture.userData, 'opencode-hooks', 'mine')
+  mkdirSync(neighbour, { recursive: true })
+  const env = buildPtyHostEnv('pane', { OPENCODE_CONFIG_DIR: neighbour }, options)
+  expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBe(neighbour)
+  expect(env.OPENCODE_CONFIG_DIR).not.toBeUndefined()
+})
+
+it.each(['explicit', 'inherited'])('refreshes the %s stale plugin with hooks off', (source) => {
+  const legacy = join(fixture.userData, 'opencode-hooks', 'shared')
+  const stalePlugin = join(legacy, 'plugins', 'manta-opencode-status.js')
+  mkdirSync(join(legacy, 'plugins'), { recursive: true })
+  writeFileSync(stalePlugin, 'export default { id: "manta-opencode-status", server() {} }\n')
+  if (source === 'inherited') {
+    vi.stubEnv('OPENCODE_CONFIG_DIR', legacy)
+  }
+  const env = buildPtyHostEnv(
+    'pane',
+    source === 'explicit' ? { OPENCODE_CONFIG_DIR: legacy } : {},
+    { ...options, agentStatusHooksEnabled: false }
+  )
+  expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
+  expect(readFileSync(stalePlugin, 'utf8')).toContain('setup')
+})
+
+it.each([true, false])('strips daemon-inherited retired paths (known to main: %s)', (known) => {
+  const legacy = join(fixture.userData, 'opencode-hooks', 'shared')
+  if (known) {
+    vi.stubEnv('OPENCODE_CONFIG_DIR', legacy)
+  }
+  const env = buildPtyHostEnv('pane', {}, { ...options, agentStatusHooksEnabled: false })
+  vi.stubEnv('MANTA_USER_DATA_PATH', fixture.userData)
+  vi.stubEnv('OPENCODE_CONFIG_DIR', legacy)
+  const request = { sessionId: 'pane', cols: 80, rows: 24, cwd: root, env }
+  const result = createDaemonPtyEnvironment(request)
+  expect(result.OPENCODE_CONFIG_DIR).toBeUndefined()
+  result.OPENCODE_CONFIG_DIR = legacy
+  rescrubDaemonPtyEnvironment(result, request)
+  expect(result.OPENCODE_CONFIG_DIR).toBeUndefined()
+})
+
+it('preserves explicit user config over a retired daemon-inherited path', () => {
+  vi.stubEnv('MANTA_USER_DATA_PATH', fixture.userData)
+  vi.stubEnv('OPENCODE_CONFIG_DIR', join(fixture.userData, 'opencode-hooks', 'shared'))
+  const env = { OPENCODE_CONFIG_DIR: custom }
+  const result = createDaemonPtyEnvironment({
+    sessionId: 'pane',
+    cols: 80,
+    rows: 24,
+    cwd: root,
+    env
+  })
+  expect(result.OPENCODE_CONFIG_DIR).toBe(custom)
+})
+
+it('does not restore a retired source from process.env with hooks disabled', () => {
+  vi.stubEnv('MANTA_OPENCODE_SOURCE_CONFIG_DIR', join(fixture.userData, 'opencode-hooks', 'shared'))
+  const env = buildPtyHostEnv('pane', {}, { ...options, agentStatusHooksEnabled: false })
+  expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
+})
+
+it.each([true, false])(
+  'preserves explicit config with a retired parent source (hooks: %s)',
+  (enabled) => {
+    vi.stubEnv(
+      'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
+      join(fixture.userData, 'opencode-hooks', 'shared')
+    )
+    const env = buildPtyHostEnv(
+      'pane',
+      { OPENCODE_CONFIG_DIR: custom },
+      { ...options, agentStatusHooksEnabled: enabled }
+    )
+    if (enabled) {
+      expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBe(custom)
+      expect(readFileSync(join(env.OPENCODE_CONFIG_DIR, 'opencode.json'), 'utf8')).toBe(
+        '{"model":"fixture"}'
+      )
+    } else {
+      expect(env.OPENCODE_CONFIG_DIR).toBe(custom)
+    }
+  }
+)
+
+it('repairs both legacy variants without main inheriting any retired path or enabling hooks', () => {
+  for (const agent of ['opencode', 'opencode2']) {
+    const path = plugin(join(fixture.userData, `${agent}-hooks`, 'shared'), agent)
+    mkdirSync(join(path, '..'), { recursive: true })
+    writeFileSync(path, '// old plugin')
+  }
+  buildPtyHostEnv('pane', {}, { ...options, agentStatusHooksEnabled: false })
+  for (const agent of ['opencode', 'opencode2']) {
+    expect(
+      readFileSync(plugin(join(fixture.userData, `${agent}-hooks`, 'shared'), agent), 'utf8')
+    ).toContain('setup')
+  }
+})

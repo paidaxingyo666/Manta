@@ -1,3 +1,4 @@
+import { getLegacyOpenCodeEnvKeysToDelete } from '../../opencode/legacy-shared-config-dir'
 import { restoreOrStripOverlayEnv } from '../../../shared/agent-overlay-env'
 import { delimiter } from 'node:path'
 import { dropInheritedMantaFishHistory } from '../../fish-history-session'
@@ -32,7 +33,7 @@ const PANE_IDENTITY_ENV_KEYS = [
   'MANTA_WORKTREE_ID',
   'MANTA_AGENT_LAUNCH_TOKEN',
   // Not identity but equally per-spawn: an inherited copy names another launch's CLI.
-  'ORCA_WSL_CLI_DIR'
+  'MANTA_WSL_CLI_DIR'
 ] as const
 const WINDOWS_PATH_ENV_KEY_RE = /^path$/i
 
@@ -54,6 +55,12 @@ function deleteRequestedDaemonEnvKeys(
   env: Record<string, string>,
   keys: readonly string[] | undefined
 ): void {
+  const userDataPath = process.env.MANTA_USER_DATA_PATH
+  if (userDataPath) {
+    for (const key of getLegacyOpenCodeEnvKeysToDelete(env, userDataPath, {})) {
+      delete env[key]
+    }
+  }
   // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Manta overlay owns it.
   const deleteMantaOwnedCodexHome =
     keys?.includes('MANTA_CODEX_HOME') === true &&

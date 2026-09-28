@@ -132,7 +132,7 @@ export function getInheritedAgentHookEnvKeysToDelete(
   // Why: providers merge process.env after cleanup; delete stale hook keys without dropping fresh coordinates buildPtyHostEnv set.
   return [
     ...AGENT_HOOK_RUNTIME_ENV_KEYS,
-    'ORCA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_AGENT',
     'MANTA_OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_SOURCE_CONFIG_DIR'
   ].filter((key) => env[key] === undefined)
@@ -170,15 +170,16 @@ export function resolveMimocodeSourceHome(baseEnv: Record<string, string>): stri
 }
 
 export function resolveOpenCodeSourceConfigDir(
-  baseEnv: Record<string, string>
+  baseEnv: Record<string, string>,
+  inheritedEnv: NodeJS.ProcessEnv = process.env
 ): string | undefined {
-  const configDir = baseEnv.OPENCODE_CONFIG_DIR ?? process.env.OPENCODE_CONFIG_DIR
-  const mantaConfigDir = baseEnv.MANTA_OPENCODE_CONFIG_DIR ?? process.env.MANTA_OPENCODE_CONFIG_DIR
+  const configDir = baseEnv.OPENCODE_CONFIG_DIR ?? inheritedEnv.OPENCODE_CONFIG_DIR
+  const mantaConfigDir = baseEnv.MANTA_OPENCODE_CONFIG_DIR ?? inheritedEnv.MANTA_OPENCODE_CONFIG_DIR
   if (configDir && mantaConfigDir && configDir !== mantaConfigDir) {
     return configDir
   }
   const sourceDir =
-    baseEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR ?? process.env.MANTA_OPENCODE_SOURCE_CONFIG_DIR
+    baseEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR ?? inheritedEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR
   if (sourceDir) {
     return sourceDir
   }

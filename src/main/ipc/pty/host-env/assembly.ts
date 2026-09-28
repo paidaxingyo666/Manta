@@ -6,6 +6,10 @@ import {
 } from '../../../../shared/pi-agent-kind'
 import { applyTerminalGitCredentialPromptGuard } from '../../terminal-git-credential-guard'
 import { openCode2HookService, openCodeHookService } from '../../../opencode/hook-service'
+import {
+  OPENCODE_CONFIG_DIR_ENV_KEYS,
+  isOpenCodeLegacySharedConfigDir
+} from '../../../opencode/legacy-shared-config-dir'
 import { mimoCodeHookService } from '../../../mimo/hook-service'
 import { agentHookServer } from '../../../agent-hooks/server'
 import { wslHookRelayManager } from '../../../agent-hooks/wsl-hook-relay-manager'
@@ -45,8 +49,25 @@ export function buildPtyHostEnv(
   mergePersistedWindowsPath(baseEnv)
   Object.assign(baseEnv, buildConfiguredProxyEnv(opts.networkProxySettings))
 
-  // Why: local path's baseEnv includes process.env but the daemon path doesn't (fork inheritance, not IPC); check both sources so guards stay in lock-step across spawn paths.
-  const preexistingOpenCodeConfigDir = resolveOpenCodeSourceConfigDir(baseEnv)
+  // Why: pre-1.4.209 panes exported Manta's retired shared hooks dir; inheriting it hides the user's global OpenCode config.
+  const isLegacyOpenCodeHooksDir = (dir: string | undefined): boolean =>
+    isOpenCodeLegacySharedConfigDir(dir, opts.userDataPath)
+  const inheritedOpenCodeEnv: NodeJS.ProcessEnv = {}
+  for (const key of OPENCODE_CONFIG_DIR_ENV_KEYS) {
+    if (isLegacyOpenCodeHooksDir(baseEnv[key])) {
+      delete baseEnv[key]
+    }
+    if (!isLegacyOpenCodeHooksDir(process.env[key])) {
+      inheritedOpenCodeEnv[key] = process.env[key]
+    }
+  }
+  // A daemon or sibling shell can retain a retired path that main no longer sees.
+  openCodeHookService.refreshLegacySharedPlugin()
+  openCode2HookService.refreshLegacySharedPlugin()
+  const resolvedOpenCodeConfigDir = resolveOpenCodeSourceConfigDir(baseEnv, inheritedOpenCodeEnv)
+  const preexistingOpenCodeConfigDir = isLegacyOpenCodeHooksDir(resolvedOpenCodeConfigDir)
+    ? undefined
+    : resolvedOpenCodeConfigDir
   const launchCommandHint = resolveSetupAgentSequenceLaunchCommand(baseEnv, opts.launchCommand)
   const openCodeAgent = selectOpenCodeHookAgent(
     opts.launchAgent,
@@ -87,18 +108,22 @@ export function buildPtyHostEnv(
       ? resolvePiAgentSourceDir(baseEnv, 'prime-agent')
       : resolveScopedPiAgentSourceDir(baseEnv, 'prime-agent')
 
-  restoreOrStripOverlayEnv(baseEnv, {
-    primary: 'OPENCODE_CONFIG_DIR',
-    overlay: 'MANTA_OPENCODE_CONFIG_DIR',
-    source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
-    preserveExplicitPrimary: true
-  })
-  delete baseEnv.ORCA_OPENCODE_AGENT
+  restoreOrStripOverlayEnv(
+    baseEnv,
+    {
+      primary: 'OPENCODE_CONFIG_DIR',
+      overlay: 'MANTA_OPENCODE_CONFIG_DIR',
+      source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
+      preserveExplicitPrimary: true
+    },
+    inheritedOpenCodeEnv
+  )
+  delete baseEnv.MANTA_OPENCODE_AGENT
   if (openCodeAgent) {
     // Why: OPENCODE_CONFIG_DIR is a single path, not a colon-list; mirror the user's value into an overlay so their plugins and Manta's status plugin coexist. See docs/opencode-config-dir-collision.md.
     const openCodeStatusService =
       openCodeAgent === 'opencode2' ? openCode2HookService : openCodeHookService
-    baseEnv.ORCA_OPENCODE_AGENT = openCodeAgent
+    baseEnv.MANTA_OPENCODE_AGENT = openCodeAgent
     // WSL owns its config writes; only the guest overlay may enter a WSL pane.
     if (!opts.isWsl) {
       Object.assign(baseEnv, openCodeStatusService.buildPtyEnv(id, preexistingOpenCodeConfigDir))
@@ -281,7 +306,7 @@ export function buildPtyHostEnv(
   }
 
   // Why: an inherited copy (e.g. Manta launched from a WSL pane) names another launch's CLI.
-  delete baseEnv.ORCA_WSL_CLI_DIR
+  delete baseEnv.MANTA_WSL_CLI_DIR
   // Why: WSL shells need the managed userData root for shell-ready wrappers; dev-mode terminals need the same export so `manta` targets the live dev instance.
   if (opts.isWsl) {
     baseEnv.MANTA_USER_DATA_PATH = opts.userDataPath
@@ -289,7 +314,7 @@ export function buildPtyHostEnv(
     baseEnv.MANTA_CLI_COMMAND = getWslCliCommandName(opts.isPackaged)
     const managedCliDir = getManagedWslCliDir(opts)
     if (managedCliDir) {
-      baseEnv.ORCA_WSL_CLI_DIR = managedCliDir
+      baseEnv.MANTA_WSL_CLI_DIR = managedCliDir
     }
   } else {
     if (!opts.isPackaged) {
