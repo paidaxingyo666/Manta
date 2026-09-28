@@ -530,7 +530,11 @@ describe('PR Checks skip wiring', () => {
     )
     expect(classify.run).toContain('--diff-filter=ACDMR')
     expect(classify.run).toContain('--no-renames')
-    expect(classify.run).toContain('--merge-base "$BASE_SHA" "$HEAD_SHA"')
+    // HEAD is the merge commit, so HEAD^1 is the base side and no merge base is computed.
+    // That is what lets this job check out shallowly, which every other job waits on.
+    expect(classify.run).toContain('node config/scripts/git-pull-request-diff-base.mjs "$BASE_SHA"')
+    expect(classify.run).toContain('"$DIFF_BASE" HEAD')
+    expect(classify.run).not.toContain('--merge-base "$')
     expect(classify.run).toContain('node config/scripts/pr-code-change-scope.mjs')
     expect(classify.run).toContain('tee -a "$GITHUB_OUTPUT"')
     expect(prWorkflow.jobs.code_paths.outputs.should_run).toBe(
