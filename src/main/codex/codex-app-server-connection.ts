@@ -1,6 +1,9 @@
 import { spawnProcess } from '../../shared/child-process/run-process'
 import { RetryableProcessExitProof } from '../../shared/child-process/retryable-process-exit-proof'
-import { createProviderSpawnSpec } from './codex-app-server-posix-supervisor'
+import {
+  createProviderSpawnSpec,
+  PROVIDER_SUPERVISOR_MAX_STOP_MS
+} from './codex-app-server-posix-supervisor'
 import { buildCodexAppServerExitError } from './codex-app-server-exit-error'
 import { initializeCodexAppServerConnection } from './codex-app-server-handshake'
 import { CodexAppServerHandshakeExitUnprovenError } from './codex-app-server-handshake-exit-proof'
@@ -247,7 +250,11 @@ export async function openCodexAppServerConnection(
         // Already destroyed; the reap below still runs.
       }
       if (!exited) {
-        await waitForProcessExitUntil(exitPromise, GRACEFUL_EXIT_MS)
+        // The POSIX supervisor stops its own provider group; forcing it any sooner can orphan it.
+        await waitForProcessExitUntil(
+          exitPromise,
+          process.platform === 'win32' ? GRACEFUL_EXIT_MS : PROVIDER_SUPERVISOR_MAX_STOP_MS
+        )
         if (!exited) {
           const treeExited = await terminateProcessTree()
           if (!treeExited) {
