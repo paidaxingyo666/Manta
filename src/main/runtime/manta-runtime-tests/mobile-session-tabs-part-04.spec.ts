@@ -1,3 +1,4 @@
+import { withDurableRuntimeStore } from '../runtime-durable-store-fixture'
 import { describe, expect, it, vi } from 'vitest'
 import {
   MantaRuntimeService,
@@ -177,13 +178,15 @@ describe('MantaRuntimeService', () => {
     const getWorkspaceSession = vi.fn((hostId?: string | null) =>
       hostId === 'ssh:ssh-1' ? sshSession : localSession
     )
-    const runtime = new MantaRuntimeService({
-      ...store,
-      flushOrThrow: vi.fn(),
-      getRepos: () => [remoteRepo],
-      getRepo: (id: string) => (id === TEST_REPO_ID ? remoteRepo : undefined),
-      getWorkspaceSession
-    } as never)
+    const runtime = new MantaRuntimeService(
+      withDurableRuntimeStore({
+        ...store,
+        flushOrThrow: vi.fn(),
+        getRepos: () => [remoteRepo],
+        getRepo: (id: string) => (id === TEST_REPO_ID ? remoteRepo : undefined),
+        getWorkspaceSession
+      })
+    )
     runtime.setPtyController({
       write: () => true,
       kill: () => true,
@@ -229,15 +232,17 @@ describe('MantaRuntimeService', () => {
       sshSession = session
     })
     const kill = vi.fn(() => true)
-    const runtime = new MantaRuntimeService({
-      ...store,
-      getRepos: () => [remoteRepo],
-      getRepo: (id: string) => (id === TEST_REPO_ID ? remoteRepo : undefined),
-      getWorkspaceSession: (hostId?: string | null) =>
-        hostId === 'ssh:ssh-1' ? sshSession : localSession,
-      setWorkspaceSession,
-      flushOrThrow: vi.fn()
-    } as never)
+    const runtime = new MantaRuntimeService(
+      withDurableRuntimeStore({
+        ...store,
+        getRepos: () => [remoteRepo],
+        getRepo: (id: string) => (id === TEST_REPO_ID ? remoteRepo : undefined),
+        getWorkspaceSession: (hostId?: string | null) =>
+          hostId === 'ssh:ssh-1' ? sshSession : localSession,
+        setWorkspaceSession,
+        flushOrThrow: vi.fn()
+      })
+    )
     runtime.setPtyController({
       write: () => true,
       kill,

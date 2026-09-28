@@ -252,6 +252,32 @@ describe('read-only skill freshness inventory', () => {
     expect(getSkillFreshnessDisplayStatus(inventory, 'manta-cli')).toBe('up-to-date')
   })
 
+  it.runIf(process.platform !== 'win32')(
+    'deduplicates a symlinked provider skills root',
+    async () => {
+      const test = await fixture()
+      const canonicalRoot = join(test.homeDir, '.agents', 'skills')
+      await test.writeSkill(canonicalRoot, test.currentMarkdown)
+      await mkdir(join(test.homeDir, '.claude'), { recursive: true })
+      await symlink(canonicalRoot, join(test.homeDir, '.claude', 'skills'))
+
+      const inventory = await inventorySkillFreshness({
+        currentAppVersion: '2.0.0',
+        homeDir: test.homeDir,
+        repos: [],
+        resourceRoot: test.resourceRoot
+      })
+
+      expect(inventory.installations).toHaveLength(1)
+      expect(inventory.installations[0]).toMatchObject({
+        topology: 'canonical-copy',
+        status: 'current',
+        providers: ['agent-skills', 'claude']
+      })
+      expect(getSkillFreshnessDisplayStatus(inventory, 'manta-cli')).toBe('up-to-date')
+    }
+  )
+
   it('reads up to date after the OS drops a sidecar into an untouched install', async () => {
     const test = await fixture()
     const directory = await test.writeSkill(
@@ -910,12 +936,9 @@ describe('read-only skill freshness inventory', () => {
       ])
       // Why: the truncated root is not evidence of a copy. Fabricating one per manifest name
       // is what pinned an unclearable "Needs attention" on every card in #10918.
-      expect(inventory.installations).toEqual([
-        expect.objectContaining({
-          name: 'manta-cli',
-          status: 'current',
-          topology: 'canonical-copy'
-        })
+      // toMatchObject on an array checks length and each element's subset, like toEqual+objectContaining.
+      expect(inventory.installations).toMatchObject([
+        { name: 'manta-cli', status: 'current', topology: 'canonical-copy' }
       ])
     },
     90_000

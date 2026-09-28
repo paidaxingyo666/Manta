@@ -22,17 +22,21 @@ module.exports = ({ config }) => {
       ...config.ios,
       entitlements: { ...config.ios?.entitlements, 'aps-environment': apsEnvironment }
     },
-    plugins: (config.plugins ?? []).map((plugin) =>
-      plugin === 'expo-notifications'
-        ? [
-            'expo-notifications',
-            {
-              enableBackgroundRemoteNotifications: true,
-              mode: apsEnvironment,
-              icon: './assets/notification-icon.png'
-            }
-          ]
-        : plugin
-    )
+    plugins: [
+      ...(config.plugins ?? []).map((plugin) =>
+        plugin === 'expo-notifications'
+          ? [
+              'expo-notifications',
+              {
+                enableBackgroundRemoteNotifications: true,
+                mode: apsEnvironment,
+                icon: './assets/notification-icon.png'
+              }
+            ]
+          : plugin
+      ),
+      // Fork-only, kept out of app.json so upstream's plugin list merges cleanly.
+      './plugins/android-gradle-heap.js'
+    ]
   }
 }

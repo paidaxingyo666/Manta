@@ -26,7 +26,6 @@ import { agentSessionRefusalOperationState } from '../../../src/shared/agent-ses
 import { structuredAgentSessionRejectionNotice } from '../../../src/shared/structured-agent-session-send-disposition'
 import type { MobileNativeChatSendOutcome } from './mobile-native-chat-send'
 import type { StructuredAgentSessionMutationCallResult } from './mobile-structured-agent-session-rpc'
-import { translate } from '../i18n/i18n'
 
 export type MobileStructuredSendDelivery = {
   outcome: MobileNativeChatSendOutcome
@@ -44,7 +43,7 @@ export function mobileStructuredSendDelivery(
     return { outcome: 'unknown', operationIdSpent: false, error: null }
   }
   if (result.status === 'refused') {
-    const refusalState = agentSessionRefusalOperationState('agentSession.send', result.code)
+    const refusalState = agentSessionRefusalOperationState(result.code)
     if (refusalState === 'unknown') {
       return { outcome: 'unknown', operationIdSpent: false, error: null }
     }
@@ -58,10 +57,7 @@ export function mobileStructuredSendDelivery(
     return {
       outcome: 'rejected',
       operationIdSpent: !retained,
-      error:
-        result.message === 'Request not sent'
-          ? translate('m.mobile.structured.send.delivery.1e36008a95', 'Message not sent')
-          : result.message
+      error: result.message
     }
   }
   const submission = result.value.submission as AgentSessionSendResult['submission'] | undefined
@@ -72,7 +68,7 @@ export function mobileStructuredSendDelivery(
     return {
       outcome: 'rejected',
       operationIdSpent: true,
-      error: structuredAgentSessionRejectionNotice(submission.reason)
+      error: structuredAgentSessionRejectionNotice(submission.reason, 'composer-send')
     }
   }
   if (retained) {

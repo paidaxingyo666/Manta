@@ -20,7 +20,8 @@ type Props = {
   imageHeight: number
   onDraftChange: (content: string) => void
   onImageError: () => void
-  onRetry: () => void
+  /** Null where the only retry is a re-dial this document cannot make. */
+  onRetry: (() => void) | null
 }
 
 export function MobileFilePreviewBody({ preview, ...options }: Props) {
@@ -36,11 +37,13 @@ export function MobileFilePreviewBody({ preview, ...options }: Props) {
     return (
       <View style={styles.state}>
         <Text style={styles.errorText}>{preview.message}</Text>
-        <Pressable style={styles.retryButton} onPress={options.onRetry}>
-          <Text style={styles.retryText}>
-            {translate('m.MobileFilePreviewBody.cea65a249a', 'Retry')}
-          </Text>
-        </Pressable>
+        {options.onRetry ? (
+          <Pressable style={styles.retryButton} onPress={options.onRetry}>
+            <Text style={styles.retryText}>
+              {translate('m.MobileFilePreviewBody.cea65a249a', 'Retry')}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
     )
   }

@@ -6,21 +6,25 @@ import {
 
 const RELAY_HOST = {
   endpoint: 'ws://192.168.1.20:6768',
-  endpoints: [
-    { id: 'lan-primary', kind: 'lan' as const, url: 'ws://192.168.1.20:6768' },
-    { id: 'relay-primary', kind: 'relay' as const, url: 'wss://relay.manta.sh.cn/v1/connect/x' }
-  ]
+  relay: {
+    v: 1 as const,
+    directorUrl: 'https://relay.example.com',
+    cellUrl: 'https://cell-1.relay.example.com',
+    assignmentEpoch: 3,
+    relayHostId: 'AbCdEfGhIjKlMnOp',
+    e2eeFraming: 2 as const
+  }
 }
 
 describe('hostConnectionPathTargets', () => {
   it('returns every configured path, not just the paired direct address', () => {
-    expect(hostConnectionPathTargets(RELAY_HOST).map((target) => target.kind)).toEqual([
-      'lan',
-      'relay'
+    expect(hostConnectionPathTargets(RELAY_HOST)).toEqual([
+      { kind: 'lan', url: 'ws://192.168.1.20:6768' },
+      { kind: 'relay', url: 'wss://cell-1.relay.example.com/v1/connect/AbCdEfGhIjKlMnOp' }
     ])
   })
 
-  it('falls back to the direct endpoint when a host predates the overlay', () => {
+  it('probes only the direct endpoint when the host has no relay routing', () => {
     expect(hostConnectionPathTargets({ endpoint: 'ws://192.168.1.20:6768' })).toEqual([
       { kind: 'lan', url: 'ws://192.168.1.20:6768' }
     ])

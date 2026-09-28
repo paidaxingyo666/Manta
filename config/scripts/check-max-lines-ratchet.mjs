@@ -24,7 +24,7 @@ const SELF_FILES = new Set([
 
 // Default max-lines budgets from .oxlintrc.json (counted lines).
 export function defaultLimitForPath(p) {
-  if (/\.(test|spec)\.(ts|tsx)$/.test(p)) {
+  if (/\.(test|spec)\.(ts|tsx|mts|cts)$/.test(p)) {
     return 800
   }
   if (p.endsWith('.tsx')) {
@@ -155,7 +155,7 @@ export function collectUpstreamSuppressions(root = process.cwd(), ref = 'refs/sy
 
 // Collect every current suppression entry from the tracked tree.
 export function collectCurrentSuppressions(root = process.cwd()) {
-  const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx', '*.mjs'], {
+  const tracked = execFileSync('git', ['ls-files', '*.ts', '*.tsx', '*.mts', '*.cts', '*.mjs'], {
     cwd: root,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024
@@ -206,7 +206,9 @@ function printAddedFailure(added) {
     console.error(`    • ${target}\n        ↳ ${how}`)
   }
   console.error('')
-  console.error('  Manta caps file size (300 .ts / 400 .tsx / 600 .mjs / 800 test — non-blank,')
+  console.error(
+    '  Manta caps file size (300 .ts/.mts/.cts / 400 .tsx / 600 .mjs / 800 test — non-blank,'
+  )
   console.error(
     '  non-comment lines). Existing oversized files are grandfathered; NEW ones are not.'
   )

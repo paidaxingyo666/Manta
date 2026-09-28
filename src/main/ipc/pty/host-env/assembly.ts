@@ -1,5 +1,5 @@
 import { resolveSetupAgentSequenceLaunchCommand } from '../../../../shared/setup-agent-sequencing'
-import { isOpenCode2LaunchCommand } from '../../../../shared/opencode-launch-command'
+import { selectOpenCodeHookAgent } from '../../../../shared/opencode-launch-command'
 import {
   detectExplicitPiAgentKindFromCommand,
   isPiCompatibleAgentType
@@ -11,6 +11,7 @@ import { agentHookServer } from '../../../agent-hooks/server'
 import { wslHookRelayManager } from '../../../agent-hooks/wsl-hook-relay-manager'
 import { piTitlebarExtensionService } from '../../../pi/titlebar-extension-service'
 import { prependOrcaCliDirToChildPath } from '../../../cli/manta-cli-child-path'
+import { getManagedWslCliDir, getWslCliCommandName } from '../../../cli/wsl-managed-cli'
 import { stripLegacyTerminalShimEnv } from '../../../pty/legacy-terminal-shim-dir'
 import { mergePersistedWindowsPath } from '../../../pty/windows-environment-path'
 import { resolveCodexShellLaunchPreflightCommand } from '../../../pty/codex-shell-launch-preflight'
@@ -47,12 +48,11 @@ export function buildPtyHostEnv(
   // Why: local path's baseEnv includes process.env but the daemon path doesn't (fork inheritance, not IPC); check both sources so guards stay in lock-step across spawn paths.
   const preexistingOpenCodeConfigDir = resolveOpenCodeSourceConfigDir(baseEnv)
   const launchCommandHint = resolveSetupAgentSequenceLaunchCommand(baseEnv, opts.launchCommand)
-  // Typed launches do not carry the picker identity; infer the beta binary so
-  // it receives the OpenCode 2 hook endpoint and isolated plugin overlay.
-  const openCodeAgent =
-    opts.launchAgent === 'opencode2' || isOpenCode2LaunchCommand(launchCommandHint)
-      ? 'opencode2'
-      : 'opencode'
+  const openCodeAgent = selectOpenCodeHookAgent(
+    opts.launchAgent,
+    launchCommandHint,
+    (agent) => opts.agentStatusHooksEnabled && isTuiAgentEnabled(agent, opts.disabledTuiAgents)
+  )
   const explicitPiAgentKind = isPiCompatibleAgentType(opts.launchAgent)
     ? opts.launchAgent
     : opts.launchAgent === undefined
@@ -87,11 +87,22 @@ export function buildPtyHostEnv(
       ? resolvePiAgentSourceDir(baseEnv, 'prime-agent')
       : resolveScopedPiAgentSourceDir(baseEnv, 'prime-agent')
 
-  if (opts.agentStatusHooksEnabled) {
+  restoreOrStripOverlayEnv(baseEnv, {
+    primary: 'OPENCODE_CONFIG_DIR',
+    overlay: 'MANTA_OPENCODE_CONFIG_DIR',
+    source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
+    preserveExplicitPrimary: true
+  })
+  delete baseEnv.MANTA_OPENCODE_AGENT
+  if (openCodeAgent) {
     // Why: OPENCODE_CONFIG_DIR is a single path, not a colon-list; mirror the user's value into an overlay so their plugins and Manta's status plugin coexist. See docs/opencode-config-dir-collision.md.
     const openCodeStatusService =
       openCodeAgent === 'opencode2' ? openCode2HookService : openCodeHookService
-    Object.assign(baseEnv, openCodeStatusService.buildPtyEnv(id, preexistingOpenCodeConfigDir))
+    baseEnv.MANTA_OPENCODE_AGENT = openCodeAgent
+    // WSL owns its config writes; only the guest overlay may enter a WSL pane.
+    if (!opts.isWsl) {
+      Object.assign(baseEnv, openCodeStatusService.buildPtyEnv(id, preexistingOpenCodeConfigDir))
+    }
     if (baseEnv.OPENCODE_CONFIG_DIR) {
       // Why: ~/.zshrc can re-export the user's default after spawn; shell-ready wrappers restore this PTY-scoped value.
       baseEnv.MANTA_OPENCODE_CONFIG_DIR = baseEnv.OPENCODE_CONFIG_DIR
@@ -102,6 +113,8 @@ export function buildPtyHostEnv(
         delete baseEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR
       }
     }
+  }
+  if (opts.agentStatusHooksEnabled) {
     if (isMimoLaunchCommand(launchCommandHint)) {
       const preexistingMimocodeHome = resolveMimocodeSourceHome(baseEnv)
       Object.assign(baseEnv, mimoCodeHookService.buildPtyEnv(id, preexistingMimocodeHome))
@@ -115,11 +128,6 @@ export function buildPtyHostEnv(
       }
     }
   } else {
-    restoreOrStripOverlayEnv(baseEnv, {
-      primary: 'OPENCODE_CONFIG_DIR',
-      overlay: 'MANTA_OPENCODE_CONFIG_DIR',
-      source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR'
-    })
     restoreOrStripOverlayEnv(baseEnv, {
       primary: 'MIMOCODE_HOME',
       overlay: 'MANTA_MIMOCODE_HOME',
@@ -136,19 +144,25 @@ export function buildPtyHostEnv(
     if (opts.isWsl === true) {
       // Why: hook POSTs to 127.0.0.1 die inside WSL's NAT namespace; use the guest-resident relay's endpoint instead of the Windows one.
       const distro = opts.wslDistro ?? null
-      wslHookRelayManager.ensureForDistro(distro, opts.selectedCodexHomePath)
+      const wslLaunchKind =
+        explicitPiAgentKind === 'pi' || explicitPiAgentKind === 'omp'
+          ? explicitPiAgentKind
+          : undefined
+      wslHookRelayManager.ensureForDistro(distro, opts.selectedCodexHomePath, wslLaunchKind)
       const guestEndpoint = wslHookRelayManager.getGuestEndpointFilePath(distro)
       if (guestEndpoint) {
         baseEnv.MANTA_AGENT_HOOK_ENDPOINT = guestEndpoint
       }
       // Why: OpenCode loads its status plugin from a guest config overlay, so point OPENCODE_CONFIG_DIR at the guest dir the relay materialized.
-      const opencodeOverlayDir = wslHookRelayManager.getOpenCodeOverlayDir(distro, openCodeAgent)
+      const opencodeOverlayDir = openCodeAgent
+        ? wslHookRelayManager.getOpenCodeOverlayDir(distro, openCodeAgent)
+        : null
       if (opencodeOverlayDir) {
         baseEnv.OPENCODE_CONFIG_DIR = opencodeOverlayDir
         baseEnv.MANTA_OPENCODE_CONFIG_DIR = opencodeOverlayDir
         delete baseEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR
       } else {
-        // Why: relay not connected yet (or older guest bundle) — never cross the Windows overlay path into WSL; drop it so in-guest OpenCode uses its own config (pre-fix behavior, no status but no regression).
+        // Only guest overlays belong in WSL; otherwise let OpenCode use its guest config.
         delete baseEnv.OPENCODE_CONFIG_DIR
         delete baseEnv.MANTA_OPENCODE_CONFIG_DIR
         delete baseEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR
@@ -222,6 +236,21 @@ export function buildPtyHostEnv(
     delete baseEnv.MANTA_PRIME_AGENT_STATUS_EXTENSION
   }
 
+  if (opts.isWsl && opts.agentStatusHooksEnabled) {
+    const distro = opts.wslDistro ?? null
+    if (explicitPiAgentKind === 'pi') {
+      const guestPiDir = wslHookRelayManager.getGuestAgentPath(distro, 'pi')
+      if (guestPiDir) {
+        baseEnv.MANTA_PI_SOURCE_AGENT_DIR = guestPiDir
+      }
+    } else if (explicitPiAgentKind === 'omp') {
+      const guestOmpExtension = wslHookRelayManager.getGuestAgentPath(distro, 'omp')
+      if (guestOmpExtension) {
+        baseEnv.MANTA_OMP_STATUS_EXTENSION = guestOmpExtension
+      }
+    }
+  }
+
   // Why: keep the Codex home override PTY-scoped so dev/prod Mantas don't share hooks through ~/.codex.
   if (opts.skipCodexHomeEnv) {
     delete baseEnv.CODEX_HOME
@@ -251,11 +280,17 @@ export function buildPtyHostEnv(
     delete baseEnv.MANTA_CODEX_LAUNCH_PREFLIGHT
   }
 
+  // Why: an inherited copy (e.g. Manta launched from a WSL pane) names another launch's CLI.
+  delete baseEnv.MANTA_WSL_CLI_DIR
   // Why: WSL shells need the managed userData root for shell-ready wrappers; dev-mode terminals need the same export so `manta` targets the live dev instance.
   if (opts.isWsl) {
     baseEnv.MANTA_USER_DATA_PATH = opts.userDataPath
     // Why: managed WSL registration uses `manta-ide`; exposing that literal scopes agent guidance to WSL without a bare-manta shim.
-    baseEnv.MANTA_CLI_COMMAND = opts.isPackaged ? 'manta-ide' : 'manta-dev'
+    baseEnv.MANTA_CLI_COMMAND = getWslCliCommandName(opts.isPackaged)
+    const managedCliDir = getManagedWslCliDir(opts)
+    if (managedCliDir) {
+      baseEnv.MANTA_WSL_CLI_DIR = managedCliDir
+    }
   } else {
     if (!opts.isPackaged) {
       baseEnv.MANTA_USER_DATA_PATH ??= opts.userDataPath
@@ -273,7 +308,7 @@ export function buildPtyHostEnv(
     baseEnv.BROWSER === undefined &&
     process.env.BROWSER === undefined
   ) {
-    const cliCommand = opts.isWsl ? (opts.isPackaged ? 'manta-ide' : 'manta-dev') : 'manta'
+    const cliCommand = opts.isWsl ? getWslCliCommandName(opts.isPackaged) : 'manta'
     baseEnv.BROWSER = `${cliCommand} open-url --url %s`
   }
 

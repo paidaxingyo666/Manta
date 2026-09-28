@@ -6,6 +6,7 @@ import { runProcessSync } from '../../src/shared/child-process/run-process'
 import {
   createHourlyBuildVersion,
   formatHourlyReleaseName,
+  getHourlyBuildIdentity,
   nextHourlyBuildNumber
 } from './hourly-build-version.mjs'
 import { compareAppVersions } from '../../src/shared/app-version'
@@ -171,7 +172,8 @@ describe('getHourlyBuildIdentity', () => {
   // install it.
   it('stays on the already-shipped hourly base after a buggy main release is unpublished', () => {
     // The historical package floor must not move when this repository cuts a new release.
-    const identity = hourlyIdentityFromPackage('1.4.202-rc.0', {
+    const identity = getHourlyBuildIdentity(new Date('2026-09-14T20:00:00Z'), {
+      packageVersion: '1.4.201',
       publishedVersions: [
         'v1.4.201',
         'v1.4.202',
@@ -187,6 +189,17 @@ describe('getHourlyBuildIdentity', () => {
     expect(identity.buildNumber).toBe(5)
   })
 
+  it('keeps a newer package version as the hourly base floor', () => {
+    const identity = getHourlyBuildIdentity(new Date('2026-09-14T20:00:00Z'), {
+      packageVersion: '1.4.214',
+      publishedVersions: ['v1.4.202', 'v1.4.203-hourly.202609140417'],
+      releaseNames: ['1.4.203 • 04 • Sep 13, 9:17PM • 2ce252f']
+    })
+    expect(identity.version).toBe('1.4.214-hourly.202609142000')
+    expect(identity.buildNumber).toBe(1)
+  })
+
+  // Omits packageVersion so the real package.json read (and its RC suffix) is exercised.
   it('starts a new series when the package floor moves beyond the published hourly base', () => {
     const identity = hourlyIdentityFromPackage('1.4.205-rc.0', {
       publishedVersions: ['v1.4.202', 'v1.4.203-hourly.202609140417'],

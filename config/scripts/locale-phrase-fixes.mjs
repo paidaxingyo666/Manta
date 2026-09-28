@@ -139,7 +139,8 @@ export const LOCALE_PHRASE_FIXES = {
     { pattern: /代理商/g, replacement: '智能体', whenEnIncludes: 'agent' },
     // Reversed from upstream, who normalise toward 代理: this fork's word for an
     // agent is 智能体, and 代理 also means proxy — see fork-zh-terminology.mjs.
-    { pattern: /代理/g, replacement: '智能体', whenEnIncludes: 'agent' },
+    // 用户代理 is a browser's User-Agent, whose English also says "agent".
+    { pattern: /(?<!用户)代理/g, replacement: '智能体', whenEnIncludes: 'agent' },
     { pattern: /分支机构/g, replacement: '分支', whenEnIncludes: 'ranch' },
     { pattern: /座席/g, replacement: '智能体', whenEnIncludes: 'agent' },
     { pattern: /汽车/g, replacement: '自动', whenEnIncludes: 'Auto' },

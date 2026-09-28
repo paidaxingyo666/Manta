@@ -13,6 +13,7 @@ import {
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { setAppEnvironment } from '../../shared/app-environment'
 
 const { getPathMock } = vi.hoisted(() => ({
@@ -21,11 +22,13 @@ const { getPathMock } = vi.hoisted(() => ({
 
 import {
   OpenCodeHookService,
+  openCode2HookService,
   _internals,
   getOpenCodeFamilyPluginSource,
   getOpenCodePluginSource,
   getOpenCode2PluginSource
 } from './hook-service'
+import { resolveOpenCodeConfigDirectory } from '../../shared/opencode-config-directory'
 
 beforeEach(() => {
   setAppEnvironment({
@@ -90,11 +93,11 @@ describe('OpenCode hook plugin source', () => {
     const digest = (source: string): string => createHash('sha256').update(source).digest('hex')
 
     expect(digest(getOpenCodePluginSource())).toBe(
-      '43ff47a39daaa7c8cbd8dc9dba4151c861bd1704e7cc53ea754b507e62041549'
+      '2b59424707a4c0ce517d5e8ab88a1ade6f8b2b0ba503a8df9899c0a4a9ea01e6'
     )
     expect(
       digest(getOpenCodeFamilyPluginSource('/hook/mimo-code', { emitSessionStart: false }))
-    ).toBe('a9227b540c0f67ad53ec9603b9742f478a81c56f1aabc27e00492ed16e75df6d')
+    ).toBe('646262b83e3f45e476f425c90e49569f30e0be59dd49a8215a36019a80e5c435')
   })
 
   it('filters child sessions via parentID lookup before forwarding events', () => {
@@ -247,9 +250,11 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
     '50c010a2-bc8e-4eb1-8847-5812133ad6df::/Users/thebr/ghostx/workspaces/noqa/autoheal@@a1b2c3d4'
   const plainUuidId = 'c0ffee00-0000-4000-8000-000000000000'
   let userDataDir: string
+  const originalXdgConfigHome = process.env.XDG_CONFIG_HOME
 
   beforeAll(() => {
     userDataDir = mkdtempSync(join(tmpdir(), 'manta-opencode-hooks-'))
+    process.env.XDG_CONFIG_HOME = userDataDir
     getPathMock.mockImplementation((name: string) => {
       if (name === 'userData') {
         return userDataDir
@@ -259,6 +264,11 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
   })
 
   afterAll(() => {
+    if (originalXdgConfigHome === undefined) {
+      delete process.env.XDG_CONFIG_HOME
+    } else {
+      process.env.XDG_CONFIG_HOME = originalXdgConfigHome
+    }
     rmSync(userDataDir, { recursive: true, force: true })
   })
 
@@ -267,14 +277,12 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
     rmSync(join(userDataDir, 'opencode-config-overlays'), { recursive: true, force: true })
   })
 
-  it('writes a shared OPENCODE_CONFIG_DIR and installs the plugin file', () => {
+  it('installs the plugin without overriding OpenCode config discovery', () => {
     const service = new OpenCodeHookService()
     const env = service.buildPtyEnv(daemonSessionId)
 
-    expect(env.OPENCODE_CONFIG_DIR).toBeTruthy()
-    expect(env.OPENCODE_CONFIG_DIR).toBe(join(userDataDir, 'opencode-hooks', 'shared'))
-
-    const pluginPath = join(env.OPENCODE_CONFIG_DIR!, 'plugins', 'manta-opencode-status.js')
+    expect(env).toEqual({})
+    const pluginPath = join(resolveOpenCodeConfigDirectory(), 'plugins', 'manta-opencode-status.js')
     expect(existsSync(pluginPath)).toBe(true)
     // Sanity-check the file has plugin source, not a stray write.
     const pluginSource = readFileSync(pluginPath, 'utf8')
@@ -282,10 +290,58 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
     expect(pluginSource).toContain('messageID: part.messageID')
   })
 
+  // Why: #22234 — OpenCode 2 installs under the plain `opencode` name, and its loader
+  // rejects a default export that only has server(). Asserting the emitted *source* is
+  // not enough; the installed file is what the v2 server validates, so load it.
+  it('installs a plugin whose default export satisfies both the v1 and v2 loaders', async () => {
+    const service = new OpenCodeHookService()
+    service.buildPtyEnv(daemonSessionId)
+
+    const pluginPath = join(resolveOpenCodeConfigDirectory(), 'plugins', 'manta-opencode-status.js')
+    // Why: a .mjs copy so Node parses the installed file as ESM without a package.json.
+    const modulePath = join(userDataDir, `installed-opencode-plugin-${Date.now()}.mjs`)
+    writeFileSync(modulePath, readFileSync(pluginPath, 'utf8'))
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the assertions below validate the shape this names.
+    const module = (await import(pathToFileURL(modulePath).href)) as {
+      default?: { id?: unknown; server?: unknown; setup?: unknown }
+    }
+
+    expect(module.default?.id).toBe('manta-opencode-status')
+    // v1 loader: "must default export an object with server()".
+    expect(module.default?.server).toBeTypeOf('function')
+    // v2 loader: "Plugin must export a default definition with an id and an effect or setup function."
+    expect(module.default?.setup).toBeTypeOf('function')
+  })
+
+  // Why: #22506 — both variants install side by side in one global plugins dir, and
+  // OpenCode 2 kills every plugin after the first that reuses an id ("Duplicate plugin
+  // ID"). Discovery sorts by path, so manta-opencode-status.js always wins and the
+  // opencode2 plugin never loads. Assert the installed files, not just the sources.
+  it('installs both family plugins into one config dir under distinct ids', async () => {
+    expect(new OpenCodeHookService().buildPtyEnv(daemonSessionId)).toEqual({})
+    // #22440 Issue 2: the opencode2 variant must not shadow global config discovery either.
+    expect(openCode2HookService.buildPtyEnv(daemonSessionId)).toEqual({})
+
+    const pluginsDir = join(resolveOpenCodeConfigDirectory(), 'plugins')
+    const ids: string[] = []
+    for (const fileName of ['manta-opencode-status.js', 'orca-opencode2-status.js']) {
+      // Why: a .mjs copy so Node parses the installed file as ESM without a package.json.
+      const modulePath = join(userDataDir, `installed-${fileName}-${Date.now()}.mjs`)
+      writeFileSync(modulePath, readFileSync(join(pluginsDir, fileName), 'utf8'))
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the assertions below validate the shape this names.
+      const module = (await import(pathToFileURL(modulePath).href)) as {
+        default?: { id?: unknown }
+      }
+      ids.push(String(module.default?.id))
+    }
+
+    expect(ids).toEqual(['manta-opencode-status', 'orca-opencode2-status'])
+  })
+
   it('clearPty leaves the shared OpenCode config dir off the teardown hot path', () => {
     const service = new OpenCodeHookService()
-    const env = service.buildPtyEnv(daemonSessionId)
-    const configDir = env.OPENCODE_CONFIG_DIR!
+    service.buildPtyEnv(daemonSessionId)
+    const configDir = resolveOpenCodeConfigDirectory()
     expect(existsSync(configDir)).toBe(true)
     mkdirSync(join(configDir, 'node_modules', 'opencode-runtime'), { recursive: true })
     writeFileSync(join(configDir, 'node_modules', 'opencode-runtime', 'index.js'), '')
@@ -318,15 +374,13 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
 
   it('works end-to-end for a plain UUID id (non-daemon path)', () => {
     const service = new OpenCodeHookService()
-    const env = service.buildPtyEnv(plainUuidId)
+    service.buildPtyEnv(plainUuidId)
 
-    expect(env.OPENCODE_CONFIG_DIR).toBe(join(userDataDir, 'opencode-hooks', 'shared'))
-    expect(existsSync(join(env.OPENCODE_CONFIG_DIR!, 'plugins', 'manta-opencode-status.js'))).toBe(
-      true
-    )
+    const configDir = resolveOpenCodeConfigDirectory()
+    expect(existsSync(join(configDir, 'plugins', 'manta-opencode-status.js'))).toBe(true)
 
     service.clearPty(plainUuidId)
-    expect(existsSync(env.OPENCODE_CONFIG_DIR!)).toBe(true)
+    expect(existsSync(configDir)).toBe(true)
   })
 })
 

@@ -84,6 +84,7 @@ import {
 } from './pty-shutdown-data-suspension'
 import { getRuntimeEnvironmentRevision } from '@/runtime/runtime-environment-revision'
 import { createPtyPreconnectInputBuffer } from './pty-preconnect-input-buffer'
+import type { TerminalInputKind } from '../../../../shared/terminal-input-kind'
 
 const REMOTE_TERMINAL_INPUT_FLUSH_MS = 8
 const REMOTE_TERMINAL_VIEWPORT_FLUSH_MS = 33
@@ -636,22 +637,24 @@ export function createRemoteRuntimePtyTransport(
   async function waitForHostSessionHandle(
     hostTabId: string,
     isCurrent: () => boolean
-  ): Promise<string | null | undefined | false> {
+  ): Promise<string | undefined | false> {
     if (!worktreeId) {
       return undefined
     }
     const worktree = toRuntimeWorktreeSelector(worktreeId)
-    let activated: RuntimeMobileSessionTabsResult
+    let activated: RuntimeMobileSessionTabsResult | undefined
     try {
       // Why: this runs when the pane itself is opened/attached — the user's wake gesture.
       activated = await activateHostSessionSurface(hostTabId, worktree, 'user')
     } catch (error) {
-      if (isMissingHostSessionSurfaceError(error)) {
-        return null
+      // Why: activation answers absence from the host's own in-flight bookkeeping — a worktree snapshot
+      // it has not hydrated yet answers the same way as one it really dropped (#21852). Only the
+      // inventory below carries removal evidence, so fall through and let it adjudicate.
+      if (!isMissingHostSessionSurfaceError(error)) {
+        throw error
       }
-      throw error
     }
-    const immediate = findReadyHostSessionHandle(activated, hostTabId)
+    const immediate = activated ? findReadyHostSessionHandle(activated, hostTabId) : undefined
     if (immediate) {
       return immediate
     }
@@ -762,7 +765,7 @@ export function createRemoteRuntimePtyTransport(
   async function waitForHostSessionHandleWithRecovery(
     hostTabId: string,
     isCurrent: () => boolean
-  ): Promise<string | null | undefined | false> {
+  ): Promise<string | undefined | false> {
     let recoveryEpoch = recovery.isActive ? recovery.currentEpoch : undefined
     while (isCurrent()) {
       try {
@@ -2649,9 +2652,11 @@ export function createRemoteRuntimePtyTransport(
       storedCallbacks = {}
     },
 
-    sendInput(data: string): boolean {
+    // Why the kind goes no further than the preconnect buffer: terminal.send has no launch kind,
+    // and its query-reply kind is for mobile clients, so the host classifies a desktop's bytes itself.
+    sendInput(data: string, inputKind: TerminalInputKind): boolean {
       if (!destroyed && preconnectInputBuffer?.isBuffering()) {
-        return preconnectInputBuffer.enqueue(data, 'ordinary', opts.onPreconnectInput)
+        return preconnectInputBuffer.enqueue(data, 'ordinary', inputKind, opts.onPreconnectInput)
       }
       if (!connected || !handle || recoveryBlocksIo()) {
         return false
@@ -2666,7 +2671,12 @@ export function createRemoteRuntimePtyTransport(
     // Why: query replies (CPR/DSR/DA/OSC) are read in raw mode with a short timeout; the 8ms debounce would miss it and echo the reply onto the prompt (#7329).
     sendInputImmediate(data: string): boolean {
       if (!destroyed && preconnectInputBuffer?.isBuffering()) {
-        return preconnectInputBuffer.enqueue(data, 'immediate', opts.onPreconnectInput)
+        return preconnectInputBuffer.enqueue(
+          data,
+          'immediate',
+          'query-reply',
+          opts.onPreconnectInput
+        )
       }
       const targetHandle = handle
       const targetLifecycleEpoch = lifecycleEpoch
@@ -2702,9 +2712,9 @@ export function createRemoteRuntimePtyTransport(
       return sendUnacknowledgedInput(data, true)
     },
 
-    sendInputAccepted(data) {
+    sendInputAccepted(data, inputKind) {
       if (!destroyed && preconnectInputBuffer?.isBuffering()) {
-        return preconnectInputBuffer.enqueueAccepted(data, opts.onPreconnectInput)
+        return preconnectInputBuffer.enqueueAccepted(data, inputKind, opts.onPreconnectInput)
       }
       return sendInputAcceptedToRuntime(data)
     },

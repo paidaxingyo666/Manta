@@ -136,6 +136,17 @@ describe('Manta cloud session store', () => {
     }
   })
 
+  it('bounds memory-session cache churn', async () => {
+    const store = await loadSessionStore()
+    const session = makeSession()
+
+    for (let index = 0; index < store.MAX_MEMORY_CLOUD_SESSIONS + 4; index += 1) {
+      store.saveMantaCloudSession(`profile-${index}`, userDataPath, session)
+    }
+
+    expect(store.getMantaCloudMemorySessionCountForTests()).toBe(store.MAX_MEMORY_CLOUD_SESSIONS)
+  })
+
   it('writes explicit dev plaintext only when the dev escape hatch is enabled', async () => {
     safeStorageMock.isEncryptionAvailable.mockReturnValue(false)
     vi.stubEnv('MANTA_CLOUD_ALLOW_PLAINTEXT_SESSION', '1')

@@ -31,9 +31,8 @@ const TARGETS = {
   }
 }
 
-// Exported for generate-runtime-required-english-catalog.mjs, which upstream
-// added against a single-target version of this script. Derived from TARGETS so
-// the two cannot drift.
+// Kept as upstream's export (the default scan roots); derived from TARGETS so the
+// two cannot drift.
 export const LOCALIZATION_SOURCE_ROOTS = TARGETS.renderer.sourceRoots
 
 function normalizePath(root, filePath) {
@@ -469,7 +468,31 @@ async function reportPluginCatalog(root, catalog, pluginCatalogPath) {
   return interpolationMismatches.length > 0 ? 1 : 0
 }
 
-export async function main(root = process.cwd(), options = parseArgs(process.argv.slice(2))) {
+// Defaults to the desktop roots so single-target callers keep upstream's contract.
+export async function collectLocalizationReferences(
+  root,
+  sourceRootPaths = LOCALIZATION_SOURCE_ROOTS
+) {
+  const sourceRoots = sourceRootPaths.map((sourceRoot) => path.join(root, sourceRoot))
+  const references = []
+
+  for (const sourceRoot of sourceRoots) {
+    const files = await collectSourceFiles(root, sourceRoot)
+    for (const filePath of files) {
+      references.push(
+        ...collectLocalizationKeyReferences(filePath, await fs.readFile(filePath, 'utf8'), root)
+      )
+    }
+  }
+
+  return references
+}
+
+export async function main(
+  root = process.cwd(),
+  options = parseArgs(process.argv.slice(2)),
+  sharedReferences
+) {
   const target = TARGETS[options.target ?? 'renderer']
   if (!target) {
     console.error(
@@ -495,17 +518,9 @@ export async function main(root = process.cwd(), options = parseArgs(process.arg
     return 0
   }
   let catalogKeys = withPluralBaseKeys(flattenCatalogKeys(catalog))
-  const sourceRoots = target.sourceRoots.map((sourceRoot) => path.join(root, sourceRoot))
-  const references = []
-
-  for (const sourceRoot of sourceRoots) {
-    const files = await collectSourceFiles(root, sourceRoot)
-    for (const filePath of files) {
-      references.push(
-        ...collectLocalizationKeyReferences(filePath, await fs.readFile(filePath, 'utf8'), root)
-      )
-    }
-  }
+  // Shared references come from a renderer-target scan (verify-localization-catalogs.mjs).
+  const references =
+    sharedReferences ?? (await collectLocalizationReferences(root, target.sourceRoots))
 
   const missing = references.filter((reference) => !catalogKeys.has(reference.key))
   if (missing.length > 0) {

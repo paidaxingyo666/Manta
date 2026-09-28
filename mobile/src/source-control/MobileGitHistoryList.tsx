@@ -5,6 +5,7 @@ import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import type { ConnectionState } from '../transport/types'
 import type { RpcClient } from '../transport/rpc-client'
 import { useForceReconnect } from '../transport/client-context'
+import { connectionRetryAction } from '../transport/connection-retry-action'
 import { gitCommitCompareRead } from './mobile-git-read-operations'
 import type { MobileGitChangedFile } from './git-compare-reply-schema'
 import {
@@ -81,18 +82,23 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
     }
   }, [client, connState, reloadNonce, refreshNonce, worktreeId])
 
-  const retry = useCallback(() => {
-    setError(null)
-    // Why: retrying the fetch is useless while the transport's reconnect loop
-    // is parked at its backoff cap — revive the connection instead (mirrors
-    // MobileSourceControlPanel / issue #5049). The load effect re-runs via
-    // connState once the fresh client connects.
-    if (connState !== 'connected' && hostId) {
-      void forceReconnect(hostId)
-      return
-    }
-    setReloadNonce((n) => n + 1)
-  }, [connState, forceReconnect, hostId])
+  // Why: retrying the fetch is useless while the transport's reconnect loop
+  // is parked at its backoff cap — revive the connection instead (mirrors
+  // MobileSourceControlPanel / issue #5049). The load effect re-runs via
+  // connState once the fresh client connects.
+  const retryAction = connectionRetryAction({
+    hostId,
+    needsReconnect: connState !== 'connected',
+    forceReconnect,
+    reload: () => setReloadNonce((n) => n + 1)
+  })
+  const retry =
+    retryAction === null
+      ? null
+      : () => {
+          setError(null)
+          retryAction()
+        }
 
   const toggleCommit = useCallback((row: MobileCommitRow) => {
     setExpanded((current) => (current === row.id ? null : row.id))
@@ -201,11 +207,13 @@ export const MobileGitHistoryList = memo(function MobileGitHistoryList({
             ? translate('m.MobileGitHistoryList.932946bcf5', 'Waiting for desktop...')
             : view.message}
         </Text>
-        <Pressable style={styles.retryButton} onPress={retry} accessibilityLabel="Retry">
-          <Text style={styles.retryText}>
-            {translate('m.MobileGitHistoryList.41bdc2a206', 'Retry')}
-          </Text>
-        </Pressable>
+        {retry ? (
+          <Pressable style={styles.retryButton} onPress={retry} accessibilityLabel="Retry">
+            <Text style={styles.retryText}>
+              {translate('m.MobileGitHistoryList.41bdc2a206', 'Retry')}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
     )
   }

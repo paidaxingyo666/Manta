@@ -8,6 +8,14 @@ const fakes = vi.hoisted(() => ({
     return { rows: [], rowCount: 0 }
   }),
   release: vi.fn(),
+  // A real pooled client is an EventEmitter, and the acquire path attaches an
+  // `error` listener to it before handing it to the caller.
+  client: () => ({
+    query: fakes.query,
+    release: fakes.release,
+    on: vi.fn(),
+    removeListener: vi.fn()
+  }),
   end: vi.fn(async () => undefined)
 }))
 
@@ -19,7 +27,7 @@ vi.mock('pg', () => ({
       waitingCount = 0
       end = fakes.end
       on = vi.fn()
-      connect = vi.fn(async () => ({ query: fakes.query, release: fakes.release }))
+      connect = vi.fn(async () => fakes.client())
     }
   }
 }))
@@ -315,6 +323,30 @@ describe('bounded cell-inventory lock wait', () => {
     // metric as affected-requests would overstate it threefold.
     expect(counts.cellInventoryLockTimeouts).toBe(3)
     expect(counts.cellInventoryLockUnavailable).toBe(0)
+    await database.close()
+  })
+
+  // Why: after the rehome commit stopped locking the inventory, its only hold is
+  // one row. The alert reads the shared max, so the site label is what names it.
+  it('records a target-row hold under its own site without appending a lock clause', async () => {
+    const database = await openFakePostgres()
+    const statement = 'WITH target AS (SELECT 1 FOR UPDATE NOWAIT) UPDATE relay_cells SET x = 1'
+
+    await database.transaction(async (transaction) => {
+      await transaction.queryLocked(statement, [], {
+        failIfUnavailable: true,
+        lockClauseInStatement: true,
+        measureHoldMs: true,
+        holdSite: 'rehome-target-row'
+      })
+    })
+
+    expect(fakes.statements).toContain(statement)
+    expect(consumeRelayCellInventoryHold(database)).toMatchObject({
+      cellInventoryHolds: 1,
+      cellInventoryHoldMaxSite: 'rehome-target-row',
+      rehomeTargetRowHolds: 1
+    })
     await database.close()
   })
 

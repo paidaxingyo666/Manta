@@ -37,7 +37,8 @@ export function resolvePiAgentSourceDir(
   }
 
   const overlayKey = kind === 'omp' ? 'MANTA_OMP_CODING_AGENT_DIR' : 'MANTA_PI_CODING_AGENT_DIR'
-  const otherOverlayKey = kind === 'omp' ? 'MANTA_PI_CODING_AGENT_DIR' : 'MANTA_OMP_CODING_AGENT_DIR'
+  const otherOverlayKey =
+    kind === 'omp' ? 'MANTA_PI_CODING_AGENT_DIR' : 'MANTA_OMP_CODING_AGENT_DIR'
 
   const publicDir = readEnvWithProcessFallback(baseEnv, primaryKey)
   const ownOverlayDir = readEnvWithProcessFallback(baseEnv, overlayKey)
@@ -130,7 +131,12 @@ export function getInheritedAgentHookEnvKeysToDelete(
 ): string[] {
   const env = spawnEnv ?? {}
   // Why: providers merge process.env after cleanup; delete stale hook keys without dropping fresh coordinates buildPtyHostEnv set.
-  return AGENT_HOOK_RUNTIME_ENV_KEYS.filter((key) => env[key] === undefined)
+  return [
+    ...AGENT_HOOK_RUNTIME_ENV_KEYS,
+    'MANTA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_CONFIG_DIR',
+    'MANTA_OPENCODE_SOURCE_CONFIG_DIR'
+  ].filter((key) => env[key] === undefined)
 }
 
 export function getInheritedClaudeSessionStampEnvKeysToDelete(
@@ -142,25 +148,7 @@ export function getInheritedClaudeSessionStampEnvKeysToDelete(
   return CLAUDE_CHILD_SESSION_STAMP_ENV_KEYS.filter((key) => env[key] === undefined)
 }
 
-// Why: a nested terminal can inherit prior OpenCode/Pi/OMP overlay env; restore the user's recorded source dir, else strip only Manta-owned values.
-export function restoreOrStripOverlayEnv(
-  baseEnv: Record<string, string>,
-  keys: {
-    primary: string
-    overlay: string
-    source: string
-  }
-): void {
-  const sourceValue = baseEnv[keys.source] ?? process.env[keys.source]
-  const overlayValue = baseEnv[keys.overlay] ?? process.env[keys.overlay]
-  if (sourceValue) {
-    baseEnv[keys.primary] = sourceValue
-  } else if (overlayValue && baseEnv[keys.primary] === overlayValue) {
-    delete baseEnv[keys.primary]
-  }
-  delete baseEnv[keys.overlay]
-  delete baseEnv[keys.source]
-}
+export { restoreOrStripOverlayEnv } from '../../../../shared/agent-overlay-env'
 
 export function isMimoLaunchCommand(launchCommand: string | undefined): boolean {
   const binary = getCommandTokenPathBasename(getFirstCommandToken(launchCommand ?? ''))
@@ -185,14 +173,17 @@ export function resolveMimocodeSourceHome(baseEnv: Record<string, string>): stri
 export function resolveOpenCodeSourceConfigDir(
   baseEnv: Record<string, string>
 ): string | undefined {
+  const configDir = baseEnv.OPENCODE_CONFIG_DIR ?? process.env.OPENCODE_CONFIG_DIR
+  const mantaConfigDir = baseEnv.MANTA_OPENCODE_CONFIG_DIR ?? process.env.MANTA_OPENCODE_CONFIG_DIR
+  if (configDir && mantaConfigDir && configDir !== mantaConfigDir) {
+    return configDir
+  }
   const sourceDir =
     baseEnv.MANTA_OPENCODE_SOURCE_CONFIG_DIR ?? process.env.MANTA_OPENCODE_SOURCE_CONFIG_DIR
   if (sourceDir) {
     return sourceDir
   }
 
-  const configDir = baseEnv.OPENCODE_CONFIG_DIR ?? process.env.OPENCODE_CONFIG_DIR
-  const mantaConfigDir = baseEnv.MANTA_OPENCODE_CONFIG_DIR ?? process.env.MANTA_OPENCODE_CONFIG_DIR
   // Why: with no recorded source dir, an inherited OPENCODE_CONFIG_DIR is Manta-owned, not user config; treating it as user config makes child Mantas mirror the hook dir.
   if (configDir && mantaConfigDir && configDir === mantaConfigDir) {
     return undefined

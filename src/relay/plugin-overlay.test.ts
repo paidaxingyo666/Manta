@@ -54,6 +54,26 @@ describe('PluginOverlayManager', () => {
     expect(existsSync(join(dir!, 'plugins', 'manta-opencode-status.js'))).toBe(false)
   })
 
+  it('installs OpenCode plugins in the canonical XDG config roots', () => {
+    manager.setSources({
+      opencodePluginSource: 'v1 plugin',
+      opencode2PluginSource: 'v2 plugin'
+    })
+
+    expect(
+      manager.installOpenCodePlugin('opencode', { XDG_CONFIG_HOME: join(homeDir, 'xdg') })
+    ).toBe(true)
+    expect(
+      manager.installOpenCodePlugin('opencode2', { XDG_CONFIG_HOME: join(homeDir, 'xdg') })
+    ).toBe(true)
+    expect(
+      readFileSync(join(homeDir, 'xdg', 'opencode', 'plugins', 'manta-opencode-status.js'), 'utf8')
+    ).toBe('v1 plugin')
+    expect(
+      readFileSync(join(homeDir, 'xdg', 'opencode', 'plugins', 'orca-opencode2-status.js'), 'utf8')
+    ).toBe('v2 plugin')
+  })
+
   it('mirrors a preexisting remote OpenCode config dir before adding Manta plugin', () => {
     const userConfigDir = join(homeDir, 'company-opencode')
     mkdirSync(join(userConfigDir, 'plugins'), { recursive: true })
@@ -74,6 +94,28 @@ describe('PluginOverlayManager', () => {
       'user same-name'
     )
   })
+
+  // Why: the remote/guest config root keeps whichever Manta plugin files earlier
+  // launches installed. Mirroring the other major's file into this overlay would
+  // hand the agent a plugin whose variant gate registers nothing.
+  it.each([
+    { agent: 'opencode', stale: 'orca-opencode2-status.js', own: 'manta-opencode-status.js' },
+    { agent: 'opencode2', stale: 'manta-opencode-status.js', own: 'orca-opencode2-status.js' }
+  ] as const)(
+    "keeps the other major's stale plugin out of the $agent overlay",
+    ({ agent, stale, own }) => {
+      const userConfigDir = join(homeDir, '.config', 'opencode')
+      mkdirSync(join(userConfigDir, 'plugins'), { recursive: true })
+      writeFileSync(join(userConfigDir, 'plugins', stale), 'stale other-major plugin')
+      writeFileSync(join(userConfigDir, 'plugins', 'user-plugin.js'), 'user plugin')
+
+      manager.setSources({ opencodePluginSource: 'v1', opencode2PluginSource: 'v2' })
+      const dir = manager.materializeOpenCode('tab-1:0', userConfigDir, agent)
+
+      expect(dir).not.toBeNull()
+      expect(readdirSync(join(dir!, 'plugins')).sort()).toEqual([own, 'user-plugin.js'].sort())
+    }
+  )
 
   it('does not override a missing preexisting OpenCode config dir', () => {
     manager.setSources({ opencodePluginSource: 'manta plugin' })

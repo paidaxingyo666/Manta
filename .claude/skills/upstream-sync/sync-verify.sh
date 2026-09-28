@@ -10,8 +10,8 @@
 #      max-lines suppression the ratchet then failed on.
 #   3. regenerate every generated artifact — skill manifest, max-lines baseline,
 #      the localizer — or the gates fail on stale bytes.
-#   4. root gates, ALL of them: `pnpm lint` is fifteen commands and oxlint is
-#      the first; when it exits non-zero the other fourteen never run.
+#   4. root gates, ALL of them: `pnpm lint` is nineteen commands and oxlint is
+#      the first; chained, one failure hides the rest, so each runs alone.
 #   5. mobile gates, separately: mobile has its own oxlint, oxfmt config and
 #      lockfile, and the root commands touch none of them.
 #
@@ -22,6 +22,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 SINCE="${1:-main}"
 FAIL=0
+# AGENTS.md: tests never reveal a window; some suites assert this is set and fail every case otherwise.
+export MANTA_BACKGROUND_LAUNCH=1
 step() { printf '\n\033[1m== %s\033[0m\n' "$1"; }
 fail() { printf '\033[31m✗ %s\033[0m\n' "$1"; FAIL=1; }
 ok()   { printf '\033[32m✓ %s\033[0m\n' "$1"; }
@@ -95,7 +97,29 @@ fi
 step "5/7 root gates"
 pnpm install --frozen-lockfile >/dev/null 2>&1 && ok "pnpm install --frozen-lockfile" || fail "root lockfile is out of date (pnpm install --lockfile-only)"
 pnpm tc >/tmp/sync-tc.log 2>&1 && ok "pnpm tc" || { fail "pnpm tc — $(grep -c 'error TS' /tmp/sync-tc.log) error(s), see /tmp/sync-tc.log"; }
-pnpm lint >/tmp/sync-lint.log 2>&1 && ok "pnpm lint (all 15 gates)" || { fail "pnpm lint — see /tmp/sync-lint.log"; grep -E ': error |newly bypass|unlocalized' /tmp/sync-lint.log | head -8 | sed 's/^/    /'; }
+# Each `pnpm lint` gate on its own: chained with &&, the first failure hides every later one.
+: >/tmp/sync-lint.log
+LINT_GATES=$(node -e 'console.log(require("./package.json").scripts.lint.split(" && ").join("\n"))')
+LINT_FAILED=0
+while IFS= read -r gate; do
+  [ -n "$gate" ] || continue
+  log="/tmp/sync-lint-$(printf '%s' "$gate" | tr -c 'a-zA-Z0-9' '-' | cut -c1-60).log"
+  if PATH="$PWD/node_modules/.bin:$PATH" sh -c "$gate" >"$log" 2>&1; then cat "$log" >>/tmp/sync-lint.log; continue; fi
+  cat "$log" >>/tmp/sync-lint.log
+  # CI runs the native check before installing mobile deps, so mobile/tsconfig's `extends` does not
+  # resolve and no mobile import is followed; a local install makes it see mobile cycles CI never will.
+  if [ "$gate" = "pnpm run audit:code-quality:native" ] \
+    && ! grep -E ': (warning|error) ' "$log" | grep -vqE '^mobile/.*import\(no-cycle\)'; then
+    printf '  \033[33m!\033[0m %s — only mobile import cycles, which CI cannot see (it lints before installing mobile deps)\n' "$gate"
+    continue
+  fi
+  LINT_FAILED=1
+  fail "$gate — see $log"
+  grep -E ': (error|warning) |newly bypass|unlocalized|✗|Error' "$log" | head -6 | sed 's/^/    /'
+done <<EOF_GATES
+$LINT_GATES
+EOF_GATES
+[ "$LINT_FAILED" -eq 0 ] && ok "pnpm lint (every gate, run one by one)"
 npx oxfmt --check $(git diff --name-only "$SINCE"...HEAD -- src config tests | grep -E '\.(ts|tsx|mjs|js)$' | while read -r f; do [ -f "$f" ] && echo "$f"; done) >/tmp/sync-fmt.log 2>&1 \
   && ok "oxfmt --check (files this sync touched)" || fail "oxfmt — run oxfmt on the files in /tmp/sync-fmt.log, NOT \`pnpm format\`"
 

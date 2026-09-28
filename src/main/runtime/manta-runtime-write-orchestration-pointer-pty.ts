@@ -28,7 +28,6 @@ export class MantaRuntimeWithWriteOrchestrationPointerPty extends MantaRuntimeWi
     return writeOrchestrationPointerWithSettlement({
       ptyId,
       data,
-      admissionByPtyId: this.orchestrationPointerAdmissionByPtyId,
       controller: this.ptyController
     })
   }

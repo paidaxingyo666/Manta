@@ -36,4 +36,47 @@ describe.skipIf(process.platform === 'win32')('default terminal shell', () => {
     }))
     expect(plan).toMatchObject({ shellPath: '/bin/zsh' })
   })
+
+  it('uses explicit interactive args for the configured default shell', () => {
+    const plan = createLocalPtyLaunchPlan(
+      { cwd: '/tmp', cols: 80, rows: 24, terminalShellArgs: ['--rcfile', '/tmp/manta rc'] },
+      () => ({ getDefaultShell: () => '/bin/bash' })
+    )
+    expect(plan).toMatchObject({ shellPath: '/bin/bash', shellArgs: ['--rcfile', '/tmp/manta rc'] })
+  })
+
+  it('allows an explicit empty argument list for wrapper shells', () => {
+    const plan = createLocalPtyLaunchPlan(
+      { cwd: '/tmp', cols: 80, rows: 24, terminalShellArgs: [] },
+      () => ({ getDefaultShell: () => '/bin/zsh' })
+    )
+    expect(plan).toMatchObject({ shellArgs: [] })
+  })
+
+  it('applies profile args when the shell path was resolved from the setting', () => {
+    // Why: the spawn path fills shellOverride from terminalDefaultShell, so a
+    // populated override is the normal profile launch, not a one-off pick.
+    const plan = createLocalPtyLaunchPlan(
+      { cwd: '/tmp', cols: 80, rows: 24, shellOverride: '/bin/bash', terminalShellArgs: [] },
+      () => ({ getDefaultShell: () => '/bin/bash' })
+    )
+    expect(plan).toMatchObject({ shellPath: '/bin/bash', shellArgs: [] })
+  })
+
+  it.each([{ command: 'codex' }, { launchAgent: 'codex' as const }])(
+    'keeps controlled login args for non-profile launches (%o)',
+    (overrides) => {
+      const plan = createLocalPtyLaunchPlan(
+        {
+          cwd: '/tmp',
+          cols: 80,
+          rows: 24,
+          terminalShellArgs: ['--rcfile', '/tmp/manta'],
+          ...overrides
+        },
+        () => ({ getDefaultShell: () => '/bin/zsh' })
+      )
+      expect('shellArgs' in plan && plan.shellArgs).toEqual(['-l'])
+    }
+  )
 })

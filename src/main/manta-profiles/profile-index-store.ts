@@ -9,7 +9,6 @@ import {
 import { randomUUID } from 'node:crypto'
 import { dirname } from 'node:path'
 import { bestEffortFsyncDirectorySync, fsyncFileSync } from '../../shared/secure-file'
-import type { GlobalSettings } from '../../shared/global-settings-types'
 import {
   createDefaultLocalMantaProfile,
   DEFAULT_LOCAL_MANTA_PROFILE_ID,
@@ -22,23 +21,24 @@ import {
   type MantaProfileSummary
 } from '../../shared/manta-profiles'
 import {
-  getMantaProfileBrowserSessionMetaFile,
   getMantaProfileDataFile,
   getMantaProfileDirectory,
   getMantaProfileIndexPath,
-  getProfileUserDataPath,
-  LEGACY_BACKUP_COUNT,
-  legacyBackupPath,
-  legacyBrowserSessionMetaPath,
-  legacyDataFilePath,
-  profileBackupPath
+  getMantaProfileStateDatabaseFile,
+  hasOrcaProfileStateDatabase,
+  getProfileUserDataPath
 } from './profile-storage-paths'
+import { copyLegacyStateToProfile } from './profile-legacy-state-import'
+import { profileStateJsonExportPaths } from '../persistence/profile-state/legacy-json/profile-state-export-path'
+import { profileStateDatabaseBackups } from '../persistence/profile-state/profile-state-backup-path'
 
 export {
   getMantaProfileBrowserSessionMetaFile,
   getMantaProfileDataFile,
   getMantaProfileDirectory,
   getMantaProfileIndexPath,
+  getMantaProfileStateDatabaseFile,
+  hasOrcaProfileStateDatabase,
   getMantaProfilesDirectory,
   initMantaProfilePaths
 } from './profile-storage-paths'
@@ -47,6 +47,7 @@ export type ActiveMantaProfileState = {
   index: MantaProfileIndex
   profile: MantaProfileSummary
   dataFile: string
+  stateDatabaseFile: string
   profileDirectory: string
 }
 
@@ -118,6 +119,14 @@ export function readProfileIndex(indexPath: string): MantaProfileIndex | null {
   return readProfileIndexFile(indexPath) ?? readProfileIndexFile(`${indexPath}.bak`)
 }
 
+function readExistingProfileIndex(indexPath: string): MantaProfileIndex | null {
+  const index = readProfileIndex(indexPath)
+  if (!index && (existsSync(indexPath) || existsSync(`${indexPath}.bak`))) {
+    throw new Error(`Could not read active profile index ${indexPath}`)
+  }
+  return index
+}
+
 export function writeProfileIndex(indexPath: string, index: MantaProfileIndex): void {
   mkdirSync(dirname(indexPath), { recursive: true })
   // Why: only a still-parseable current index may refresh the backup;
@@ -136,51 +145,7 @@ export function writeProfileIndex(indexPath: string, index: MantaProfileIndex): 
   bestEffortFsyncDirectorySync(dirname(indexPath))
 }
 
-function copyIfPresent(source: string, target: string): void {
-  if (!existsSync(source) || existsSync(target)) {
-    return
-  }
-  mkdirSync(dirname(target), { recursive: true })
-  // Why: tmp+rename so a crash mid-copy cannot leave a truncated target that
-  // the exists() guard above would then treat as a completed migration.
-  const tmpTarget = `${target}.tmp`
-  copyFileSync(source, tmpTarget)
-  renameSync(tmpTarget, target)
-}
-
-function copyLegacyStateToProfile(userDataPath: string, profileId: string): void {
-  const profileDataFile = getMantaProfileDataFile(profileId, userDataPath)
-  copyIfPresent(legacyDataFilePath(userDataPath), profileDataFile)
-  copyIfPresent(
-    legacyBrowserSessionMetaPath(userDataPath),
-    getMantaProfileBrowserSessionMetaFile(profileId, userDataPath)
-  )
-  for (let i = 0; i < LEGACY_BACKUP_COUNT; i++) {
-    copyIfPresent(legacyBackupPath(userDataPath, i), profileBackupPath(profileDataFile, i))
-  }
-}
-
-// Why: a brand-new profile has no data file, which the telemetry cohort
-// migration reads as a fresh install and defaults to opted-in. Copying the
-// active profile's consent block keeps an opted-out user opted out (and keeps
-// one installId per install) when they create additional profiles.
-export function seedNewMantaProfileTelemetryConsent(
-  profileId: string,
-  telemetry: GlobalSettings['telemetry'],
-  userDataPath = getProfileUserDataPath()
-): void {
-  if (!telemetry) {
-    return
-  }
-  const dataFile = getMantaProfileDataFile(profileId, userDataPath)
-  if (existsSync(dataFile)) {
-    return
-  }
-  mkdirSync(dirname(dataFile), { recursive: true })
-  const tmpPath = `${dataFile}.tmp`
-  writeFileSync(tmpPath, JSON.stringify({ settings: { telemetry } }, null, 2), 'utf-8')
-  renameSync(tmpPath, dataFile)
-}
+export { seedNewMantaProfileTelemetryConsent } from './profile-telemetry-consent-seed'
 
 function createInitialProfileIndex(now = Date.now()): MantaProfileIndex {
   const profile = createDefaultLocalMantaProfile(now)
@@ -193,7 +158,7 @@ function createInitialProfileIndex(now = Date.now()): MantaProfileIndex {
 
 export function loadOrCreateProfileIndex(userDataPath: string): MantaProfileIndex {
   const indexPath = getMantaProfileIndexPath(userDataPath)
-  const index = existsSync(indexPath) ? readProfileIndex(indexPath) : null
+  const index = readExistingProfileIndex(indexPath)
   if (index) {
     return index
   }
@@ -214,8 +179,8 @@ export function ensureActiveMantaProfile(
   userDataPath = getProfileUserDataPath()
 ): ActiveMantaProfileState {
   const indexPath = getMantaProfileIndexPath(userDataPath)
-  let index = existsSync(indexPath) ? readProfileIndex(indexPath) : null
-  let shouldWriteIndex = false
+  let index = readExistingProfileIndex(indexPath)
+  let shouldWriteIndex = !existsSync(indexPath)
 
   if (!index) {
     index = createInitialProfileIndex()
@@ -230,7 +195,22 @@ export function ensureActiveMantaProfile(
 
   const profileDirectory = getMantaProfileDirectory(activeProfile.id, userDataPath)
   mkdirSync(profileDirectory, { recursive: true })
-  if (activeProfile.id === DEFAULT_LOCAL_MANTA_PROFILE_ID) {
+  const profileDatabaseFile = getMantaProfileStateDatabaseFile(activeProfile.id, userDataPath)
+  const profileDataFile = getMantaProfileDataFile(activeProfile.id, userDataPath)
+  let hasRetainedProfileStateExport = false
+  try {
+    hasRetainedProfileStateExport =
+      profileStateJsonExportPaths(profileDataFile).length > 0 ||
+      profileStateDatabaseBackups(profileDatabaseFile).length > 0
+  } catch {
+    // An unreadable profile directory must never trigger a fallback copy of legacy state.
+    hasRetainedProfileStateExport = true
+  }
+  if (
+    activeProfile.id === DEFAULT_LOCAL_MANTA_PROFILE_ID &&
+    !hasOrcaProfileStateDatabase(activeProfile.id, userDataPath) &&
+    !hasRetainedProfileStateExport
+  ) {
     copyLegacyStateToProfile(userDataPath, activeProfile.id)
   }
 
@@ -241,7 +221,8 @@ export function ensureActiveMantaProfile(
   return {
     index,
     profile: activeProfile,
-    dataFile: getMantaProfileDataFile(activeProfile.id, userDataPath),
+    dataFile: profileDataFile,
+    stateDatabaseFile: profileDatabaseFile,
     profileDirectory
   }
 }

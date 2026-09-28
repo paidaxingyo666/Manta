@@ -1,9 +1,23 @@
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getMantaElectronLaunchArgs } from './electron-launch-args'
+import { getElectronIsolatedKeychainArgs, getMantaElectronLaunchArgs } from './electron-launch-args'
 
 describe('getMantaElectronLaunchArgs', () => {
   afterEach(() => vi.unstubAllGlobals())
+
+  it.each(['darwin', 'linux', 'win32'])(
+    'isolates packaged and source test keychains on %s',
+    (platform) => {
+      vi.stubGlobal('process', { ...process, platform })
+      const args = getElectronIsolatedKeychainArgs()
+      expect(args).toEqual(
+        platform === 'darwin' ? ['--password-store=basic', '--use-mock-keychain'] : []
+      )
+      expect(getMantaElectronLaunchArgs(join('manta', 'out', 'main', 'index.js'), false)).toEqual(
+        expect.arrayContaining(args)
+      )
+    }
+  )
 
   it.each([
     ['linux', 'true', true, true],

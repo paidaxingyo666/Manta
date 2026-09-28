@@ -50,7 +50,11 @@ export const SKILLS_CLI_AGENT_KEY_BY_TUI_AGENT = {
   devin: 'devin',
   ante: null,
   // Why: Manta detects trae by `traecli`, an alias only TRAE CN ships.
-  trae: 'trae-cn'
+  trae: 'trae-cn',
+  muse: null,
+  zcode: 'zcode',
+  // Why: DSH ships skills as Cordis plugins, not a `skills --agent` target.
+  dsh: null
 } satisfies Record<TuiAgent, string | null>
 
 /**

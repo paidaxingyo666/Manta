@@ -11,7 +11,7 @@ export const SAME_CAP_CELLS = [
   'production-gce-c13', 'production-gce-c14', 'production-gce-c15', 'production-gce-c16',
   'production-gce-c19', 'production-gce-c20', 'production-gce-c21', 'production-gce-c22',
   'production-gce-c23', 'production-gce-c24', 'production-gce-c25', 'production-gce-c26',
-  'production-gce-c27', 'production-gce-c28', 'production-gce-c29',
+  'production-gce-c27', 'production-gce-c28', 'production-gce-c29', 'production-gce-c30',
   ...SAME_CAP_MIGRATION_ONLY_CELLS
 ]
 
@@ -34,7 +34,7 @@ function cells(value) {
   const parsed = value.split(',').map((cell) => cell.trim()).filter(Boolean)
   if (
     parsed.length < 1 ||
-    parsed.length > 4 ||
+    parsed.length > 10 ||
     new Set(parsed).size !== parsed.length ||
     parsed.some((cell) => !SAME_CAP_CELLS.includes(cell))
   ) throw new Error('same-cap wave cells are invalid')
@@ -76,8 +76,9 @@ export function validateSameCapWave(input) {
   if (input.mode === 'canary-apply' && selected.length !== 1) {
     throw new Error('canary mode requires exactly one cell')
   }
-  if (input.mode === 'batch-apply' && (selected.length < 2 || selected.length > 4)) {
-    throw new Error('batch mode requires two to four cells')
+  // Ten is the wave workflow's statically declared serial cell-job chain, cell_1..cell_10.
+  if (input.mode === 'batch-apply' && (selected.length < 2 || selected.length > 10)) {
+    throw new Error('batch mode requires two to ten cells')
   }
   // Later waves expect the selector to advance by exactly 2 per predecessor,
   // which a resumed rollback cell (isolate skipped, +1) violates.

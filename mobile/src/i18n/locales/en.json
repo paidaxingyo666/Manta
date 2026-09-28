@@ -41,6 +41,16 @@
           "e40eea0afb": "Host client recovered",
           "a92a6b03d4": "Host client open failed"
         }
+      },
+      "screen": {
+        "header": {
+          "c3f52b3427": "PR",
+          "8379065e14": "Repo",
+          "ae01b0eaa5": "Status",
+          "b1a9a55bbb": "Group",
+          "a70d48d09a": "Filter",
+          "36278ad08f": "Reconnect"
+        }
       }
     },
     "mobile": {
@@ -301,6 +311,12 @@
               "e1ab7ffa4b": "Host",
               "75615fd996": "Bundle"
             }
+          },
+          "reply": {
+            "schemas": {
+              "ec97bc1e04": "buildId must be the content hash of the asset list",
+              "a4b34ca918": "assets sum to more than the contract total"
+            }
           }
         },
         "shell": {
@@ -308,6 +324,13 @@
             "row": {
               "207f2d9a20": "Open hybrid shell for the first paired host",
               "186695e057": "Hybrid shell (dev)"
+            }
+          },
+          "update": {
+            "failure": {
+              "row": {
+                "baaf70a40f": "Workspace updates"
+              }
             }
           }
         }
@@ -603,6 +626,16 @@
               "900b1074e9": "Couldn't clear terminal",
               "3bbf593a66": "Terminal cleared"
             }
+          },
+          "markdown": {
+            "actions": {
+              "9ce411065d": "Couldn't copy"
+            }
+          }
+        },
+        "browser": {
+          "commands": {
+            "42f3af2dc3": "That answer did not reach the page."
           }
         }
       },
@@ -1015,7 +1048,12 @@
     },
     "MobileHtmlPreview": {
       "1dd27d1956": "Source",
-      "6ef51f0562": "Preview"
+      "6ef51f0562": "Preview",
+      "web": {
+        "d6b4eeb035": "HTML preview",
+        "d2946f80c8": "Source",
+        "7880175474": "Preview"
+      }
     },
     "MobileMarkdown": {
       "cb032ab166": "[x]",
@@ -1341,7 +1379,10 @@
       "aa920b1281": "H3",
       "4f4fb498bc": "H2",
       "4e4c3e5c6e": "H1",
-      "dcf876bee3": "Body"
+      "dcf876bee3": "Body",
+      "web": {
+        "6fe51deed4": "https://"
+      }
     },
     "MobileHostCard": {
       "ed956cf562": "Unlock your phone, then tap to retry",
@@ -1714,7 +1755,8 @@
       "2b2b56b6cb": "Change the display name or connection address. Address edits only switch where this phone connects — they do not re-pair. Use this when the same desktop is reachable at a different IP (for example home LAN vs Tailscale).",
       "2d2dcd79c4": "Go back",
       "38e846c36f": "Save",
-      "34a2121e56": "Edit host"
+      "34a2121e56": "Edit host",
+      "9b5b6efea8": "Change the display name or connection address. Leave the name empty to use the name the desktop reports. Address edits only switch where this phone connects — they do not re-pair. Use this when the same desktop is reachable at a different IP (for example home LAN vs Tailscale)."
     },
     "tasks": {
       "1262746690": "Remote repository",
@@ -2227,6 +2269,25 @@
       "3506ff8c3d": "Try again",
       "b735c4e986": "{{value0}}/{{value1}} files · {{value2}}/{{value3}} bytes",
       "be7789dffb": "Downloading workspace"
+    },
+    "TerminalWebView": {
+      "web": {
+        "cbc943bb24": "terminal document failed to start - {{value0}}"
+      }
+    },
+    "PageRouteUnavailableScreen": {
+      "607a017fca": "This workspace screen is not available on this host.",
+      "99e9a0e257": "Back to workspaces",
+      "14da6523d7": "Back to hosts"
+    },
+    "AuthFailedBannerActions": {
+      "13bc79f5fd": "Remove",
+      "b979c33c30": "Re-pair",
+      "2107b5c042": "Retry",
+      "web": {
+        "4e38949c67": "Reconnect or remove this host from the Manta app.",
+        "cc4297959e": "Re-pair"
+      }
     }
   },
   "mobile": {

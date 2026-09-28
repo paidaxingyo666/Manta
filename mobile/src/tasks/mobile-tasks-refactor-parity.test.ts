@@ -111,7 +111,9 @@ const hash = (parts: string[] | string): string =>
 const SCREEN_RPC_SCREEN_HOOKS = '07c038496105f72f648df9f09850e4d4e0c1b6dc9a64751357bc4920c8bf87c1'
 const PRE_REFACTOR_DIFF_HOOKS = '93c7189b32bed8456cc51814fffa8ce80cf62011ef968a9d53ddec2b9686f58f'
 const SCREEN_RPC_STATEMENTS = 'b40186ac869b82eb984d4eeda66d1572b3c5b1f9fc1dd791e3d3ff9bc1219479'
-const MAIN_REBASED_DECLARATIONS = 'f5cc4723699775bac7968eccb22b083c8053bd2f329fc24ff29e97aa742b422d'
+// Saved Linear selections now accept unknown persisted values; reconciliation tests cover them.
+// Upstream's value is ec77d347…; this one adds the fork's translate() wrappers on top.
+const MAIN_REBASED_DECLARATIONS = '24fdf818abf07973d654c9dd35b7f818db9832b5e4484792bfe0fad7dd8b5c90'
 const SCREEN_RPC_SEMANTICS = '9142d7202727cf410cb31b36480066961874061d3ce51a73af0d97087f956687'
 const PRE_REFACTOR_STYLES = '1db6af69c791d9963928541ad5310942fcbda6d984b422c90b6eb92b6816579a'
 const SCREEN_RPC_RENDER_TREE = '17624da3487244d1470acc889747d044d986c1e2c9737ce5151c7fb01841d7c0'

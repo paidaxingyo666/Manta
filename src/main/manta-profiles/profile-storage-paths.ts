@@ -1,12 +1,17 @@
 import { getAppEnvironment } from '../../shared/app-environment'
+import {
+  getMantaProfileDataFile as getSharedOrcaProfileDataFile,
+  getMantaProfileStateDatabaseFile as getSharedOrcaProfileStateDatabaseFile
+} from '../../shared/profile-state-storage-paths'
+import { hasProfileStateDatabaseFiles } from '../persistence/profile-state/profile-state-storage-classification'
 import { join } from 'node:path'
 
 const LEGACY_DATA_FILE_NAME = 'manta-data.json'
 const LEGACY_BROWSER_SESSION_META_FILE_NAME = 'browser-session-meta.json'
 const PROFILE_INDEX_FILE_NAME = 'manta-profile-index.json'
-const PROFILE_DATA_FILE_NAME = 'manta-data.json'
 const PROFILE_BROWSER_SESSION_META_FILE_NAME = 'browser-session-meta.json'
 const PROFILE_DIRECTORY_NAME = 'profiles'
+const PROFILE_MOVE_INTENT_DIRECTORY_NAME = 'profile-move-intents'
 
 export const LEGACY_BACKUP_COUNT = 5
 
@@ -31,6 +36,13 @@ export function getMantaProfilesDirectory(userDataPath = getProfileUserDataPath(
   return join(userDataPath, PROFILE_DIRECTORY_NAME)
 }
 
+/** Durable cross-profile move intents live outside either profile database. */
+export function getMantaProfileMoveIntentDirectory(
+  userDataPath = getProfileUserDataPath()
+): string {
+  return join(userDataPath, PROFILE_MOVE_INTENT_DIRECTORY_NAME)
+}
+
 export function getMantaProfileDirectory(
   profileId: string,
   userDataPath = getProfileUserDataPath()
@@ -42,7 +54,26 @@ export function getMantaProfileDataFile(
   profileId: string,
   userDataPath = getProfileUserDataPath()
 ): string {
-  return join(getMantaProfileDirectory(profileId, userDataPath), PROFILE_DATA_FILE_NAME)
+  return getSharedOrcaProfileDataFile(profileId, userDataPath)
+}
+
+/**
+ * Return the future profile-state database path without changing the legacy
+ * JSON path used by the current Store and its sidecars.
+ */
+export function getMantaProfileStateDatabaseFile(
+  profileId: string,
+  userDataPath = getProfileUserDataPath()
+): string {
+  return getSharedOrcaProfileStateDatabaseFile(profileId, userDataPath)
+}
+
+export function hasOrcaProfileStateDatabase(
+  profileId: string,
+  userDataPath = getProfileUserDataPath()
+): boolean {
+  const databaseFile = getMantaProfileStateDatabaseFile(profileId, userDataPath)
+  return hasProfileStateDatabaseFiles(databaseFile)
 }
 
 export function getMantaProfileBrowserSessionMetaFile(

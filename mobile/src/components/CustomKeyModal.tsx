@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { View, Text, Pressable, TextInput, Switch } from 'react-native'
 import { ChevronLeft } from 'lucide-react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { colors } from '../theme/mobile-theme'
 import { BottomDrawer } from './BottomDrawer'
 import {
@@ -8,18 +9,48 @@ import {
   normalizeShortcutKeyInput,
   type TerminalShortcutModifier
 } from '../terminal/terminal-accessory-keys'
+import { customKeyModalStyles as styles } from './CustomKeyModal.styles'
+import { persistMirrored } from '../storage/mirrored-storage-keys'
 import { translate } from '../i18n/i18n'
-import { styles } from './custom-key-modal-styles'
 import {
-  loadCustomKeys,
-  saveCustomKeys,
   shortcutModifierCatalog,
   specialKeyGroups,
-  SPECIAL_KEY_BY_ID,
-  type CustomKey,
-  type Props,
-  type Step
+  SPECIAL_KEY_BY_ID
 } from './custom-key-modal-catalog'
+
+const CUSTOM_ACCESSORY_KEYS_STORAGE_KEY = 'manta:custom-accessory-keys'
+
+export type CustomKey = {
+  id: string
+  label: string
+  bytes: string
+  enter: boolean
+}
+
+type Step = 'choose-type' | 'shortcut-combo' | 'special-keys' | 'text-macro'
+
+type Props = {
+  visible: boolean
+  onClose: () => void
+  onKeysChanged: (keys: CustomKey[]) => void
+  onManageShortcuts?: () => void
+}
+
+export async function loadCustomKeys(): Promise<CustomKey[]> {
+  try {
+    const raw = await AsyncStorage.getItem(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as CustomKey[]) : []
+  } catch {
+    return []
+  }
+}
+
+export async function saveCustomKeys(keys: CustomKey[]): Promise<void> {
+  // Through the one write path, which notes the mirror on an accepted write and on nothing else
+  // (ruling 35). There is no rollback here any more because there is nothing to undo: on the page
+  // a value over the cap rejects, and a rejected write never reached the map.
+  await persistMirrored(CUSTOM_ACCESSORY_KEYS_STORAGE_KEY, JSON.stringify(keys))
+}
 
 export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortcuts }: Props) {
   const [step, setStep] = useState<Step>('choose-type')
@@ -49,7 +80,20 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
       const existing = await loadCustomKeys()
       const newKey: CustomKey = { ...key, id: `custom-${Date.now()}` }
       const updated = [...existing, newKey]
-      await saveCustomKeys(updated)
+      // Caught here because both callers are `void addKey(...)`, which leaves a rejection nowhere
+      // to go. On the page this key is allowlisted and its write rejects for size — the contract
+      // `page-async-storage` states, and the one ruling 33.6 extends to a key `init` could not
+      // carry at all — so an uncaught save here reaches the document's unhandled-rejection
+      // handler, which reports a page fault and drops the generation for a key nobody could add.
+      // Every other allowlisted writer in this closure already catches its own save.
+      try {
+        await saveCustomKeys(updated)
+      } catch (error) {
+        // Neither reported nor closed: a drawer that dismissed itself and announced the key would
+        // put a row on the accessory bar that no store holds and the next load would not have.
+        console.warn('[custom-keys] the store would not take this key', error)
+        return
+      }
       onKeysChanged(updated)
       onClose()
     },
@@ -279,7 +323,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
             <Text
               style={[styles.saveButtonText, !shortcutPreview && styles.saveButtonTextDisabled]}
             >
-              {translate('m.CustomKeyModal.9dd5728085', 'Add')}{' '}
+              {translate('m.CustomKeyModal.9dd5728085', 'Add')}
             </Text>
           </Pressable>
         </View>
@@ -369,7 +413,7 @@ export function CustomKeyModal({ visible, onClose, onKeysChanged, onManageShortc
               <Text
                 style={[styles.saveButtonText, !macroText.trim() && styles.saveButtonTextDisabled]}
               >
-                {translate('m.CustomKeyModal.fe0f6a9228', 'Add Shortcut')}{' '}
+                {translate('m.CustomKeyModal.fe0f6a9228', 'Add Shortcut')}
               </Text>
             </Pressable>
           </View>

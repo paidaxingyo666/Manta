@@ -50,6 +50,9 @@ KEEP = frozenset({
     'orca-per-workspace-env',
     'orca-hourly-release',
     'onorca-cloud',
+    # An on-disk directory under ~/.manta-remote that shipped hosts already wrote; renaming it
+    # strands their snapshots (a migration decision, not a rename).
+    'orcad-state-snapshots',
 })
 KEEP_SUBSTRING = (
     'stablyai/orca',
@@ -84,12 +87,25 @@ KEEP_PATH = (
     'cloud/',
     '.github/workflows/cloud-',
     '.github/actions/cloud-sql-rollout-lease/',
+    # Captured PTY transcripts: byte-exact recordings of real CLIs, pinned by offsets in their
+    # .meta.json. A rename shifts every byte after it and the replay no longer lines up.
+    'src/main/runtime/__fixtures__/',
+    'src/main/daemon/__fixtures__/pty-transcripts/',
+    # xterm patches are a pair: the source patch and the bundle hunks generated from it must match
+    # byte for byte, and a rename splits differently inside a sourcemap string (2026-09-28).
+    'config/patches/@xterm__',
+    'config/patches/xterm-src/',
 )
 # Phrases where the brand is a bare word with a space in front of it, so the
 # token scanner never sees them as one unit. GNOME Orca is Ubuntu's screen
 # reader and the whole reason the Linux binary is manta-ide; renaming it in a
 # comment turns the explanation into its own contradiction.
-KEEP_PHRASE = ('GNOME Orca',)
+KEEP_PHRASE = (
+    'GNOME Orca',
+    # Upstream's slug inside a regex literal: the backslash splits it, so the token is a bare
+    # `orca` and KEEP's 'stablyai/orca' never sees it (ci-e2e-failure-tracking.mjs, 2026-09-28).
+    'stablyai\\/orca',
+)
 
 TOKEN = re.compile(r'[A-Za-z0-9_.@/-]*(?:[Oo]rca|ORCA)[A-Za-z0-9_.@/-]*')
 
@@ -113,7 +129,10 @@ def manta_twin_exists(token: str, ref: str = 'HEAD') -> bool:
     # The token often carries a path prefix (`../runtime/orca-runtime-browser`)
     # that no import in this tree spells the same way. The basename is what
     # identifies the module, so ask about that too.
-    for candidate in (twin, twin.rsplit('/', 1)[-1]):
+    # Only while the basename still carries the brand: `ORCA_X/p` is a WSLENV entry, and its
+    # basename `p` is a word in every tree — that "evidence" half-renamed the entry, not the variable.
+    base = twin.rsplit('/', 1)[-1]
+    for candidate in (twin, base) if re.search('manta', base, re.I) else (twin,):
         # `-e`: a token that starts with `-` (`--orca-cli`, a CSS `--orca-*` variable)
         # is otherwise parsed as an option, exits 129, and is never renamed.
         hit = subprocess.run(['git', 'grep', '-q', '-w', '-F', '-e', candidate, ref], capture_output=True)
@@ -204,7 +223,8 @@ class Evidence:
                 if tw != q:
                     for c in (tw, tw.rsplit('/', 1)[-1]):
                         c = word_core(c)
-                        if c:
+                        # A basename without the brand (`p` of a WSLENV `MANTA_X/p`) is no evidence.
+                        if c and re.search('manta', c, re.I):
                             cands.add(c)
         import tempfile, os, shutil
         tmp = tempfile.mkdtemp(prefix='brand-evidence-')

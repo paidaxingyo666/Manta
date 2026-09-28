@@ -322,7 +322,9 @@ describe('coalesced sends and canonical rows', () => {
     }
     const timings = selectStructuredAgentTurnTimings([user('manta:u9'), canonical])
     expect(timings.get('manta:u9')).toMatchObject({ state: 'completed', durationMs: 7_172 })
-    expect(selectStructuredAgentSettledTurns([user('manta:u9'), canonical]).get('manta:u9')).toEqual({
+    expect(
+      selectStructuredAgentSettledTurns([user('manta:u9'), canonical]).get('manta:u9')
+    ).toEqual({
       startedAt: 1_000,
       workedSeconds: 7
     })
@@ -336,5 +338,48 @@ describe('structuredAgentTurnLocalStartedAt with the host clock', () => {
     // Host says the turn has run 40s; client clock is arbitrary.
     expect(structuredAgentTurnLocalStartedAt(timing, 3_600_000, 90_000)).toBe(3_600_000 - 40_000)
     expect(structuredAgentTurnLocalStartedAt(timing, 3_600_000, 40_000)).toBe(3_600_000)
+  })
+})
+
+describe('a rejected send', () => {
+  const rejected = (clientMessageId: string) => ({
+    clientMessageId,
+    fence: 5,
+    payloadFingerprint: 'fp',
+    dispatchState: 'rejected' as const,
+    providerItemId: null,
+    reason: 'provider_write_failed: claude: not signed in',
+    submittedAt: 1,
+    resolvedAt: 2
+  })
+
+  // The local clock saw the send go pending and stop, which would read as "Worked for 0s"; the
+  // host says the provider never got the message, so no turn ran and nothing may fold under it.
+  it('opened no turn, whatever the local clock observed', () => {
+    const settled = selectStructuredAgentSettledTurns([user('manta:dead')], [rejected('dead')])
+    expect(settled.get('manta:dead')).toBeNull()
+
+    const statuses = selectNativeChatTurnStatuses(
+      { 'manta:dead': { startedAt: 900, workedSeconds: 0 } },
+      { activeTurnKey: 'manta:dead', isWorking: false, thinking: false, settledByTurn: settled }
+    )
+    expect(statuses.completedByTurn['manta:dead']).toBeUndefined()
+    expect(statuses.active).toBeNull()
+  })
+
+  it('keeps the duration of a turn the journal does record for it', () => {
+    const settled = selectStructuredAgentSettledTurns(
+      [
+        user('manta:ran'),
+        lifecycle('t1', {
+          state: 'interrupted',
+          userItemId: 'manta:ran',
+          startedAt: 10_000,
+          completedAt: 14_000
+        })
+      ],
+      [rejected('ran')]
+    )
+    expect(settled.get('manta:ran')).toEqual({ startedAt: 10_000, workedSeconds: 4 })
   })
 })

@@ -367,6 +367,68 @@ export function carriedMobileRelease(committed, shipped) {
   }
 }
 
+/** Paths that end up inside the installed phone app: code, config, assets. */
+const SHIPPED_MOBILE_ROOTS = [
+  'mobile/src/',
+  'mobile/app/',
+  'mobile/modules/',
+  'mobile/plugins/',
+  'mobile/packages/',
+  'mobile/assets/',
+  'mobile/patches/'
+]
+const SHIPPED_MOBILE_FILES = new Set([
+  'mobile/app.json',
+  'mobile/app.config.js',
+  'mobile/package.json',
+  'mobile/pnpm-lock.yaml',
+  'mobile/babel.config.js',
+  'mobile/metro.config.js'
+])
+
+export function isShippedMobilePath(file) {
+  if (/\.(test|spec)\.[cm]?[jt]sx?$|\/__tests__\/|\/test-support\/|\.md$/.test(file)) {
+    return false
+  }
+  return (
+    SHIPPED_MOBILE_FILES.has(file) || SHIPPED_MOBILE_ROOTS.some((root) => file.startsWith(root))
+  )
+}
+
+/**
+ * The phone app release owed by changes alone.
+ *
+ * Following upstream's mobile tags is not enough: upstream bumps app.json long
+ * before it tags Android (0.0.51 sat untagged upstream for weeks), so a merged
+ * sync carried a hundred phone fixes that no rule would ship. When the committed
+ * version is the one already released and something the app contains changed
+ * since that tag, the patch version and versionCode both move up by one.
+ *
+ * Returns null when the version already moved, or nothing shipped changed.
+ */
+export function mobileReleaseForChanges(committed, shipped, changedFiles) {
+  if (!shipped || compareBases(committed.version, shipped.version) !== 0) {
+    return null
+  }
+  if (!changedFiles.some(isShippedMobilePath)) {
+    return null
+  }
+  const [major, minor, patch] = committed.version.split('.').map(Number)
+  return { version: `${major}.${minor}.${patch + 1}`, from: shipped.version, bumped: true }
+}
+
+function mobileFilesChangedSince(commit) {
+  if (!commit) {
+    return []
+  }
+  try {
+    return git('diff', '--name-only', commit, 'HEAD', '--', 'mobile').split('\n').filter(Boolean)
+  } catch {
+    // The tag's commit is not in this clone: say nothing changed rather than guess.
+    return []
+  }
+}
+
 /** The newest mobile release this fork published, read from its tag on origin. */
 function newestShippedMobile() {
   const refs = execFileSync('git', ['ls-remote', '--tags', 'origin', 'mobile-android-v*'], {
@@ -390,7 +452,8 @@ function newestShippedMobile() {
     const config = JSON.parse(
       git('show', `${byTag.get(`mobile-android-v${newest}`)}:mobile/app.json`)
     )
-    return { version: newest, versionCode: Number(config.expo.android.versionCode) }
+    const commit = byTag.get(`mobile-android-v${newest}`)
+    return { version: newest, versionCode: Number(config.expo.android.versionCode), commit }
   } catch {
     return null
   }
@@ -513,9 +576,15 @@ async function main() {
   const notesPath = path.join(root, 'docs', 'release-notes', `${version}.md`)
   const notesExist = existsSync(notesPath)
 
+  const shippedMobile = newestShippedMobile()
   const mobile =
     bumpMobileVersion(upstream.mobile, { write: false }) ??
-    carriedMobileRelease(committedMobile(), newestShippedMobile())
+    carriedMobileRelease(committedMobile(), shippedMobile) ??
+    mobileReleaseForChanges(
+      committedMobile(),
+      shippedMobile,
+      mobileFilesChangedSince(shippedMobile?.commit)
+    )
   if (mobile) {
     assertTagIsFree(`mobile-ios-v${mobile.version}`)
     assertTagIsFree(`mobile-android-v${mobile.version}`)
@@ -527,7 +596,7 @@ async function main() {
     console.log(
       `  mobile: ${
         mobile
-          ? `${mobile.from} → ${mobile.version}${mobile.carried ? ` (carried in by the sync${mobile.advanceVersionCode ? ', versionCode advanced' : ''})` : ''} (mobile-ios-v${mobile.version}, mobile-android-v${mobile.version})`
+          ? `${mobile.from} → ${mobile.version}${mobile.bumped ? ' (mobile code changed since that release)' : mobile.carried ? ` (carried in by the sync${mobile.advanceVersionCode ? ', versionCode advanced' : ''})` : ''} (mobile-ios-v${mobile.version}, mobile-android-v${mobile.version})`
           : `unchanged, upstream is not ahead of ${JSON.parse(readFileSync(path.join(root, 'mobile', 'app.json'), 'utf8')).expo.version}`
       }`
     )
@@ -569,7 +638,13 @@ async function main() {
   const toStage = ['package.json', 'resources/skills', path.relative(root, notesPath)]
   if (mobile) {
     const configPath = path.join(root, 'mobile', 'app.json')
-    if (!mobile.carried) {
+    if (mobile.bumped) {
+      // Patch version and versionCode together: bumpMobileAppConfig moves both.
+      writeFileSync(
+        configPath,
+        bumpMobileAppConfig(readFileSync(configPath, 'utf8'), mobile.version)
+      )
+    } else if (!mobile.carried) {
       bumpMobileVersion(upstream.mobile, { write: true })
     } else if (mobile.advanceVersionCode) {
       writeFileSync(

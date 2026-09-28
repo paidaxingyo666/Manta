@@ -350,6 +350,8 @@ async function collectCandidateFiles(root, relativeSourceRoot) {
         entry.isFile() &&
         /\.(?:ts|tsx|js|jsx|mts|cts)$/.test(entry.name) &&
         !entry.name.endsWith('.d.ts') &&
+        // Why: `*.generated.*` are build outputs; a wrap there is lost on the next build and its keys orphaned.
+        !entry.name.includes('.generated.') &&
         !entry.name.includes('.test.') &&
         !entry.name.includes('.spec.')
       ) {

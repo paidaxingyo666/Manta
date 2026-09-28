@@ -1,3 +1,4 @@
+import { withDurableRuntimeStore } from '../runtime-durable-store-fixture'
 import { describe, expect, it, vi } from 'vitest'
 import {
   MantaRuntimeService,
@@ -50,7 +51,7 @@ describe('MantaRuntimeService', () => {
       throw new Error('synchronous persistence must not run')
     })
     const runtime = new MantaRuntimeService(
-      { ...runtimeStore, flushOrThrow, flushPendingOrThrowAsync } as never,
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow, flushPendingOrThrowAsync }),
       undefined,
       { canRecoverPersistentLocalPtys: () => true }
     )
@@ -160,7 +161,7 @@ describe('MantaRuntimeService', () => {
       return retryDurableWrite.promise
     })
     const runtime = new MantaRuntimeService(
-      { ...runtimeStore, flushPendingOrThrowAsync } as never,
+      withDurableRuntimeStore({ ...runtimeStore, flushPendingOrThrowAsync }),
       undefined,
       { canRecoverPersistentLocalPtys: () => true }
     )
@@ -272,7 +273,7 @@ describe('MantaRuntimeService', () => {
     }
     const { runtimeStore, getSession } = makeRuntimeStoreWithWorkspaceSession(session)
     const runtime = new MantaRuntimeService(
-      { ...runtimeStore, flushOrThrow: vi.fn() } as never,
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow: vi.fn() }),
       undefined,
       { canRecoverPersistentLocalPtys: () => true }
     )
@@ -383,7 +384,7 @@ describe('MantaRuntimeService', () => {
     }
     const { runtimeStore, getSession } = makeRuntimeStoreWithWorkspaceSession(session)
     const runtime = new MantaRuntimeService(
-      { ...runtimeStore, flushOrThrow: vi.fn() } as never,
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow: vi.fn() }),
       undefined,
       { canRecoverPersistentLocalPtys: () => true }
     )

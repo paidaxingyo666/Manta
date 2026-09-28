@@ -146,6 +146,7 @@ export class MantaRuntimeWithRefreshFloatingWorkspacePtyLiveness extends MantaRu
     this.providerVisibleRetryAtByPtyId.delete(ptyId)
     this.agentStatusOscProcessorsByPtyId.delete(ptyId)
     this.terminalSpawnCommandsByPtyId.delete(ptyId)
+    this.terminalRunFacts.delete(ptyId)
     this.disposePtyTitleTracker(ptyId)
     this.invalidatePtyIncarnationHandle(ptyId)
     this.oscTitleScanTailByPtyId.delete(ptyId)

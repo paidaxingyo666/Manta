@@ -19,8 +19,9 @@ import {
   isPiCompatibleAgentType
 } from '../shared/pi-agent-kind'
 import { resolveSetupAgentSequenceLaunchCommand } from '../shared/setup-agent-sequencing'
-import { isOpenCode2LaunchCommand } from '../shared/opencode-launch-command'
+import { selectOpenCodeHookAgent } from '../shared/opencode-launch-command'
 import { relayLogLine } from './relay-diagnostic-log'
+import { restoreOrStripOverlayEnv } from '../shared/agent-overlay-env'
 import { registerManagedHookInstaller } from './managed-hook-installer'
 
 export class RelayAgentHookRuntime {
@@ -85,19 +86,35 @@ export class RelayAgentHookRuntime {
     const env: Record<string, string> = {}
     const overlayId = context.paneKey ?? context.id
     const launchCommandHint = resolveSetupAgentSequenceLaunchCommand(context.env, context.command)
-    const opencodeAgent =
-      context.launchAgent === 'opencode2' || isOpenCode2LaunchCommand(launchCommandHint)
-        ? 'opencode2'
-        : 'opencode'
-    if (this.pluginOverlay.hasOpenCodeSource(opencodeAgent)) {
+    const opencodeAgent = selectOpenCodeHookAgent(context.launchAgent, launchCommandHint, (agent) =>
+      this.pluginOverlay.hasOpenCodeSource(agent)
+    )
+    restoreOrStripOverlayEnv(
+      context.env,
+      {
+        primary: 'OPENCODE_CONFIG_DIR',
+        overlay: 'MANTA_OPENCODE_CONFIG_DIR',
+        source: 'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
+        preserveExplicitPrimary: true
+      },
+      {}
+    )
+    delete context.env.MANTA_OPENCODE_AGENT
+    if (opencodeAgent) {
+      env.MANTA_OPENCODE_AGENT = opencodeAgent
       const sourceDir = resolveOpenCodeSourceConfigDir(context.env, context.shell)
-      const dir = this.pluginOverlay.materializeOpenCode(overlayId, sourceDir, opencodeAgent)
-      if (dir) {
-        env.OPENCODE_CONFIG_DIR = dir
-        env.MANTA_OPENCODE_CONFIG_DIR = dir
-        if (sourceDir) {
+      const inheritedRelayOverlay = sourceDir
+        ? this.pluginOverlay.isRelayOverlayPath(sourceDir)
+        : false
+      if (sourceDir && !inheritedRelayOverlay) {
+        const dir = this.pluginOverlay.materializeOpenCode(overlayId, sourceDir, opencodeAgent)
+        if (dir) {
+          env.OPENCODE_CONFIG_DIR = dir
+          env.MANTA_OPENCODE_CONFIG_DIR = dir
           env.MANTA_OPENCODE_SOURCE_CONFIG_DIR = sourceDir
         }
+      } else {
+        this.pluginOverlay.installOpenCodePlugin(opencodeAgent, context.env)
       }
     }
     const explicitKind = isPiCompatibleAgentType(context.launchAgent)

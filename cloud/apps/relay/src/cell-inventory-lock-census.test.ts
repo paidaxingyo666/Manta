@@ -45,9 +45,13 @@ const CENSUS: CensusEntry[] = [
   { method: 'completeEvacuation', mode: 'nowait', reach: 'both' },
   { method: 'completeEvacuation', mode: 'pool-default', reach: 'both' },
   { method: 'rebalanceDormant', mode: 'request', reach: 'request' },
-  { method: 'startRegionalRehomeCandidate', mode: 'nowait', reach: 'request' },
+  // startRegionalRehomeCandidate is gone: the rehome commit reads the inventory
+  // unlocked and locks only its target row, NOWAIT, as the statement before
+  // COMMIT (reserveRegionalRehomeTargetRow below).
   { method: 'completeRegionalRehomeCandidate', mode: 'nowait', reach: 'sweep' },
-  { method: 'abortExpiredRegionalRehomes', mode: 'nowait', reach: 'sweep' },
+  // Both regional-rehome abort sweeps share this rollback; only the 24-hour
+  // one also disables the durable switch.
+  { method: 'rollBackStalledRegionalRehomes', mode: 'nowait', reach: 'sweep' },
   { method: 'abortExpiredEvacuations', mode: 'nowait', reach: 'sweep' },
   { method: 'abortExpiredEvacuations', mode: 'nowait', reach: 'sweep' },
   { method: 'releaseExpiredActivityLeases', mode: 'nowait', reach: 'sweep' },
@@ -77,6 +81,7 @@ const INLINE_CELL_LOCK_SITES = [
   'attestCellFenceAttempt',
   'attestCellFenceAttempt',
   'configureCell',
+  'reserveRegionalRehomeTargetRow',
   'assertDrainCellGeneration',
   'adjustCellReservation'
 ]

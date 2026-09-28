@@ -20,6 +20,12 @@ const {
 } = require('./scripts/verify-packaged-mobile-web-bundle.cjs')
 const { verifyPackagedPluginResources } = require('./scripts/verify-packaged-plugin-resources.cjs')
 const {
+  assertBundledRipgrepInstalled,
+  bundledRipgrepExtraResources,
+  bundledRipgrepMacSignIgnore,
+  finalizePackagedRipgrep
+} = require('./bundled-ripgrep-resources.cjs')
+const {
   verifyPackagedWindowsNodePty
 } = require('./scripts/verify-packaged-node-pty-job-ownership.cjs')
 const { verifySkillsCliRuntime } = require('./scripts/verify-skills-cli-runtime.cjs')
@@ -138,6 +144,7 @@ const licenseResource = { from: 'LICENSE', to: 'LICENSE' }
 const commonExtraResources = [
   licenseResource,
   relayExtraResource,
+  ...bundledRipgrepExtraResources,
   bundledPluginResources,
   skillFreshnessResources,
   emojiShortcodeDatasetResource
@@ -214,9 +221,9 @@ module.exports = {
     // Why: these repo-only inputs are either bundled into out/ or copied via
     // extraResources. Shipping them in app.asar bloats the desktop bundle.
     '!src{,/**/*}',
-    // Redundant under !src above, kept explicit: the built bundle ships from out/mobile-web via the
-    // out rules exactly as out/web does, and the source tree must never be mistaken for it.
-    '!src/mobile-web{,/**/*}',
+    '!out/mantad{,/**/*}',
+    '!out/mantad-template{,/**/*}',
+    '!out/.mantad-*{,/**/*}',
     '!config{,/**/*}',
     '!docs{,/**/*}',
     '!mobile{,/**/*}',
@@ -240,6 +247,8 @@ module.exports = {
     // it is gitignored, but exclude it defensively so a stray local capture at
     // package time never bloats app.asar.
     '!pr-evidence{,/**/*}',
+    // Local build logs and rollback copies are never application resources.
+    '!notes{,/**/*}',
     // Why: local agent/tooling directories may contain worktree symlink loops;
     // they are never runtime inputs and must not be traversed by electron-builder.
     '!{.claude,.grok,.agents,.codex}{,/**/*}',
@@ -314,6 +323,9 @@ module.exports = {
     'out/main/gemini/**',
     'out/main/grok/**',
     'out/main/hermes/**',
+    'out/main/manta-profiles/profile-index-store.js',
+    'out/main/persistence/profile-state/**',
+    'out/main/startup/http1-compatibility-marker.js',
     'out/main/daemon-entry.js',
     'out/main/session-scanner-service-entry.js',
     'out/main/wsl-transcript-fs-process-entry.js',
@@ -337,6 +349,7 @@ module.exports = {
   // so a test can point the guard at a scratch bundle instead of needing the repo's out/ built.
   beforePack: (context, mobileWebBundleDir = MOBILE_WEB_BUNDLE_DIR) => {
     assertPackagedNativeVariantsInstalled(context.electronPlatformName, context.arch)
+    assertBundledRipgrepInstalled()
     assertMobileWebBundleBuilt(mobileWebBundleDir)
   },
   afterPack: async (context) => {
@@ -424,6 +437,7 @@ module.exports = {
     // Why: inspect electron-builder's real output so a broken extraResources
     // mapping fails packaging before bundled content reaches users.
     verifyPackagedPluginResources(resourcesDir)
+    finalizePackagedRipgrep(resourcesDir)
     chmodUnixCliLaunchers(resourcesDir, context.electronPlatformName)
     chmodMacServeSimHelpers(resourcesDir, context.electronPlatformName)
     for (const filename of readdirSync(resourcesDir)) {
@@ -526,6 +540,7 @@ module.exports = {
     icon: 'resources/build/icon.icns',
     entitlements: 'resources/build/entitlements.mac.plist',
     entitlementsInherit: 'resources/build/entitlements.mac.plist',
+    signIgnore: bundledRipgrepMacSignIgnore,
     extendInfo: {
       NSAppleEventsUsageDescription:
         'Manta allows terminal-launched developer tools to automate local apps when you request it.',
@@ -718,7 +733,11 @@ module.exports = {
     provider: 'github',
     owner: 'paidaxingyo666',
     repo: devChannelRepo ?? 'Manta',
-    releaseType: devChannelRepo ? 'prerelease' : 'release'
+    // Why draft on the main repo: `--publish always` otherwise creates a
+    // public GitHub release as soon as the first platform uploads, and
+    // /releases/latest serves a missing Windows exe. release-cut (in the fork,
+    // fork-release.yml's final job) undrafts only after every required asset exists.
+    releaseType: devChannelRepo ? 'prerelease' : 'draft'
   }
 }
 

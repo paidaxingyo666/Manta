@@ -2,6 +2,12 @@
 import process from 'node:process'
 import { main, resolveMantadExitCode } from './mantad-entry'
 import { runMantadNativePreflight } from './mantad-native-preflight'
+import {
+  ORCAD_PROFILE_PREFLIGHT_FLAG,
+  ORCAD_STARTUP_PREFLIGHT_FLAG
+} from '../../shared/mantad-profile-preflight'
+import { preflightBundledOrcadStartup, runOrcadProfilePreflight } from './mantad-profile-preflight'
+import { handoffToBundledOrcad } from './mantad-bundled-runtime'
 
 // Why exit before the preflight: reaching this line means the whole module graph resolved
 // under plain Node, which is all the build guard needs to prove. Probing natives or
@@ -16,12 +22,33 @@ if (process.argv.includes('--mantad-smoke-load-check')) {
 // evaluated before this statement, so the guarantee is that no module in the graph
 // requires node-pty at import time — which the bundle's lazy `require("node-pty")` in
 // local-pty-provider satisfies. See ./node-pty-precondition.ts for why a child process.
-runMantadNativePreflight()
-
-main().catch((error: unknown) => {
+function failStartup(error: unknown): void {
   console.error('mantad: failed to start:', error)
   // Why a resolved code and not a bare 1: a data-root or bind-address refusal is a
   // configuration fault that restarting cannot fix, and a supervisor needs to tell the two
   // apart to avoid restart-spinning on it.
   process.exit(resolveMantadExitCode(error))
-})
+}
+
+try {
+  if (!handoffToBundledOrcad()) {
+    const flag = process.argv[2]
+    if (
+      (flag === ORCAD_PROFILE_PREFLIGHT_FLAG || flag === ORCAD_STARTUP_PREFLIGHT_FLAG) &&
+      process.argv.length === 4
+    ) {
+      void runOrcadProfilePreflight(process.argv[3], {
+        nativeFeatures: flag === ORCAD_PROFILE_PREFLIGHT_FLAG
+      }).catch(failStartup)
+    } else {
+      void preflightBundledOrcadStartup()
+        .then(() => {
+          runMantadNativePreflight()
+          return main()
+        })
+        .catch(failStartup)
+    }
+  }
+} catch (error) {
+  failStartup(error)
+}

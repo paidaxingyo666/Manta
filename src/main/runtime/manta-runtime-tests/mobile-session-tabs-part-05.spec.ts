@@ -1,3 +1,4 @@
+import { withDurableRuntimeStore } from '../runtime-durable-store-fixture'
 import { describe, expect, it, vi } from 'vitest'
 import { MantaRuntimeService, electronMocks } from '../manta-runtime-test-mocks.spec'
 import type { RuntimeMobileSessionTabsResult } from '../manta-runtime-test-mocks.spec'
@@ -181,7 +182,7 @@ describe('MantaRuntimeService', () => {
     })
     events.length = 0
 
-    runtime.onPtyExit('laptop-created-pty', 0)
+    await runtime.onPtyExit('laptop-created-pty', 0)
 
     expect(events).toEqual([
       expect.objectContaining({
@@ -374,7 +375,9 @@ describe('MantaRuntimeService', () => {
     const acknowledged = makeDeferred()
     const closeTerminalTab = vi.fn(() => acknowledged.promise)
     const kill = vi.fn(() => true)
-    const runtime = new MantaRuntimeService({ ...runtimeStore, flushOrThrow: vi.fn() } as never)
+    const runtime = new MantaRuntimeService(
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow: vi.fn() })
+    )
     runtime.setNotifier({ closeTerminal: vi.fn(), closeTerminalTab } as never)
     runtime.setPtyController({
       write: () => true,
@@ -510,7 +513,9 @@ describe('MantaRuntimeService', () => {
       .mockResolvedValueOnce({ id: 'headless-left' })
       .mockResolvedValueOnce({ id: 'headless-right' })
     const kill = vi.fn(() => true)
-    const runtime = new MantaRuntimeService({ ...runtimeStore, flushOrThrow } as never)
+    const runtime = new MantaRuntimeService(
+      withDurableRuntimeStore({ ...runtimeStore, flushOrThrow })
+    )
     runtime.setPtyController({
       spawn,
       write: () => true,

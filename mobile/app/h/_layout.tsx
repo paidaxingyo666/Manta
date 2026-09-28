@@ -81,6 +81,13 @@ function HostStack({ animation }: { animation: 'none' | 'default' }) {
         name="[hostId]/web"
         options={{ title: translate('m.layout.c2d88db1d7', 'Workspace') }}
       />
+      {/* Last, and matched last: every pathname above has a file of its own, so this takes only
+          what expo-router would otherwise send to Unmatched. Declared for the title alone — an
+          undeclared child still renders, appended after these with this group's screenOptions. */}
+      <Stack.Screen
+        name="[hostId]/[...page]"
+        options={{ title: translate('m.layout.c2d88db1d7', 'Workspace') }}
+      />
     </Stack>
   )
 }

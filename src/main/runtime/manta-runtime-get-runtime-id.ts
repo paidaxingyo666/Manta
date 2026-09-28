@@ -180,6 +180,10 @@ export class MantaRuntimeWithGetRuntimeId extends MantaRuntimeWithHasExactPersis
     return this.workspaceSessions.get(worktreeId)
   }
 
+  protected getOwnWorkspaceSessionForWorktree(worktreeId: string): WorkspaceSessionState | null {
+    return this.workspaceSessions.getOwnPartition(worktreeId)
+  }
+
   protected setWorkspaceSessionForWorktree(
     worktreeId: string,
     session: WorkspaceSessionState

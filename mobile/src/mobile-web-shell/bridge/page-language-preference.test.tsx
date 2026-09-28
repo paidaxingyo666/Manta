@@ -21,6 +21,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }))
 vi.mock('../../i18n/device-locale', () => ({ getDeviceLocale: () => state.deviceLocale }))
 
+const PAGE_ROUTE = '/h/host-1'
 const mounted: { renderer?: ReactTestRenderer } = {}
 
 beforeEach(() => {
@@ -43,14 +44,18 @@ describe('the native language choice in the workspace page', () => {
     state.deviceLocale = choice.device
     const { writeUiLanguage } = await import('../../i18n/ui-language-store')
     const { readMirroredStorage } = await import('../../storage/mirrored-storage-keys')
-    const { pageStorageKeysForHost } = await import('../page-storage-keys')
+    const { pageStorageEntriesForInit, pageStorageKeysForRoute } =
+      await import('../page-storage-keys')
     const { default: pageStorage, publishPageStorage } = await import('./page-async-storage')
 
     await writeUiLanguage(choice.language)
-    const snapshot = readMirroredStorage(pageStorageKeysForHost('host-1'))
-    expect(snapshot['manta.ui-language']).toBe(choice.language)
+    // Built the way the shell builds `init`, so a page route that drops the key fails here.
+    const { entries, oversize } = pageStorageEntriesForInit(
+      readMirroredStorage(pageStorageKeysForRoute('host-1', PAGE_ROUTE))
+    )
+    expect(entries['manta.ui-language']).toBe(choice.language)
     expect(state.nativeStorage.get('manta.ui-language')).toBe(choice.language)
-    publishPageStorage(snapshot, () => false, 'host-1')
+    publishPageStorage(entries, () => false, 'host-1', PAGE_ROUTE, oversize)
     state.readPage = pageStorage.getItem
     state.page = true
 

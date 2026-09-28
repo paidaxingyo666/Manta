@@ -177,6 +177,7 @@ export const MOBILE_RPC_METHOD_ALLOWLIST = new Set([
   'markdown.saveTab',
   'mobileWeb.bundle.chunk',
   'mobileWeb.bundle.manifest',
+  'mobileWeb.bundle.range',
   'notifications.getMissedSince',
   'notifications.registerPush',
   'notifications.registerPushToken',
@@ -224,11 +225,14 @@ export const MOBILE_RPC_METHOD_ALLOWLIST = new Set([
   'agentSession.setOption',
   'agentSession.handoffStatus',
   'agentSession.options',
+  'agentSession.modelCatalog',
   'agentSession.conversationCommand',
   'agentSession.commands',
   'agentSession.history',
   'agentSession.subscribe',
   'agentSession.unsubscribe',
+  // No-ops on a current host; kept until MIN_COMPATIBLE_RUNTIME_CLIENT_VERSION passes the
+  // mobile builds that still call them.
   'agentSession.hold',
   'agentSession.release',
   'nativeChat.readSession',

@@ -5,6 +5,7 @@
 import { net } from 'electron'
 import { appendFeedbackImagesToFormData } from './feedback-image-attachments'
 import type { FeedbackSubmitBody } from './feedback-submit-body'
+import type { FeedbackRequestFailure } from '../../shared/feedback-submit-contract'
 
 const FEEDBACK_REQUEST_TIMEOUT_MS = 10_000
 const DIAGNOSTIC_BUNDLE_CONTENT_TYPE = 'application/x-ndjson'
@@ -93,4 +94,16 @@ function appendFeedbackFormField(formData: FormData, key: string, value: string 
   if (value !== null) {
     formData.append(key, value)
   }
+}
+
+export function messageFromError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+export function responseFailure(response: Response): FeedbackRequestFailure {
+  return { status: response.status, error: `status ${response.status}` }
+}
+
+export function errorFailure(error: unknown): FeedbackRequestFailure {
+  return { status: null, error: messageFromError(error) }
 }

@@ -13,11 +13,11 @@ import {
   X
 } from 'lucide-react-native'
 import { StatusDot } from '../components/StatusDot'
-import { translate } from '../i18n/i18n'
 import { classifyConnection, type ConnectionVerdict } from '../transport/connection-health'
-import { styles } from '../theme/host-home-styles'
 import { colors } from '../theme/mobile-theme'
+import { hostScreenStyles as styles } from './host-screen-styles'
 import type { HostScreenController } from './use-host-screen-controller'
+import { translate } from '../i18n/i18n'
 
 function isErrorVerdict(v: ConnectionVerdict): boolean {
   return v.kind === 'warning' || v.kind === 'unreachable' || v.kind === 'auth-failed'
@@ -31,6 +31,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
     floatingWorkspaceEnabled,
     forceReconnectHost,
     hostId,
+    hostDisplay,
     lastConnectedAt,
     onHideSidebar,
     reconnectAttempts,
@@ -62,30 +63,42 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
           return (
             <>
               <View style={styles.hostIdentity}>
-                <StatusDot state={connState} verdict={headerVerdict} />
-                <Text style={styles.hostNameText} numberOfLines={1}>
-                  {state.hostName || translate('m.index.dc676c5d54', 'Host')}
-                </Text>
+                <View style={styles.hostIdentityLine}>
+                  <StatusDot state={connState} verdict={headerVerdict} />
+                  <Text style={styles.hostNameText} numberOfLines={1}>
+                    {hostDisplay.title}
+                  </Text>
+                </View>
+                {hostDisplay.descriptorLine ? (
+                  <Text style={styles.hostPlatformText} numberOfLines={1}>
+                    {hostDisplay.descriptorLine}
+                  </Text>
+                ) : null}
               </View>
               {connState !== 'connected' &&
                 (() => {
                   // Why: auth-failed has its own banner, so suppress the Reconnect button for that verdict.
                   const verdict = headerVerdict
                   const isError = isErrorVerdict(verdict)
-                  const showReconnectButton = isError && hostId && verdict.kind !== 'auth-failed'
-                  if (!showReconnectButton) {
+                  // Null on the page, where the shell owns the connection and nothing here re-dials.
+                  if (
+                    !isError ||
+                    !hostId ||
+                    verdict.kind === 'auth-failed' ||
+                    forceReconnectHost === null
+                  ) {
                     return null
                   }
                   return (
                     <Pressable
                       style={styles.reconnectButton}
-                      onPress={() => void forceReconnectHost(hostId!)}
+                      onPress={() => void forceReconnectHost(hostId)}
                       accessibilityRole="button"
                       accessibilityLabel="Reconnect"
                       hitSlop={8}
                     >
                       <Text style={styles.reconnectButtonText}>
-                        {translate('m.index.d85142e8e8', 'Reconnect')}
+                        {translate('m.host.screen.header.36278ad08f', 'Reconnect')}
                       </Text>
                     </Pressable>
                   )
@@ -149,7 +162,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                 ]}
                 numberOfLines={1}
               >
-                {translate('m.index.4bc8c9f6fe', 'Filter')}
+                {translate('m.host.screen.header.a70d48d09a', 'Filter')}
                 {settings.activeFilterCount > 0 ? ` ${settings.activeFilterCount}` : ''}
               </Text>
             </Pressable>
@@ -175,12 +188,12 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
               <Layers size={14} color={colors.textSecondary} />
               <Text style={styles.sortLabel} numberOfLines={1}>
                 {state.groupMode === 'none'
-                  ? translate('m.index.999e4d9525', 'Group')
+                  ? translate('m.host.screen.header.b1a9a55bbb', 'Group')
                   : state.groupMode === 'workspaceStatus'
-                    ? translate('m.index.1805187d69', 'Status')
+                    ? translate('m.host.screen.header.ae01b0eaa5', 'Status')
                     : state.groupMode === 'repo'
-                      ? translate('m.index.0b319420ff', 'Repo')
-                      : translate('m.index.b14c7e89dd', 'PR')}
+                      ? translate('m.host.screen.header.8379065e14', 'Repo')
+                      : translate('m.host.screen.header.c3f52b3427', 'PR')}
               </Text>
             </Pressable>
           </View>
@@ -286,7 +299,7 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
                 settings.activeFilterCount > 0 && styles.filterChipTextActive
               ]}
             >
-              {translate('m.index.4bc8c9f6fe', 'Filter')}
+              {translate('m.host.screen.header.a70d48d09a', 'Filter')}
               {settings.activeFilterCount > 0 ? ` (${settings.activeFilterCount})` : ''}
             </Text>
           </Pressable>
@@ -312,12 +325,12 @@ export function HostScreenHeader({ controller }: { controller: HostScreenControl
             <Layers size={14} color={colors.textSecondary} />
             <Text style={styles.sortLabel} numberOfLines={1}>
               {state.groupMode === 'none'
-                ? translate('m.index.999e4d9525', 'Group')
+                ? translate('m.host.screen.header.b1a9a55bbb', 'Group')
                 : state.groupMode === 'workspaceStatus'
-                  ? translate('m.index.1805187d69', 'Status')
+                  ? translate('m.host.screen.header.ae01b0eaa5', 'Status')
                   : state.groupMode === 'repo'
-                    ? translate('m.index.0b319420ff', 'Repo')
-                    : translate('m.index.b14c7e89dd', 'PR')}
+                    ? translate('m.host.screen.header.8379065e14', 'Repo')
+                    : translate('m.host.screen.header.c3f52b3427', 'PR')}
             </Text>
           </Pressable>
 

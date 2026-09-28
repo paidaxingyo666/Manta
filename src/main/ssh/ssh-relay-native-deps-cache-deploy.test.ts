@@ -35,6 +35,15 @@ vi.mock('./ssh-relay-deploy-helpers', () => ({
   execCommand: vi.fn()
 }))
 
+vi.mock('./ssh-relay-opencode-runtime', () => ({
+  ensureRemoteOpenCodeRuntime: vi.fn().mockResolvedValue('ready')
+}))
+vi.mock('./ssh-relay-ripgrep-install', () => ({
+  remoteRipgrepLayout: vi.fn().mockReturnValue(null),
+  recordRemoteRipgrepReference: vi.fn().mockResolvedValue(false),
+  ensureRemoteBundledRipgrep: vi.fn().mockResolvedValue(undefined)
+}))
+
 vi.mock('./ssh-remote-node-resolution', () => ({
   resolveRemoteNodePath: vi.fn().mockResolvedValue('/usr/bin/node')
 }))
@@ -157,7 +166,9 @@ describe('relay native-deps cache on the deploy path', () => {
     expect(commands.some((c) => c.includes('npm rebuild'))).toBe(false)
     // The bundle still gets its own directory; only the native tree is shared.
     expect(commands.some((c) => c.includes('.manta-remote/relay-0.1.0+testhash'))).toBe(true)
-    expect(commands.some((c) => /\.manta-remote\/native\/linux-x64-[0-9a-f]{16}/.test(c))).toBe(true)
+    expect(commands.some((c) => /\.manta-remote\/native\/linux-x64-[0-9a-f]{16}/.test(c))).toBe(
+      true
+    )
   })
 
   it('still installs on the first deploy, then publishes the tree the probe loaded', async () => {

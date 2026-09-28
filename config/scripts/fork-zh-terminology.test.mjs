@@ -29,6 +29,12 @@ describe('fork Chinese terminology', () => {
     expect(isAgentString('Route the agent through a proxy')).toBe(false)
   })
 
+  it('leaves a browser user agent alone', () => {
+    expect(isAgentString('User Agent')).toBe(false)
+    expect(isAgentString('Choose the User-Agent for all browser profiles.')).toBe(false)
+    expect(isAgentString('Pick the user agent your agent browses with')).toBe(true)
+  })
+
   it('says no when there is no English entry to read', () => {
     expect(isAgentString(undefined)).toBe(false)
     expect(isAgentString(null)).toBe(false)

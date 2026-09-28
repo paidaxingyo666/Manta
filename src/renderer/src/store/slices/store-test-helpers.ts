@@ -24,6 +24,7 @@ import { createWorkspaceSpaceSlice } from './workspace-space'
 import {
   createClaudeUsageSlice,
   createCodexUsageSlice,
+  createMuseUsageSlice,
   createOpenCodeUsageSlice
 } from './usage-provider-slices'
 import { createBrowserSlice } from './browser'
@@ -47,6 +48,7 @@ import { createRecentlyClosedTabsSlice } from './recently-closed-tabs'
 import { createMantaProfilesSlice } from './manta-profiles'
 import { createMantaRelayHostsSlice } from './manta-relay-hosts'
 import { createNewIssueDraftSlice } from './new-issue-draft'
+import { createFeedbackDraftSlice } from './feedback-draft'
 import { createTaskCreationDraftsSlice } from './task-creation-drafts'
 import { createRemoteServerUpdatesSlice } from './remote-server-updates'
 import { createTerminalQuickCommandHostsSlice } from './terminal-quick-command-hosts'
@@ -82,6 +84,7 @@ export function createTestStore() {
     ...createClaudeUsageSlice(...a),
     ...createCodexUsageSlice(...a),
     ...createOpenCodeUsageSlice(...a),
+    ...createMuseUsageSlice(...a),
     ...createBrowserSlice(...a),
     ...createRateLimitSlice(...a),
     ...createSshSlice(...a),
@@ -103,6 +106,7 @@ export function createTestStore() {
     ...createMantaProfilesSlice(...a),
     ...createMantaRelayHostsSlice(...a),
     ...createNewIssueDraftSlice(...a),
+    ...createFeedbackDraftSlice(...a),
     ...createTaskCreationDraftsSlice(...a),
     ...createRemoteServerUpdatesSlice(...a),
     ...createTerminalQuickCommandHostsSlice(...a)

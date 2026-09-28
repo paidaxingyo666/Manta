@@ -10,7 +10,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
-import { ArrowDown } from 'lucide-react-native'
+import { ArrowDown, ChevronsDownUp, ChevronsUpDown, Square } from 'lucide-react-native'
 import type { AskAnswerSelection, AskPrompt } from '../../../src/shared/native-chat-ask'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import type {
@@ -18,7 +18,6 @@ import type {
   NativeChatSettledTurns
 } from '../../../src/shared/native-chat-turn-status'
 import { colors } from '../theme/mobile-theme'
-import { MobileNativeChatChromeRow } from './MobileNativeChatChromeRow'
 import { styles } from './mobile-native-chat-view-styles'
 import {
   buildMobileNativeChatTransientData,
@@ -29,7 +28,8 @@ import { useMobileNativeChatPinchGesture } from './use-mobile-native-chat-pinch-
 import { useMobileNativeChatTailFollow } from './use-mobile-native-chat-tail-follow'
 import { useMobileNativeChatTurnDisclosure } from './use-mobile-native-chat-turn-disclosure'
 import { useSettledMobileNativeChatInputLock } from './use-mobile-native-chat-input-lease'
-import { MobileNativeChatTurnStatus } from './MobileNativeChatTurnStatus'
+import { MobileNativeChatTurnActivity } from './MobileNativeChatTurnStatus'
+import { MobileAgentWorkingIndicator } from './MobileAgentWorkingIndicator'
 import type { PendingNativeChatImage } from './mobile-native-chat-image-attachment'
 import { MobileNativeChatComposer } from './MobileNativeChatComposer'
 import { MobileNativeChatPromptCard } from './MobileNativeChatPromptCard'
@@ -341,10 +341,8 @@ export function MobileNativeChatView({
                 agentWorking &&
                 !hasPendingStructuredInteraction &&
                 turns.active ? (
-                  <MobileNativeChatTurnStatus
-                    startedAt={turns.active.startedAt}
+                  <MobileNativeChatTurnActivity
                     thinking={turns.active.thinking}
-                    workedSeconds={turns.active.workedSeconds}
                     activityText={turns.activeActivityText}
                   />
                 ) : null
@@ -383,14 +381,40 @@ export function MobileNativeChatView({
         question={question}
         onAnswerQuestion={onAnswerQuestion}
       />
-      <MobileNativeChatChromeRow
-        agentWorking={agentWorking}
-        canStop={canStop}
-        structuredActivityUi={structuredActivityUi}
-        toolsExpanded={toolsExpanded}
-        onToggleTools={() => setToolsExpanded((v) => !v)}
-        onStop={onStop}
-      />
+      <View style={styles.chromeRow}>
+        <View style={styles.chromeLeft}>
+          {agentWorking && !structuredActivityUi ? <MobileAgentWorkingIndicator /> : null}
+          <Pressable
+            style={({ pressed }) => [styles.chromeToggle, pressed && styles.pressed]}
+            onPress={() => setToolsExpanded((v) => !v)}
+            hitSlop={8}
+          >
+            {toolsExpanded ? (
+              <ChevronsDownUp size={14} color={colors.textMuted} strokeWidth={2} />
+            ) : (
+              <ChevronsUpDown size={14} color={colors.textMuted} strokeWidth={2} />
+            )}
+            <Text style={styles.chromeToggleLabel}>
+              {toolsExpanded
+                ? translate('m.MobileNativeChatView.1e0304cc51', 'Collapse')
+                : translate('m.MobileNativeChatView.2779d38b74', 'Tools')}
+            </Text>
+          </Pressable>
+        </View>
+        {canStop ? (
+          <Pressable
+            style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}
+            onPress={onStop}
+            hitSlop={8}
+            accessibilityLabel="Stop the agent"
+          >
+            <Square size={13} color={colors.statusRed} strokeWidth={2.4} fill={colors.statusRed} />
+            <Text style={styles.stopLabel}>
+              {translate('m.MobileNativeChatView.5fcfefb9aa', 'Stop')}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
       {sendErrorMessage ? (
         // This banner is the only channel for a send failure — announce it.
         <View

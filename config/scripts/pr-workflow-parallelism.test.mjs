@@ -1,9 +1,15 @@
 import { existsSync, globSync, readFileSync } from 'node:fs'
 import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'
+import { UNIT_EXCLUDE } from './ci-unit-files.mjs'
+import { mobileWebCheckArgs } from './run-mobile-web-app-checks.mjs'
 import { MOBILE_WEB_APP_DEPENDENCIES_REQUIRED_ENV } from './mobile-web-app-bundle-dependencies.mjs'
 
 const workflow = parse(readFileSync('.github/workflows/pr.yml', 'utf8'))
+const prTestLocWorkflow = parse(readFileSync('.github/workflows/pr-test-loc.yml', 'utf8'))
+const trackingWorkflow = parse(readFileSync('.github/workflows/track-community-prs.yaml', 'utf8'))
+const releasePolicyWorkflow = parse(readFileSync('.github/workflows/release-policy.yml', 'utf8'))
+const issueLabelWorkflow = parse(readFileSync('.github/workflows/issue-os-labeler.yaml', 'utf8'))
 const unitTestWorkflow = parse(readFileSync('.github/workflows/unit-tests.yml', 'utf8'))
 const nodeNextWorkflow = parse(readFileSync('.github/workflows/node-next-compat.yml', 'utf8'))
 const dependencyAction = parse(
@@ -45,9 +51,9 @@ const realZshUsage =
 describe('PR workflow parallelism', () => {
   it('keeps upstream fleet integration separate from the fork relay gate', () => {
     expect(unitTestWorkflow.jobs.relay_integration.if).toBe("github.repository == 'stablyai/orca'")
-    const shard = unitTestWorkflow.jobs.test.steps.find((step) => step.name === 'Test shard')
+    // Excluded from the shards, so relay_integration (skipped in this fork) is their only runner.
     for (const name of ['compatibility', 'correction']) {
-      expect(shard.run).toContain(`--exclude=tests/e2e/relay-region-${name}.unit.test.ts`)
+      expect(UNIT_EXCLUDE).toContain(`tests/e2e/relay-region-${name}.unit.test.ts`)
     }
     const relay = workflow.jobs.relay
     expect(relay.if).toBe("needs.code_paths.outputs.relay == 'true'")
@@ -57,16 +63,29 @@ describe('PR workflow parallelism', () => {
     expect(workflow.jobs.verify.needs).toContain('relay')
   })
 
+  it('keeps lightweight orchestration jobs on the free slim runner', () => {
+    expect(workflow.jobs.code_paths['runs-on']).toBe('ubuntu-slim')
+    expect(workflow.jobs.typecheck['runs-on']).toBe('ubuntu-24.04-arm')
+    expect(workflow.jobs.verify['runs-on']).toBe('ubuntu-slim')
+    expect(prTestLocWorkflow.jobs.loc['runs-on']).toBe('ubuntu-slim')
+    expect(trackingWorkflow.jobs['track-community-pr']['runs-on']).toBe('ubuntu-slim')
+    expect(releasePolicyWorkflow.jobs.enforce['runs-on']).toBe('ubuntu-slim')
+    expect(issueLabelWorkflow.jobs['apply-os-label']['runs-on']).toBe('ubuntu-slim')
+  })
+
   it('cancels superseded runs for the same pull request', () => {
     expect(workflow.concurrency.group).toBe('pr-checks-${{ github.event.pull_request.number }}')
     expect(workflow.concurrency['cancel-in-progress']).toBe(true)
+    expect(workflow.jobs.test.if).toContain('!cancelled()')
+    expect(workflow.jobs.test.if).not.toContain('always()')
+    expect(workflow.jobs.verify.if).toBe('${{ !cancelled() }}')
   })
 
   it('grants the PR workflow read-only repository access', () => {
     expect(workflow.permissions).toEqual({ contents: 'read' })
   })
 
-  it('runs Node 24 on PRs and the same eight-shard suite on Node 26 daily', () => {
+  it('runs all eight shards on ARM for PRs and both Node versions on x86 daily', () => {
     const sharedTest = unitTestWorkflow.jobs.test
     const testStep = sharedTest.steps.find((step) => step.name === 'Test shard')
     const installStep = sharedTest.steps.find(
@@ -82,25 +101,38 @@ describe('PR workflow parallelism', () => {
     expect(workflow.jobs.test.uses).toBe('./.github/workflows/unit-tests.yml')
     expect(JSON.parse(workflow.jobs.test.with.node_versions)).toEqual(['24'])
     expect(nodeNextWorkflow.jobs.test.uses).toBe('./.github/workflows/unit-tests.yml')
-    expect(JSON.parse(nodeNextWorkflow.jobs.test.with.node_versions)).toEqual(['26'])
+    expect(JSON.parse(nodeNextWorkflow.jobs.test.with.node_versions)).toEqual(['24', '26'])
+    expect(workflow.jobs.test.with.runner).toBe('ubuntu-24.04-arm')
+    expect(workflow.jobs.test_native_cache['runs-on']).toBe('ubuntu-24.04-arm')
+    expect(sharedTest['runs-on']).toBe('${{ inputs.runner }}')
+    expect(unitTestWorkflow.on.workflow_call.inputs.runner.default).toBe('ubuntu-latest')
+    expect(nodeNextWorkflow.jobs.test.with.runner).toBeUndefined()
+    expect(nodeNextWorkflow.jobs.test_native_cache['runs-on']).toBe('ubuntu-latest')
+    expect(nodeNextWorkflow.jobs.test_native_cache.strategy.matrix.node).toEqual(['24', '26'])
+    const relay = unitTestWorkflow.jobs.relay_integration
+    expect(relay.strategy.matrix.node).toBe('${{ fromJSON(inputs.node_versions) }}')
+    expect(relay['runs-on']).toBe('ubuntu-latest')
+    expect(
+      relay.steps.find((step) => step.uses === './.github/actions/install-node-dependencies').with[
+        'node-version'
+      ]
+    ).toBe('${{ matrix.node }}')
     expect(nodeNextWorkflow.on.schedule).toHaveLength(1)
     expect(nodeNextWorkflow.on.workflow_dispatch).toBeNull()
     expect(sharedTest.strategy.matrix.node).toBe('${{ fromJSON(inputs.node_versions) }}')
-    expect(sharedTest.strategy.matrix.shard).toEqual(
-      Array.from({ length: 8 }, (_, index) => index + 1)
-    )
-    expect(sharedTest.strategy.matrix.shard_total).toEqual([8])
+    expect(sharedTest.strategy.matrix.shard).toBe('${{ fromJSON(needs.plan.outputs.shards) }}')
+    expect(sharedTest.needs).toBe('plan')
     expect(installStep.with['node-version']).toBe('${{ matrix.node }}')
     expect(installStep.with['cache-electron-package']).toBe('true')
-    expect(testStep.run).toContain('--shard=${{ matrix.shard }}/${{ matrix.shard_total }}')
+    expect(testStep.run).toContain('--shard=${{ matrix.shard.index }}/${{ matrix.shard.count }}')
     for (const testFile of nativeShellContractFiles) {
-      expect(testStep.run).toContain(`--exclude=${testFile}`)
+      expect(UNIT_EXCLUDE).toContain(testFile)
     }
     expect(primerInstall.with['native-runtime']).toBe('node')
     expect(primerInstall.with['node-version']).toBe('24')
     expect(workflow.jobs.test.needs).toContain('test_native_cache')
     expect(nodeNextPrimerInstall.with['native-runtime']).toBe('node')
-    expect(nodeNextPrimerInstall.with['node-version']).toBe('26')
+    expect(nodeNextPrimerInstall.with['node-version']).toBe('${{ matrix.node }}')
     expect(nodeNextWorkflow.jobs.test.needs).toEqual(['test_native_cache'])
   })
 
@@ -266,11 +298,20 @@ describe('PR workflow parallelism', () => {
     expect(steps[pnpmIndex].uses).toBe('pnpm/setup@v2')
     expect(steps[pnpmIndex].with.version).toBeUndefined()
     expect(steps[pnpmIndex].with.install).toBe(false)
-    expect(steps[nodeIndex].with.cache).toBe('pnpm')
+    const saveOutsidePrs = "${{ github.event_name != 'pull_request' && 'pnpm' || '' }}"
+    expect(steps[nodeIndex].with.cache).toBe(saveOutsidePrs)
     expect(steps[nodeIndex].if).toBe("inputs.node-version == ''")
     expect(steps[requestedNodeIndex].if).toBe("inputs.node-version != ''")
     expect(steps[requestedNodeIndex].with['node-version']).toBe('${{ inputs.node-version }}')
-    expect(steps[requestedNodeIndex].with.cache).toBe('pnpm')
+    expect(steps[requestedNodeIndex].with.cache).toBe(saveOutsidePrs)
+    const restoreIndex = steps.findIndex(
+      (step) => step.name === 'Restore pnpm download store without saving'
+    )
+    expect(restoreIndex).toBeGreaterThan(requestedNodeIndex)
+    expect(restoreIndex).toBeLessThan(
+      steps.findIndex((step) => step.name === 'Install dependencies')
+    )
+    expect(steps[restoreIndex].uses).toBe('actions/cache/restore@v5')
   })
 
   it('uses the repository package-manager version for every direct pnpm setup', () => {
@@ -428,7 +469,9 @@ describe('PR workflow parallelism', () => {
     expect(electronCacheResolution.if).toBe(
       "inputs.native-runtime == 'electron' || inputs.cache-electron-package == 'true'"
     )
-    expect(electronCache.if).toBe(electronCacheResolution.if)
+    expect(electronCache.if).toBe(
+      "(github.event_name != 'pull_request' || runner.os != 'Linux') && steps.electron-package-cache.outputs.version != ''"
+    )
     expect(electronCache.uses).toBe('actions/cache@v5')
     expect(electronCache.with.key).toContain('steps.electron-package-cache.outputs.version')
     expect(dependencyAction.inputs['cache-electron-package'].default).toBe('false')
@@ -470,7 +513,6 @@ describe('PR workflow parallelism', () => {
     expect(workflow.jobs.verify.needs).toEqual([
       'code_paths',
       'static_analysis',
-      'root_directory_guard',
       'typecheck',
       'git_compatibility',
       'codex_index_heal_contract',
@@ -508,11 +550,18 @@ describe('PR workflow parallelism', () => {
     // The bundling tests skip themselves without mobile/node_modules, which is what keeps the
     // sharded `test` job green. Only this env var stops that skip from spreading to the one job
     // that installs them, so a typo here would leave the whole job passing vacuously.
-    const step = workflow.jobs.mobile_web_app.steps.find((entry) =>
-      entry.run?.includes('build-mobile-web-app-bundle.test.mjs')
+    const step = workflow.jobs.mobile_web_app.steps.find(
+      (entry) => entry.name === 'Builder, override census and render checks'
     )
+    expect(step.run).toContain('node config/scripts/run-mobile-web-app-checks.mjs')
+    expect(step.run).not.toContain('--prepare-route-snapshot')
     expect(step.env[MOBILE_WEB_APP_DEPENDENCIES_REQUIRED_ENV]).toBe('1')
-    expect(step.env.MANTA_BACKGROUND_LAUNCH).toBe('1')
-    expect(step.run).toContain('config/scripts/mobile-web-app-router-query-string.test.mjs')
+    expect(mobileWebCheckArgs).toEqual([
+      'run',
+      '--config',
+      'config/vitest.config.ts',
+      'config/scripts/mobile-web-app-',
+      'config/scripts/build-mobile-web-app-bundle.test.mjs'
+    ])
   })
 })

@@ -36,7 +36,7 @@ export class MantaRuntimeWithGetWorktreeTerminalProvisioningHost extends MantaRu
         this.ptyController!.hasChildProcesses?.(ptyId) ?? Promise.resolve(false),
       subscribeToData: (ptyId, listener) => this.subscribeToTerminalData(ptyId, listener),
       readRecentOutput: (ptyId) => this.recentPtyOutputById.get(ptyId)?.read(),
-      write: (ptyId, data) => this.ptyController?.write(ptyId, data)
+      write: (ptyId, data, inputKind) => this.ptyController?.write(ptyId, data, inputKind)
     }
   }
 

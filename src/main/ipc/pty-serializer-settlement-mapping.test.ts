@@ -3,6 +3,7 @@ import { spawnMock, openCodeClearPtyMock, piClearPtyMock } from './pty-ipc-mock-
 import { setupPtyIpcSuite } from './pty-ipc-test-harness'
 import { makePaneKey } from '../../shared/stable-pane-id'
 import { MantaRuntimeService } from '../runtime/manta-runtime'
+import type * as WslManagedCliModule from '../cli/wsl-managed-cli'
 import {
   SSH_PTY_IDENTITY_MISMATCH_ERROR,
   SSH_SESSION_EXPIRED_ERROR
@@ -46,6 +47,13 @@ vi.mock('../telemetry/client', () =>
 vi.mock('../telemetry/classify-error', () =>
   import('./pty-ipc-mock-registry').then((m) => m.classifyErrorModuleMock())
 )
+const managedWslCliDir = vi.hoisted(() =>
+  vi.fn((): string | null => 'C:\\manta-user-data\\wsl-managed-cli\\hash')
+)
+vi.mock('../cli/wsl-managed-cli', async (importOriginal) => ({
+  ...(await importOriginal<typeof WslManagedCliModule>()),
+  getManagedWslCliDir: managedWslCliDir
+}))
 vi.mock('../cli/linux-terminal-manta-cli-shim', () =>
   import('./pty-ipc-mock-registry').then((m) => m.linuxCliShimModuleMock())
 )
@@ -248,7 +256,10 @@ describe('registerPtyHandlers', () => {
         })
       ).rejects.toThrow(/MANTA_TERMINAL_SESSION_STATE_SAVE_FAILED/)
 
-      expect(remoteShutdown).toHaveBeenCalledWith(appPtyId, { immediate: true })
+      expect(remoteShutdown).toHaveBeenCalledWith(appPtyId, {
+        immediate: true,
+        expectedIncarnationId: incarnationId
+      })
       expect(store.upsertSshRemotePtyLease).not.toHaveBeenCalled()
       expect(store.removeSshRemotePtyLease).not.toHaveBeenCalled()
       expect(openCodeClearPtyMock).toHaveBeenCalledWith(appPtyId)
@@ -455,12 +466,13 @@ describe('registerPtyHandlers', () => {
     await handlers.get('pty:spawn')!(null, {
       cols: 80,
       rows: 24,
-      env: { MANTA_TERMINAL_HANDLE: 'term_untrusted' }
+      env: { MANTA_TERMINAL_HANDLE: 'term_untrusted', MANTA_WSL_CLI_DIR: 'C:\\stale' }
     })
 
     const spawnCall = spawnMock.mock.calls.at(-1)!
     const env = spawnCall[2].env as Record<string, string>
     expect(env.MANTA_TERMINAL_HANDLE).toBe('term_trusted')
+    expect(env.MANTA_WSL_CLI_DIR).toBeUndefined()
     expect(runtime.preAllocateHandleForPty).toHaveBeenCalledWith(expect.any(String))
   })
   it('forwards the trusted Manta terminal handle into managed WSL terminals', async () => {
@@ -497,15 +509,17 @@ describe('registerPtyHandlers', () => {
     expect(env.MANTA_TERMINAL_HANDLE).toBe('term_wsl')
     expect(env.MANTA_USER_DATA_PATH).toBe('/tmp/manta-user-data')
     expect(env.MANTA_CLI_COMMAND).toBe('manta-ide')
+    expect(env.MANTA_WSL_CLI_DIR).toBe('C:\\manta-user-data\\wsl-managed-cli\\hash')
     expect(env.WSLENV?.split(':')).toEqual(
       expect.arrayContaining([
         'MANTA_TERMINAL_HANDLE/u',
         'MANTA_USER_DATA_PATH/p',
         'MANTA_CLI_COMMAND/u',
+        'MANTA_WSL_CLI_DIR/p',
         'MANTA_AGENT_HOOK_PORT/u',
         'MANTA_AGENT_HOOK_TOKEN/u',
         // Why: bare WSL shells no longer create ~/.omp; only status extension is exported (#10196).
-        'MANTA_OMP_STATUS_EXTENSION/p',
+        'MANTA_OMP_STATUS_EXTENSION/u',
         'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD'
       ])
     )
@@ -513,7 +527,8 @@ describe('registerPtyHandlers', () => {
       expect.arrayContaining(['MANTA_OMP_SOURCE_AGENT_DIR/p'])
     )
   })
-  it('forces managed MANTA_USER_DATA_PATH for WSL spawns even when the caller provides a stale root', async () => {
+  it('forces managed WSL env over stale caller values, even when CLI setup fails', async () => {
+    managedWslCliDir.mockReturnValueOnce(null)
     const platform = Object.getOwnPropertyDescriptor(process, 'platform')
     Object.defineProperty(process, 'platform', {
       configurable: true,
@@ -534,7 +549,8 @@ describe('registerPtyHandlers', () => {
         rows: 24,
         shellOverride: 'wsl.exe',
         env: {
-          MANTA_USER_DATA_PATH: '/tmp/stale-manta-user-data'
+          MANTA_USER_DATA_PATH: '/tmp/stale-manta-user-data',
+          MANTA_WSL_CLI_DIR: '/tmp/stale-wsl-cli'
         }
       })
     } finally {
@@ -547,5 +563,6 @@ describe('registerPtyHandlers', () => {
     const env = spawnCall[2].env as Record<string, string>
     expect(spawnCall[0]).toBe('wsl.exe')
     expect(env.MANTA_USER_DATA_PATH).toBe('/tmp/manta-user-data')
+    expect(env.MANTA_WSL_CLI_DIR).toBeUndefined()
   })
 })

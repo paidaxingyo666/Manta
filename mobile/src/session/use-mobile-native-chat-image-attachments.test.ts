@@ -8,16 +8,11 @@ import { resetMobileNativeChatStaleInputForTests } from './mobile-native-chat-st
 import { resetMobileNativeChatTerminalWritesForTests } from './mobile-native-chat-terminal-write-lock'
 import { useMobileNativeChatImageAttachments } from './use-mobile-native-chat-image-attachments'
 
-// Fully stub the picker so the real expo/react-native chain never loads under
-// the vitest transform (react-native ships Flow syntax rolldown can't parse).
-vi.mock('./mobile-image-source-picker', () => ({
-  pickMobileImages: vi.fn(),
-  ImageLibraryPermissionError: class ImageLibraryPermissionError extends Error {}
-}))
-
-import { pickMobileImages } from './mobile-image-source-picker'
-
-const pick = vi.mocked(pickMobileImages)
+// Stubbed at the seam the hook now holds, which keeps the real expo/react-native chain out of the
+// vitest transform (react-native ships Flow syntax rolldown cannot parse) and pins the call site:
+// a hook that went back to importing the picker module directly would load that chain and fail.
+const pick = vi.hoisted(() => vi.fn())
+vi.mock('../platform/media-picker', () => ({ useMediaPicker: () => ({ pickImages: pick }) }))
 
 function ok(id: string, result: unknown): RpcSuccess {
   return { id, ok: true, result, _meta: { runtimeId: 'r' } }

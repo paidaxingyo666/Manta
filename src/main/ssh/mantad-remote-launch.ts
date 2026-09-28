@@ -20,12 +20,16 @@ import {
   posixProcessAliveShellFunction
 } from './mantad-remote-host-support'
 import type { ServeReadiness } from '../server/serve-readiness'
+import { selectOrcadSlotRuntimeCommand } from './mantad-remote-runtime'
 
 /** Stdout of the launched candidate: exactly one `manta_server_ready` line, then nothing. */
 export const MANTAD_READINESS_FILENAME = '.mantad-readiness'
 /** Stderr, including the bind-exposure line and every supervision message. */
-export const MANTAD_LOG_FILENAME = 'orcad.log'
-export { MANTAD_PID_FILENAME, OrcadRemoteLaunchUnsupportedError } from './mantad-remote-host-support'
+export const MANTAD_LOG_FILENAME = 'mantad.log'
+export {
+  MANTAD_PID_FILENAME,
+  OrcadRemoteLaunchUnsupportedError
+} from './mantad-remote-host-support'
 
 export type OrcadLaunchSpec = {
   remoteInstallDir: string
@@ -56,13 +60,15 @@ export function orcadLaunchCommand(host: RemoteHostPlatform, spec: OrcadLaunchSp
   const entry = shellEscape(joinRemotePath(host, spec.remoteInstallDir, 'mantad.js'))
   return [
     `cd ${dir} &&`,
+    `${selectOrcadSlotRuntimeCommand(host, spec.remoteInstallDir, spec.nodePath)} &&`,
     // Why truncate: a re-launch into a dir that already holds a previous readiness line would
     // otherwise let the deploy activate on the OLD process's health payload.
     `: > ${readiness} &&`,
     'umask 077 &&',
     `MANTA_VERSION=${shellEscape(spec.fullVersion)}`,
     `MANTA_USER_DATA=${shellEscape(spec.userDataDir)}`,
-    `nohup ${shellEscape(spec.nodePath)} ${entry}`,
+    // Keep $! equal to the runtime PID rather than a waiting shell's PID.
+    `exec nohup "$orcad_runtime" ${entry}`,
     `--json --bind ${shellEscape(spec.bindHost)} --port ${String(spec.port)}`,
     `> ${readiness} 2>> ${log} < /dev/null &`,
     `echo $! > ${pidFile} && cat ${pidFile}`

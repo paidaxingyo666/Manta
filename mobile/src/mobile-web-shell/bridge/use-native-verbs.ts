@@ -2,6 +2,20 @@ import { useMemo } from 'react'
 import { z } from 'zod'
 import { usePageBridgeClient } from '../../transport/client-context.web'
 import {
+  mediaPickResultSchema,
+  mediaReadResultSchema,
+  mediaReleaseResultSchema,
+  type BridgeMediaChunk,
+  type BridgeMediaItem,
+  type BridgeMediaSource
+} from './bridge-media-verbs'
+import {
+  audioReadResultSchema,
+  audioStartResultSchema,
+  audioStopResultSchema,
+  type BridgeAudioChunk
+} from './bridge-audio-verbs'
+import {
   clipboardReadResultSchema,
   clipboardWriteResultSchema,
   type BridgeClipboardMime,
@@ -24,10 +38,50 @@ import {
  * a screen that read a field which is not there.
  */
 export type NativeVerbs = {
-  /** Whether this shell serves the verbs at all; false leaves a caller its own fallback. */
+  /** Whether this shell serves the clipboard verbs at all; false leaves a caller its own fallback. */
   granted: boolean
+  /**
+   * Per verb, because the grants are per verb and a caller usually wants one of them.
+   *
+   * `granted` is both, which is the right question for a screen that copies and pastes and the
+   * wrong one for anything else: a route granted only `native.clipboard.read` reads `granted`
+   * false and would report an empty clipboard rather than one it is allowed to read.
+   */
+  canWriteClipboardText: boolean
+  canReadClipboardText: boolean
+  /**
+   * Whether the shell serves all three media verbs, which is the page's only route to an image.
+   *
+   * All three, not the two a read needs. Every caller releases what it picked, and a shell that
+   * granted `pick` and `read` but not `release` would take the handles and never give them back:
+   * the release rejects, the cleanup swallows it by design, and the staged files stay live to the
+   * five-minute TTL — eight pastes and the next pick is refused at the cap. A route missing one
+   * verb has no working image path, so this says so up front rather than after four of them.
+   *
+   * Read by `contents()` on the clipboard seam, which answers without probing: a route granted all
+   * three may have an image on the pasteboard, and one that is not never can.
+   */
+  canPickMedia: boolean
   writeClipboardText: (value: string) => Promise<boolean>
   readClipboardText: () => Promise<string>
+  /** Opens the shell's picker and answers a handle per item; an empty list is a cancelled picker,
+   *  which is not a fault and never a rejection. */
+  pickMedia: (source: BridgeMediaSource, multiple: boolean) => Promise<readonly BridgeMediaItem[]>
+  /** One byte range of a staged item. `length` above the cap is refused by the shell's schema, so
+   *  a caller bounds its own ask rather than discovering the bound as a rejection. */
+  readMedia: (handle: string, offset: number, length: number) => Promise<BridgeMediaChunk>
+  /** False for a handle this session no longer holds, which is not a fault. */
+  releaseMedia: (handle: string) => Promise<boolean>
+  /** Opens the microphone, running the OS prompt if there is one. A denied microphone and an
+   *  engine that would not open are both answers here rather than rejections. */
+  startAudio: (sampleRate: number) => Promise<z.infer<typeof audioStartResultSchema>>
+  /** One drain of the shell's ring. `maxBytes` above the ring is refused by the shell's schema, so
+   *  a caller bounds its own ask rather than discovering the bound as a rejection. */
+  readAudio: (maxBytes: number) => Promise<BridgeAudioChunk>
+  /** Ends the capture and brings back what the shell's ring still held, which is the tail of the
+   *  utterance no drain came back for. `stopped` is false for a session that was not capturing,
+   *  which is not a fault. */
+  stopAudio: () => Promise<z.infer<typeof audioStopResultSchema>>
 }
 
 /**
@@ -76,7 +130,13 @@ export const NATIVE_VERB_REASONS = [
   'native_verb_result',
   'native_verb_out_of_scope',
   'native_verb_failed',
+  'native_media_handle_unknown',
+  'native_media_range',
+  'native_media_handle_cap',
+  'native_media_too_large',
+  'native_media_permission_denied',
   'native_verb_not_a_stream',
+  'native_audio_not_capturing',
   'native_verb_not_a_verb',
   'bridge_cap_exceeded',
   'bridge_host_disposed',
@@ -140,12 +200,28 @@ export function useNativeVerbs(): NativeVerbs {
     }
 
     const mime: BridgeClipboardMime = 'text'
+    const canWriteClipboardText = has('native.clipboard.write')
+    const canReadClipboardText = has('native.clipboard.read')
     return {
-      granted: has('native.clipboard.write') && has('native.clipboard.read'),
+      granted: canWriteClipboardText && canReadClipboardText,
+      canWriteClipboardText,
+      canReadClipboardText,
+      canPickMedia:
+        has('native.media.pick') && has('native.media.read') && has('native.media.release'),
       writeClipboardText: async (value) =>
         (await call('native.clipboard.write', { mime, value }, clipboardWriteResultSchema)).written,
       readClipboardText: async () =>
-        (await call('native.clipboard.read', { mime }, clipboardReadResultSchema)).value
+        (await call('native.clipboard.read', { mime }, clipboardReadResultSchema)).value,
+      pickMedia: async (source, multiple) =>
+        (await call('native.media.pick', { source, multiple }, mediaPickResultSchema)).items,
+      readMedia: (handle, offset, length) =>
+        call('native.media.read', { handle, offset, length }, mediaReadResultSchema),
+      releaseMedia: async (handle) =>
+        (await call('native.media.release', { handle }, mediaReleaseResultSchema)).released,
+      startAudio: (sampleRate) =>
+        call('native.audio.start', { sampleRate }, audioStartResultSchema),
+      readAudio: (maxBytes) => call('native.audio.read', { maxBytes }, audioReadResultSchema),
+      stopAudio: () => call('native.audio.stop', {}, audioStopResultSchema)
     }
   }, [client])
 }

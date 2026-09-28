@@ -1,11 +1,13 @@
 import { isTailscaleEndpoint } from '../../../src/shared/remote-runtime-tailscale-hint'
-import type { MobileAccessEndpoint } from '../transport/mobile-relay-host-overlay'
+import { relayConnectWebSocketUrl } from '../transport/mobile-relay-connect-url'
 import type { HostProfile } from '../transport/types'
 import { translate } from '../i18n/i18n'
 import { formatEndpoint } from './host-reachability'
 
+export type HostConnectionPathKind = 'lan' | 'tailscale' | 'relay'
+
 export type HostConnectionPathProbe = {
-  kind: MobileAccessEndpoint['kind']
+  kind: HostConnectionPathKind
   url: string
   reachable: boolean
 }
@@ -19,20 +21,22 @@ export type HostConnectionPathProbe = {
  * alone reported a working host as unreachable.
  */
 export function hostConnectionPathTargets(
-  host: Pick<HostProfile, 'endpoint' | 'endpoints'>
-): { kind: MobileAccessEndpoint['kind']; url: string }[] {
-  if (host.endpoints && host.endpoints.length > 0) {
-    return host.endpoints.map(({ kind, url }) => ({ kind, url }))
+  host: Pick<HostProfile, 'endpoint' | 'relay'>
+): { kind: HostConnectionPathKind; url: string }[] {
+  const direct = {
+    kind: isTailscaleEndpoint(host.endpoint) ? ('tailscale' as const) : ('lan' as const),
+    url: host.endpoint
   }
-  return [
-    {
-      kind: isTailscaleEndpoint(host.endpoint) ? 'tailscale' : 'lan',
-      url: host.endpoint
-    }
-  ]
+  // The phone dials the assigned cell, the same socket the relay transport opens.
+  return host.relay
+    ? [
+        direct,
+        { kind: 'relay', url: relayConnectWebSocketUrl(host.relay.cellUrl, host.relay.relayHostId) }
+      ]
+    : [direct]
 }
 
-export function connectionPathName(kind: MobileAccessEndpoint['kind']): string {
+export function connectionPathName(kind: HostConnectionPathKind): string {
   if (kind === 'relay') {
     return translate('mobile.diagnostics.path.relay', 'relay')
   }

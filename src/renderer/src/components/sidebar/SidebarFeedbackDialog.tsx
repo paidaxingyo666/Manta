@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import { ExternalLink, Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,6 +10,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { useMountedRef } from '@/hooks/useMountedRef'
+import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 import { stripClientEnvironmentFooter } from '../../../../shared/client-environment-info'
 import { useSidebarFeedbackEnvironmentPrefill } from './use-sidebar-feedback-environment-prefill'
@@ -63,9 +64,24 @@ export function SidebarFeedbackDialog({
   open,
   onOpenChange
 }: SidebarFeedbackDialogProps): React.JSX.Element {
-  const [feedback, setFeedback] = useState('')
+  // Why: the draft lives in the app store, not component state. This dialog
+  // renders inside the sidebar subtree, so collapsing the sidebar unmounts it
+  // and would otherwise discard a report the user has not handed off yet
+  // (manta#22466).
+  const feedback = useAppStore((s) => s.feedbackDraft.feedback)
+  const setFeedbackDraft = useAppStore((s) => s.setFeedbackDraft)
+  const clearFeedbackDraft = useAppStore((s) => s.clearFeedbackDraft)
   const mountedRef = useMountedRef()
   const feedbackTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Why: reads the committed draft at call time so a late-resolving prefill
+  // cannot overwrite characters typed while it was in flight.
+  const setFeedback = React.useCallback(
+    (updater: (current: string) => string) => {
+      setFeedbackDraft({ feedback: updater(useAppStore.getState().feedbackDraft.feedback) })
+    },
+    [setFeedbackDraft]
+  )
 
   useSidebarFeedbackEnvironmentPrefill({
     open,
@@ -74,6 +90,34 @@ export function SidebarFeedbackDialog({
     textareaRef: feedbackTextareaRef,
     mountedRef
   })
+
+  const handleOpenIssue = (): void => {
+    const report = feedback.trim()
+    const issueBody = prefilledIssueBody(feedback)
+    const handedOffText = stripClientEnvironmentFooter(feedback).trim()
+    // The typed report and the version footer travel in the issue body, which
+    // is the only part of this dialog still worth having once there is no
+    // server to send it to.
+    void window.api.shell
+      .openUrl(`${GITHUB_ISSUE_URL}&details=${encodeURIComponent(issueBody)}`)
+      .then(() => {
+        // Why: once the whole report is in the browser the draft has to go, or
+        // it reappears on the next open and invites a duplicate issue. A
+        // truncated report stays so the cut-off tail can still be copied, and
+        // a different report typed since (e.g. after a remount) survives.
+        if (
+          issueBody === report &&
+          stripClientEnvironmentFooter(useAppStore.getState().feedbackDraft.feedback).trim() ===
+            handedOffText
+        ) {
+          clearFeedbackDraft()
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to open the GitHub issue page:', err)
+      })
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,7 +175,7 @@ export function SidebarFeedbackDialog({
         <textarea
           ref={feedbackTextareaRef}
           value={feedback}
-          onChange={(event) => setFeedback(event.target.value)}
+          onChange={(event) => setFeedbackDraft({ feedback: event.target.value })}
           placeholder={translate(
             'auto.components.sidebar.SidebarFeedbackDialog.d46ddd66fc',
             'What could we improve?'
@@ -145,15 +189,7 @@ export function SidebarFeedbackDialog({
             {translate('auto.components.sidebar.SidebarFeedbackDialog.8bf619e4cf', 'Cancel')}
           </Button>
           <Button
-            onClick={() => {
-              // The typed report and the version footer travel in the issue
-              // body, which is the only part of this dialog still worth having
-              // once there is no server to send it to.
-              openExternalUrl(
-                `${GITHUB_ISSUE_URL}&details=${encodeURIComponent(prefilledIssueBody(feedback))}`
-              )
-              onOpenChange(false)
-            }}
+            onClick={handleOpenIssue}
             disabled={stripClientEnvironmentFooter(feedback).trim() === ''}
           >
             {translate(

@@ -9,6 +9,8 @@ import { latestStableDesktopReleaseTag } from './latest-stable-release.mjs'
 import {
   bumpMobileAppConfig,
   carriedMobileRelease,
+  isShippedMobilePath,
+  mobileReleaseForChanges,
   mergedUpstreamBaseFrom,
   releaseBase,
   upstreamMobileVersion
@@ -300,5 +302,40 @@ describe('mobile release a sync carried in', () => {
       )
     ).toBeNull()
     expect(carriedMobileRelease({ version: '0.0.48', versionCode: 16 }, null)).toBeNull()
+  })
+})
+
+describe('mobile release owed by changes', () => {
+  const shipped = { version: '0.0.51', versionCode: 17 }
+
+  it('moves the patch when shipped phone code changed since the release', () => {
+    expect(
+      mobileReleaseForChanges({ version: '0.0.51', versionCode: 17 }, shipped, [
+        'mobile/src/session/MobileNativeChatView.tsx'
+      ])
+    ).toEqual({ version: '0.0.52', from: '0.0.51', bumped: true })
+  })
+
+  it('ignores changes the installed app does not contain', () => {
+    const notShipped = [
+      'mobile/rpc-foundation/goldens/b1.json',
+      'mobile/src/session/mobile-session-route-parity.test.ts',
+      'mobile/src/test-support/rpc-recording/reply-matrix.ts',
+      'mobile/web-entry/index.tsx',
+      'mobile/README.md'
+    ]
+    expect(notShipped.filter(isShippedMobilePath)).toEqual([])
+    expect(
+      mobileReleaseForChanges({ version: '0.0.51', versionCode: 17 }, shipped, notShipped)
+    ).toBeNull()
+  })
+
+  it('leaves a version that already moved to the other rules', () => {
+    expect(
+      mobileReleaseForChanges({ version: '0.0.52', versionCode: 18 }, shipped, ['mobile/app.json'])
+    ).toBeNull()
+    expect(
+      mobileReleaseForChanges({ version: '0.0.51', versionCode: 17 }, null, ['mobile/app.json'])
+    ).toBeNull()
   })
 })

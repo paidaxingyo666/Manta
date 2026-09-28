@@ -1,8 +1,12 @@
 import { z } from 'zod'
-import { MobileRelayEndpointSchema } from '../../../src/shared/mobile-relay-credential-contract'
+import {
+  MobileRelayEndpointSchema,
+  type MobileRelayEndpoint
+} from '../../../src/shared/mobile-relay-credential-contract'
+import { relayConnectWebSocketUrl } from './mobile-relay-connect-url'
 import { translate } from '../i18n/i18n'
 
-export const MobileAccessEndpointSchema = z
+const MobileAccessEndpointSchema = z
   .object({
     id: z.string().min(1).max(128),
     kind: z.enum(['lan', 'tailscale', 'relay']),
@@ -10,6 +14,10 @@ export const MobileAccessEndpointSchema = z
   })
   .strict()
 
+/**
+ * The stored record, which shipped builds also read and write. Only `relay` is authoritative here:
+ * `endpoints` and `relayHostId` are derived copies kept so an older build still parses the record.
+ */
 export const MobileRelayHostOverlaySchema = z
   .object({
     v: z.literal(2),
@@ -53,5 +61,24 @@ export const MobileRelayHostOverlaySchema = z
     }
   })
 
-export type MobileAccessEndpoint = z.infer<typeof MobileAccessEndpointSchema>
 export type MobileRelayHostOverlay = z.infer<typeof MobileRelayHostOverlaySchema>
+
+// Why no direct entry: the host row owns the address, and a copy here outlived every Edit Host.
+export function toStoredMobileRelayHostOverlay(
+  hostId: string,
+  relay: MobileRelayEndpoint
+): MobileRelayHostOverlay {
+  return MobileRelayHostOverlaySchema.parse({
+    v: 2,
+    hostId,
+    endpoints: [
+      {
+        id: 'relay-primary',
+        kind: 'relay',
+        url: relayConnectWebSocketUrl(relay.cellUrl, relay.relayHostId)
+      }
+    ],
+    relayHostId: relay.relayHostId,
+    relay
+  })
+}

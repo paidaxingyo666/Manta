@@ -40,7 +40,7 @@ describe('electron-builder dev-channel identity', () => {
     expect(config.win.signtoolOptions.publisherName).toBe('SignPath Foundation')
     expect(config.win.verifyUpdateCodeSignature).toBeUndefined()
     expect(config.publish.repo).toBe('Manta')
-    expect(config.publish.releaseType).toBe('release')
+    expect(config.publish.releaseType).toBe('draft')
   })
 
   // The whole point of the change: an unsigned build that advertised a
@@ -77,7 +77,7 @@ describe('electron-builder dev-channel identity', () => {
     expect(config.win.verifyUpdateCodeSignature).toBe(false)
     // Still a real release: it goes to the main repo, not a dev-channel one.
     expect(config.publish.repo).toBe('Manta')
-    expect(config.publish.releaseType).toBe('release')
+    expect(config.publish.releaseType).toBe('draft')
   })
 
   it.each([
