@@ -357,7 +357,7 @@ describe('registerPtyHandlers', () => {
                 ...(launchAgent ? { launchAgent } : {})
               })
               expect(spy.mock.calls.map(([, agent]) => agent)).toEqual([expectedAgent])
-              expect(env.ORCA_OPENCODE_AGENT).toBe(expectedAgent)
+              expect(env.MANTA_OPENCODE_AGENT).toBe(expectedAgent)
               expect(env.OPENCODE_CONFIG_DIR).toBe(guestDirs[expectedAgent])
               expect(env.MANTA_OPENCODE_CONFIG_DIR).toBe(guestDirs[expectedAgent])
             })
@@ -411,6 +411,17 @@ describe('registerPtyHandlers', () => {
             'CLAUDE_CODE_SESSION_ID',
             'CLAUDE_CODE_BRIDGE_SESSION_ID'
           ])
+        )
+      })
+      it('strips an inherited agent session id', async () => {
+        // Why: a daemon forked by a Manta launched inside a structured session inherits its id,
+        // and every daemon pane would present that session as its orchestration caller.
+        const inherited = await daemonSpawnAndGetOptions(undefined, undefined, undefined, {
+          ORCA_AGENT_SESSION_ID: 'a0b1c2d3-0000-4000-8000-00000000abcd',
+          ORCA_STRUCTURED_SESSION: '1'
+        })
+        expect(inherited.envToDelete).toEqual(
+          expect.arrayContaining(['ORCA_AGENT_SESSION_ID', 'ORCA_STRUCTURED_SESSION'])
         )
       })
       it('preserves an explicitly requested Claude child-session stamp', async () => {

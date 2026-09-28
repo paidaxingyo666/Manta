@@ -17,6 +17,8 @@ import { delimiter, join } from 'node:path'
 import { readInheritedPath } from '../ipc/pty/host-env/path'
 import { resolvePathEnvKey } from '../pty/windows-environment-path'
 import { ensureLinuxTerminalMantaCliShimDir } from './linux-terminal-manta-cli-shim'
+import { getBundledLauncherPath } from './bundled-cli-launcher-path'
+import { DEV_COMMAND_NAME } from './cli-install-constants'
 
 export type MantaCliChildPathOptions = {
   isPackaged: boolean
@@ -26,11 +28,16 @@ export type MantaCliChildPathOptions = {
   platform?: NodeJS.Platform
 }
 
-/** Mutates `env` in place, prepending the directory that makes bare `manta` this app's CLI. */
+/**
+ * Mutates `env` in place, prepending the directory that makes bare `manta` this app's CLI. Returns
+ * the absolute launcher in that directory, or null when none was prepended: a child whose shell
+ * rebuilds PATH (a login shell reordering it behind a global install) can still name this app's
+ * CLI by path.
+ */
 export function prependOrcaCliDirToChildPath(
   env: Record<string, string>,
   opts: MantaCliChildPathOptions
-): void {
+): string | null {
   const platform = opts.platform ?? process.platform
   // Why: matches node:path's `delimiter` for the running platform, but stays correct when a test
   // drives a foreign platform through the seam.
@@ -43,6 +50,7 @@ export function prependOrcaCliDirToChildPath(
     env[resolvePathEnvKey(env, platform)] = inheritedPath
       ? `${devCliBin}${pathDelimiter}${inheritedPath}`
       : devCliBin
+    return join(devCliBin, platform === 'win32' ? `${DEV_COMMAND_NAME}.cmd` : DEV_COMMAND_NAME)
   } else if (platform === 'linux') {
     // Why: bare-`manta` shim scoped to Manta PTYs — Linux CLI installs as `manta-ide` to avoid shadowing GNOME's /usr/bin/orca screen reader (stablyai/orca#7904).
     const shimDir = ensureLinuxTerminalMantaCliShimDir({ userDataPath: opts.userDataPath })
@@ -51,6 +59,7 @@ export function prependOrcaCliDirToChildPath(
         .split(pathDelimiter)
         .filter((entry) => entry.length > 0 && entry !== shimDir)
       env.PATH = [shimDir, ...inheritedEntries].join(pathDelimiter)
+      return join(shimDir, 'manta')
     }
   } else if (opts.resourcesPath && (platform === 'darwin' || platform === 'win32')) {
     // Why: global CLI registration is optional, but agents in Manta-managed PTYs must always reach this app's bundled CLI.
@@ -59,5 +68,8 @@ export function prependOrcaCliDirToChildPath(
     env[resolvePathEnvKey(env, platform)] = inheritedPath
       ? `${bundledCliBin}${pathDelimiter}${inheritedPath}`
       : bundledCliBin
+    // Why the native launcher on Windows: `manta.cmd` refuses message bodies cmd.exe would mangle.
+    return getBundledLauncherPath(platform, opts.resourcesPath)
   }
+  return null
 }

@@ -9,7 +9,7 @@ import {
   mergePtyEnvDeletions,
   removeCodexHomeDeletionRequests,
   getInheritedAgentHookEnvKeysToDelete,
-  getInheritedClaudeSessionStampEnvKeysToDelete
+  getInheritedAgentSessionStampEnvKeysToDelete
 } from '../host-env/pi-agent'
 import { promoteAgentTeamsShimPath, deleteRequestedEnvKeys } from '../host-env/path'
 import { beginPtySpawnForWorktree } from '../host-env/fresh-spawn-routing'
@@ -49,7 +49,7 @@ export async function buildPtyIpcSpawnOptions(
     !args.connectionId && !ctx.isDaemonHostSpawn
       ? getLegacyOpenCodeEnvKeysToDelete(ctx.spawnEnv, getAppEnvironment().getPath('userData'))
       : [],
-    getInheritedClaudeSessionStampEnvKeysToDelete(ctx.spawnEnv),
+    getInheritedAgentSessionStampEnvKeysToDelete(ctx.spawnEnv),
     ctx.skipCodexHomeEnv ? CODEX_HOME_ENV_KEYS : [],
     // Why: the persistent daemon compares its own merged CODEX_HOME pair;
     // main cannot safely decide ownership for a process it may not parent.
