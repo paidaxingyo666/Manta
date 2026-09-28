@@ -3033,6 +3033,7 @@
           },
           "TerminalContextMenu": {
             "b4cdd9314e": "화면 지우기",
+            "resetTerminal": "터미널 초기화",
             "8c17d6786d": "창 닫기",
             "copyTerminalId": "터미널 ID 복사",
             "2cf85a6a55": "창 ID 복사",

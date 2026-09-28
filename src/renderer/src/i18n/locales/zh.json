@@ -3033,6 +3033,7 @@
           },
           "TerminalContextMenu": {
             "b4cdd9314e": "清屏",
+            "resetTerminal": "重置终端",
             "8c17d6786d": "关闭窗格",
             "copyTerminalId": "复制终端 ID",
             "2cf85a6a55": "复制窗格 ID",

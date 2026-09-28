@@ -2751,6 +2751,7 @@
           },
           "TerminalContextMenu": {
             "b4cdd9314e": "Borrar pantalla",
+            "resetTerminal": "Restablecer terminal",
             "8c17d6786d": "Cerrar panel",
             "copyTerminalId": "Copiar ID de terminal",
             "2cf85a6a55": "Copiar ID del panel",

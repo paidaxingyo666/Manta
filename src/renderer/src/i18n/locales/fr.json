@@ -3136,6 +3136,7 @@
           },
           "TerminalContextMenu": {
             "b4cdd9314e": "Effacer l'écran",
+            "resetTerminal": "Réinitialiser le terminal",
             "8c17d6786d": "Fermer le volet",
             "copyTerminalId": "Copier l'ID du terminal",
             "2cf85a6a55": "Copier l'ID du volet",

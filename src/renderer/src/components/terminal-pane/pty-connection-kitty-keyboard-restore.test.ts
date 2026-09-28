@@ -215,4 +215,19 @@ describe('connectPanePty kitty keyboard restore', () => {
     expect(mirror.snapshotFlags).toBe(0)
     expect(mirror.isAlternateScreen).toBe(false)
   })
+
+  it('grounds xterm and the mirror together on Reset Terminal and asks the host to ground', async () => {
+    const { pane, mirror } = await reattachWithSnapshotFlags(true)
+    expect(mirror?.flags).toBe(31)
+    const { resetTerminalInputModes } = await import('./terminal-input-mode-reset')
+
+    resetTerminalInputModes('tab-pty')
+
+    expect(pane.terminal.write).toHaveBeenLastCalledWith(
+      PROCESS_BOUNDARY_GROUND,
+      expect.any(Function)
+    )
+    expect(mirror?.flags).toBe(0)
+    expect(window.api.pty.resetInputModes).toHaveBeenCalledWith('tab-pty')
+  })
 })

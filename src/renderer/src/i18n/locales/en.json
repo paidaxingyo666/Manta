@@ -3193,6 +3193,7 @@
           },
           "TerminalContextMenu": {
             "b4cdd9314e": "Clear Screen",
+            "resetTerminal": "Reset Terminal",
             "8c17d6786d": "Close Pane",
             "copyTerminalId": "Copy Terminal ID",
             "2cf85a6a55": "Copy Pane ID",

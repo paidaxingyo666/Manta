@@ -109,6 +109,7 @@ describe('PTY provider dispatch', () => {
       getCwd: vi.fn(),
       getInitialCwd: vi.fn(),
       clearBuffer: vi.fn(),
+      resetInputModes: vi.fn(),
       acknowledgeDataEvent: vi.fn(),
       hasChildProcesses: vi.fn(),
       getForegroundProcess: vi.fn(),

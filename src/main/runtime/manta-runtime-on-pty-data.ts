@@ -16,6 +16,14 @@ import {
 import { extractOscTitleScanTail } from '../../shared/osc-title-scan-tail'
 
 export class MantaRuntimeWithOnPtyData extends MantaRuntimeWithPreparePtyExecutionContext {
+  /** Arrival-order mode scan: the settled tracker plus any in-flight snapshot capture's. */
+  protected scanProviderModeTrackers(ptyId: string, data: string): void {
+    this.providerModeTrackersByPtyId.get(ptyId)?.scan(data)
+    for (const tracker of this.providerModeSnapshotScansByPtyId.get(ptyId) ?? []) {
+      tracker.scan(data)
+    }
+  }
+
   onPtyData(
     ptyId: string,
     data: string,
@@ -27,10 +35,7 @@ export class MantaRuntimeWithOnPtyData extends MantaRuntimeWithPreparePtyExecuti
   ): number {
     const outputSequence = (this.ptyOutputSequenceById.get(ptyId) ?? 0) + sequenceChars
     this.ptyOutputSequenceById.set(ptyId, outputSequence)
-    this.providerModeTrackersByPtyId.get(ptyId)?.scan(data)
-    for (const tracker of this.providerModeSnapshotScansByPtyId.get(ptyId) ?? []) {
-      tracker.scan(data)
-    }
+    this.scanProviderModeTrackers(ptyId, data)
     const osc7Metadata = this.recordOsc7MetadataForPty(ptyId, data)
     const cwd = osc7Metadata.cwd
     const cwdChanged = osc7Metadata.cwdChanged

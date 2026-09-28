@@ -3033,6 +3033,7 @@
           },
           "TerminalContextMenu": {
             "b4cdd9314e": "クリアスクリーン",
+            "resetTerminal": "ターミナルをリセット",
             "8c17d6786d": "ペインを閉じる",
             "copyTerminalId": "ターミナル ID をコピー",
             "2cf85a6a55": "ペインIDのコピー",

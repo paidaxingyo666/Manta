@@ -1118,6 +1118,7 @@ export class PtyHandler {
     this.dispatcher.onRequest('pty.getInitialCwd', (p) => this.getInitialCwd(p))
     this.dispatcher.onRequest('pty.getSize', (p) => this.getSize(p))
     this.dispatcher.onRequest('pty.clearBuffer', (p) => this.clearBuffer(p))
+    this.dispatcher.onRequest('pty.resetInputModes', (p) => this.resetInputModes(p))
     this.dispatcher.onRequest('pty.hasChildProcesses', (p) => this.hasChildProcesses(p))
     this.dispatcher.onRequest('pty.getForegroundProcess', (p) => this.getForegroundProcess(p))
     this.dispatcher.onRequest('pty.inspectProcess', (p) => this.inspectProcess(p))
@@ -2683,6 +2684,15 @@ export class PtyHandler {
     if (managed && !managed.disposed) {
       managed.startupIngress?.snapshotBarrier()
       managed.pty.clear()
+    }
+  }
+
+  // Why the replay buffer and not the stream: a zero-raw span never crosses the
+  // credit window, and the client grounds its own view; reattach replays this.
+  private async resetInputModes(params: Record<string, unknown>): Promise<void> {
+    const managed = this.ptys.get(params.id as string)
+    if (managed?.recoveryBarrier && !managed.disposed) {
+      this.appendReplayBuffer(managed, managed.recoveryBarrier.groundInputModes())
     }
   }
 
