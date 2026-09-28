@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { abandonStructuredAgentSessionHost } from './structured-agent-session-host-test-abandon'
 import {
   HOST_TEST_NOW,
   HOST_TEST_SESSION,
@@ -58,15 +59,8 @@ function createHost(
   return host
 }
 
-async function abandonHost(host: StructuredAgentSessionHost): Promise<void> {
-  host['runtimeState'].stopLeaseRenewal()
-  host['lifetime'].dispose()
-  await Promise.all([...host['sessions'].values()].map((session) => session.journal.close()))
-  host['sessions'].clear()
-}
-
 afterEach(async () => {
-  await Promise.all(hosts.splice(0).map(abandonHost))
+  await Promise.all(hosts.splice(0).map(abandonStructuredAgentSessionHost))
   await rm(root, { recursive: true, force: true })
   root = ''
 })

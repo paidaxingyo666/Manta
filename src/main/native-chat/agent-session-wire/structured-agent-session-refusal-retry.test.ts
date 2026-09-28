@@ -19,6 +19,7 @@ import {
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { abandonStructuredAgentSessionHost } from './structured-agent-session-host-test-abandon'
 import {
   HOST_TEST_NOW as NOW,
   HOST_TEST_SESSION as SESSION,
@@ -103,19 +104,9 @@ async function createHarness(options: { attached?: boolean } = {}) {
   return harness
 }
 
-async function abandonHost(host: StructuredAgentSessionHost): Promise<void> {
-  host['runtimeState'].stopLeaseRenewal()
-  host['lifetime'].dispose()
-  host['conversationDelivery'].loop.dispose()
-  // An accepted send starts the agent in the background; its lease write must land before rm.
-  await host['tasks'].drainAttaches()
-  await Promise.all([...host['sessions'].values()].map((session) => session.journal.close()))
-  host['sessions'].clear()
-}
-
 afterEach(async () => {
   const completed = harnesses.splice(0)
-  await Promise.all(completed.map(async ({ host }) => abandonHost(host)))
+  await Promise.all(completed.map(async ({ host }) => abandonStructuredAgentSessionHost(host)))
   await Promise.all(completed.map(async ({ root }) => rm(root, { recursive: true })))
 })
 

@@ -24,6 +24,7 @@ import {
 } from './structured-agent-session-adapter'
 import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { abandonStructuredAgentSessionHost } from './structured-agent-session-host-test-abandon'
 import { unexpectedProviderExitOutcome } from './structured-agent-session-dead-generation-settlement'
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
 import type { StructuredAgentSessionStatusSink } from './structured-agent-session-status-feed'
@@ -384,10 +385,7 @@ describe('startup', () => {
   it('settles an idle absent owner without chat pollution and resumes the same provider identity', async () => {
     await attach()
     const beforeRestart = store.getRecord(SESSION)
-    host['runtimeState'].stopLeaseRenewal()
-    host['lifetime'].dispose()
-    await host['sessions'].get(SESSION)?.journal.close()
-    host['sessions'].clear()
+    await abandonStructuredAgentSessionHost(host)
 
     store = await AgentSessionRecordStore.open({ directory: join(root, 'store'), hostId: 'local' })
     openHost(async () => ({ outcome: 'pid-absent' }))

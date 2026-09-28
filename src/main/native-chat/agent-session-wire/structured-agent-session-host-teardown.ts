@@ -49,7 +49,7 @@ async function withPhaseTimeout(run: () => Promise<void>, timeoutMs: number): Pr
 export function structuredAgentSessionHostTeardownPhases(collaborators: {
   idleSweep: { dispose: () => Promise<void> | void }
   runtimeState: {
-    stopLeaseRenewal: () => void
+    stopLeaseRenewal: () => Promise<void> | void
     flushAllEventSinks: () => Promise<void>
   }
   tasks: { drainAttaches: () => Promise<void> }
