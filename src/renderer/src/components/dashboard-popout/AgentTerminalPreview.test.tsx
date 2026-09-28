@@ -213,7 +213,8 @@ describe('AgentTerminalPreview', () => {
     expect(input).toHaveBeenCalledTimes(1)
     expect(input).toHaveBeenCalledWith('pty-1', 'k')
 
-    act(() => terminal.writeCallbacks.shift()?.())
+    // Why drain all: the connection's kitty restore write queues ahead of the live chunk.
+    act(() => terminal.writeCallbacks.splice(0).forEach((callback) => callback()))
     expect(ack).toHaveBeenCalledWith('pty-1', 4)
   })
 
@@ -271,6 +272,11 @@ describe('AgentTerminalPreview', () => {
     render(<AgentTerminalPreview ptyId="pty-1" />)
     await waitFor(() => expect(imeHarness.forwarders).toHaveLength(1))
     await waitFor(() => expect(imeHarness.forwarders[0]!.getKittyKeyboardFlags()).toBe(8))
+    // The popout xterm gets the same flags, so its encoder agrees with the mirror.
+    expect(terminalHarness.instances[0]!.write).toHaveBeenCalledWith(
+      '\x1b[<99u\x1b[=8u',
+      expect.any(Function)
+    )
 
     // Live output keeps advancing the same mirror the forwarder reads.
     act(() => {

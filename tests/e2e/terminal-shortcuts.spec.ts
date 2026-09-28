@@ -227,27 +227,6 @@ async function getActiveTerminalViewport(
   })
 }
 
-async function enableKittyKeyboardReporting(page: Page, flags: number): Promise<void> {
-  await page.evaluate(async (flags) => {
-    const state = window.__store?.getState()
-    const worktreeId = state?.activeWorktreeId
-    const tabId =
-      state?.activeTabType === 'terminal'
-        ? state.activeTabId
-        : worktreeId
-          ? (state?.activeTabIdByWorktree?.[worktreeId] ?? null)
-          : null
-    const manager = tabId ? window.__paneManagers?.get(tabId) : null
-    const pane = manager?.getActivePane?.() ?? manager?.getPanes?.()[0] ?? null
-    if (!pane) {
-      throw new Error('No active terminal pane for kitty keyboard setup')
-    }
-    await new Promise<void>((resolve) => {
-      pane.terminal.write(`\x1b[=${flags}u`, resolve)
-    })
-  }, flags)
-}
-
 async function getKittyKeyboardFlags(page: Page): Promise<number | null> {
   return page.evaluate(() => {
     const state = window.__store?.getState()
@@ -272,6 +251,40 @@ async function getKittyKeyboardFlags(page: Page): Promise<number | null> {
       null
     )
   })
+}
+
+// Why arm from the PTY: the mirror the shortcut policy reads only sees application output.
+async function armKittyKeyboardFromPty(page: Page, ptyId: string, command: string): Promise<void> {
+  await execInTerminal(page, ptyId, command)
+  await expect
+    .poll(async () => await getKittyKeyboardFlags(page), {
+      timeout: 15_000,
+      message: 'the application never armed kitty keyboard reporting'
+    })
+    .toBe(31)
+}
+
+async function interruptAndExpectEtx(page: Page, app: ElectronApplication): Promise<void> {
+  await clearPtyWriteLog(app)
+  await focusActiveTerminalInput(page)
+  await page.keyboard.down('Control')
+  await page.keyboard.up('Control')
+  expect((await getPtyWrites(app)).join('')).toBe('')
+  await clearPtyWriteLog(app)
+
+  expect(await dispatchCtrlCToActiveTerminalTextarea(page, { keyupCtrlKey: false })).toEqual({
+    keydownDefaultPrevented: false,
+    keyupDefaultPrevented: false
+  })
+  await expect
+    .poll(async () => (await getPtyWrites(app)).some((write) => write.includes('\x03')), {
+      timeout: 5_000,
+      message: 'Ctrl+C did not reach the PTY as ETX'
+    })
+    .toBe(true)
+  const writes = (await getPtyWrites(app)).join('')
+  expect(writes).not.toContain('\x1b[99;5u')
+  expect(writes).not.toContain('\x1b[99')
 }
 
 async function pressShiftedRussianLayoutKey(page: Page): Promise<{
@@ -550,45 +563,55 @@ test.describe('Terminal Shortcuts', () => {
     await pressAndExpectWrite(mantaPage, electronApp, 'Control+Enter', '\x1b[13;5u')
   })
 
-  test('plain Ctrl+C sends ETX under kitty keyboard reporting', async ({
+  test('plain Ctrl+C sends ETX and leaves a surviving app its kitty flags', async ({
     mantaPage,
     electronApp
   }) => {
+    test.skip(process.platform === 'win32', 'POSIX trap and printf fixture')
     await installMainProcessPtyWriteSpy(electronApp)
     const ptyId = await waitForActivePanePtyId(mantaPage)
     // SIGINT during shell startup kills the shell, so interrupt only a ready prompt.
     await execInTerminal(mantaPage, ptyId, 'echo "CTRL_C_""READY"')
     await waitForTerminalOutput(mantaPage, 'CTRL_C_READY')
-    await enableKittyKeyboardReporting(mantaPage, 31)
-    await clearPtyWriteLog(electronApp)
-    await focusActiveTerminalInput(mantaPage)
-    await mantaPage.keyboard.down('Control')
-    await mantaPage.keyboard.up('Control')
-    expect((await getPtyWrites(electronApp)).join('')).toBe('')
-    await clearPtyWriteLog(electronApp)
+    // An app that survives SIGINT, like an agent TUI, and disarms its own flags on exit.
+    await armKittyKeyboardFromPty(
+      mantaPage,
+      ptyId,
+      `bash -c 'trap "" INT; printf "\\033[=31u"; read -r _; printf "\\033[=0u"'`
+    )
 
-    expect(await dispatchCtrlCToActiveTerminalTextarea(mantaPage, { keyupCtrlKey: false })).toEqual({
-      keydownDefaultPrevented: false,
-      keyupDefaultPrevented: false
-    })
+    await interruptAndExpectEtx(mantaPage, electronApp)
 
-    await expect
-      .poll(async () => (await getPtyWrites(electronApp)).some((write) => write.includes('\x03')), {
-        timeout: 5_000,
-        message: 'Ctrl+C did not reach the PTY as ETX'
-      })
-      .toBe(true)
-    const writes = (await getPtyWrites(electronApp)).join('')
-    expect(writes).not.toContain('\x1b[99;5u')
-    expect(writes).not.toContain('\x1b[99')
+    // Manta no longer guesses the app died: xterm keeps encoding for it, and the
+    // mirror the shortcut policy reads agrees (Shift+Enter stays CSI-u).
+    expect(await getKittyKeyboardFlags(mantaPage)).toBe(31)
+    await pressAndExpectWrite(mantaPage, electronApp, 'Shift+Enter', '\x1b[13;2u')
+
+    await sendToTerminal(mantaPage, ptyId, '\r')
+    await expect.poll(async () => await getKittyKeyboardFlags(mantaPage)).toBe(0)
+    await pressAndExpectWrite(mantaPage, electronApp, 'Shift+Enter', '\x1b\r')
+  })
+
+  test('the host grounds kitty flags an app killed by Ctrl+C left armed', async ({
+    mantaPage,
+    electronApp
+  }) => {
+    test.skip(process.platform === 'win32', 'POSIX printf fixture')
+    await installMainProcessPtyWriteSpy(electronApp)
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    await execInTerminal(mantaPage, ptyId, 'echo "CTRL_C_""READY"')
+    await waitForTerminalOutput(mantaPage, 'CTRL_C_READY')
+    // `cat` dies on SIGINT with the flags still armed, like a crashed TUI.
+    await armKittyKeyboardFromPty(mantaPage, ptyId, `printf '\\033[=31u'; cat`)
+
+    await interruptAndExpectEtx(mantaPage, electronApp)
 
     await expect
       .poll(async () => await getKittyKeyboardFlags(mantaPage), {
         timeout: 5_000,
-        message: 'Ctrl+C did not clear stale Kitty keyboard flags'
+        message: 'the host did not ground the dead app kitty flags at command end'
       })
       .toBe(0)
-
     await clearPtyWriteLog(electronApp)
     await focusActiveTerminalInput(mantaPage)
     await mantaPage.keyboard.type('x')
@@ -598,8 +621,7 @@ test.describe('Terminal Shortcuts', () => {
         message: 'Post-interrupt keyboard input stayed in Kitty CSI-u mode'
       })
       .toBe(true)
-    const postInterruptWrites = (await getPtyWrites(electronApp)).join('')
-    expect(postInterruptWrites).not.toContain('\x1b[')
+    expect((await getPtyWrites(electronApp)).join('')).not.toContain('\x1b[')
     await mantaPage.keyboard.press('Backspace')
   })
 
@@ -910,12 +932,13 @@ test.describe('Terminal Shortcuts', () => {
     mantaPage,
     electronApp
   }) => {
+    test.skip(process.platform === 'win32', 'ConPTY panes withhold the kitty protocol')
     await installMainProcessPtyWriteSpy(electronApp)
     // Why: CI can mount the xterm surface before the pane transport has a
     // live PTY. Probe first so xterm onData cannot race a disconnected
     // sendInput path, then clear the probe writes before the layout assertion.
-    await waitForActivePanePtyId(mantaPage)
-    await enableKittyKeyboardReporting(mantaPage, 31)
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    await armKittyKeyboardFromPty(mantaPage, ptyId, `printf '\\033[=31u'; cat`)
     await clearPtyWriteLog(electronApp)
 
     const dispatch = await pressShiftedRussianLayoutKey(mantaPage)
@@ -937,5 +960,6 @@ test.describe('Terminal Shortcuts', () => {
     const joinedWrites = writes.join('')
     expect(joinedWrites).not.toContain('\x1b[97:1060;2;1060u')
     expect(joinedWrites).not.toContain('\x1b[97:1060;2:3u')
+    await sendToTerminal(mantaPage, ptyId, '\x03')
   })
 })
