@@ -49,10 +49,7 @@ export function configureLocalPtyProvider(args: {
         codexSelectionTarget,
         ctx?.codexHomePathOverride
           ? ctx.codexHomePathOverride.value
-          : ((await getSelectedCodexHomePath?.(codexSelectionTarget, baseEnv, {
-              workspacePath: ctx?.cwd,
-              launchAgent: ctx?.launchAgent
-            })) ?? null)
+          : ((await getSelectedCodexHomePath?.(codexSelectionTarget, baseEnv)) ?? null)
       )
       const skipCodexHomeEnv = ctx?.isWsl === true && !selectedCodexHomePath
       const ptySettings = getSettings?.()

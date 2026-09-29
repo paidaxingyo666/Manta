@@ -9114,6 +9114,9 @@
             "0d1c334987": "couvercle",
             "ff8de8a2ad": "écran",
             "0d752916f8": "hooks",
+            "agent-trust-trust": "confiance",
+            "agent-trust-folder": "dossier",
+            "agent-trust-worktree": "worktree",
             "6984d4291a": "statut",
             "13b20636a6": "en attente",
             "8599603496": "terminé",
@@ -10860,6 +10863,10 @@
         "agent-status-hooks-copy": {
           "7707c15abb": "Hooks de statut des agents",
           "a68a642835": "Affiche les états en cours, en attente et terminé dans Manta. Désactivez pour supprimer les hooks gérés par Manta et arrêter de les réinstaller."
+        },
+        "agent-workspace-trust-copy": {
+          "title": "Faire confiance au dossier quand Manta lance un agent",
+          "description": "Les agents lancés par Manta ignorent leur question « Do you trust this folder? » : les hooks et paramètres d'agent du projet s'exécutent donc tout de suite. Sans cette option, chaque agent pose la question la première fois qu'il s'exécute dans un dossier. Les agents qui tournent sans que vous les surveilliez, comme les workers d'orchestration, les automatisations et les agents lancés depuis votre téléphone, attendront à cette question jusqu'à ce que vous y répondiez dans leur terminal. Les dossiers déjà approuvés le restent."
         },
         "agent-generated-tab-title-copy": {
           "19ad21615a": "Générer automatiquement les titres des onglets",

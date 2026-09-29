@@ -8954,6 +8954,9 @@
             "0d1c334987": "合盖",
             "ff8de8a2ad": "显示器",
             "0d752916f8": "钩子",
+            "agent-trust-trust": "信任",
+            "agent-trust-folder": "文件夹",
+            "agent-trust-worktree": "工作树",
             "6984d4291a": "状态",
             "13b20636a6": "等待",
             "8599603496": "完成",
@@ -10719,6 +10722,10 @@
         "agent-status-hooks-copy": {
           "7707c15abb": "智能体状态钩子",
           "a68a642835": "在 Manta 中显示工作中、等待中和完成状态。关闭后将移除 Manta 管理的钩子并停止重新安装。"
+        },
+        "agent-workspace-trust-copy": {
+          "title": "Manta 启动智能体时信任该文件夹",
+          "description": "Manta 启动的智能体会跳过“Do you trust this folder?”提示，因此项目的智能体钩子和设置会立即运行。若关闭此项，每个智能体在某个文件夹中首次运行时都会询问。在你没有看着时运行的智能体（例如编排工作进程、自动化以及从手机启动的智能体）会停在该提问处等待，直到你在它们的终端中作答。已信任的文件夹仍保持信任。"
         },
         "agent-generated-tab-title-copy": {
           "19ad21615a": "自动生成标签页标题",

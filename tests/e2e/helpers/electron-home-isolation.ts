@@ -9,6 +9,8 @@ const RESTRICTED_ENV_KEYS = new Set([
   'HOMEPATH',
   'CODEX_HOME',
   'MANTA_CODEX_HOME',
+  // Why: Manta's spawn hook writes Claude folder trust into the config this names.
+  'CLAUDE_CONFIG_DIR',
   'MANTA_E2E_USER_DATA_DIR',
   'MANTA_E2E_HOME_DIR',
   'ZDOTDIR',

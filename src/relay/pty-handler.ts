@@ -1,4 +1,5 @@
 import { FreebuffStatusProjection } from './freebuff-status-projection'
+import { applyRelayAgentWorkspaceTrust } from './agent-workspace-trust-spawn'
 /* oxlint-disable max-lines */
 import type { IPty } from 'node-pty'
 import { killWithDescendantSweep } from '../main/pty-descendant-termination'
@@ -1922,6 +1923,9 @@ export class PtyHandler {
       { id, paneKey, shell, command, launchAgent },
       envToDelete
     )
+    await applyRelayAgentWorkspaceTrust(params.agentWorkspaceTrust, launchAgent, spawnEnv, {
+      wslShell: isRelayWslShell(shell)
+    })
     const worktreeId =
       typeof params.worktreeId === 'string' ? params.worktreeId : env?.MANTA_WORKTREE_ID
     const historyIsolationEnabled = params.historyIsolationEnabled === true

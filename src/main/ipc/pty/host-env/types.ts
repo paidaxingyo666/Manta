@@ -37,8 +37,6 @@ export type BuildPtyHostEnvOptions = {
 }
 
 export type CodexHomeLaunchContext = {
-  workspacePath?: string
-  launchAgent?: TuiAgent
   unavailableManagedHomePath?: string
 }
 
@@ -55,7 +53,6 @@ export type PrepareCodexSessionResume = (args: {
   providerSession: AgentProviderSessionMetadata
   target: CodexAccountSelectionTarget
   launchEnv?: NodeJS.ProcessEnv
-  workspacePath?: string
 }) => Promise<CodexSessionResumePreparation | null>
 
 export type CodexHomePtySpawnedLifecycleArgs = {

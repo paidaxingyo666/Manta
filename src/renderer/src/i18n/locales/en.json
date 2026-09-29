@@ -9178,6 +9178,9 @@
             "0d1c334987": "lid",
             "ff8de8a2ad": "display",
             "0d752916f8": "hooks",
+            "agent-trust-trust": "trust",
+            "agent-trust-folder": "folder",
+            "agent-trust-worktree": "worktree",
             "6984d4291a": "status",
             "13b20636a6": "waiting",
             "8599603496": "done",
@@ -10929,6 +10932,10 @@
         "agent-status-hooks-copy": {
           "7707c15abb": "Agent status hooks",
           "a68a642835": "Shows working, waiting, and done states in Manta. Turn off to remove Manta-managed hooks and stop reinstalling them."
+        },
+        "agent-workspace-trust-copy": {
+          "title": "Trust the folder when Manta starts an agent",
+          "description": "Agents Manta starts skip their \"Do you trust this folder?\" prompt, so the project's agent hooks and settings run right away. Without this, each agent asks the first time it runs in a folder. Agents running without you watching, such as orchestration workers, automations and agents started from your phone, will wait at that question until you answer it in their terminal. Folders already trusted stay trusted."
         },
         "agent-generated-tab-title-copy": {
           "19ad21615a": "Auto-generate tab titles",

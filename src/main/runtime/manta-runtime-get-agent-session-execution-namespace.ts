@@ -144,7 +144,6 @@ export class MantaRuntimeWithGetAgentSessionExecutionNamespace extends MantaRunt
     if (!startup) {
       throw new Error('agent_session_identity_required')
     }
-    await this.markWorkspaceTrustedForAgent(request.agent, workspace.connectionId, workspace.path)
     if (_caller.signal?.aborted) {
       throw new Error('client_disconnected')
     }

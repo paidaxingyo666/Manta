@@ -7905,6 +7905,9 @@
             "0d1c334987": "tapa",
             "ff8de8a2ad": "pantalla",
             "0d752916f8": "hooks",
+            "agent-trust-trust": "confianza",
+            "agent-trust-folder": "carpeta",
+            "agent-trust-worktree": "worktree",
             "6984d4291a": "estado",
             "13b20636a6": "esperando",
             "8599603496": "hecho",
@@ -9487,6 +9490,10 @@
         "agent-status-hooks-copy": {
           "7707c15abb": "Hooks de estado del agente",
           "a68a642835": "Muestra los estados trabajando, esperando y completado en Manta. Desactívalo para quitar los hooks administrados por Manta y dejar de reinstalarlos."
+        },
+        "agent-workspace-trust-copy": {
+          "title": "Confiar en la carpeta cuando Manta inicia un agente",
+          "description": "Los agentes que inicia Manta omiten su pregunta \"Do you trust this folder?\", así que los hooks y ajustes de agente del proyecto se ejecutan de inmediato. Sin esto, cada agente pregunta la primera vez que se ejecuta en una carpeta. Los agentes que se ejecutan sin que estés mirando, como los workers de orquestación, las automatizaciones y los agentes iniciados desde tu teléfono, esperarán en esa pregunta hasta que la respondas en su terminal. Las carpetas que ya son de confianza lo siguen siendo."
         },
         "agent-generated-tab-title-copy": {
           "19ad21615a": "Generar títulos de pestañas automáticamente",

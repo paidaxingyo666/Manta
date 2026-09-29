@@ -60,7 +60,6 @@ import { registerCodexAccountHandlers } from '../codex-accounts'
 import { registerAgentHookHandlers } from '../agent-hooks'
 import { registerCodexConfigSyncHandlers } from '../codex-config-sync'
 import { getPtyIdForPaneKey } from '../pty'
-import { registerAgentTrustHandlers } from '../agent-trust'
 import { registerClaudeAccountHandlers } from '../claude-accounts'
 import { registerMiniMaxCredentialsHandlers } from '../minimax-credentials'
 import { registerGrokAccountHandlers } from '../grok-accounts'
@@ -149,7 +148,6 @@ export function registerCoreHandlers(
   registerCodexAccountHandlers(codexAccounts, () => store.getSettings())
   registerAgentHookHandlers(runtime, { getPtyIdForPaneKey })
   registerCodexConfigSyncHandlers(codexAccounts.runtimeHomeService)
-  registerAgentTrustHandlers()
   registerClaudeAccountHandlers(claudeAccounts)
   registerMiniMaxCredentialsHandlers(rateLimits)
   registerGrokAccountHandlers()

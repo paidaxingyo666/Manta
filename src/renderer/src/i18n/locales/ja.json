@@ -8991,6 +8991,9 @@
             "0d1c334987": "蓋",
             "ff8de8a2ad": "ディスプレイ",
             "0d752916f8": "フック",
+            "agent-trust-trust": "信頼",
+            "agent-trust-folder": "フォルダー",
+            "agent-trust-worktree": "ワークツリー",
             "6984d4291a": "状態",
             "13b20636a6": "待機",
             "8599603496": "完了",
@@ -10756,6 +10759,10 @@
         "agent-status-hooks-copy": {
           "7707c15abb": "Agent 状態フック",
           "a68a642835": "Manta で作業中、待機中、完了の状態を表示します。オフにすると Manta 管理のフックを削除し、再インストールを停止します。"
+        },
+        "agent-workspace-trust-copy": {
+          "title": "Manta が Agent を起動するときにフォルダーを信頼する",
+          "description": "Manta が起動した Agent は「Do you trust this folder?」の確認を省略するため、プロジェクトの Agent のフックと設定がすぐに実行されます。この設定がオフの場合、各 Agent はフォルダーで初めて実行されるときに確認します。オーケストレーションのワーカー、オートメーション、スマートフォンから起動した Agent など、あなたが見ていない間に動く Agent は、そのターミナルで応答するまでこの確認で待機します。すでに信頼済みのフォルダーは信頼されたままです。"
         },
         "agent-generated-tab-title-copy": {
           "19ad21615a": "タブタイトルを自動生成",

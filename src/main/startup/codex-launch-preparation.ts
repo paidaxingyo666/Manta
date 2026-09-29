@@ -1,8 +1,6 @@
 import { app } from 'electron'
 import type { CodexHomeLaunchContext } from '../ipc/pty'
 import type { CodexAccountSelectionTarget } from '../codex-accounts/runtime-selection'
-import { markCodexProjectTrusted } from '../agent-trust-presets'
-import { awaitAgentTrustWriteWithinDeadline } from '../agent-trust-write-deadline'
 import { codexHookService } from '../codex/hook-service'
 import { getDefaultWslDistro } from '../wsl'
 import { isAgentStatusHooksEnabledForAgent } from '../agent-hooks/managed-agent-hook-controls'
@@ -17,24 +15,6 @@ export async function prepareCodexRuntimeHomeForLaunch(
   const runtimeHome = state.codexRuntimeHome
   if (!runtimeHome) {
     throw new Error('Codex runtime home service is not initialized')
-  }
-  if (
-    target?.runtime !== 'wsl' &&
-    launchContext?.launchAgent === 'codex' &&
-    launchContext.workspacePath
-  ) {
-    try {
-      // Why: renderer quick-launch cannot await trust IPC before its PTY mounts; launch prep runs before every recognized Codex spawn. Bounded so a wedged config lane cannot hang the spawn that waits on this prep.
-      await awaitAgentTrustWriteWithinDeadline(
-        markCodexProjectTrusted(launchContext.workspacePath),
-        {
-          preset: 'codex',
-          workspacePath: launchContext.workspacePath
-        }
-      )
-    } catch (error) {
-      console.warn('[codex-project-trust] failed to pre-mark launch workspace:', error)
-    }
   }
   const ensureRealHomeHooksIfSelected = async (): Promise<boolean> => {
     if (target?.runtime === 'wsl' || !runtimeHome.isHostSystemDefaultRealHomeSelected(launchEnv)) {

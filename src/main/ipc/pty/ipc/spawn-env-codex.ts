@@ -39,8 +39,7 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
         launchAgent: args.launchAgent,
         providerSession: args.resumeProviderSession,
         target: ctx.codexSelectionTarget,
-        launchEnv: ctx.baseEnv,
-        workspacePath: ctx.cwd
+        launchEnv: ctx.baseEnv
       })
   ctx.codexResumeLaunch = codexResumePreparation
     ? await ctx.deps.resolveCodexResumeLaunch(args.command, codexResumePreparation)
@@ -56,10 +55,7 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
   // pre-strip env — only the daemon branch below re-derives this from baseEnv.
   ctx.env = ctx.baseEnv
   const selectLaunchCodexHome = async (): Promise<string | null> =>
-    (await ctx.deps.getSelectedCodexHomePath?.(ctx.codexSelectionTarget, ctx.baseEnv, {
-      workspacePath: ctx.cwd,
-      launchAgent: isTuiAgent(args.launchAgent) ? args.launchAgent : undefined
-    })) ?? null
+    (await ctx.deps.getSelectedCodexHomePath?.(ctx.codexSelectionTarget, ctx.baseEnv)) ?? null
   ctx.selectedCodexHomePath =
     !ctx.preAdoptedStablePane && !args.connectionId
       ? getCompatibleSelectedCodexHomePath(
@@ -83,17 +79,12 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
       resolveCurrent: async () =>
         getCompatibleSelectedCodexHomePath(
           ctx.codexSelectionTarget,
-          (await ctx.deps.getSelectedCodexHomePath?.(ctx.codexSelectionTarget, ctx.baseEnv, {
-            workspacePath: ctx.cwd,
-            launchAgent: 'codex'
-          })) ?? null
+          (await ctx.deps.getSelectedCodexHomePath?.(ctx.codexSelectionTarget, ctx.baseEnv)) ?? null
         ),
       resolveAfterUnavailable: async (unavailableManagedHomePath) =>
         getCompatibleSelectedCodexHomePath(
           ctx.codexSelectionTarget,
           (await ctx.deps.getSelectedCodexHomePath?.(ctx.codexSelectionTarget, ctx.baseEnv, {
-            workspacePath: ctx.cwd,
-            launchAgent: 'codex',
             unavailableManagedHomePath
           })) ?? null
         )

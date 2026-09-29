@@ -22,6 +22,7 @@ import { hasPersistedStructuredAgentSessionStore as hasPersistedStructuredAgentS
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { parseWslUncPath } from '../../shared/wsl-paths'
 import { parseWorkspaceKey } from '../../shared/workspace-scope'
+import { applyStructuredCodexWorkspaceTrust } from '../agent-workspace-trust-spawn'
 
 export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends MantaRuntimeWithGetWorktreePs {
   async getStructuredAgentSessionCreateSupport(
@@ -93,13 +94,17 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
         })
       )
     }
-    return this.resolveStructuredAgentSessionIntent(input, ({ workspacePath, launchEnv }) =>
-      resolveStructuredCodexAccountHomePath({
+    return this.resolveStructuredAgentSessionIntent(input, async ({ launchEnv }) => {
+      await applyStructuredCodexWorkspaceTrust({
+        workspacePath: (await this.resolveRuntimeFileTarget(input.worktree)).worktree.path,
         launchEnv,
-        resolveLaunchHome: this.prepareCodexStructuredLaunchFn,
-        workspacePath
+        settings: this.requireStore().getSettings()
       })
-    )
+      return resolveStructuredCodexAccountHomePath({
+        launchEnv,
+        resolveLaunchHome: this.prepareCodexStructuredLaunchFn
+      })
+    })
   }
 
   /**
@@ -130,8 +135,7 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
       // must not sync homes, start bridges, or clear an account selection.
       path: await resolveStructuredCodexAccountHomePath({
         launchEnv,
-        resolveLaunchHome: this.resolveCodexStructuredLaunchHomeFn,
-        workspacePath: ''
+        resolveLaunchHome: this.resolveCodexStructuredLaunchHomeFn
       })
     }
   }
@@ -145,7 +149,6 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
       resumeFrom?: { providerSessionId: string }
     },
     resolveAccountHomePath: (context: {
-      workspacePath: string
       launchEnv: NodeJS.ProcessEnv
       location: {
         executionHostId: string
@@ -168,7 +171,6 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
       input.agent
     )
     const location = await this.resolveStructuredAgentSessionLocation(input.worktree)
-    const workspacePath = (await this.resolveRuntimeFileTarget(input.worktree)).worktree.path
     const host = getStructuredAgentSessionHost()
     const committedReplay = resolveCommittedStructuredAgentSessionAdoptionIntent({
       host,
@@ -179,11 +181,7 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
     if (committedReplay) {
       return committedReplay
     }
-    const selectedAccountHomePath = await resolveAccountHomePath({
-      workspacePath,
-      launchEnv,
-      location
-    })
+    const selectedAccountHomePath = await resolveAccountHomePath({ launchEnv, location })
     // Adopting pins the account home to wherever the conversation actually lives, which is not
     // necessarily the one a fresh create would pick: Codex resolves its rollout under
     // `accountHome.path`, and Claude reads its transcript under `<home>/projects`. Resuming under

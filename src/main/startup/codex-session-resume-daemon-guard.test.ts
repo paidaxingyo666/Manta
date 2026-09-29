@@ -20,7 +20,6 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('electron', () => ({ app: { getPath: vi.fn(() => '/tmp/manta-user-data') } }))
-vi.mock('../agent-trust-presets', () => ({ markCodexProjectTrusted: async () => {} }))
 vi.mock('../codex/hook-service', () => ({
   codexHookService: {
     installForLaunchPrep: mocks.installForLaunchPrep,
@@ -98,8 +97,7 @@ describe('Codex session resume daemon socket guard', () => {
   function resume(): ReturnType<typeof prepareCodexSessionResumeForLaunch> {
     return prepareCodexSessionResumeForLaunch({
       providerSession: { key: 'session_id', id: 'abc' },
-      target: { runtime: 'host' },
-      workspacePath: join(root, 'workspace')
+      target: { runtime: 'host' }
     })
   }
 
