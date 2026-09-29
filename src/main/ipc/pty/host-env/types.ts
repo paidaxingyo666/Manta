@@ -29,7 +29,6 @@ export type BuildPtyHostEnvOptions = {
   agentStatusHooksEnabled: boolean
   /** Per-agent opt-out; disabled agents must not receive managed extensions. */
   disabledTuiAgents?: Iterable<unknown> | null
-  codexStatusHooksEnabled?: boolean
   networkProxySettings?: NetworkProxySettings
   /** Headless paired runtimes hand browser launches to the client-hosted Manta browser. */
   routeBrowserOpensToClient?: boolean

@@ -38,7 +38,7 @@ vi.mock('../codex/codex-real-home-hook-install', () => ({
   ensureRealHomeCodexHookState: mocks.ensureRealHomeCodexHookState
 }))
 vi.mock('../agent-hooks/managed-agent-hook-controls', () => ({
-  isAgentStatusHooksEnabled: () => false
+  isAgentStatusHooksEnabledForAgent: () => false
 }))
 vi.mock('../wsl', () => ({ getDefaultWslDistro: () => 'Ubuntu' }))
 vi.mock('../codex/codex-home-paths', () => ({

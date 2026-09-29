@@ -31,7 +31,7 @@ vi.mock('../codex/codex-real-home-hook-install', () => ({
   ensureRealHomeCodexHookState: mocks.ensureRealHomeCodexHookState
 }))
 vi.mock('../agent-hooks/managed-agent-hook-controls', () => ({
-  isAgentStatusHooksEnabled: () => mocks.hooksEnabled
+  isAgentStatusHooksEnabledForAgent: () => mocks.hooksEnabled
 }))
 vi.mock('../codex/codex-home-paths', async (importOriginal) => ({
   ...(await importOriginal<object>()),
