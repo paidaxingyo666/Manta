@@ -59,12 +59,15 @@ describe('recordStatusBarDensityWidth', () => {
     ])
   })
 
-  it('keeps other levels when only the collapsed width moves', () => {
-    // Collapsing different chips changes the fit width, never the natural one.
-    expect(recordStatusBarDensityWidth([w(700), w(600, 450)], 1, w(600, 430))).toEqual([
-      w(700),
-      w(600, 430)
-    ])
+  it('drops only the other collapsing levels when only the collapsed width moves', () => {
+    // Urgency changes which chips collapse, moving fit widths but never the natural one.
+    expect(
+      recordStatusBarDensityWidth(
+        [w(700), w(600), w(500), w(600, 450), w(500, 400)],
+        3,
+        w(600, 430)
+      )
+    ).toEqual([w(700), w(600), w(500), w(600, 430), undefined])
   })
 
   it('keeps other levels on a sub-pixel re-measure', () => {
