@@ -1,6 +1,7 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
 import { OrchestrationStructuredMailboxPointerDelivery } from './orchestration/structured-mailbox-pointer-delivery'
 import { createStructuredMailboxPointerHost } from './orchestration/structured-mailbox-pointer-host'
+import { localOrchestrationCliCommand } from './orchestration/cli-command'
 import { isStructuredWorkerHandle } from './structured-worker-identity'
 import { resolveStructuredWorkerAuthority } from './structured-worker-authority'
 import { MantaRuntimeWithRuntimeId } from './manta-runtime-runtime-id'
@@ -221,6 +222,7 @@ export class MantaRuntimeWithStopRequestedPtyIds extends MantaRuntimeWithRuntime
       getMessageWaiters: (mailboxHandle) => this.messageWaiters.get(mailboxHandle),
       resolveStructuredTarget: (mailboxHandle) =>
         this.resolveStructuredMailboxTarget(mailboxHandle),
+      getCliCommand: localOrchestrationCliCommand,
       host: createStructuredMailboxPointerHost()
     })
 
