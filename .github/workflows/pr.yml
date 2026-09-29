@@ -667,6 +667,14 @@ jobs:
       runner: ubuntu-24.04-arm
       shards: ${{ needs.unit_plan.outputs.shards }}
 
+  # Why a sibling and not part of the test workflow: it is advisory, so it must not delay the
+  # gate. Inside unit-tests.yml a caller's `needs: test` waited for it, holding verify ~36s
+  # after the last shard. Deliberately absent from verify's needs for the same reason.
+  unit_selection_evidence:
+    needs: [test]
+    if: ${{ !cancelled() && needs.test.result == 'success' }}
+    uses: ./.github/workflows/unit-selection-evidence.yml
+
   # Why a separate job: the test needs a real Chrome, and the sharded `test` matrix
   # would pay for it on every shard to run one file in whichever shard it landed in.
   mantad_browser:

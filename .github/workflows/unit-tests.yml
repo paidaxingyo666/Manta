@@ -75,35 +75,6 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
-  selection_evidence:
-    needs: test
-    if: ${{ !cancelled() }}
-    continue-on-error: true
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          sparse-checkout: config/scripts/ci-unit-selection-review.mjs
-          sparse-checkout-cone-mode: false
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '24'
-      - uses: actions/download-artifact@v8
-        with:
-          pattern: unit-shard-node-*-attempt-${{ github.run_attempt }}
-          path: unit-evidence/
-      - name: Compare selection with full results
-        continue-on-error: true
-        run: node config/scripts/ci-unit-selection-review.mjs unit-evidence
-      - uses: actions/upload-artifact@v7
-        if: always()
-        continue-on-error: true
-        with:
-          name: unit-selection-review-attempt-${{ github.run_attempt }}
-          path: unit-evidence/selection-review.json
-          retention-days: 30
-
   relay_integration:
     name: relay integration node ${{ matrix.node }}
     strategy:
