@@ -15,6 +15,10 @@ function blocked(
   return refuse('agent_session_operation_invalid', { reason }, message)
 }
 
+export function conversationCommandInFlight(): AgentSessionWireRefusal {
+  return blocked('conversationCommandInFlight', 'Wait for the conversation operation to finish.')
+}
+
 /**
  * Why a conversation command may not run now; null when it may.
  *
@@ -39,17 +43,6 @@ export function conversationCommandBlocked(
     return blocked(
       'conversationCleared',
       'This conversation has been cleared. Open the current conversation to continue.'
-    )
-  }
-  // An older build's compaction record belongs to a child this host no longer runs.
-  if (
-    record.conversationCommand?.command === 'clear' &&
-    record.conversationCommand.state === 'unknown' &&
-    record.conversationCommand.phase === 'prepared'
-  ) {
-    return blocked(
-      'conversationCommandUnconfirmed',
-      'The previous conversation operation is unconfirmed.'
     )
   }
   if (record.lease.handoffStage || record.lease.handoffOperationId) {

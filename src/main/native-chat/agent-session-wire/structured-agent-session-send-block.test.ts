@@ -13,22 +13,19 @@ function withCommand(command: AgentSessionConversationCommandRecord) {
 const COMMAND = { operationId: 'operation-1', callerKey: 'client-1', runtimeFence: 7 }
 
 describe('a send refused by the conversation command it follows', () => {
-  it('says a /clear that never committed did not finish, not that the chat was cleared', () => {
-    const blocked = structuredAgentSessionSendBlock(
-      withCommand({
-        ...COMMAND,
-        command: 'clear',
-        state: 'unknown',
-        phase: 'prepared',
-        replacementSessionId: 'clear-replacement-1'
-      })
-    )
-
-    expect(blocked?.refusal).toMatchObject({
-      code: 'agent_session_operation_invalid',
-      details: { reason: 'clearUnconfirmed' },
-      message: "The last /clear didn't finish. Start a new chat to continue."
-    })
+  // A clear's commit is its only durable write, so a record short of it never changed the chat.
+  it("lets a send follow a /clear that never committed, as an older build's record leaves one", () => {
+    expect(
+      structuredAgentSessionSendBlock(
+        withCommand({
+          ...COMMAND,
+          command: 'clear',
+          state: 'unknown',
+          phase: 'prepared',
+          replacementSessionId: 'clear-replacement-1'
+        })
+      )
+    ).toBeNull()
   })
 
   it('says a committed /clear cleared the conversation', () => {

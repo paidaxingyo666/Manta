@@ -164,8 +164,7 @@ async function interruptedRewindAtRest(): Promise<void> {
   })
   sink.appendItem(drop, hostTestMessage('to be rewound'), { turnScope: AGENT_JOURNAL_THREAD_SCOPE })
   await host.flushStreamedEvents(SESSION)
-  rewind.mockImplementation(async (input) => {
-    await input.onReverted?.()
+  rewind.mockImplementation(async () => {
     throw new Error('history unavailable')
   })
   const epoch = (await host.journalSnapshot(SESSION)).cursor.epoch

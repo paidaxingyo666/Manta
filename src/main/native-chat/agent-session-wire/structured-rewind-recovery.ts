@@ -85,11 +85,9 @@ export async function recoverStructuredRewind(
       beforeTurnId: target.turnId
     })
     if (!recovered?.ok) {
-      if (
-        recovered?.reason === 'provider-refused' &&
-        rewind.phase === 'prepared' &&
-        !rewind.providerApplied
-      ) {
+      // The target is still in the provider's history, and the journal is replaced only once the
+      // revert is proven, so both still hold it even when the provider acknowledged the revert.
+      if (recovered?.reason === 'provider-refused' && rewind.phase === 'prepared') {
         await persistRewindRecord(store, sessionId, fence, {
           ...rewind,
           phase: 'refused',

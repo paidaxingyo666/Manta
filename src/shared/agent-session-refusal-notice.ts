@@ -117,9 +117,9 @@ const REASON_WORDS = {
       'goElsewhere',
       'openCurrentConversation'
     ),
-    // Nothing settles an unfinished /clear yet, so only a new chat continues.
+    // Only an older host sends this, and it keeps refusing the chat, so only a new chat continues.
     clearUnconfirmed: causeWords('clearUnfinished', 'goElsewhere', 'startNewChat'),
-    // A /clear or /compact whose outcome the host never settled; only the host resolves it.
+    // Only an older host sends this, for a /clear it never settled; only that host resolves it.
     conversationCommandUnconfirmed: codeWords('hostFinding'),
     conversationCommandInFlight: causeWords('commandRunning', 'wait', 'waitForCommand'),
     // The chat's agent process is being replaced, which a start or restart does.

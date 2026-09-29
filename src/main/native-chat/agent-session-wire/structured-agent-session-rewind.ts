@@ -169,12 +169,6 @@ export async function rewindStructuredAgentSession(
               }
               prepared = { ...prepared, retained }
               await persistRewindRecord(store, sessionId, ctx.fence, prepared)
-            },
-            onReverted: async () => {
-              await persistRewindRecord(store, sessionId, ctx.fence, {
-                ...prepared,
-                providerApplied: true
-              })
             }
           })
           const fence = store.getRecord(sessionId)!.lease.runtimeFence

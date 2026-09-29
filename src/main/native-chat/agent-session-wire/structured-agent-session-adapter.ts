@@ -286,7 +286,6 @@ export type StructuredAgentSessionAdapter = {
     onPrepared?: (
       items: { identity: AgentJournalItemIdentity; body: AgentJournalItemBody }[]
     ) => Promise<void>
-    onReverted?: () => Promise<void>
   }): Promise<
     | { ok: true; items?: { identity: AgentJournalItemIdentity; body: AgentJournalItemBody }[] }
     | { ok: false; reason: AgentSessionRewindReason }
