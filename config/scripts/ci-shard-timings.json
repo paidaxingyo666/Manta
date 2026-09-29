@@ -1721,7 +1721,6 @@
       "src/main/git/remove-worktree-branch-cleanup.test.ts": 163,
       "src/main/git/remove-worktree-clean-preflight.test.ts": 125,
       "src/main/git/remove-worktree.test.ts": 159,
-      "src/main/git/repo-api-parity.test.ts": 194,
       "src/main/git/repo-branch-conflict-batched-probe.test.ts": 73,
       "src/main/git/repo-branch-conflict-real-git.test.ts": 351,
       "src/main/git/repo-branch-conflict.test.ts": 214,
