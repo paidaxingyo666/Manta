@@ -10,6 +10,7 @@ import {
   NATIVE_CHAT_RAIL_MAX_TICKS,
   type NativeChatRailItem
 } from './native-chat-message-rail-items'
+import { selectNativeChatActiveTurnKey } from '../../../../shared/native-chat-turn-status'
 
 function text(id: string, body: string, role: NativeChatMessage['role'] = 'assistant') {
   return {
@@ -42,7 +43,7 @@ function slotsOf(messages: NativeChatMessage[]) {
   return buildNativeChatTranscriptSlots({
     messages,
     turnKeys,
-    latestUserIndex: messages.findLastIndex((message) => message.role === 'user'),
+    activeTurnKey: selectNativeChatActiveTurnKey(messages),
     currentTurnKey: undefined,
     receipts: new Map<string, NativeChatResolvedPrompt>(),
     turnStatuses: { active: null, completedByTurn: {} },

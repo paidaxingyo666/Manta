@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import {
+  NATIVE_CHAT_UNANCHORED_TURN_KEY,
   reduceNativeChatTurnTiming,
+  selectNativeChatActiveTurnKey,
   selectNativeChatTurnStatuses,
   type NativeChatSettledTurns,
   type NativeChatTurnStatus,
@@ -10,7 +12,6 @@ import {
 
 export type { NativeChatTurnStatus }
 
-export const MOBILE_UNANCHORED_TURN_KEY = '__unanchored__'
 const EMPTY_TURN_TIMING_BY_TURN: NativeChatTurnTimingByTurn = Object.freeze({})
 
 type ScopedTurnTiming = {
@@ -26,6 +27,7 @@ export function useMobileNativeChatTurnStatus({
   isWorking,
   workingStartedAt,
   settledTurns,
+  activeTurnOpenedBy = null,
   thinking = false,
   scopeKey
 }: {
@@ -35,6 +37,8 @@ export function useMobileNativeChatTurnStatus({
   workingStartedAt?: number | null
   /** Host-recorded durations; they outrank whatever this client observed. */
   settledTurns?: NativeChatSettledTurns | null
+  /** The user message the host says opened the running turn; absent, the latest one. */
+  activeTurnOpenedBy?: string | null
   /** Whether the turn is reasoning right now, derived from its journal content. */
   thinking?: boolean
   /** Host/worktree/tab identity. Timings never carry across chat surfaces. */
@@ -44,11 +48,9 @@ export function useMobileNativeChatTurnStatus({
   completedByTurn: Readonly<Record<string, NativeChatTurnStatus>>
   activeTurnKey: string
 } {
-  const latestUserIndex = enabled
-    ? messages.findLastIndex((message) => message.role === 'user')
-    : -1
-  const latestUserId = latestUserIndex !== -1 ? (messages[latestUserIndex]?.id ?? null) : null
-  const activeTurnKey = latestUserId ?? MOBILE_UNANCHORED_TURN_KEY
+  const activeTurnKey = enabled
+    ? selectNativeChatActiveTurnKey(messages, activeTurnOpenedBy)
+    : NATIVE_CHAT_UNANCHORED_TURN_KEY
   const [scopedTiming, setScopedTiming] = useState<ScopedTurnTiming>(() => ({
     scopeKey,
     timingByTurn: {}

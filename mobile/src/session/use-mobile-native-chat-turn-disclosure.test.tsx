@@ -20,12 +20,16 @@ function Harness({
   enabled,
   isWorking = true,
   settledTurns,
+  workingStartedAt,
+  activeTurnOpenedBy,
   scopeKey = 'host\0worktree\0tab-a'
 }: {
   messages: readonly NativeChatMessage[]
   enabled: boolean
   isWorking?: boolean
   settledTurns?: NativeChatSettledTurns
+  workingStartedAt?: number | null
+  activeTurnOpenedBy?: string | null
   scopeKey?: string
 }): React.JSX.Element {
   const disclosure = useMobileNativeChatTurnDisclosure({
@@ -33,6 +37,8 @@ function Harness({
     enabled,
     isWorking,
     settledTurns,
+    workingStartedAt,
+    activeTurnOpenedBy,
     scopeKey
   })
   return createElement('result', { disclosure })
@@ -197,6 +203,62 @@ describe('useMobileNativeChatTurnDisclosure', () => {
       })
       const row = renderer!.root.findByType('result').props.disclosure.resolveRow(0, messages[0])
       expect(row.turnStatus).toBeNull()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('keeps the live bar under the prompt that opened the running turn, not a mid-turn send', () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(10_000)
+      const tool: NativeChatMessage = {
+        id: 'tool-a',
+        role: 'assistant',
+        blocks: [
+          { type: 'tool-call', name: 'Bash', input: { command: 'sleep 15' }, state: 'running' }
+        ],
+        timestamp: null,
+        source: 'transcript'
+      }
+      const messages = [userMessage('A'), tool, userMessage('B')]
+      const rows = () => {
+        const disclosure = renderer!.root.findByType('result').props.disclosure
+        return messages.map((message, index) => disclosure.resolveRow(index, message))
+      }
+      // B was sent while A's turn runs; the host still names A as the running turn's opener.
+      act(() => {
+        renderer = create(
+          createElement(Harness, {
+            messages,
+            enabled: true,
+            workingStartedAt: 5_000,
+            activeTurnOpenedBy: 'A'
+          })
+        )
+      })
+      let [rowA, rowTool, rowB] = rows()
+      expect(rowA.turnStatus).toEqual({ startedAt: 5_000, thinking: false, workedSeconds: null })
+      expect(rowB.turnStatus).toBeNull()
+      // Row liveness still follows the transcript's grouping under the newest prompt.
+      expect(rowTool.activeTurnIsWorking).toBe(false)
+      expect(rowB.activeTurnIsWorking).toBe(true)
+
+      // B's own turn opens: A takes the host's settled duration, B counts from A's end.
+      act(() => {
+        renderer?.update(
+          createElement(Harness, {
+            messages,
+            enabled: true,
+            workingStartedAt: 22_000,
+            settledTurns: new Map([['A', { startedAt: 5_000, workedSeconds: 17 }]]),
+            activeTurnOpenedBy: 'B'
+          })
+        )
+      })
+      ;[rowA, , rowB] = rows()
+      expect(rowA.turnStatus).toEqual({ startedAt: 5_000, thinking: false, workedSeconds: 17 })
+      expect(rowB.turnStatus).toEqual({ startedAt: 22_000, thinking: false, workedSeconds: null })
     } finally {
       vi.useRealTimers()
     }

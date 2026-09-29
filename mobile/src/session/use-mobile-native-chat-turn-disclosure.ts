@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from 'react'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
 import type { NativeChatSettledTurns } from '../../../src/shared/native-chat-turn-status'
 import {
-  MOBILE_UNANCHORED_TURN_KEY,
   useMobileNativeChatTurnStatus,
   type NativeChatTurnStatus
 } from './use-mobile-native-chat-turn-status'
@@ -28,6 +27,7 @@ export function useMobileNativeChatTurnDisclosure({
   isWorking,
   workingStartedAt,
   settledTurns,
+  activeTurnOpenedBy = null,
   thinking = false,
   activityText = null,
   scopeKey
@@ -38,6 +38,8 @@ export function useMobileNativeChatTurnDisclosure({
   workingStartedAt?: number | null
   /** Host-recorded durations; they outrank whatever this client observed. */
   settledTurns?: NativeChatSettledTurns | null
+  /** The user message the host says opened the running turn; absent, the latest one. */
+  activeTurnOpenedBy?: string | null
   /** Whether the turn is reasoning right now, derived from its journal content. */
   thinking?: boolean
   /** What the provider says the live turn is doing; outranks the other labels. */
@@ -57,6 +59,7 @@ export function useMobileNativeChatTurnDisclosure({
     isWorking,
     workingStartedAt,
     settledTurns,
+    activeTurnOpenedBy,
     thinking,
     scopeKey
   })
@@ -100,6 +103,8 @@ export function useMobileNativeChatTurnDisclosure({
   }, [enabled, messages])
 
   const { active, activeTurnKey, completedByTurn } = turnStatuses
+  // Liveness follows the transcript's own grouping (the latest prompt's rows), not the bar's owner.
+  const latestTurnKey = turnKeys.at(-1)
   const activeActivityText = enabled && isWorking ? (activityText ?? null) : null
   const resolveRow = useCallback(
     (index: number, message: NativeChatMessage): MobileNativeChatTurnRow => {
@@ -120,14 +125,19 @@ export function useMobileNativeChatTurnDisclosure({
         // writing a ref during render, which react-freeze can discard.
         turnKey: turnKey && turnStatus?.workedSeconds != null ? turnKey : undefined,
         // With no user boundary at all, the session's working state stays authoritative.
-        activeTurnIsWorking:
-          enabled &&
-          isWorking &&
-          (turnKey === activeTurnKey ||
-            (turnKey === undefined && activeTurnKey === MOBILE_UNANCHORED_TURN_KEY))
+        activeTurnIsWorking: enabled && isWorking && turnKey === latestTurnKey
       }
     },
-    [turnKeys, enabled, activeTurnKey, active, completedByTurn, expandedTurnIds, isWorking]
+    [
+      turnKeys,
+      enabled,
+      activeTurnKey,
+      latestTurnKey,
+      active,
+      completedByTurn,
+      expandedTurnIds,
+      isWorking
+    ]
   )
 
   return {
