@@ -107,8 +107,12 @@ describe('PR workflow parallelism', () => {
     expect(nodeNextWorkflow.on.schedule).toHaveLength(1)
     expect(nodeNextWorkflow.on.workflow_dispatch).toBeNull()
     expect(sharedTest.strategy.matrix.node).toBe('${{ fromJSON(inputs.node_versions) }}')
-    expect(sharedTest.strategy.matrix.shard).toBe('${{ fromJSON(needs.plan.outputs.shards) }}')
-    expect(sharedTest.needs).toBe('plan')
+    expect(sharedTest.strategy.matrix.shard).toBe('${{ fromJSON(inputs.shards) }}')
+    // The shard matrix no longer needs an in-workflow plan job: planning moved to
+    // unit-plan.yml so it can run before the static-analysis gate clears.
+    expect(sharedTest.needs).toBeUndefined()
+    expect(unitTestWorkflow.jobs.plan).toBeUndefined()
+    expect(unitTestWorkflow.on.workflow_call.inputs.shards.required).toBe(true)
     expect(installStep.with['node-version']).toBe('${{ matrix.node }}')
     expect(installStep.with['cache-electron-package']).toBe('true')
     expect(testStep.run).toContain('--shard=${{ matrix.shard.index }}/${{ matrix.shard.count }}')
@@ -120,7 +124,7 @@ describe('PR workflow parallelism', () => {
     expect(workflow.jobs.test.needs).toContain('test_native_cache')
     expect(nodeNextPrimerInstall.with['native-runtime']).toBe('node')
     expect(nodeNextPrimerInstall.with['node-version']).toBe('${{ matrix.node }}')
-    expect(nodeNextWorkflow.jobs.test.needs).toEqual(['test_native_cache'])
+    expect(nodeNextWorkflow.jobs.test.needs).toEqual(['test_native_cache', 'unit_plan'])
   })
 
   it('runs real-shell coverage once outside the general shards', () => {
