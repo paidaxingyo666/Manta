@@ -11,7 +11,8 @@ function row(overrides: Partial<NativeChatTurnFoldRow> = {}): NativeChatTurnFold
     role: 'assistant',
     rendersProse: true,
     outlivesTurn: false,
-    reportsTurnOutcome: false,
+    reportsFailure: false,
+    reportsCompaction: false,
     ...overrides
   }
 }
@@ -24,6 +25,9 @@ const TURN: NativeChatTurnFoldRow[] = [
   row(),
   row()
 ]
+
+/** An error-toned system row: the agent or host reporting the turn failed. */
+const FAILURE = row({ role: 'system', reportsFailure: true })
 
 const SETTLED = new Set(['turn-1'])
 const NONE = new Set<string>()
@@ -40,6 +44,21 @@ describe('nativeChatTurnAnswerRows', () => {
 
   it('ignores reasoning and system rows, which are never the agent answering', () => {
     const rows = [row({ role: 'user' }), row(), row({ role: 'reasoning' }), row({ role: 'system' })]
+    expect(nativeChatTurnAnswerRows(rows).get('turn-1')).toBe(1)
+  })
+
+  it('names a failure report as the answer when nothing the agent said comes after it', () => {
+    const rows = [row({ role: 'user' }), row(), FAILURE]
+    expect(nativeChatTurnAnswerRows(rows).get('turn-1')).toBe(2)
+  })
+
+  it('names the later prose as the answer when the agent recovered from a failure', () => {
+    const rows = [row({ role: 'user' }), FAILURE, row()]
+    expect(nativeChatTurnAnswerRows(rows).get('turn-1')).toBe(2)
+  })
+
+  it("keeps the session's own answer when a subagent's failure comes after it", () => {
+    const rows = [row({ role: 'user' }), row(), row({ ...FAILURE, agentId: 'sub-1' })]
     expect(nativeChatTurnAnswerRows(rows).get('turn-1')).toBe(1)
   })
 
@@ -148,13 +167,45 @@ describe('nativeChatTurnFold', () => {
     expect(foldedRows.size).toBe(0)
   })
 
-  it('never folds a row reporting how its turn ended, and keeps the last prose as the answer', () => {
+  it('ends a failed turn on its error, folding the work and prose before it', () => {
+    const rows = [row({ role: 'user' }), row(), row({ rendersProse: false }), FAILURE]
+    const { foldedRows, foldableTurnKeys } = nativeChatTurnFold({
+      rows,
+      settledTurnKeys: SETTLED,
+      expandedTurnKeys: NONE
+    })
+    expect([...foldedRows].sort()).toEqual([1, 2])
+    expect([...foldableTurnKeys]).toEqual(['turn-1'])
+  })
+
+  it('folds an error the agent recovered from behind the answer that followed it', () => {
+    const rows = [row({ role: 'user' }), row({ rendersProse: false }), FAILURE, row()]
+    const { foldedRows } = nativeChatTurnFold({
+      rows,
+      settledTurnKeys: SETTLED,
+      expandedTurnKeys: NONE
+    })
+    expect([...foldedRows].sort()).toEqual([1, 2])
+  })
+
+  it('shows a turn that is nothing but its error as that error, with no disclosure', () => {
+    const rows = [row({ role: 'user' }), FAILURE]
+    const { foldedRows, foldableTurnKeys } = nativeChatTurnFold({
+      rows,
+      settledTurnKeys: SETTLED,
+      expandedTurnKeys: NONE
+    })
+    expect(foldedRows.size).toBe(0)
+    expect(foldableTurnKeys.size).toBe(0)
+  })
+
+  it('never folds a compaction report, and keeps the last prose as the answer', () => {
     const rows = [
       row({ role: 'user' }),
       row(),
-      row({ role: 'system', rendersProse: true, reportsTurnOutcome: true }),
+      row({ role: 'system', reportsCompaction: true }),
       row(),
-      row({ role: 'system', rendersProse: true, reportsTurnOutcome: true })
+      row({ role: 'system', reportsCompaction: true })
     ]
     const { foldedRows } = nativeChatTurnFold({
       rows,

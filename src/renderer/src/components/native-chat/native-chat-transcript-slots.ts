@@ -113,9 +113,11 @@ export function buildNativeChatTranscriptSlots(
       outlivesTurn: message.blocks.some(
         (block) => isSubagentGroupBlock(block) || isBackgroundTaskBlock(block)
       ),
-      reportsTurnOutcome: message.blocks.some(
-        (block) =>
-          block.type === 'text' && (block.tone === 'error' || block.presentation === 'compaction')
+      reportsFailure: message.blocks.some(
+        (block) => block.type === 'text' && block.tone === 'error'
+      ),
+      reportsCompaction: message.blocks.some(
+        (block) => block.type === 'text' && block.presentation === 'compaction'
       ),
       ...(agentId === null ? {} : { agentId })
     }

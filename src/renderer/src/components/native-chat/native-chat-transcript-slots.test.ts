@@ -241,22 +241,36 @@ describe('a turn no message opened', () => {
     expect(toolSlot).toMatchObject({ folded: true, turnFolds: true, turnKey: 'wake' })
   })
 
-  it('keeps a row that reports its turn ending visible in a folded turn', () => {
+  const failure = (id: string): NativeChatMessage => ({
+    ...text(id, 'The agent exited unexpectedly.', 'system'),
+    blocks: [{ type: 'text' as const, text: 'The agent exited unexpectedly.', tone: 'error' }]
+  })
+
+  it('ends a failed turn on its error, folding the prose before it', () => {
     const messages = [
       text('u1', 'go', 'user'),
+      text('a1', 'Looking.'),
       toolRun('work'),
-      {
-        ...text('exit', 'The agent exited unexpectedly.', 'system'),
-        blocks: [{ type: 'text' as const, text: 'The agent exited unexpectedly.', tone: 'error' }]
-      }
+      failure('exit')
     ]
     const slots = build(messages, {
       turnStatuses: { active: settled(3), completedByTurn: { u1: settled(3) } }
     })
-    // The folded work takes no slot; the report of the end still does.
+    // Folded rows take no slot; the error is the turn's visible end.
     expect(slots.map((slot) => [slot.message.id, slot.folded])).toEqual([
       ['u1', false],
       ['exit', false]
+    ])
+  })
+
+  it('folds an error the agent recovered from behind the answer that followed it', () => {
+    const messages = [text('u1', 'go', 'user'), failure('retry'), text('a1', 'Done.')]
+    const slots = build(messages, {
+      turnStatuses: { active: settled(3), completedByTurn: { u1: settled(3) } }
+    })
+    expect(slots.map((slot) => [slot.message.id, slot.folded])).toEqual([
+      ['u1', false],
+      ['a1', false]
     ])
   })
 })
