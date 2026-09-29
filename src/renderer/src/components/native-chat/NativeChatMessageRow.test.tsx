@@ -60,9 +60,9 @@ describe('MessageRow control visibility', () => {
       'can-hover:opacity-0',
       'can-hover:pointer-events-none',
       'group-hover:opacity-100',
-      'group-has-[:focus-visible]:opacity-100',
+      '[.group:has(:focus-visible)_&]:opacity-100',
       'group-hover:pointer-events-auto',
-      'group-has-[:focus-visible]:pointer-events-auto'
+      '[.group:has(:focus-visible)_&]:pointer-events-auto'
     )
     expect(copy.parentElement).not.toHaveClass('opacity-0', 'pointer-events-none')
     expect(time).not.toHaveAttribute('tabindex')
@@ -79,9 +79,9 @@ describe('MessageRow control visibility', () => {
       'can-hover:opacity-0',
       'can-hover:pointer-events-none',
       'group-hover:opacity-100',
-      'group-has-[:focus-visible]:opacity-100',
+      '[.group:has(:focus-visible)_&]:opacity-100',
       'group-hover:pointer-events-auto',
-      'group-has-[:focus-visible]:pointer-events-auto'
+      '[.group:has(:focus-visible)_&]:pointer-events-auto'
     )
     expect(copy.parentElement).not.toHaveClass('opacity-0', 'pointer-events-none')
     expect(copy.parentElement!.parentElement).toHaveClass('group')
