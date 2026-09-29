@@ -3277,7 +3277,7 @@
             "missing": {
               "tui": {
                 "title": "This ZCode build has no terminal UI",
-                "description": "Manta's hooks installed correctly \u2014 the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Manta to confirm."
+                "description": "Manta's hooks installed correctly — the zcode on your PATH just cannot open a session. The ZCode desktop app bundles the agent runtime without its terminal UI. Install a zcode that ships the TUI, then run zcode outside Manta to confirm."
               }
             }
           },
@@ -18510,5 +18510,63 @@
       "capacity": "The device saving this terminal reported full storage or an exceeded storage quota. Free space on that device, then try again.",
       "unknown": "Manta could not save the terminal state. Try again. If this continues, share the Manta logs with support so we can identify the cause."
     }
+  },
+  "fileExplorer": {
+    "root": {
+      "label": "Explorer root",
+      "full": "Repository root",
+      "viewing": "Viewing: {{path}}",
+      "back": "Back to {{path}}",
+      "searchScope": "Search scope: workspace files",
+      "retry": "Retry",
+      "omittedFiles": "Files omitted by sparse checkout are not searched.",
+      "viewOnly": "Sparse checkout · View changes do not change checked-out files.",
+      "sparseStatus": "Sparse checkout",
+      "scopeDetails": "About sparse checkout scope",
+      "scopeExplanation": "The folder picker changes what you see, not which files are checked out. Repository root includes the checked-out root and ancestor files.",
+      "searchExplanation": "Names filters the folder you are viewing. Contents searches across the workspace. Files omitted by sparse checkout are not searched.",
+      "findInFolder": "Find in {{path}}",
+      "folderLoadError": "Could not load this folder:",
+      "emptyFolder": "No files in this folder"
+    }
+  },
+  "sparsePreset": {
+    "name": "Name",
+    "namePlaceholder": "Web app and shared UI",
+    "directories": "Directories",
+    "pathHelp": "One repository-relative directory per line. Spaces within a path are preserved.",
+    "coneHelp": "Git also keeps files at the repository root and along the parent folders of these directories.",
+    "cancel": "Cancel",
+    "save": "Save preset",
+    "new": "New sparse preset",
+    "edit": "Edit sparse preset",
+    "description": "Choose the folders a new workspace checks out.",
+    "saveFailed": "Could not save the preset. Try again.",
+    "nameRequired": "Name is required.",
+    "nameTooLong": "Name must be 80 characters or fewer.",
+    "nameExists": "A preset named “{{name}}” already exists.",
+    "loading": "Loading presets...",
+    "details": "What gets checked out?",
+    "finishEditing": "Save or cancel the preset to continue creating your workspace.",
+    "pathInstructions": "Pick folders from the repository, or type any repo-relative path.",
+    "retryLoad": "Retry loading presets",
+    "fullCheckout": "Full checkout",
+    "checkoutPreset": "Checkout preset",
+    "search": "Find a preset…",
+    "noMatches": "No matching presets.",
+    "allFiles": "All repository files",
+    "editNamed": "Edit {{name}}",
+    "addPath": "Add a folder",
+    "findPath": "Find a folder…",
+    "noPathMatches": "No folders found.",
+    "repositoryRoot": "Repository root",
+    "loadingPaths": "Reading folders…",
+    "pathsUnavailable": "Could not read this folder. Type the path instead.",
+    "pathAdded": "Added",
+    "openFolder": "Open {{name}}",
+    "findOrTypePath": "Find a folder, or type any path…",
+    "addTypedPath": "Add",
+    "noDirectories": "No folders added yet.",
+    "removePath": "Remove {{name}}"
   }
 }
