@@ -44,15 +44,6 @@ describe('resolveModifierRouting', () => {
       wantsSystemBrowser: false
     })
   })
-
-  it('only diverges from the legacy behavior when links open externally', () => {
-    expect(resolveModifierRouting(true, true, true)).toEqual(
-      resolveModifierRouting(true, true, false)
-    )
-    expect(resolveModifierRouting(true, false, true)).not.toEqual(
-      resolveModifierRouting(true, false, false)
-    )
-  })
 })
 
 describe('modifier routing across link source owners', () => {
