@@ -6,6 +6,7 @@ import {
 } from '../../shared/browser-annotation-viewport-bridge'
 import type { BrowserViewportOverride } from '../../shared/browser-workspace-types'
 import { BrowserManagerDownloadLifecycle } from './browser-manager-download-lifecycle'
+import { sendGuestCdpCommand } from './guest-cdp-command'
 
 // Why no maxTouchPoints: Chromium rejects values outside 1..16 even when disabling, which left
 // touch emulation (and no-hover media features) on after leaving a mobile preset (#22749).
@@ -155,7 +156,7 @@ export abstract class BrowserManagerViewport extends BrowserManagerDownloadLifec
       'device metrics',
       () =>
         override
-          ? dbg.sendCommand('Emulation.setDeviceMetricsOverride', {
+          ? sendGuestCdpCommand(guest, 'Emulation.setDeviceMetricsOverride', {
               width: override.width,
               height: override.height,
               deviceScaleFactor: override.deviceScaleFactor,
