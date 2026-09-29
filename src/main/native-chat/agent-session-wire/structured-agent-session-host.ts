@@ -55,6 +55,7 @@ import {
 import { structuredAgentSessionRestartResumeSurfaces } from './structured-agent-session-restart-resume-wiring'
 import { createStructuredAgentSessionConversationDelivery } from './structured-agent-session-host-delivery'
 import { structuredAgentSessionConversationFence } from './structured-agent-session-provider-child'
+import { wireStructuredAgentSessionQueuedMessages } from './structured-agent-session-queued-wiring'
 export type { StructuredAgentSessionHostDeps } from './structured-agent-session-host-types'
 
 export class StructuredAgentSessionHost {
@@ -68,14 +69,18 @@ export class StructuredAgentSessionHost {
       this.conversationDelivery.afterCommit(sessionId, journal)
     },
     onDeliveryError: (sessionId, error) => this.deps.onEventSinkError?.({ sessionId, error }),
+    onOpened: (sessionId) => this.queued.drain.schedule(sessionId),
     now: () => this.now()
   })
+  private readonly queued = wireStructuredAgentSessionQueuedMessages(this.sessions, () =>
+    this.mutationContext()
+  )
   // Every journal publish is activity: the one renewal the idle sweep reads.
   private readonly clientDelivery = new StructuredAgentSessionClientDelivery(
     this.sessions,
     () => this.now(),
     () => this.deps,
-    (sessionId) => this.sessions.touch(sessionId),
+    (sessionId) => this.queued.onJournalActivity(sessionId),
     (sessionId) => this.restartResume.onAgentStarted(sessionId)
   )
   private readonly subscribers = this.clientDelivery.subscribers
@@ -276,11 +281,16 @@ export class StructuredAgentSessionHost {
         ensureStructuredAgentSessionAgentForOperation(this.attachContext(), sessionId),
       wakeDelivery: (sessionId) => this.conversationDelivery.loop.wake(sessionId),
       stopAgent: this.lifetime.stopAgent,
+      wakeQueuedDrain: (sessionId) => this.queued.drain.schedule(sessionId),
       now: () => this.now()
     }
   }
 
   send = this.conversationCommands.send
+
+  queuedMessageSend = this.queued.queuedMessageSend
+  queuedMessageDelete = this.queued.queuedMessageDelete
+  queuedMessagesResume = this.queued.queuedMessagesResume
 
   waitForSendSettlement = this.clientDelivery.waitForSendSettlement
 

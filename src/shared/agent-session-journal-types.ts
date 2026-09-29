@@ -418,6 +418,12 @@ export type AgentJournalSubmission = {
   handedOverAt?: number
   /** Host-only: the submission row's sequence, which tells which host process accepted it. */
   acceptedSequence?: number
+  /** The queued draft this submission hands off; absent for a direct send. Read this, never
+   *  a draft id compared with `clientMessageId`. */
+  queuedMessageId?: string
+  /** Host-only: who asked for this turn — a person over the client send RPC, or Manta itself.
+   *  A person's turn is what ends a Stop's queue pause. */
+  origin?: 'client' | 'host'
 }
 
 /** Durable answer to "did my send land?", keyed by client message id. Only an

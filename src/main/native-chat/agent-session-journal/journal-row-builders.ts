@@ -27,6 +27,7 @@ import {
   MAX_JOURNAL_LIFECYCLE_BATCH_MUTATIONS
 } from './journal-row-schema'
 import { boundInlineText, DEFAULT_JOURNAL_PAYLOAD_LIMITS } from './journal-payload-bounds'
+import { assertSubmissionIdUnused } from './journal-write-guards'
 import type { ResolveDispatchInput } from './journal-store-contracts'
 
 type RowBuilder<T> = (seq: number, ts: number) => T
@@ -68,10 +69,28 @@ export function journalSubmissionRowBuilder(
     body: AgentJournalMessageItem
     fence: number
     handoverRecorded?: true
-  }
+    queuedMessageId?: string
+    origin?: 'client' | 'host'
+  },
+  /** Present when the append hands off a queued draft: the row names that draft, stamped here
+   *  from the consume itself so no hand-off path can leave the link off. */
+  consume?: { messageId: string }
 ): RowBuilder<JournalSubmissionRow> {
-  return (seq, ts) =>
-    buildJournalSubmissionRow({ state: state(), providerHandle, ...input, seq, ts })
+  return (seq, ts) => {
+    assertSubmissionIdUnused(state().submissions, input.clientMessageId)
+    if (consume && (input.queuedMessageId ?? consume.messageId) !== consume.messageId) {
+      throw new Error(`submission ${input.clientMessageId} names a draft it does not consume`)
+    }
+    const queuedMessageId = consume?.messageId ?? input.queuedMessageId
+    return buildJournalSubmissionRow({
+      state: state(),
+      providerHandle,
+      ...input,
+      ...(queuedMessageId !== undefined ? { queuedMessageId } : {}),
+      seq,
+      ts
+    })
+  }
 }
 
 export function journalDispatchRowBuilder(
@@ -279,6 +298,8 @@ export function buildJournalSubmissionRow(input: {
   fence: number
   ts: number
   handoverRecorded?: true
+  queuedMessageId?: string
+  origin?: 'client' | 'host'
 }): JournalSubmissionRow {
   return {
     kind: 'submission',
@@ -287,6 +308,8 @@ export function buildJournalSubmissionRow(input: {
     providerHandle: input.providerHandle,
     body: input.body,
     ...journalRowBase(input.state.epoch, input.seq, input.fence, input.ts),
-    ...(input.handoverRecorded ? { handoverRecorded: true } : {})
+    ...(input.handoverRecorded ? { handoverRecorded: true } : {}),
+    ...(input.queuedMessageId !== undefined ? { queuedMessageId: input.queuedMessageId } : {}),
+    ...(input.origin !== undefined ? { origin: input.origin } : {})
   }
 }

@@ -5,7 +5,11 @@
 
 export class AgentSessionJournalError extends Error {
   constructor(
-    readonly code: 'journal_read_only' | 'journal_stale_fence' | 'journal_closed',
+    readonly code:
+      | 'journal_read_only'
+      | 'journal_stale_fence'
+      | 'journal_closed'
+      | 'journal_submission_exists',
     message: string
   ) {
     super(message)
@@ -31,6 +35,20 @@ export function assertJournalFence(fence: number, highestFence: number): void {
     throw new AgentSessionJournalError(
       'journal_stale_fence',
       `fence ${fence} is behind the journal's ${highestFence}`
+    )
+  }
+}
+
+/** One id, one delivery: a second submission row under an id would reset its
+ *  settled answer to pending and hand the message over again. */
+export function assertSubmissionIdUnused(
+  submissions: ReadonlyMap<string, unknown>,
+  clientMessageId: string
+): void {
+  if (submissions.has(clientMessageId)) {
+    throw new AgentSessionJournalError(
+      'journal_submission_exists',
+      `a submission ${clientMessageId} is already recorded`
     )
   }
 }

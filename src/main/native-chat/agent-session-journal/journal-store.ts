@@ -52,11 +52,13 @@ import type {
   JournalItemAppendOptions,
   JournalLifecycleBatchInput,
   JournalReadSince,
+  JournalSubmissionConsume,
   JournalSubmissionInput,
   JournalTombstoneInput,
   ResolveDispatchInput
 } from './journal-store-contracts'
-import type { AgentJournalEpochReason, JournalRow } from './journal-row-schema'
+import { queuedMessageConsumeHook, type JournalQueuedMessages } from './journal-queued-messages'
+import type { AgentJournalEpochReason } from './journal-row-schema'
 import { AgentSessionJournalError } from './journal-write-guards'
 import type { JournalRowWriter } from './journal-row-writer'
 import type { JournalEpochController } from './journal-epoch-controller'
@@ -89,6 +91,8 @@ export class AgentSessionJournal {
   private readonly itemAppender: JournalItemAppender
   private readonly lifecycleBatchAppender: JournalLifecycleBatchAppender
   private readonly restore: () => Promise<void>
+  /** Draft rows queued while the agent works; never reducer input or owed work. */
+  readonly queuedMessages: JournalQueuedMessages
 
   constructor(options: AgentSessionJournalOptions) {
     this.identity = options.identity
@@ -125,18 +129,20 @@ export class AgentSessionJournal {
         applyJournalRow(this.state, row)
         this.onCommitted?.()
       },
+      notifyCommitted: () => this.onCommitted?.(),
       loaded: () => this.loaded,
       malformedRows: () => this.malformedRows,
       setMalformedRows: (count) => {
         this.malformedRows = count
       },
       journal: () => this,
-      enqueue: (build) => this.enqueue(build)
+      enqueue: (build) => this.rowWriter.enqueue(build)
     })
     this.rowWriter = collaborators.rowWriter
     this.epochController = collaborators.epochController
     this.itemAppender = collaborators.itemAppender
     this.lifecycleBatchAppender = collaborators.lifecycleBatchAppender
+    this.queuedMessages = collaborators.queuedMessages
     this.restore = collaborators.restore
   }
 
@@ -245,6 +251,8 @@ export class AgentSessionJournal {
 
   submissions = (): AgentJournalSubmission[] => [...this.state.submissions.values()]
 
+  submission = (clientMessageId: string) => this.state.submissions.get(clientMessageId)
+
   pendingSubmissions = (): AgentJournalSubmission[] =>
     this.submissions().filter((entry) => entry.dispatchState === 'pending')
 
@@ -289,8 +297,8 @@ export class AgentSessionJournal {
     options: JournalTombstoneInput
   ): Promise<AgentJournalCursor> {
     const itemId = agentJournalItemKey(identity)
-    return this.enqueue(journalTombstoneRowBuilder(() => this.state, itemId, options.fence)).then(
-      (row) => ({ epoch: row.epoch, sequence: row.seq })
+    return this.rowWriter.append(
+      journalTombstoneRowBuilder(() => this.state, itemId, options.fence)
     )
   }
 
@@ -303,10 +311,16 @@ export class AgentSessionJournal {
    * anything, and it doubles as the optimistic user bubble so an accepted echo
    * reconciles into an existing slot instead of appending a second copy.
    */
-  appendSubmission(input: JournalSubmissionInput): Promise<AgentJournalCursor> {
-    return this.enqueue(
-      journalSubmissionRowBuilder(() => this.state, this.identity.providerHandle, input)
-    ).then((row) => ({ epoch: row.epoch, sequence: row.seq }))
+  appendSubmission(
+    input: JournalSubmissionInput,
+    /** Present: this submission is a queued draft's conversion, and the draft's
+     *  state transition commits in the SAME transaction — exactly-once consume. */
+    consume?: JournalSubmissionConsume
+  ): Promise<AgentJournalCursor> {
+    return this.rowWriter.append(
+      journalSubmissionRowBuilder(() => this.state, this.identity.providerHandle, input, consume),
+      consume && queuedMessageConsumeHook(this.queuedMessages, input.clientMessageId, consume)
+    )
   }
 
   /**
@@ -317,10 +331,7 @@ export class AgentSessionJournal {
    * string here would silently give the user a second copy of their own message.
    */
   resolveDispatch(input: ResolveDispatchInput): Promise<AgentJournalCursor> {
-    return this.enqueue(journalDispatchRowBuilder(() => this.state, input)).then((row) => ({
-      epoch: row.epoch,
-      sequence: row.seq
-    }))
+    return this.rowWriter.append(journalDispatchRowBuilder(() => this.state, input))
   }
 
   /** Retire unanswered sends after their execution owner ended, without assuming delivery. */
@@ -371,14 +382,5 @@ export class AgentSessionJournal {
       )
     }
     return this.database
-  }
-
-  /**
-   * Assign the next sequence, make the row durable, and fold it through the
-   * SAME reducer replay uses — all inside one serialized step, so concurrent
-   * callers cannot interleave and mint the same sequence.
-   */
-  private enqueue(build: (seq: number, ts: number) => JournalRow): Promise<JournalRow> {
-    return this.rowWriter.enqueue(build)
   }
 }

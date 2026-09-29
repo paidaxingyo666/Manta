@@ -16,6 +16,7 @@ import type {
 } from '../../../shared/agent-session-wire'
 import type { AgentSessionConversationCommandResult } from '../../../shared/agent-session-conversation-command'
 import { DISPATCH_DOUBT_SUBMISSION_MISSING } from '../agent-session-journal/journal-dispatch-doubt-reasons'
+import { structuredAgentSessionPayloadFingerprint } from '../../../shared/structured-agent-session-mutation'
 import {
   STRUCTURED_AGENT_SESSION_COMPACT_COMMAND,
   structuredAgentSessionCompactBody
@@ -29,6 +30,17 @@ import {
   type TurnOutcome
 } from './structured-agent-session-turns'
 import type { AgentSessionPromptRequest } from './structured-agent-session-turns-prompt'
+import { queuedSendAnswer } from './structured-agent-session-queued-send-answer'
+
+/** The body-only hash: what the reducer recomputes to alias a provider echo
+ *  onto its submission, so the stored value must never include control fields. */
+function sendBodyFingerprint(sessionId: string, body: AgentJournalMessageItem): string {
+  return structuredAgentSessionPayloadFingerprint({
+    method: 'agentSession.send',
+    sessionId,
+    fields: { body }
+  })
+}
 
 export type MutationPlan<TValue> = {
   method: string
@@ -48,6 +60,8 @@ export function sendPlan(params: {
   envelope: AgentSessionMutationEnvelope
   body: AgentJournalMessageItem
   retryUnknown?: true
+  delivery?: 'queue-if-active'
+  userSend?: true
   beforeRun?: () => void
 }): MutationPlan<AgentSessionSendResult> {
   // The operation id IS the client message id: one send, one durable row, one
@@ -58,8 +72,9 @@ export function sendPlan(params: {
     operationIdScope: 'global',
     conversationWrite: true,
     markUnknownBeforeRun: true,
-    // A control signal is not payload; it cannot alter durable replay.
-    fields: { body: params.body },
+    // `delivery` joins the OPERATION fingerprint only; the submission row keeps
+    // the body-only fingerprint the reducer's echo-aliasing recomputes.
+    fields: { body: params.body, ...(params.delivery ? { delivery: params.delivery } : {}) },
     recoverUnknownFromDurableState: true,
     // `retryUnknown` is a compatibility-only client signal. A recorded send
     // always replays and never reaches the provider twice.
@@ -67,12 +82,19 @@ export function sendPlan(params: {
       // Asked at acceptance: a send accepted after this one is queued behind it.
       params.beforeRun?.()
       return performSend(ctx, {
+        origin: params.userSend ? 'client' : 'host',
         clientMessageId,
-        payloadFingerprint: params.envelope.payloadFingerprint,
+        payloadFingerprint: sendBodyFingerprint(params.envelope.sessionId, params.body),
         body: params.body
       })
     },
     replay: (ctx, outcome) => {
+      // A send this host queued answers from its draft, then its hand-off; a
+      // withdrawn draft replays as spent — never as missing-submission doubt.
+      const queued = queuedSendAnswer(ctx.journal, clientMessageId)
+      if (queued) {
+        return queued
+      }
       const submission = ctx.journal
         .submissions()
         .find((entry) => entry.clientMessageId === clientMessageId)
@@ -122,6 +144,8 @@ export function conversationCommandPlan(params: {
     run: async (ctx) => {
       const sent = await performSend(ctx, {
         clientMessageId,
+        // Only a client asks through the command RPC: the person's own turn.
+        origin: 'client',
         payloadFingerprint: params.envelope.payloadFingerprint,
         body: structuredAgentSessionCompactBody()
       })
@@ -168,7 +192,7 @@ export function cancelPlan(params: {
         ...(params.stopChild ? { stopChild: params.stopChild } : {})
       }),
     // Interrupting twice would kill a turn the client never asked to stop, so a
-    // replay reports the turn as already handled instead.
+    // replay reports the turn as already handled.
     replay: () => ({
       ...(params.turnId !== undefined ? { turnId: params.turnId } : {}),
       cancelled: false

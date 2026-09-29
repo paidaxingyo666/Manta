@@ -85,7 +85,7 @@ function dropEntry(input: SendDispositionInput): StructuredAgentSessionOutboxEnt
  */
 function refusedRedelivery(
   entry: StructuredAgentSessionOutboxEntry,
-  submission: AgentSessionSendResult['submission']
+  submission: AgentJournalSubmission
 ): boolean {
   return (
     entry.retryAfterUnknownSubmittedAt !== null &&
@@ -227,6 +227,16 @@ export function disposeStructuredAgentSessionSendResult(
         !refused || refused.state === 'rejected'
           ? input.blockedClientMessageId
           : refused.clientMessageId
+    }
+  }
+  if ('queued' in result.value) {
+    // The host holds the draft (or already settled it, on a replay). Either way
+    // the send is spent and the queue owns it now: the outbox entry retires,
+    // and the draft card — not this queue — carries any later refusal.
+    return {
+      entries: dropEntry(input),
+      error: null,
+      blockedClientMessageId: input.blockedClientMessageId
     }
   }
   const submission = result.value.submission

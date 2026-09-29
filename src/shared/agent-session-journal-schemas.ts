@@ -328,7 +328,9 @@ export const AgentJournalSubmissionSchema = z.object({
   recovered: z.literal(true).optional(),
   handoverRecorded: z.literal(true).optional(),
   handedOverAt: z.number().optional(),
-  rejection: FailureFact.optional()
+  rejection: FailureFact.optional(),
+  // Listed, or the parse strips it: this schema drops unknown keys.
+  queuedMessageId: z.string().min(1).optional()
 })
 
 export function isAgentJournalResolution(value: unknown): value is AgentJournalResolution {

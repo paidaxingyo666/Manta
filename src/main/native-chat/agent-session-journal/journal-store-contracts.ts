@@ -70,6 +70,21 @@ export type JournalSubmissionInput = {
   fence: number
   /** The send is accepted now and handed over later, by a `dispatch{pending}` row. */
   handoverRecorded?: true
+  /** Stamped by `appendSubmission` from its consume; a caller-passed value must match it. */
+  queuedMessageId?: string
+  /** Who asked for this turn (`JournalSubmissionRow.origin`). */
+  origin?: 'client' | 'host'
+}
+
+/** A submission append that converts a queued draft, in one transaction. */
+export type JournalSubmissionConsume = {
+  messageId: string
+  expect: 'waiting' | 'returned'
+  /** The operation ledger's caller-scoped key; null for the host's own drain. */
+  settledByOp: string | null
+  /** The host process handing it off, stamped on the draft so a hand-off withdrawn back to
+   *  waiting belongs to the process that sent it, not the one that first wrote the card. */
+  hostInstance?: string
 }
 
 export type JournalItemAppendInput = {

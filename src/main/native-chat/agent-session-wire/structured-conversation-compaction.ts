@@ -75,10 +75,14 @@ export async function runStructuredCompaction(
   return {
     ...accepted,
     ...(settled ? { cursor: settled.cursor } : {}),
-    value: compactionReply(settled?.value.submission, {
-      ...structuredAgentSessionFailureWordsContext(context.deps.store.getRecord(sessionId)),
-      command: 'compact'
-    })
+    // A /compact is a command send, never a queued draft, so its settlement always carries the submission.
+    value: compactionReply(
+      settled && 'submission' in settled.value ? settled.value.submission : undefined,
+      {
+        ...structuredAgentSessionFailureWordsContext(context.deps.store.getRecord(sessionId)),
+        command: 'compact'
+      }
+    )
   }
 }
 

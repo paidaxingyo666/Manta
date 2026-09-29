@@ -54,6 +54,9 @@ export type JournalReducerState = {
   appliedSettlementIds: Set<string>
   /** Scope for rows stored without one; rebuilt by replay, never persisted. */
   derivedTurnScope: JournalDerivedTurnScope
+  /** The submission row of the latest turn a person asked for (`origin: 'client'`) that the
+   *  provider accepted; 0 when none. Kept as it folds so the queue's pause reads it in O(1). */
+  latestPersonTurnSequence: number
 }
 
 export function createJournalReducerState(sessionId: string, epoch: string): JournalReducerState {
@@ -71,7 +74,8 @@ export function createJournalReducerState(sessionId: string, epoch: string): Jou
     receipts: new Map(),
     aliases: new Map(),
     appliedSettlementIds: new Set(),
-    derivedTurnScope: new JournalDerivedTurnScope()
+    derivedTurnScope: new JournalDerivedTurnScope(),
+    latestPersonTurnSequence: 0
   }
 }
 
@@ -154,15 +158,37 @@ export function resolveJournalItemId(
   if (aliased) {
     return aliased
   }
-  const identity = parseAgentJournalItemKey(itemId)
-  if (
-    !body ||
-    body.kind !== 'message' ||
-    body.role !== 'user' ||
-    !identity ||
-    identity.provider === 'manta'
-  ) {
+  const submissionId = journalEchoClaimant(state, itemId, body)
+  if (!submissionId) {
     return itemId
+  }
+  state.aliases.set(itemId, submissionId)
+  return submissionId
+}
+
+/** A user message the provider wrote: the only item a submission's echo can be. */
+export function isProviderUserMessageEcho(
+  itemId: string,
+  body: AgentJournalRenderItem['body']
+): boolean {
+  const identity = parseAgentJournalItemKey(itemId)
+  return (
+    body.kind === 'message' &&
+    body.role === 'user' &&
+    identity !== null &&
+    identity.provider !== 'manta'
+  )
+}
+
+/** The submission item a provider's echo of a user message would fold into, read without
+ *  claiming it; null when the item is not such an echo, or no submission may claim it. */
+export function journalEchoClaimant(
+  state: JournalReducerState,
+  itemId: string,
+  body?: AgentJournalRenderItem['body']
+): string | null {
+  if (!body || !isProviderUserMessageEcho(itemId, body)) {
+    return null
   }
   const fingerprint = structuredAgentSessionPayloadFingerprint({
     method: 'agentSession.send',
@@ -184,12 +210,7 @@ export function resolveJournalItemId(
         candidate.payloadFingerprint === fingerprint &&
         state.items.get(agentJournalSubmissionKey(candidate.clientMessageId))?.revision === 0
     )
-  if (!submission) {
-    return itemId
-  }
-  const submissionId = agentJournalSubmissionKey(submission.clientMessageId)
-  state.aliases.set(itemId, submissionId)
-  return submissionId
+  return submission ? agentJournalSubmissionKey(submission.clientMessageId) : null
 }
 
 function resolveItemId(state: JournalReducerState, itemId: string): string {

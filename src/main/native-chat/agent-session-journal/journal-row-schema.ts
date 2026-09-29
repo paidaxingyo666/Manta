@@ -86,7 +86,17 @@ export type JournalSubmissionRow = JournalRowBase & {
   /** Accepted to be handed over by a later `dispatch{pending}` row; absent on rows whose writer
    *  dispatched in the same step. Older readers keep the key and ignore it. */
   handoverRecorded?: true
+  /** The queued draft this submission hands off; absent for a direct send. Older readers keep
+   *  the key and ignore it. */
+  queuedMessageId?: string
+  /** Who asked for this turn: `client` for a person's send over the client send RPC (typed, or
+   *  a queued card they sent now); `host` for Manta's own — orchestration mail, a restart
+   *  continuation, a launch prompt, the queue's automatic drain. Absent on rows from before it
+   *  was recorded. Older readers keep the key and ignore it. */
+  origin?: JournalSubmissionOrigin
 }
+
+export type JournalSubmissionOrigin = 'client' | 'host'
 
 export type JournalDispatchRow = JournalRowBase & {
   kind: 'dispatch'

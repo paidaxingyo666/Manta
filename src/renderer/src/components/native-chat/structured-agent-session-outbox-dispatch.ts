@@ -118,10 +118,17 @@ export function dispatchStructuredAgentSessionOutboxEntry(args: {
           createOperationId: args.createOperationId
         })
       )
-      return result.ok
-        ? result.value.submission.dispatchState === 'accepted' ||
-            result.value.submission.dispatchState === 'pending'
-        : false
+      if (!result.ok) {
+        return false
+      }
+      // A queued answer retired the entry; the queue keeps moving.
+      if ('queued' in result.value) {
+        return true
+      }
+      return (
+        result.value.submission.dispatchState === 'accepted' ||
+        result.value.submission.dispatchState === 'pending'
+      )
     } catch (caught) {
       if (args.dispatchGenerationRef.current !== args.dispatchGeneration) {
         return false

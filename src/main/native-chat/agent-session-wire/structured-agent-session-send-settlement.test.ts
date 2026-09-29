@@ -62,8 +62,11 @@ describe('a wait that also ends behind a running command', () => {
     settlements.publish('session-1', queuedJournal('compact:cmd-1'))
 
     const settled = await pending
-    expect(settled?.value.submission.dispatchState).toBe('pending')
-    expect(settled?.value.submission).not.toHaveProperty('handedOverAt')
+    if (!settled || !('submission' in settled.value)) {
+      throw new Error('expected the submission arm')
+    }
+    expect(settled.value.submission.dispatchState).toBe('pending')
+    expect(settled.value.submission).not.toHaveProperty('handedOverAt')
   })
 
   it('keeps waiting for the handover behind anything that is not a command', async () => {

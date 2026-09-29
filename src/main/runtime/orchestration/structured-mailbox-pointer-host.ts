@@ -7,6 +7,7 @@
  */
 
 import { ORCHESTRATION_READINESS_TIMEOUT_MS } from '../../../shared/orchestration-timing-budgets'
+import { agentSessionSendSubmission } from '../../../shared/agent-session-wire'
 import { AGENT_SESSION_NOT_ATTACHED } from '../../native-chat/agent-session-wire/structured-agent-session-mutation-admission'
 import { getStructuredAgentSessionHost } from '../../native-chat/agent-session-wire/structured-agent-session-registry'
 import type {
@@ -115,17 +116,20 @@ export function createStructuredMailboxPointerHost(): StructuredMailboxPointerHo
       }
       // `pending` is not yet an acknowledgement; only `accepted` may consume mail. Accepted is not
       // delivered, so wait out a start; a wait that runs out parks for the next journal edge.
+      const answered = agentSessionSendSubmission(result.value)
       const submission =
-        result.value.submission.dispatchState === 'pending'
-          ? ((
-              await host
-                .waitForSendSettlement(input.sessionId, result.value.clientMessageId, {
-                  budgetMs: ORCHESTRATION_READINESS_TIMEOUT_MS
-                })
-                .catch(() => undefined)
-            )?.value.submission ?? result.value.submission)
-          : result.value.submission
-      const state = submission.dispatchState
+        answered?.dispatchState === 'pending'
+          ? (agentSessionSendSubmission(
+              (
+                await host
+                  .waitForSendSettlement(input.sessionId, result.value.clientMessageId, {
+                    budgetMs: ORCHESTRATION_READINESS_TIMEOUT_MS
+                  })
+                  .catch(() => undefined)
+              )?.value
+            ) ?? answered)
+          : answered
+      const state = submission?.dispatchState
       return {
         kind: 'sent',
         state: state === 'accepted' ? 'accepted' : state === 'rejected' ? 'rejected' : 'unknown'

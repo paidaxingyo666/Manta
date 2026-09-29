@@ -168,6 +168,10 @@ export const SendParams = z
   .object({
     envelope: MutationEnvelope,
     retryUnknown: z.literal(true).optional(),
+    /** Queue the send as a host-held draft while the main agent is working. Strict object, so an
+     *  older host refuses it: clients send it only when `agent-session.queued-messages.v1` is
+     *  advertised. Participates in the operation fingerprint, never the body fingerprint. */
+    delivery: z.literal('queue-if-active').optional(),
     body: z
       .object({
         kind: z.literal('message'),
@@ -209,6 +213,19 @@ export const CancelParams = z
       ctx.addIssue({ code: 'custom', message: 'A prompt or background-task cancel names its turn' })
     }
   })
+
+/** `agentSession.queuedMessageSend` / `agentSession.queuedMessageDelete`. Gated on
+ *  `agent-session.queued-messages.v1`; an older host lacks the methods entirely. */
+export const QueuedMessageActionParams = z
+  .object({
+    envelope: MutationEnvelope,
+    messageId: Identifier('Invalid queued message id')
+  })
+  .strict()
+
+/** `agentSession.queuedMessagesResume`: ends the queue's pause (a Stop's, or a
+ *  restart's) so the cards send again. Gated like the draft actions above. */
+export const QueuedMessagesResumeParams = z.object({ envelope: MutationEnvelope }).strict()
 
 export const RespondParams = z
   .object({

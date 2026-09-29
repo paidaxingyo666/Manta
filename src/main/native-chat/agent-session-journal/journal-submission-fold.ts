@@ -10,6 +10,7 @@ import { journalRenderItem } from './journal-render-item'
 import { statedOrDerivedTurnScope, upsertJournalItem } from './journal-item-fold'
 import type { JournalReducerState } from './journal-reducer'
 import type { JournalRow } from './journal-row-schema'
+import { journalDispatchRowApplies } from './journal-dispatch-settlement'
 
 export function applyJournalSubmission(
   state: JournalReducerState,
@@ -24,7 +25,12 @@ export function applyJournalSubmission(
     reason: null,
     submittedAt: row.ts,
     resolvedAt: null,
-    ...(row.handoverRecorded ? { handoverRecorded: true, acceptedSequence: row.seq } : {})
+    ...(row.handoverRecorded ? { handoverRecorded: true, acceptedSequence: row.seq } : {}),
+    // A malformed stored link is dropped, never the row.
+    ...(typeof row.queuedMessageId === 'string' && row.queuedMessageId.length > 0
+      ? { queuedMessageId: row.queuedMessageId }
+      : {}),
+    ...(row.origin === 'client' || row.origin === 'host' ? { origin: row.origin } : {})
   })
   const itemId = agentJournalSubmissionKey(row.clientMessageId)
   // A message handed over later belongs to no turn until its handover names one.
@@ -75,15 +81,12 @@ export function acceptSubmissionFromProviderItem(
   const submission = [...state.submissions.values()].find(
     (candidate) => agentJournalSubmissionKey(candidate.clientMessageId) === resolvedItemId
   )
-  if (
-    !submission ||
-    submission.dispatchState === 'accepted' ||
-    submission.dispatchState === 'rejected'
-  ) {
+  if (!submission || !journalDispatchRowApplies(submission)) {
     return
   }
   submission.fence = row.fence
   submission.dispatchState = 'accepted'
+  notePersonTurnAccepted(state, submission)
   submission.providerItemId = providerItemId
   submission.reason = null
   submission.resolvedAt = row.ts
@@ -94,4 +97,17 @@ export function acceptSubmissionFromProviderItem(
     cursor: { epoch: row.epoch, sequence: row.seq },
     acceptedAt: row.ts
   })
+}
+
+/** A person's turn the provider accepted: the fact the queue's pause is lifted by. */
+export function notePersonTurnAccepted(
+  state: JournalReducerState,
+  submission: Pick<AgentJournalSubmission, 'origin' | 'acceptedSequence'>
+): void {
+  if (submission.origin === 'client' && submission.acceptedSequence !== undefined) {
+    state.latestPersonTurnSequence = Math.max(
+      state.latestPersonTurnSequence,
+      submission.acceptedSequence
+    )
+  }
 }

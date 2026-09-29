@@ -7,6 +7,7 @@
 import Database from '../../sqlite/sync-database'
 import { hardenSqliteDatabaseFiles } from '../../sqlite/harden-database-files'
 import { createJournalTablesSql, JOURNAL_DB_SCHEMA_VERSION } from './journal-database-schema'
+import { ensureQueuedMessagesTable } from './queued-message-schema'
 
 export const JOURNAL_BUSY_TIMEOUT_MS = 5000
 
@@ -37,6 +38,10 @@ export function openJournalDatabase(dbPath: string): OpenJournalDatabase {
   try {
     configureJournalPragmas(probe)
     createJournalSchema(probe, stored)
+    // Outside `createJournalSchema` on purpose: its early return skips a db
+    // already at the current version, and this table must exist at EVERY
+    // writable open with no `user_version` bump (see `ensureQueuedMessagesTable`).
+    ensureQueuedMessagesTable(probe)
     hardenSqliteDatabaseFiles(dbPath)
     const opened = { db: probe, readOnly: false }
     transferred = true

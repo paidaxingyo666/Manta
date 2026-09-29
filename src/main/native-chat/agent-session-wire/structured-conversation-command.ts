@@ -37,6 +37,7 @@ import {
   type AgentSessionFailureWordsContext
 } from '../../../shared/agent-session-failure-words'
 import { structuredAgentSessionStartFailureFact } from './structured-agent-session-failure-text'
+import { carryQueuedMessagesToClearReplacement } from './structured-agent-session-queued-mutations'
 
 /** A command's `error` is the sentence its row shows. */
 export function conversationCommandFailure(
@@ -265,6 +266,15 @@ export function runStructuredConversationCommand(
               await store.setConversationCommand(sessionId, ctx.fence, failed)
               return { ok: true, value: failed }
             }
+            // Carry the source's drafts to the replacement, the same for every client version:
+            // the cards stay visible where the user now is, and no text rides the wire.
+            // Bookkeeping — a failure is reported and never fails the clear.
+            await carryQueuedMessagesToClearReplacement(ctx, {
+              replacementSessionId,
+              replacementJournal: context.sessions.get(replacementSessionId)?.journal,
+              callerKey: caller.callerKey,
+              operationId: clientOperationId
+            })
           }
           const completed = {
             ...base,

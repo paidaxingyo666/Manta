@@ -45,6 +45,9 @@ export class StructuredConversationCommandController {
         if (--entry.count === 0 && this.pending.get(params.envelope.sessionId) === entry) {
           this.pending.delete(params.envelope.sessionId)
         }
+        // A clear can settle with no journal commit (a failed attach), and drafts held behind
+        // its prepared phase would otherwise wait for an unrelated commit.
+        this.context().wakeQueuedDrain?.(params.envelope.sessionId)
       }
     )
   }
