@@ -3615,7 +3615,12 @@
             "checkLabel": "{{value0}} chats por revisar",
             "checkAriaOne": "1 chat por revisar tras la reanudación. Haz clic para ver los detalles.",
             "checkAria": "{{value0}} chats por revisar tras la reanudación. Haz clic para ver los detalles.",
-            "checkTooltip": "Chats que Manta no pudo reanudar, o no pudo confirmar que reanudó, tras el reinicio. Haz clic para ver los detalles."
+            "checkTooltip": "Chats que Manta no pudo reanudar, o no pudo confirmar que reanudó, tras el reinicio. Haz clic para ver los detalles.",
+            "resumingLabelOne": "Reanudando 1 chat",
+            "resumingLabel": "Reanudando {{value0}} chats",
+            "resumingAriaOne": "Reanudando 1 chat. Haz clic para ver los detalles.",
+            "resumingAria": "Reanudando {{value0}} chats. Haz clic para ver los detalles.",
+            "resumingTooltip": "Restaurando los chats interrumpidos y pidiéndoles que continúen…"
           }
         }
       },

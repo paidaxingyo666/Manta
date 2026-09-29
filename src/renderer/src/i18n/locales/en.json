@@ -4128,7 +4128,12 @@
             "checkLabel": "{{value0}} chats to check",
             "checkAriaOne": "1 chat to check after resuming. Click for details.",
             "checkAria": "{{value0}} chats to check after resuming. Click for details.",
-            "checkTooltip": "Chats Manta couldn’t resume, or couldn’t confirm it resumed, after the restart. Click for details."
+            "checkTooltip": "Chats Manta couldn’t resume, or couldn’t confirm it resumed, after the restart. Click for details.",
+            "resumingLabelOne": "Resuming 1 chat",
+            "resumingLabel": "Resuming {{value0}} chats",
+            "resumingAriaOne": "Resuming 1 chat. Click to open details.",
+            "resumingAria": "Resuming {{value0}} chats. Click to open details.",
+            "resumingTooltip": "Restoring interrupted chats and asking them to carry on…"
           }
         }
       },

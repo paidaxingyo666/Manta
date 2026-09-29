@@ -3966,7 +3966,12 @@
             "checkLabel": "{{value0}} 个待检查的聊天",
             "checkAriaOne": "恢复后有 1 个待检查的聊天。点击查看详情。",
             "checkAria": "恢复后有 {{value0}} 个待检查的聊天。点击查看详情。",
-            "checkTooltip": "重启后 Manta 未能恢复或未能确认已恢复的聊天。点击查看详情。"
+            "checkTooltip": "重启后 Manta 未能恢复或未能确认已恢复的聊天。点击查看详情。",
+            "resumingLabelOne": "正在恢复 1 个聊天",
+            "resumingLabel": "正在恢复 {{value0}} 个聊天",
+            "resumingAriaOne": "正在恢复 1 个聊天。点击查看详情。",
+            "resumingAria": "正在恢复 {{value0}} 个聊天。点击查看详情。",
+            "resumingTooltip": "正在恢复中断的聊天并请它们继续…"
           }
         }
       },

@@ -3966,7 +3966,12 @@
             "checkLabel": "확인할 채팅 {{value0}}개",
             "checkAriaOne": "재개한 후 확인할 채팅 1개. 자세히 보려면 클릭하세요.",
             "checkAria": "재개한 후 확인할 채팅 {{value0}}개. 자세히 보려면 클릭하세요.",
-            "checkTooltip": "다시 시작한 후 Manta가 재개하지 못했거나 재개했는지 확인하지 못한 채팅. 자세히 보려면 클릭하세요."
+            "checkTooltip": "다시 시작한 후 Manta가 재개하지 못했거나 재개했는지 확인하지 못한 채팅. 자세히 보려면 클릭하세요.",
+            "resumingLabelOne": "채팅 1개 재개 중",
+            "resumingLabel": "채팅 {{value0}}개 재개 중",
+            "resumingAriaOne": "채팅 1개 재개 중. 자세히 보려면 클릭하세요.",
+            "resumingAria": "채팅 {{value0}}개 재개 중. 자세히 보려면 클릭하세요.",
+            "resumingTooltip": "중단된 채팅을 복원하고 계속하도록 요청하는 중…"
           }
         }
       },
