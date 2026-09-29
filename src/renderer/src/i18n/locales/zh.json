@@ -18070,6 +18070,9 @@
           }
         }
       }
+    },
+    "agentChildRow": {
+      "ended": "已结束"
     }
   },
   "dashboardPopout": {

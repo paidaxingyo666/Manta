@@ -18169,6 +18169,9 @@
           }
         }
       }
+    },
+    "agentChildRow": {
+      "ended": "Terminé"
     }
   },
   "dashboardPopout": {
