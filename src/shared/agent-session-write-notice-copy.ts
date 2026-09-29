@@ -26,6 +26,8 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   historyUnreadable: "Manta couldn't read this chat's saved history.",
   historyUnusable: 'Unable to load this chat.',
   historyUnavailable: "Manta couldn't open this chat's history right now.",
+  savedByNewerOrca: 'Chats were saved by a newer Manta.',
+  updateOrcaToKeepUsing: 'Update Manta to keep using them.',
   unsupported: "The Manta running this chat doesn't support this. Update Manta, then try again.",
   unreachable: "Manta couldn't reach the agent.",
   recordFailed: "Manta couldn't record it in this chat's history.",

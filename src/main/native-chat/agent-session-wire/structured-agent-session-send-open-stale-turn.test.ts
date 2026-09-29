@@ -25,6 +25,7 @@ import {
   HOST_TEST_THREAD as THREAD,
   hostTestMessage
 } from './structured-agent-session-host-test-data'
+import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
 /** Delivery runs on its own serialized steps; under a loaded runner they take more than a second. */
 function eventually(assertion: () => unknown): Promise<unknown> {
@@ -75,7 +76,7 @@ async function relaunchAfterCrashMidTurn(
   const host = new StructuredAgentSessionHost({
     store,
     adapter: { ...adapter(), acquire },
-    journalRoot: relaunched,
+    journalDatabase: openTestJournalHostDatabase(relaunched),
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-next',
     probeOwner: async () => probe,

@@ -1,8 +1,8 @@
 // Republishing a live item set into a fresh epoch.
 //
-// One transaction: discard every row, insert the epoch row plus the replacement
-// items, move the session projection, and retire any repair marker — this
-// republished history is exactly what the marker was holding out for.
+// One transaction: discard the old epoch's rows, insert the epoch row plus the
+// replacement items, move the session projection, and retire any repair marker
+// — this republished history is exactly what the marker was holding out for.
 
 import type {
   AgentJournalItemBody,
@@ -11,15 +11,16 @@ import type {
   AgentJournalTurnScope,
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
-import type Database from '../../sqlite/sync-database'
+import type { JournalHostDatabase } from './journal-host-database'
 import type { JournalLoad } from './journal-open'
 import { clearJournalRepairMarker } from './journal-repair-marker'
 import { applyJournalRow, createJournalReducerState } from './journal-reducer'
 import { buildJournalItemRow, journalRowBase } from './journal-row-builders'
 import {
-  deleteAllJournalRows,
+  deleteJournalEpochRows,
   insertJournalRow,
-  upsertJournalSessionRow
+  publishJournalSessionEpoch,
+  readJournalSessionEpoch
 } from './journal-row-table'
 import type { AgentJournalEpochReason, JournalRow } from './journal-row-schema'
 import { assertJournalFence } from './journal-write-guards'
@@ -34,7 +35,7 @@ export type JournalReplacementItem = AgentJournalProducerLinkage & {
 }
 
 export function replaceJournalEpoch(input: {
-  db: Database.Database
+  database: JournalHostDatabase
   identity: AgentSessionJournalIdentity
   reason: AgentJournalEpochReason
   fence: number
@@ -70,19 +71,18 @@ export function replaceJournalEpoch(input: {
     rows.push(row)
   }
 
-  input.db.exec('BEGIN IMMEDIATE')
-  try {
-    deleteAllJournalRows(input.db)
-    clearJournalRepairMarker(input.db, input.identity.sessionId)
-    for (const row of rows) {
-      insertJournalRow(input.db, input.identity.sessionId, row)
+  const { sessionId } = input.identity
+  input.database.transaction((db) => {
+    const retired = readJournalSessionEpoch(db, sessionId)
+    if (retired !== null) {
+      deleteJournalEpochRows(db, sessionId, retired)
     }
-    upsertJournalSessionRow(input.db, input.identity.sessionId, epoch, epochRow.ts)
-    input.db.exec('COMMIT')
-  } catch (error) {
-    input.db.exec('ROLLBACK')
-    throw error
-  }
+    clearJournalRepairMarker(db, sessionId)
+    for (const row of rows) {
+      insertJournalRow(db, sessionId, row)
+    }
+    publishJournalSessionEpoch(db, input.identity, epoch)
+  })
 
   // COMMIT landed: on disk the superseded rows are gone and this epoch is the
   // live one. The caller adopts that immediately, or a later failure leaves the

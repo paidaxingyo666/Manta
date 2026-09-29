@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AgentSessionJournalIdentity } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import { StructuredAgentSessionConversations } from './structured-agent-session-conversations'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
 import { hostTestAttachParams } from './structured-agent-session-host-test-data'
@@ -31,7 +31,7 @@ afterEach(async () => {
 
 async function openJournal(name: string): Promise<AgentSessionJournal> {
   root ??= await mkdtemp(join(tmpdir(), 'orca-conversations-'))
-  return journals.open({ identity: IDENTITY, journalDir: join(root, name) })
+  return journals.open({ identity: IDENTITY, stateDirectory: join(root, name) })
 }
 
 function session(journal: AgentSessionJournal) {

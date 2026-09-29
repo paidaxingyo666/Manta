@@ -10,9 +10,10 @@ export class AgentSessionJournalError extends Error {
       | 'journal_stale_fence'
       | 'journal_closed'
       | 'journal_submission_exists',
-    message: string
+    message: string,
+    options?: ErrorOptions
   ) {
-    super(message)
+    super(message, options)
     this.name = 'AgentSessionJournalError'
   }
 }

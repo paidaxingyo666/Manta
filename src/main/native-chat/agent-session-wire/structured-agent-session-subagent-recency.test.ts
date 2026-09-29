@@ -19,7 +19,7 @@ import { projectStructuredAgentSessionStatusSummary } from '../../../shared/stru
 import { AgentHookServer, _internals } from '../../agent-hooks/server'
 import { createClaudeJournalTranslator } from '../../claude/claude-structured-journal-translation'
 import { createCodexJournalTranslator } from '../../codex/codex-structured-journal-translation'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import { createDeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { StructuredAgentSessionStatusFeed } from './structured-agent-session-status-feed'
 import { indexedStatusFeedSession } from './structured-agent-session-status-feed-test-session'
@@ -58,7 +58,7 @@ async function openSession() {
       providerHandle: { kind: 'codex', threadId: CODEX_THREAD }
     },
     now: tick,
-    journalDir: join(root, SESSION)
+    stateDirectory: join(root, SESSION)
   })
   // The roster the provider adapter reports, and the host's status row the feed writes into.
   const roster: { tasks: AgentSessionBackgroundTask[] } = { tasks: [] }

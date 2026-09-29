@@ -20,7 +20,6 @@ import {
   DISPATCH_REJECTED_CANCELLED
 } from '../../../shared/structured-agent-session-dispatch-rejection'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
-import { journalDirectoryFor } from '../agent-session-journal/journal-paths'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import { openAgentSessionJournal } from '../agent-session-journal/journal-store-factory'
 import {
@@ -44,6 +43,7 @@ import {
 } from './structured-agent-session-host-test-data'
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
+import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
 const CALLER = { callerKey: 'client-1' }
 
@@ -86,7 +86,7 @@ async function startHost(): Promise<void> {
       setOption: vi.fn(async () => undefined),
       ...adapterExtras
     },
-    journalRoot: root,
+    journalDatabase: openTestJournalHostDatabase(root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => `spawn-${acquire.mock.calls.length}`,
     idleSweep: { intervalMs: 5, idleMs },
@@ -238,10 +238,7 @@ async function writeAsEarlierProcess(
   })
   const journal = await openAgentSessionJournal({
     identity: journalIdentityFor(record, params),
-    journalDir: journalDirectoryFor(root, {
-      workspaceId: record.location.workspaceId,
-      sessionId: SESSION
-    })
+    database: openTestJournalHostDatabase(root)
   })
   await write(journal, record.lease.runtimeFence)
   await journal.close()

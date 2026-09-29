@@ -19,7 +19,7 @@ import {
   codexSubagentGroupIdentity
 } from '../../codex/codex-subagent-roster'
 import type { openAgentSessionJournal } from './journal-store-factory'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import { createTrackedJournalOpener } from './journal-host-database-test-support'
 import { staleSubagentRosterRevisions } from './journal-subagent-liveness'
 
 const IDENTITY: AgentSessionJournalIdentity = {
@@ -45,7 +45,7 @@ const journals = createTrackedJournalOpener()
 async function open(overrides: Partial<Parameters<typeof openAgentSessionJournal>[0]> = {}) {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => `epoch-${clock}`,
     ...overrides

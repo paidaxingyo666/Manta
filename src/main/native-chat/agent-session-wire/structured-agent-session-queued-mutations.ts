@@ -16,6 +16,10 @@ import type {
 } from '../../../shared/agent-session-wire'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import { QueuedMessageNotConsumableError } from '../agent-session-journal/journal-queued-messages'
+import {
+  isJournalWrittenByNewerOrca,
+  journalOpenRefusal
+} from '../agent-session-journal/journal-open-failure'
 import type { QueuedMessageRow } from '../agent-session-journal/queued-message-table'
 import type { MutationPlan } from './structured-agent-session-mutation-plans'
 import {
@@ -142,9 +146,23 @@ function mutateQueued<TValue>(
     context,
     caller,
     envelope,
-    plan,
+    { ...plan, run: (ctx) => refusingNewerOrcaJournal(plan.run(ctx)) },
     openForWrite(context, envelope)
   )
+}
+
+/** A newer Manta's journal refuses a draft write with the words a send gets there. */
+async function refusingNewerOrcaJournal<TValue>(
+  run: Promise<TurnOutcome<TValue>>
+): Promise<TurnOutcome<TValue>> {
+  try {
+    return await run
+  } catch (error) {
+    if (isJournalWrittenByNewerOrca(error)) {
+      return { ok: false, refusal: journalOpenRefusal(error) }
+    }
+    throw error
+  }
 }
 
 /**

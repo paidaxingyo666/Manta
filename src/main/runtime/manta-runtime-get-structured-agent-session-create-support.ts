@@ -19,6 +19,7 @@ import {
 } from './structured-agent-account-home'
 import { resolveStructuredLaunchSeedOptions } from '../../shared/native-chat-session-option-defaults'
 import { hasPersistedStructuredAgentSessionStore as hasPersistedStructuredAgentSessionStoreOnDisk } from './structured-agent-session-runtime'
+import { ensureStructuredAgentSessionHostUnlessRefused } from './structured-agent-session-host-refusal'
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { parseWslUncPath } from '../../shared/wsl-paths'
 import { parseWorkspaceKey } from '../../shared/workspace-scope'
@@ -235,10 +236,19 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
 
   restoreStructuredAgentSessionTabs(): Promise<void> {
     this.structuredAgentSessionTabRestorePromise ??=
-      this.restoreStructuredAgentSessionTabsOnce().catch((error) => {
-        this.structuredAgentSessionTabRestorePromise = null
-        throw error
-      })
+      this.restoreStructuredAgentSessionTabsOnce().then(
+        () => {
+          // Only a host's answer is final: without one, the next caller restores again, so a journal
+          // that opens later republishes the chats.
+          if (this.structuredAgentSessionInventoryUnverifiable) {
+            this.structuredAgentSessionTabRestorePromise = null
+          }
+        },
+        (error) => {
+          this.structuredAgentSessionTabRestorePromise = null
+          throw error
+        }
+      )
     return this.structuredAgentSessionTabRestorePromise
   }
 
@@ -256,7 +266,10 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
       return
     }
     // Durable agent records must exist before daemon inventory can be reconciled against them.
-    await this.ensureStructuredAgentSessionHost()
+    // A refused host is no host: startup goes on, and only structured requests are refused.
+    await ensureStructuredAgentSessionHostUnlessRefused(() =>
+      this.ensureStructuredAgentSessionHost()
+    )
     await this.refreshMobileSessionPtyRecords()
     await getStructuredAgentSessionHost()?.reconcileRestartLeases()
   }

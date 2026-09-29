@@ -12,7 +12,7 @@ import type {
 import type { AgentSessionDeathEvidence } from '../../../shared/agent-session-record'
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import { settleStaleStructuredAgentSessionState } from './structured-agent-session-dead-generation-settlement'
 import {
   runningTurnLifecycleRevisions,
@@ -369,7 +369,7 @@ describe('stale session state on a cold acquire', () => {
           agent: 'codex',
           providerHandle: { kind: 'codex', threadId: THREAD }
         },
-        journalDir: root,
+        stateDirectory: root,
         now: () => 1_000
       })
       const child = { agentId: 'thread-child', producerKind: 'agent' as const }
@@ -423,7 +423,7 @@ describe('stale session state on a cold acquire', () => {
           agent: 'codex',
           providerHandle: { kind: 'codex', threadId: THREAD }
         },
-        journalDir: root,
+        stateDirectory: root,
         now: () => now
       })
       const command = { provider: 'codex' as const, threadId: THREAD, turnId: 'turn-1', ordinal: 1 }
@@ -489,7 +489,7 @@ describe('stale session state on a cold acquire', () => {
           agent: 'codex',
           providerHandle: { kind: 'codex', threadId: THREAD }
         },
-        journalDir: root,
+        stateDirectory: root,
         now: () => now
       })
       await journal.appendItem(
@@ -560,7 +560,7 @@ describe('stale session state on a cold acquire', () => {
           agent: 'codex',
           providerHandle: { kind: 'codex', threadId: THREAD }
         },
-        journalDir: root,
+        stateDirectory: root,
         now: () => now
       })
       await journal.appendItem(
@@ -620,7 +620,7 @@ describe('stale session state on a cold acquire', () => {
           agent: 'codex',
           providerHandle: { kind: 'codex', threadId: THREAD }
         },
-        journalDir: root,
+        stateDirectory: root,
         now: () => now
       })
       // Enough running turns that the settle writes two batches, and its retry two again.

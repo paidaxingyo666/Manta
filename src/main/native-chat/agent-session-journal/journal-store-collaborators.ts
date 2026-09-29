@@ -7,7 +7,7 @@ import type {
   AgentJournalCursor,
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
-import type { OpenJournalDatabase } from './journal-database'
+import type { JournalHostDatabase } from './journal-host-database'
 import { JournalEpochController } from './journal-epoch-controller'
 import { JournalItemAppender } from './journal-item-appender'
 import { JournalLifecycleBatchAppender } from './journal-lifecycle-batch-appender'
@@ -25,19 +25,24 @@ export type JournalStoreHost = {
    *  same way they learn of a row. */
   notifyCommitted: () => void
   identity: AgentSessionJournalIdentity
-  journalDir: string
+  /** Where the chat's per-chat history lived, for the importer and the format-remnant notice. */
+  legacyDirectory: string
   now: () => number
   mintEpoch: () => string
   serialize: <T>(run: () => Promise<T>) => Promise<T>
-  database: () => OpenJournalDatabase
+  /** Leave a chat still in its per-chat file uncopied until its first use. */
+  deferPerSessionImport: boolean
+  /** Work the chat's next write waits for. */
+  owe: (work: () => Promise<void>) => void
+  database: () => JournalHostDatabase
   state: () => JournalReducerState
   readOnly: () => boolean
   setReadOnly: (readOnly: boolean) => void
   cursor: () => AgentJournalCursor
   adopt: (loaded: JournalLoad) => void
   commit: (row: JournalRow) => void
-  /** A caller-supplied load, which suppresses replay entirely when present. */
-  loaded: () => JournalLoad | null | undefined
+  /** Records whether the open's replay found an unusable prefix. */
+  setOpenedCorrupt: (corrupt: boolean) => void
   malformedRows: () => number
   setMalformedRows: (count: number) => void
   journal: () => AgentSessionJournal

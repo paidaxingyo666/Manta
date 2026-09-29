@@ -1,4 +1,5 @@
-// Append-only journal store for one agent session.
+// Append-only journal store for one agent session. It owns the chat's fold and write queue, and no
+// connection: every statement goes through the host's one journal database.
 
 import type { AgentJournalDispatchRejection } from '../../../shared/agent-session-failure-words'
 import { randomUUID } from 'node:crypto'
@@ -23,12 +24,10 @@ import {
   liveStructuredAgentSessionTurnScope,
   newestStructuredAgentSessionTurnBySequence
 } from '../../../shared/structured-agent-session-live-turn'
-import { agentSessionJournalCloseRetries } from './journal-close-retry'
-import { openJournalDatabase, type OpenJournalDatabase } from './journal-database'
 import type { JournalReplacementItem } from './journal-epoch-replacement'
 import { readJournalSince } from './journal-cursor'
+import type { JournalHostDatabase } from './journal-host-database'
 import { readJournalRowsAfterCursor, type JournalLoad } from './journal-open'
-import { journalDatabaseFile } from './journal-paths'
 import {
   markJournalPendingSubmissionsUnknown,
   rejectJournalPendingSubmissions,
@@ -59,12 +58,11 @@ import type {
 } from './journal-store-contracts'
 import { queuedMessageConsumeHook, type JournalQueuedMessages } from './journal-queued-messages'
 import type { AgentJournalEpochReason } from './journal-row-schema'
-import { AgentSessionJournalError } from './journal-write-guards'
 import type { JournalRowWriter } from './journal-row-writer'
 import type { JournalEpochController } from './journal-epoch-controller'
-import { JournalConnectionCloser, JournalWriteQueue } from './journal-store-close'
+import { JournalWriteQueue } from './journal-write-queue'
 import { createJournalStoreCollaborators } from './journal-store-collaborators'
-import { ensureJournalDir, journalStoreLoadedFields } from './journal-store-open'
+import { journalStoreLoadedFields } from './journal-store-open'
 import type { JournalItemAppender } from './journal-item-appender'
 import type { JournalLifecycleBatchAppender } from './journal-lifecycle-batch-appender'
 
@@ -72,20 +70,17 @@ export { AgentSessionJournalError } from './journal-write-guards'
 
 export class AgentSessionJournal {
   private readonly identity: AgentSessionJournalIdentity
-  private readonly journalDir: string
-  private readonly dbPath: string
+  private readonly database: JournalHostDatabase
   private readonly now: () => number
   private readonly mintEpoch: () => string
-  private readonly loaded: JournalLoad | null | undefined
 
   private state: JournalReducerState
   private readOnly = false
   private malformedRows = 0
+  private openedCorrupt = false
   private openedThrough: AgentJournalCursor = { epoch: '', sequence: 0 }
-  private database: OpenJournalDatabase | null = null
   private onCommitted: (() => void) | null = null
   private readonly queue: JournalWriteQueue
-  private readonly closer: JournalConnectionCloser
   private readonly rowWriter: JournalRowWriter
   private readonly epochController: JournalEpochController
   private readonly itemAppender: JournalItemAppender
@@ -96,25 +91,21 @@ export class AgentSessionJournal {
 
   constructor(options: AgentSessionJournalOptions) {
     this.identity = options.identity
-    this.journalDir = options.journalDir
-    this.dbPath = journalDatabaseFile(options.journalDir)
+    this.database = options.database
     this.now = options.now ?? (() => Date.now())
     this.mintEpoch = options.mintEpoch ?? randomUUID
-    this.loaded = options.loaded
     this.state = createJournalReducerState(options.identity.sessionId, '')
     // Serializes sequence assignment with the durable write behind it.
     this.queue = new JournalWriteQueue(options.identity.sessionId)
-    this.closer = new JournalConnectionCloser({
-      connection: () => this.database?.db ?? null,
-      enqueue: (run) => this.queue.serializePastGate(run)
-    })
     const collaborators = createJournalStoreCollaborators({
       identity: this.identity,
-      journalDir: this.journalDir,
+      legacyDirectory: this.database.legacyDirectoryFor(this.identity),
       now: this.now,
       mintEpoch: this.mintEpoch,
       serialize: (run) => this.queue.serialize(run),
-      database: () => this.requireDatabase(),
+      deferPerSessionImport: options.deferPerSessionImport === true,
+      owe: (work) => this.queue.owe(work),
+      database: () => this.database,
       state: () => this.state,
       readOnly: () => this.readOnly,
       setReadOnly: (readOnly) => {
@@ -129,8 +120,10 @@ export class AgentSessionJournal {
         applyJournalRow(this.state, row)
         this.onCommitted?.()
       },
+      setOpenedCorrupt: (corrupt) => {
+        this.openedCorrupt = corrupt
+      },
       notifyCommitted: () => this.onCommitted?.(),
-      loaded: () => this.loaded,
       malformedRows: () => this.malformedRows,
       setMalformedRows: (count) => {
         this.malformedRows = count
@@ -154,10 +147,6 @@ export class AgentSessionJournal {
     return this.state.epoch
   }
 
-  get directory(): string {
-    return this.journalDir
-  }
-
   /** Whether a row at this sequence was on disk when this handle opened, so an earlier handle
    *  wrote it. Sequences restart with each epoch, so a row of a later epoch never was. */
   wroteBeforeOpen(sequence: number | undefined): boolean {
@@ -173,33 +162,40 @@ export class AgentSessionJournal {
     return { malformedRows: this.malformedRows }
   }
 
-  async open(): Promise<void> {
-    await ensureJournalDir(this.journalDir)
-    this.database = openJournalDatabase(this.dbPath)
-    try {
-      await this.restore()
-      this.openedThrough = this.cursor()
-    } catch (error) {
-      // Nothing else holds a reference to this connection, so a throw here is
-      // the leak site unless the store releases it itself — and a close that
-      // REJECTS has not released it, so the store is retained for a later retry
-      // instead of being dropped with its handle open.
-      await agentSessionJournalCloseRetries.closeOrRetain(this)
-      throw error
-    }
+  /** The open replayed an unusable prefix: the chat is owed a rebuild from provider history. */
+  get needsRebuild(): boolean {
+    return this.openedCorrupt
   }
 
-  /** Releases the session's SQLite handle. Idempotent on success, a real retry
-   *  after a failure, and permanently closed to writes either way (§ close). */
+  async open(): Promise<void> {
+    await this.restore()
+    this.openedThrough = this.cursor()
+  }
+
+  /** Refuses every later write and resolves once the admitted ones have landed. Holds no
+   *  connection, so there is nothing to release and nothing that can fail. */
   close(): Promise<void> {
     this.queue.markClosed()
-    return this.closer.close()
+    return this.queue.drain()
   }
 
   /** Told of every durable change, epoch replacements included, so a reader learns of a write
    *  without its writer saying so. One listener: a later call replaces it. It must not throw. */
   observeCommits(listener: () => void): void {
     this.onCommitted = listener
+  }
+
+  /**
+   * Resolves once the chat's rows are in the host's database. A restore's open serves a chat still
+   * in its per-chat file from a read-only fold of it; the copy runs before the chat's first write,
+   * and a reader that needs rows (forward pages, catch-up) awaits it here.
+   */
+  whenImported(): Promise<void> {
+    return this.queue.serialize(async () => undefined)
+  }
+
+  get importPending(): boolean {
+    return this.queue.owing
   }
 
   cursor = (): AgentJournalCursor => ({
@@ -269,7 +265,7 @@ export class AgentSessionJournal {
         state: this.state,
         rowsAfter: (afterSequence) =>
           readJournalRowsAfterCursor(
-            this.requireDatabase().db,
+            this.database.db,
             this.identity.sessionId,
             this.state.epoch,
             afterSequence,
@@ -372,15 +368,5 @@ export class AgentSessionJournal {
 
   private adoptLoadedJournal(loaded: JournalLoad): void {
     Object.assign(this, journalStoreLoadedFields(loaded))
-  }
-
-  private requireDatabase(): OpenJournalDatabase {
-    if (!this.database) {
-      throw new AgentSessionJournalError(
-        'journal_closed',
-        `agent-session journal for ${this.identity.sessionId} is not open`
-      )
-    }
-    return this.database
   }
 }

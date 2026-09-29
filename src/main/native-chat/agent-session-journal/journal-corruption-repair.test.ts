@@ -18,12 +18,16 @@ import type {
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
 import type Database from '../../sqlite/sync-database'
-import { openJournalDatabase } from './journal-database'
-import { journalDatabaseFile } from './journal-paths'
 import { parseJournalRow, type JournalRow } from './journal-row-schema'
-import { loadJournal } from './journal-open'
 import type { openAgentSessionJournal } from './journal-store-factory'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import {
+  createTrackedJournalOpener,
+  openTestJournalHostDatabase,
+  loadTestJournal,
+  liveTestJournalRows,
+  updateTestJournalRowJson,
+  deleteTestJournalRow
+} from './journal-host-database-test-support'
 
 const IDENTITY: AgentSessionJournalIdentity = {
   sessionId: 'session-1',
@@ -53,7 +57,7 @@ function body(value: string): AgentJournalItemBody {
 function open(overrides: Partial<Parameters<typeof openAgentSessionJournal>[0]> = {}) {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => `epoch-${clock}`,
     ...overrides
@@ -61,11 +65,11 @@ function open(overrides: Partial<Parameters<typeof openAgentSessionJournal>[0]> 
 }
 
 async function withJournalDatabase(run: (db: Database.Database) => void): Promise<void> {
-  const opened = openJournalDatabase(journalDatabaseFile(root))
+  const opened = openTestJournalHostDatabase(root)
   try {
     run(opened.db)
   } finally {
-    opened.db.close()
+    opened.close()
   }
 }
 
@@ -73,10 +77,8 @@ async function withJournalDatabase(run: (db: Database.Database) => void): Promis
 function firstLiveRow(): Promise<JournalRow | null> {
   let row: JournalRow | null = null
   return withJournalDatabase((db) => {
-    const stored = db.prepare('SELECT row_json FROM journal_rows ORDER BY seq LIMIT 1').get() as
-      | { row_json: string }
-      | undefined
-    const parsed = stored ? parseJournalRow(stored.row_json) : null
+    const stored = liveTestJournalRows(db, IDENTITY.sessionId)[0]
+    const parsed = stored ? parseJournalRow(stored.rowJson) : null
     row = parsed?.ok ? parsed.row : null
   }).then(() => row)
 }
@@ -84,9 +86,7 @@ function firstLiveRow(): Promise<JournalRow | null> {
 function liveSequences(): Promise<number[]> {
   let sequences: number[] = []
   return withJournalDatabase((db) => {
-    sequences = (
-      db.prepare('SELECT seq FROM journal_rows ORDER BY seq').all() as { seq: number }[]
-    ).map((row) => row.seq)
+    sequences = liveTestJournalRows(db, IDENTITY.sessionId).map((row) => row.seq)
   }).then(() => sequences)
 }
 
@@ -117,7 +117,7 @@ describe('a malformed row', () => {
     })
     await journal.close()
     await withJournalDatabase((db) => {
-      db.prepare('UPDATE journal_rows SET row_json = ? WHERE seq = ?').run('{"not":"a row"}', 3)
+      updateTestJournalRowJson(db, IDENTITY.sessionId, 3, '{"not":"a row"}')
     })
 
     const reopened = await open()
@@ -138,7 +138,7 @@ describe('a malformed row', () => {
     })
     await journal.close()
     await withJournalDatabase((db) => {
-      db.prepare('UPDATE journal_rows SET row_json = ? WHERE seq = ?').run('}{', 2)
+      updateTestJournalRowJson(db, IDENTITY.sessionId, 2, '}{')
     })
 
     const reopened = await open()
@@ -166,7 +166,7 @@ describe('a sequence gap', () => {
     // Sequence 1 is the epoch row, so the items occupy 2..6. Removing 4 leaves
     // 5 and 6 valid but unanchored.
     await withJournalDatabase((db) => {
-      db.prepare('DELETE FROM journal_rows WHERE seq = ?').run(4)
+      deleteTestJournalRow(db, IDENTITY.sessionId, 4)
     })
 
     const reopened = await open()
@@ -189,12 +189,12 @@ describe('a sequence gap', () => {
     }
     await journal.close()
     await withJournalDatabase((db) => {
-      db.prepare('DELETE FROM journal_rows WHERE seq = ?').run(4)
+      deleteTestJournalRow(db, IDENTITY.sessionId, 4)
     })
 
     const repaired = await open()
     await repaired.close()
-    expect(loadJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: true })
+    expect(loadTestJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: true })
 
     // Same policy the emptied-epoch repair takes: a session that writes into the
     // epoch owns it, and a later import must not replace rows the user has seen.
@@ -204,7 +204,7 @@ describe('a sequence gap', () => {
       turnScope: AGENT_JOURNAL_THREAD_SCOPE
     })
     await writable.close()
-    expect(loadJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: false })
+    expect(loadTestJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: false })
   })
 
   // The disclosure is the repair talking about itself, not the session writing:
@@ -219,13 +219,13 @@ describe('a sequence gap', () => {
     }
     await journal.close()
     await withJournalDatabase((db) => {
-      db.prepare('UPDATE journal_rows SET row_json = ? WHERE seq = ?').run('}{', 3)
+      updateTestJournalRowJson(db, IDENTITY.sessionId, 3, '}{')
     })
 
     const repaired = await open()
     expect(repaired.repair.malformedRows).toBe(1)
     await repaired.close()
-    expect(loadJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: true })
+    expect(loadTestJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: true })
   })
 })
 
@@ -257,7 +257,7 @@ describe('a missing epoch row', () => {
     })
     await journal.close()
     await withJournalDatabase((db) => {
-      db.prepare('DELETE FROM journal_rows WHERE seq = ?').run(1)
+      deleteTestJournalRow(db, IDENTITY.sessionId, 1)
     })
 
     const reopened = await open()
@@ -282,12 +282,12 @@ describe('a missing epoch row', () => {
     })
     await journal.close()
     await withJournalDatabase((db) => {
-      db.prepare('DELETE FROM journal_rows WHERE seq = ?').run(1)
+      deleteTestJournalRow(db, IDENTITY.sessionId, 1)
     })
 
     const repaired = await open()
     await repaired.close()
-    expect(loadJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: true })
+    expect(loadTestJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: true })
 
     // A session that writes into the epoch owns it: its own rows are not a
     // repair placeholder, and a later import must not replace them.
@@ -297,6 +297,6 @@ describe('a missing epoch row', () => {
       turnScope: AGENT_JOURNAL_THREAD_SCOPE
     })
     await writable.close()
-    expect(loadJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: false })
+    expect(loadTestJournal(root, IDENTITY.sessionId)).toMatchObject({ corrupt: false })
   })
 })

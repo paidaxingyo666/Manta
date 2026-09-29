@@ -142,10 +142,11 @@ describe('session-tabs projection census', () => {
     expect(source).toContain('this.clientSessionTabSelections.project(removed,')
   })
 
-  it('keeps the unreconciled flag out of every other runtime publication site', () => {
+  it('keeps the hold flags out of every other runtime publication site', () => {
     const source = readMantaRuntimeSourceFamily()
 
     expect(source).not.toContain('clientHostedPagesUnreconciled')
+    expect(source).not.toContain('agentSessionsUnverifiable')
   })
 })
 

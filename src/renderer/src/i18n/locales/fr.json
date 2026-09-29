@@ -17441,6 +17441,8 @@
         "historyUnreadable": "Manta n'a pas pu lire l'historique enregistré de ce chat.",
         "historyUnusable": "Impossible de charger ce chat.",
         "historyUnavailable": "Manta n'a pas pu ouvrir l'historique de ce chat pour le moment.",
+        "savedByNewerOrca": "Les chats ont été enregistrés par une version plus récente d'Manta.",
+        "updateOrcaToKeepUsing": "Mettez à jour Manta pour continuer à les utiliser.",
         "unsupported": "L'instance d'Manta qui exécute ce chat ne le prend pas en charge. Mettez Manta à jour, puis réessayez.",
         "unreachable": "Manta n'a pas pu joindre l'agent.",
         "recordFailed": "Manta n'a pas pu l'enregistrer dans l'historique de ce chat.",

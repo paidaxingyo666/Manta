@@ -35,6 +35,7 @@ import {
   hostTestOperationId,
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
+import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
 const CALLER = { callerKey: 'client-1' }
 const PROVIDER_ROW = { provider: 'codex' as const, threadId: THREAD, turnId: 'turn-1' }
@@ -89,7 +90,7 @@ beforeEach(async () => {
       setOption: vi.fn(async () => undefined),
       backgroundTaskState: () => backgroundTasks
     },
-    journalRoot: root,
+    journalDatabase: openTestJournalHostDatabase(root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-1',
     now: () => NOW

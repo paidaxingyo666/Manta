@@ -13,10 +13,13 @@ import type {
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import Database from '../../sqlite/sync-database'
-import { journalDatabaseFile } from './journal-paths'
+import { journalDatabasePath } from './journal-host-database'
 import { JournalQueuedMessages } from './journal-queued-messages'
 import type { AgentSessionJournal } from './journal-store'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import {
+  closeTestJournalHostDatabases,
+  createTrackedJournalOpener
+} from './journal-host-database-test-support'
 
 const IDENTITY: AgentSessionJournalIdentity = {
   sessionId: 'session-q',
@@ -45,7 +48,7 @@ const journals = createTrackedJournalOpener()
 function open(): Promise<AgentSessionJournal> {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: () => ++clock,
     mintEpoch: () => `epoch-${clock}`
   })
@@ -120,7 +123,9 @@ describe('draft bookkeeping inside a journal append', () => {
   it('an older draft table without a later column is healed at open, so a refusal returns the card', async () => {
     const first = await open()
     await first.close()
-    const db = new Database(journalDatabaseFile(root))
+    // The table is healed when the host opens its database, so the host restarts around the edit.
+    closeTestJournalHostDatabases()
+    const db = new Database(journalDatabasePath(root))
     db.exec('DROP TABLE queued_messages')
     // The shape an earlier build of the draft table wrote: no returned_rejection.
     db.exec(`CREATE TABLE queued_messages (

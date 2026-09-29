@@ -16,7 +16,7 @@ import { agentSessionFailureWords } from '../../../shared/agent-session-failure-
 import { queuedMessageFingerprint } from '../agent-session-wire/structured-agent-session-queued-messages'
 import { JournalQueuedMessages } from './journal-queued-messages'
 import type { AgentSessionJournal } from './journal-store'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import { createTrackedJournalOpener } from './journal-host-database-test-support'
 
 const IDENTITY: AgentSessionJournalIdentity = {
   sessionId: 'session-q',
@@ -59,7 +59,7 @@ async function withdrawnDraft(
 function open(): Promise<AgentSessionJournal> {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: () => ++clock,
     mintEpoch: () => `epoch-${clock}`
   })

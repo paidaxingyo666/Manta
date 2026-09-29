@@ -10,7 +10,7 @@ import type {
 import { currentAgentSessionThreadGoal } from '../../shared/agent-session-thread-goal'
 import type { AgentSessionHistoryPage } from '../../shared/agent-session-wire'
 import type { AgentSessionJournal } from '../native-chat/agent-session-journal/journal-store'
-import { createTrackedJournalOpener } from '../native-chat/agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../native-chat/agent-session-journal/journal-host-database-test-support'
 import { readAgentSessionHistory } from '../native-chat/agent-session-wire/agent-session-history-page'
 import { createDeferredStructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import { CodexJournalGoals } from './codex-structured-journal-goals'
@@ -90,7 +90,7 @@ function journalSink(journal: AgentSessionJournal) {
 describe('codex goal accounting revisions', () => {
   it('revises the goal row in place: one visible row, pinned sequence, fresh counters', async () => {
     root = await mkdtemp(join(tmpdir(), 'orca-goal-revision-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     await journal.appendItem(
       { provider: 'manta', clientMessageId: 'earlier' },
       { kind: 'status', text: 'Context compacted' },
@@ -159,7 +159,7 @@ describe('codex goal accounting revisions', () => {
 
   it('refreshes the row from a resume snapshot of the same goal', async () => {
     root = await mkdtemp(join(tmpdir(), 'orca-goal-resume-revision-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     const first = journalSink(journal)
     const prior = new CodexJournalGoals(first.sink, () => ({
       turnScope: AGENT_JOURNAL_THREAD_SCOPE

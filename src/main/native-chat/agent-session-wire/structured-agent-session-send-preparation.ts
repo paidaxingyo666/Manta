@@ -12,11 +12,7 @@ import {
 } from '../../../shared/agent-session-wire'
 import { TUI_AGENT_DISPLAY_NAMES } from '../../../shared/tui-agent-display-names'
 import type { AgentSessionFailureWordsContext } from '../../../shared/agent-session-failure-words'
-import { agentSessionWriteNoticeEnglish } from '../../../shared/agent-session-refusal-notice'
-import {
-  classifyJournalOpenFailure,
-  type JournalOpenFailure
-} from '../agent-session-journal/journal-open-failure'
+import { journalOpenRefusal } from '../agent-session-journal/journal-open-failure'
 import {
   structuredAgentSessionAwaitedCommand,
   type StructuredAgentSessionAwaitedCommandJournal
@@ -69,18 +65,8 @@ export async function openConversationForWrite(
     return { ok: false, refusal: AGENT_SESSION_NOT_ATTACHED }
   } catch (error) {
     console.warn('[agent-session] opening the conversation for a write failed:', error)
-    const reason = classifyJournalOpenFailure(error)
-    return {
-      ok: false,
-      refusal: refuse('agent_session_journal_unreadable', { reason }, JOURNAL_OPEN_MESSAGE[reason])
-    }
+    return { ok: false, refusal: journalOpenRefusal(error) }
   }
-}
-
-// Released clients print a refusal's message for a send; it fits a Stop too.
-const JOURNAL_OPEN_MESSAGE: Record<JournalOpenFailure, string> = {
-  journalCorrupt: agentSessionWriteNoticeEnglish(['historyUnusable']),
-  journalUnavailable: agentSessionWriteNoticeEnglish(['historyUnavailable', 'tryAgain'])
 }
 
 /** The conversation a write lands in, opened when this host holds it closed. */

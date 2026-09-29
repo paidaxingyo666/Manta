@@ -9,8 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CodexStructuredSessionAdapter } from '../codex/codex-structured-session-adapter'
 import type { AgentJournalRenderItem } from '../../shared/agent-session-journal-types'
-import { journalDirectoryFor } from '../native-chat/agent-session-journal/journal-paths'
-import { createTrackedJournalOpener } from '../native-chat/agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../native-chat/agent-session-journal/journal-host-database-test-support'
 import {
   ensureStructuredAgentSessionHost,
   stopStructuredAgentSessionRuntime
@@ -123,7 +122,7 @@ describe('a structured codex session over agentSession.*', () => {
     }
     const reopened = await journals.open({
       identity,
-      journalDir: journalDirectoryFor(harness.root, identity)
+      stateDirectory: harness.root
     })
     expect(reopened.snapshot().items.map(textOf)).toContain('Buffered while the journal opens.')
     expect(

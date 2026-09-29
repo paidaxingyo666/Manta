@@ -10,6 +10,7 @@ import {
   AGENT_SESSION_MAX_NEW_OPERATION_AGE_MS,
   AGENT_SESSION_OPERATION_FUTURE_SKEW_MS
 } from '../../../shared/agent-session-host-authority'
+import type { JournalHostDatabase } from './journal-host-database'
 import type { JournalReducerState } from './journal-reducer'
 import type { JournalRow } from './journal-row-schema'
 import type { JournalSubmissionConsume } from './journal-store-contracts'
@@ -51,7 +52,7 @@ export type JournalQueuedMessagesDeps = {
   sessionId: string
   now: () => number
   serialize: <T>(run: () => Promise<T>) => Promise<T>
-  database: () => { db: Database.Database }
+  database: () => JournalHostDatabase
   readOnly: () => boolean
   state: () => JournalReducerState
   /** The journal's own commit notification. Every standalone draft-table
@@ -228,19 +229,11 @@ export class JournalQueuedMessages {
   ): Promise<T> {
     return this.deps.serialize(async () => {
       assertJournalWritable(this.deps.readOnly(), this.deps.sessionId)
-      const { db } = this.deps.database()
-      db.exec('BEGIN IMMEDIATE')
-      let result: T
-      let retired: number
-      try {
-        result = run(db)
+      const { result, retired } = this.deps.database().transaction((db) => ({
+        result: run(db),
         // Any draft write may take the last card a pause holds back.
-        retired = retireQueuePauseIfNothingHeld(db, this.pauseScope())
-        db.exec('COMMIT')
-      } catch (error) {
-        db.exec('ROLLBACK')
-        throw error
-      }
+        retired: retireQueuePauseIfNothingHeld(db, this.pauseScope())
+      }))
       if (changed(result) || retired > 0) {
         this.changeRevision++
         this.deps.committed()
@@ -327,7 +320,8 @@ export class JournalQueuedMessages {
    * no hook), then retention runs; a pause left holding back nothing retires.
    */
   repairAndPrune(): Promise<void> {
-    if (this.deps.readOnly()) {
+    // No draft, no work, and no write: a chat whose first-use copy is still owed stays uncopied.
+    if (this.deps.readOnly() || (this.list().length === 0 && this.pause() === null)) {
       return Promise.resolve()
     }
     const { sessionId } = this.deps

@@ -9,17 +9,17 @@ import type {
   AgentJournalTurnScope,
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
-import type { JournalLoad } from './journal-open'
+import type { JournalHostDatabase } from './journal-host-database'
 import type { JournalLifecycleMutationInput } from './journal-row-builders'
 import type { JournalRow } from './journal-row-schema'
 
 export type AgentSessionJournalOptions = {
   identity: AgentSessionJournalIdentity
-  journalDir: string
+  database: JournalHostDatabase
   now?: () => number
   mintEpoch?: () => string
-  /** A caller that already loaded the journal can avoid reading the same files again. */
-  loaded?: JournalLoad | null
+  /** A restore's open: see `AgentSessionJournal.whenImported`. */
+  deferPerSessionImport?: boolean
 }
 
 export type JournalReadSince =

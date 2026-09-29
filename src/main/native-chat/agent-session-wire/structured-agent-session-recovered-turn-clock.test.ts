@@ -13,7 +13,7 @@ import type {
   AgentSessionTurnCompletionEvent
 } from '../../../shared/agent-session-wire'
 import { AgentHookServer, _internals } from '../../agent-hooks/server'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import {
   settleStaleStructuredAgentSessionState,
@@ -55,7 +55,7 @@ async function sessionWithRunningTurn() {
       providerHandle: { kind: 'codex', threadId: THREAD }
     },
     now: () => clock,
-    journalDir: join(root, SESSION)
+    stateDirectory: join(root, SESSION)
   })
   await journal.appendItem(
     { provider: 'manta', clientMessageId: 'prompt-1' },

@@ -15,7 +15,7 @@ import {
   buildJournalTombstoneRow,
   journalLifecycleBatchRowBuilder
 } from './journal-row-builders'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import { createTrackedJournalOpener } from './journal-host-database-test-support'
 
 // A row's producer is fixed by the write that created it. A revision naming no
 // producer — a settlement, a prompt answer, a reopen sweep — keeps it; a
@@ -172,7 +172,7 @@ describe('producer inheritance across a reopen', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'root' }
       },
-      journalDir: root,
+      stateDirectory: root,
       now: () => 1_000
     })
 

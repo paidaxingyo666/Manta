@@ -135,7 +135,6 @@ async function runAttach(
     const attached = await performAttach({
       store: context.deps.store,
       adapter: context.deps.adapter,
-      journalRoot: context.deps.journalRoot,
       eventSink: attemptSink.sink,
       // The superseded child's writes settle into its own journal before a new child starts.
       onAcquiring: async () => {

@@ -221,7 +221,9 @@ export async function maybeQueueStructuredAgentSessionSend(
   if (ctx.journal.submissions().some((entry) => entry.clientMessageId === clientMessageId)) {
     return null
   }
+  // A newer Manta's journal takes no new draft: the immediate path refuses the send.
   if (
+    ctx.journal.isReadOnly ||
     !shouldQueueStructuredAgentSessionSend({
       journal: ctx.journal,
       record: context.deps.store.getRecord(ctx.sessionId),

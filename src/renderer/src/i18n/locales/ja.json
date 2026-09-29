@@ -17377,6 +17377,8 @@
         "historyUnreadable": "Manta はこのチャットの保存済み履歴を読み取れませんでした。",
         "historyUnusable": "このチャットを読み込めません。",
         "historyUnavailable": "Manta は現在このチャットの履歴を開けませんでした。",
+        "savedByNewerOrca": "チャットは新しいバージョンの Manta で保存されました。",
+        "updateOrcaToKeepUsing": "引き続き使用するには、Manta を更新してください。",
         "unsupported": "このチャットを実行している Manta はこの操作に対応していません。Manta を更新してから、もう一度お試しください。",
         "unreachable": "Manta は Agent に接続できませんでした。",
         "recordFailed": "Manta はこのチャットの履歴に記録できませんでした。",

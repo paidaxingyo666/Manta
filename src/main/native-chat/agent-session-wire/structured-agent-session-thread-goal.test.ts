@@ -8,7 +8,7 @@ import type {
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import {
   journalRecordsThreadGoalChange,
@@ -38,7 +38,7 @@ afterEach(async () => {
 
 async function openJournal(): Promise<AgentSessionJournal> {
   root ??= await mkdtemp(join(tmpdir(), 'orca-thread-goal-'))
-  return journals.open({ identity: IDENTITY, journalDir: root })
+  return journals.open({ identity: IDENTITY, stateDirectory: root })
 }
 
 const GOAL: AgentJournalThreadGoal = {

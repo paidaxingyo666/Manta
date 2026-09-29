@@ -60,6 +60,7 @@ import {
   type RpcClientIdentity,
   type RpcReply
 } from './versioned-agent-session-wire'
+import { openTestJournalHostDatabase } from '../../../src/main/native-chat/agent-session-journal/journal-host-database-test-support'
 
 // Why: a cold CI run extracts the baseline checkout before the first pairing.
 const SUITE_TIMEOUT_MS = 180_000
@@ -498,7 +499,7 @@ describe('cross-version structured agent sessions', () => {
           answerPrompt: async () => undefined,
           setOption: async () => undefined
         },
-        journalRoot: root,
+        journalDatabase: openTestJournalHostDatabase(root),
         claimKeyId: 'key-1',
         mintSpawnToken: () => 'spawn-vault',
         now: () => NOW
@@ -707,7 +708,7 @@ describe('cross-version structured agent sessions', () => {
       const host = new StructuredAgentSessionHost({
         store,
         adapter: adapter(),
-        journalRoot: root,
+        journalDatabase: openTestJournalHostDatabase(root),
         claimKeyId: 'key-1',
         mintSpawnToken: () => `spawn-${generation}`,
         // The provider died with the host that spawned it, which is what makes

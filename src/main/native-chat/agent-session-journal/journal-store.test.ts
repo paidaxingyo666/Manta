@@ -13,17 +13,21 @@ import {
   boundJournalKeyComponent,
   MAX_JOURNAL_KEY_COMPONENT_CHARS
 } from '../../../shared/agent-session-journal-item-key'
-import { loadJournal } from './journal-open'
 import {
   boundInlineText,
   boundPayload,
   DEFAULT_JOURNAL_PAYLOAD_LIMITS
 } from './journal-payload-bounds'
 import { activeStructuredAgentSessionTurnId } from '../../../shared/structured-agent-session-live-turn'
-import { journalDatabaseFile, journalDirectoryFor, journalPathSegment } from './journal-paths'
+import { journalDirectoryFor, journalPathSegment } from './journal-paths'
 import { AgentSessionJournalError, type AgentSessionJournal } from './journal-store'
 import type { openAgentSessionJournal } from './journal-store-factory'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import {
+  createTrackedJournalOpener,
+  openTestJournalHostDatabase,
+  liveTestJournalRows,
+  deleteTestJournalRow
+} from './journal-host-database-test-support'
 import type Database from '../../sqlite/sync-database'
 
 const IDENTITY: AgentSessionJournalIdentity = {
@@ -55,7 +59,7 @@ const journals = createTrackedJournalOpener()
 async function open(overrides: Partial<Parameters<typeof openAgentSessionJournal>[0]> = {}) {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => `epoch-${clock}`,
     ...overrides
@@ -236,20 +240,6 @@ describe('fences', () => {
 })
 
 describe('replay', () => {
-  it('adopts a caller-provided load without replaying the rows again', async () => {
-    const journal = await open()
-    await journal.appendItem(item(0), body('a'), {
-      fence: 1,
-      turnScope: AGENT_JOURNAL_THREAD_SCOPE
-    })
-    const loaded = await loadJournal(root, IDENTITY.sessionId)
-    expect(loaded).not.toBeNull()
-    await journal.close()
-
-    const reopened = await open({ loaded })
-    expect(reopened.snapshot()).toEqual(journal.snapshot())
-  })
-
   it('reopens to the same render model the live writer held', async () => {
     const journal = await open()
     await journal.appendItem(item(0), body('a'), {
@@ -315,7 +305,7 @@ describe('replay', () => {
     const before = journal.epoch
     await journal.close()
     await withJournalDatabase(root, (db) => {
-      db.prepare('DELETE FROM journal_rows WHERE seq = ?').run(3)
+      deleteTestJournalRow(db, IDENTITY.sessionId, 3)
     })
 
     const reopened = await open()
@@ -324,8 +314,8 @@ describe('replay', () => {
     // Sequences 4 and 5 are VALID rows that the gap at 3 made unreplayable.
     // Nothing preserves them; recovery rebuilds the epoch from provider history.
     await withJournalDatabase(root, (db) => {
-      const rows = db.prepare('SELECT seq FROM journal_rows ORDER BY seq').all()
-      expect(rows.map((row) => (row as { seq: number }).seq)).toEqual([1, 2])
+      const rows = liveTestJournalRows(db, IDENTITY.sessionId)
+      expect(rows.map((row) => row.seq)).toEqual([1, 2])
     })
     expect(reopened.repair).toEqual({ malformedRows: 0 })
   })
@@ -476,17 +466,17 @@ describe('journal location', () => {
 })
 
 describe('on-disk layout', () => {
-  it('keeps the session database and its projection in one directory', async () => {
+  it('keeps every chat of the state directory in its one database, and no per-chat file', async () => {
     const journal: AgentSessionJournal = await open()
     await journal.appendItem(item(0), body('a'), {
       fence: 1,
       turnScope: AGENT_JOURNAL_THREAD_SCOPE
     })
-    expect(await readdir(root)).toContain('journal.db')
+    expect(await readdir(root)).toContain('agent-session-journal.db')
+    expect(await readdir(root)).not.toContain('agent-session-journal')
     await journal.close()
     await withJournalDatabase(root, (db) => {
-      const row = db.prepare('SELECT row_json FROM journal_rows WHERE seq = 2').get()
-      expect((row as { row_json: string }).row_json).toContain('"kind":"item"')
+      expect(liveTestJournalRows(db, IDENTITY.sessionId)[1]?.rowJson).toContain('"kind":"item"')
       expect(db.prepare('SELECT epoch FROM journal_sessions').get()).toMatchObject({
         epoch: journal.epoch
       })
@@ -497,15 +487,14 @@ describe('on-disk layout', () => {
 /** Opens the session database directly, so a case can stage a fault or read
  *  back what a commit actually stored. */
 async function withJournalDatabase(
-  journalDir: string,
+  stateDirectory: string,
   run: (db: Database.Database) => void
 ): Promise<void> {
-  const { openJournalDatabase } = await import('./journal-database')
-  const opened = openJournalDatabase(journalDatabaseFile(journalDir))
+  const opened = openTestJournalHostDatabase(stateDirectory)
   try {
     run(opened.db)
   } finally {
-    opened.db.close()
+    opened.close()
   }
 }
 

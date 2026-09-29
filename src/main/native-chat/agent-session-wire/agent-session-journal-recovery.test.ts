@@ -4,7 +4,8 @@ import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journa
 // read — on both version axes, because only one of them is detectable before a
 // read.
 
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -12,20 +13,28 @@ import type {
   AgentJournalItemIdentity,
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
-import { openJournalDatabase } from '../agent-session-journal/journal-database'
 import { JOURNAL_DB_SCHEMA_VERSION } from '../agent-session-journal/journal-database-schema'
-import { loadJournal, replayJournal } from '../agent-session-journal/journal-open'
-import { journalDatabaseFile } from '../agent-session-journal/journal-paths'
-import { readJournalEpochRows } from '../agent-session-journal/journal-row-table'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { journalDatabasePath } from '../agent-session-journal/journal-host-database'
+import { replayJournal } from '../agent-session-journal/journal-open'
+import {
+  closeTestJournalHostDatabases,
+  createTrackedJournalOpener,
+  openTestJournalHostDatabase,
+  loadTestJournal,
+  readTestJournalRows,
+  deleteTestJournalRow,
+  insertTestJournalRowJson,
+  updateTestJournalRowJson
+} from '../agent-session-journal/journal-host-database-test-support'
 import type Database from '../../sqlite/sync-database'
 import {
   openAgentSessionJournalWithRecovery,
-  providerHistoryId,
-  recoveryJournalDir
+  providerHistoryId
 } from './agent-session-journal-recovery'
+import { JOURNAL_NEWER_SCHEMA_MESSAGE } from '../agent-session-journal/journal-open-failure'
+import { performSend, type AgentSessionTurnContext } from './structured-agent-session-turns'
 
-// Only the store's own replay goes through the mock; the probe's, inside the same module, does not.
+// The store's replay goes through the mock: it is the only read of the journal an open makes.
 vi.mock('../agent-session-journal/journal-open', async (importOriginal) => {
   const actual = await importOriginal<{ replayJournal: typeof replayJournal }>()
   return { ...actual, replayJournal: vi.fn(actual.replayJournal) }
@@ -76,7 +85,7 @@ function item(ordinal: number): AgentJournalItemIdentity {
 
 /** Fills a journal with `count` items and hands back its epoch. */
 async function seedJournal(count: number): Promise<string> {
-  const journal = await journals.open({ identity: IDENTITY, journalDir })
+  const journal = await journals.open({ identity: IDENTITY, stateDirectory: journalDir })
   for (let ordinal = 1; ordinal <= count; ordinal += 1) {
     await journal.appendItem(
       item(ordinal),
@@ -92,7 +101,7 @@ async function seedJournal(count: number): Promise<string> {
 /** A journal whose epoch row is gone: every surviving row is unanchored, so a
  *  repair has to set aside the whole range. */
 async function seedRepairableSession(): Promise<void> {
-  const journal = await journals.open({ identity: IDENTITY, journalDir })
+  const journal = await journals.open({ identity: IDENTITY, stateDirectory: journalDir })
   await journal.appendSubmission({
     clientMessageId: 'client-message-1',
     payloadFingerprint: 'fingerprint-1',
@@ -113,18 +122,19 @@ async function withJournalDatabase(
   directory: string,
   run: (db: Database.Database) => void
 ): Promise<void> {
-  const opened = openJournalDatabase(journalDatabaseFile(directory))
-  try {
-    run(opened.db)
-  } finally {
-    opened.db.close()
-  }
+  run(openTestJournalHostDatabase(directory).db)
+}
+
+async function digest(path: string): Promise<string> {
+  return createHash('sha256')
+    .update(await readFile(path))
+    .digest('hex')
 }
 
 /** The same logical hole `findSequenceGap` detects at replay. */
 async function deleteRow(seq: number): Promise<void> {
   await withJournalDatabase(journalDir, (db) => {
-    db.prepare('DELETE FROM journal_rows WHERE seq = ?').run(seq)
+    deleteTestJournalRow(db, CODEX_SESSION, seq)
   })
 }
 
@@ -159,7 +169,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
     const opened = journals.track(
       await openAgentSessionJournalWithRecovery({
         identity: IDENTITY,
-        journalDir,
+        database: openTestJournalHostDatabase(journalDir),
         fence: 1,
         historyFilePath
       }).then((result) => result.journal)
@@ -167,19 +177,19 @@ describe('openAgentSessionJournalWithRecovery', () => {
     expect(opened.snapshot().items).toHaveLength(2)
   })
 
-  it('reads the journal once: the probe is the open', async () => {
+  it("reads the journal once: the store's replay is the open", async () => {
     await seedJournal(2)
     vi.mocked(replayJournal).mockClear()
     const opened = journals.track(
       await openAgentSessionJournalWithRecovery({
         identity: IDENTITY,
-        journalDir,
+        database: openTestJournalHostDatabase(journalDir),
         fence: 1,
         historyFilePath
       }).then((result) => result.journal)
     )
     expect(opened.snapshot().items).toHaveLength(2)
-    expect(replayJournal).not.toHaveBeenCalled()
+    expect(replayJournal).toHaveBeenCalledOnce()
   })
 
   it('rebuilds a holed journal in place on a fresh epoch', async () => {
@@ -188,7 +198,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const opened = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath
     })
@@ -203,67 +213,138 @@ describe('openAgentSessionJournalWithRecovery', () => {
     expect(texts.some((text) => text.includes('add a retry'))).toBe(true)
   })
 
-  it('reconstructs a future row-body version into a sibling, never in place', async () => {
+  // A newer build's row is never rewritten under it, and there is no sibling to write instead:
+  // the chat reads what it can and refuses writes.
+  it('opens a future row-body version read-only and leaves it exactly as found', async () => {
     const epoch = await seedJournal(1)
     await withJournalDatabase(journalDir, (db) => {
-      db.prepare(
-        'INSERT INTO journal_rows (session_id, epoch, seq, ts, row_json) VALUES (?, ?, ?, ?, ?)'
-      ).run(
+      insertTestJournalRowJson(
+        db,
         CODEX_SESSION,
-        epoch,
         3,
-        1,
         JSON.stringify({ v: 99, seq: 3, epoch, kind: 'item', fence: 1, ts: 1 })
       )
     })
 
-    const opened = journals.track(
-      await openAgentSessionJournalWithRecovery({
-        identity: IDENTITY,
-        journalDir,
-        fence: 1,
-        historyFilePath
-      }).then((result) => result.journal)
-    )
-
-    // The unreadable journal is left exactly as found; a newer host still owns it.
-    await withJournalDatabase(journalDir, (db) => {
-      const rows = readJournalEpochRows(db, CODEX_SESSION, epoch)
-      expect(rows.some((entry) => entry.rowJson.includes('"v":99'))).toBe(true)
-      expect(rows).toHaveLength(3)
-    })
-    await opened.close()
-    await withJournalDatabase(recoveryJournalDir(journalDir), (db) => {
-      const sibling = db.prepare('SELECT row_json FROM journal_rows').all()
-      expect(JSON.stringify(sibling)).toContain('add a retry')
-    })
-  })
-
-  it('reconstructs a future database version into a sibling, never in place', async () => {
-    await seedJournal(1)
-    await withJournalDatabase(journalDir, (db) =>
-      db.pragma(`user_version = ${JOURNAL_DB_SCHEMA_VERSION + 1}`)
-    )
-
     const opened = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath
     })
     journals.track(opened.journal)
-    expect(opened.recovery).toMatchObject({
-      trigger: 'schema_unreadable',
-      reset: 'schema_unreadable'
+
+    expect(opened.recovery).toBeNull()
+    expect(opened.journal.isReadOnly).toBe(true)
+    // A send says to update, as a database a newer Manta wrote does.
+    const sent = await performSend(
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a refused append returns before anything but the journal and fence is read.
+      { sessionId: CODEX_SESSION, journal: opened.journal, fence: 1 } as AgentSessionTurnContext,
+      {
+        clientMessageId: 'client-after-downgrade',
+        payloadFingerprint: 'fp',
+        body: { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'hello' }] }
+      }
+    )
+    expect(sent).toMatchObject({
+      ok: false,
+      refusal: {
+        code: 'agent_session_journal_unreadable',
+        details: { reason: 'journalWrittenByNewerOrca' },
+        message: JOURNAL_NEWER_SCHEMA_MESSAGE
+      }
     })
-    expect(opened.recovery?.imported).toBeGreaterThan(0)
-    // No schema change, no row written, no row deleted.
     await withJournalDatabase(journalDir, (db) => {
-      expect(db.pragma('user_version', { simple: true })).toBe(JOURNAL_DB_SCHEMA_VERSION + 1)
-      expect(db.prepare('SELECT count(*) AS total FROM journal_rows').get()).toMatchObject({
-        total: 2
-      })
+      const rows = readTestJournalRows(db, CODEX_SESSION, epoch)
+      expect(rows.some((entry) => entry.rowJson.includes('"v":99'))).toBe(true)
+      expect(rows).toHaveLength(3)
     })
+  })
+
+  // A downgrade: the database a newer Manta stamped opens read-only. The chat shows its history, a
+  // send says to update, and the file is left byte-identical.
+  it('shows a chat from a database a newer Manta stamped, and a send says to update', async () => {
+    await seedJournal(2)
+    await withJournalDatabase(journalDir, (db) => {
+      db.pragma(`user_version = ${JOURNAL_DB_SCHEMA_VERSION + 1}`)
+    })
+    closeTestJournalHostDatabases()
+    const path = journalDatabasePath(journalDir)
+    const before = await digest(path)
+
+    const opened = await openAgentSessionJournalWithRecovery({
+      identity: IDENTITY,
+      database: openTestJournalHostDatabase(journalDir),
+      fence: 1,
+      historyFilePath
+    })
+    journals.track(opened.journal)
+
+    expect(opened.recovery).toBeNull()
+    expect(opened.journal.isReadOnly).toBe(true)
+    const texts = opened.journal.snapshot().items.map((entry) => JSON.stringify(entry.body))
+    expect(texts.filter((text) => /item-[12]/.test(text))).toHaveLength(2)
+    const sent = await performSend(
+      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a refused append returns before anything but the journal and fence is read.
+      { sessionId: CODEX_SESSION, journal: opened.journal, fence: 1 } as AgentSessionTurnContext,
+      {
+        clientMessageId: 'client-after-downgrade',
+        payloadFingerprint: 'fp',
+        body: { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'hello' }] }
+      }
+    )
+    expect(sent).toMatchObject({
+      ok: false,
+      refusal: {
+        code: 'agent_session_journal_unreadable',
+        details: { reason: 'journalWrittenByNewerOrca' },
+        message: JOURNAL_NEWER_SCHEMA_MESSAGE
+      }
+    })
+    await journals.closeAll()
+    expect(await digest(path)).toBe(before)
+  })
+
+  // T-logical-per-chat: one file holds every chat, and damage one chat's replay finds is still
+  // that chat's alone. Only it rebuilds; a neighbour's rows and epoch are not touched.
+  it('rebuilds only the damaged chat and leaves another chat in the same file untouched', async () => {
+    const neighbour: AgentSessionJournalIdentity = {
+      ...IDENTITY,
+      sessionId: 'neighbour-session',
+      providerHandle: { kind: 'codex', threadId: 'neighbour-thread' }
+    }
+    const other = await journals.open({ identity: neighbour, stateDirectory: journalDir })
+    for (let ordinal = 1; ordinal <= 3; ordinal += 1) {
+      await other.appendItem(
+        item(ordinal),
+        { kind: 'message', role: 'assistant', blocks: [{ type: 'text', text: `n-${ordinal}` }] },
+        { fence: 1, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
+      )
+    }
+    const neighbourEpoch = other.epoch
+    await other.close()
+    const database = openTestJournalHostDatabase(journalDir)
+    const neighbourBefore = readTestJournalRows(database.db, neighbour.sessionId, neighbourEpoch)
+    await seedJournal(3)
+    await withJournalDatabase(journalDir, (db) => {
+      updateTestJournalRowJson(db, CODEX_SESSION, 3, '}{')
+    })
+
+    const opened = await openAgentSessionJournalWithRecovery({
+      identity: IDENTITY,
+      database,
+      fence: 1,
+      historyFilePath
+    })
+    journals.track(opened.journal)
+
+    expect(opened.recovery).toMatchObject({ trigger: 'journal_corrupt', reset: 'epoch_changed' })
+    expect(opened.recovery?.imported).toBeGreaterThan(0)
+    const reopened = await journals.open({ identity: neighbour, stateDirectory: journalDir })
+    expect(reopened.epoch).toBe(neighbourEpoch)
+    expect(readTestJournalRows(database.db, neighbour.sessionId, neighbourEpoch)).toEqual(
+      neighbourBefore
+    )
   })
 
   // The rehydrate deletes every live row to publish its replacement epoch, so
@@ -271,7 +352,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
   // Manta minted the submission, receipt and lifecycle identities; no provider
   // transcript can hand them back.
   it('rebuilds from provider history when the epoch row itself is gone', async () => {
-    const journal = await journals.open({ identity: IDENTITY, journalDir })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: journalDir })
     await journal.appendSubmission({
       clientMessageId: 'client-message-1',
       payloadFingerprint: 'fingerprint-1',
@@ -302,7 +383,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const opened = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath
     })
@@ -320,7 +401,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const opened = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath: join(root, 'missing.jsonl')
     })
@@ -343,7 +424,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const first = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath: empty
     })
@@ -355,19 +436,19 @@ describe('openAgentSessionJournalWithRecovery', () => {
     await first.journal.close()
 
     // The deletion is durable, so the demand for a rebuild has to be too.
-    expect(await loadJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: true })
+    expect(await loadTestJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: true })
 
     // A readable transcript rebuilds the epoch, and THAT is what retires it.
     const retried = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath
     })
     journals.track(retried.journal)
     expect(retried.recovery?.imported).toBeGreaterThan(0)
     await retried.journal.close()
-    expect(await loadJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: false })
+    expect(await loadTestJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: false })
   })
 
   // The reproduced path. Deleting sequence 1 leaves every surviving row
@@ -381,7 +462,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const first = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath: missing
     })
@@ -391,10 +472,10 @@ describe('openAgentSessionJournalWithRecovery', () => {
     await first.journal.close()
 
     // Reopen: the epoch still holds nothing but the repair, so recovery runs again.
-    expect(await loadJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: true })
+    expect(await loadTestJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: true })
     const reopened = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath: missing
     })
@@ -412,7 +493,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
     const epoch = reopened.journal.epoch
     await reopened.journal.close()
     await withJournalDatabase(journalDir, (db) => {
-      const rows = readJournalEpochRows(db, CODEX_SESSION, epoch)
+      const rows = readTestJournalRows(db, CODEX_SESSION, epoch)
       expect(JSON.parse(rows[0]?.rowJson ?? '{}')).toMatchObject({ kind: 'epoch', seq: 1 })
     })
   })
@@ -428,7 +509,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const first = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath: empty
     })
@@ -441,7 +522,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
     const epoch = first.journal.epoch
     await first.journal.close()
     await withJournalDatabase(journalDir, (db) => {
-      const rows = readJournalEpochRows(db, CODEX_SESSION, epoch)
+      const rows = readTestJournalRows(db, CODEX_SESSION, epoch)
       expect(JSON.parse(rows[0]?.rowJson ?? '{}')).toMatchObject({
         kind: 'epoch',
         seq: 1,
@@ -450,12 +531,12 @@ describe('openAgentSessionJournalWithRecovery', () => {
     })
 
     // The session still reports corrupt, so the next attach retries.
-    expect(await loadJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: true })
+    expect(await loadTestJournal(journalDir, CODEX_SESSION)).toMatchObject({ corrupt: true })
 
     // And a transcript that DOES have content still rebuilds the timeline.
     const retried = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath
     })
@@ -471,7 +552,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const first = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath: join(root, 'missing.jsonl')
     })
@@ -480,7 +561,7 @@ describe('openAgentSessionJournalWithRecovery', () => {
 
     const retried = await openAgentSessionJournalWithRecovery({
       identity: IDENTITY,
-      journalDir,
+      database: openTestJournalHostDatabase(journalDir),
       fence: 1,
       historyFilePath
     })

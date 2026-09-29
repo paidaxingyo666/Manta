@@ -14,14 +14,18 @@ import type {
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import Database from '../../sqlite/sync-database'
-import { journalDatabaseFile } from './journal-paths'
+import { JOURNAL_DB_SCHEMA_VERSION } from './journal-database-schema'
+import { journalDatabasePath } from './journal-host-database'
 import {
   JournalQueuedMessages,
   QUEUED_MESSAGE_REPLAY_WINDOW_MS,
   QueuedMessageNotConsumableError
 } from './journal-queued-messages'
 import type { AgentSessionJournal } from './journal-store'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import {
+  closeTestJournalHostDatabases,
+  createTrackedJournalOpener
+} from './journal-host-database-test-support'
 
 const IDENTITY: AgentSessionJournalIdentity = {
   sessionId: 'session-q',
@@ -64,7 +68,7 @@ function refusal(text: string) {
 async function open(): Promise<AgentSessionJournal> {
   const journal = await journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => `epoch-${clock}`
   })
@@ -117,12 +121,12 @@ describe('draft rows', () => {
     const journal = await open()
     await queueDraft(journal, 'draft-1')
     await journal.close()
-    const db = new Database(journalDatabaseFile(root), { readonly: true })
+    const db = new Database(journalDatabasePath(root), { readonly: true })
     try {
       const version = Number(db.pragma('user_version', { simple: true }))
       // An old build compares stored == supported and keeps writing; a bump
       // would latch it read-only after downgrade.
-      expect(version).toBe(2)
+      expect(version).toBe(JOURNAL_DB_SCHEMA_VERSION)
       const table = db
         .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
         .get('queued_messages')
@@ -140,7 +144,9 @@ describe('draft rows', () => {
       { fence: 0, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
     await first.close()
-    const db = new Database(journalDatabaseFile(root))
+    // The table is created when the host opens its database, so the host restarts around the edit.
+    closeTestJournalHostDatabases()
+    const db = new Database(journalDatabasePath(root))
     db.exec('DROP TABLE queued_messages')
     db.close()
     const journal = await open()
@@ -252,7 +258,7 @@ describe('consume', () => {
     const cursor = journal.cursor()
     // Occupy the next sequence directly so the append's INSERT violates the
     // primary key inside the transaction, after the draft was transitioned.
-    const db = new Database(journalDatabaseFile(root))
+    const db = new Database(journalDatabasePath(root))
     db.prepare(
       'INSERT INTO journal_rows (session_id, epoch, seq, ts, row_json) VALUES (?, ?, ?, ?, ?)'
     ).run(IDENTITY.sessionId, cursor.epoch, cursor.sequence + 1, tick(), '{}')
@@ -528,7 +534,7 @@ describe('open-time repair and retention', () => {
     await journal.close()
     // Simulate the old build having written the rejection with no hook: put the
     // draft back to dispatched behind the stored fact.
-    const db = new Database(journalDatabaseFile(root))
+    const db = new Database(journalDatabasePath(root))
     db.prepare(
       "UPDATE queued_messages SET state = 'dispatched', returned_reason = NULL, returned_rejection = NULL WHERE message_id = ?"
     ).run('draft-1')
@@ -546,7 +552,7 @@ describe('open-time repair and retention', () => {
     await consumeDraft(journal, 'draft-1')
     await journal.rejectQueuedSubmissions(0, STOP_WITHDRAWAL)
     await journal.close()
-    const db = new Database(journalDatabaseFile(root))
+    const db = new Database(journalDatabasePath(root))
     db.prepare(
       "UPDATE queued_messages SET state = 'dispatched', hold_reason = NULL, consumed_as = 'sub-draft-1' WHERE message_id = ?"
     ).run('draft-1')
@@ -786,7 +792,7 @@ describe("the queue's Stop fact", () => {
     await queueDraft(journal, 'draft-legacy')
     await queueDraft(journal, 'draft-failed')
     await journal.queuedMessages.hold({ messageIds: ['draft-failed'], reason: 'send_failed' })
-    const db = new Database(journalDatabaseFile(root))
+    const db = new Database(journalDatabasePath(root))
     db.prepare("UPDATE queued_messages SET hold_reason = 'stopped' WHERE message_id = ?").run(
       'draft-legacy'
     )

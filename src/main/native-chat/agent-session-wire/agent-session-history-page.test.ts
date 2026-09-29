@@ -22,10 +22,11 @@ import {
   serializeRemoteRuntimePayload
 } from '../../../shared/remote-runtime-memory-limits'
 import { structuredAgentSessionPayloadFingerprint } from '../../../shared/structured-agent-session-mutation'
-import { openJournalDatabase } from '../agent-session-journal/journal-database'
-import { journalDatabaseFile } from '../agent-session-journal/journal-paths'
-import { insertJournalRow } from '../agent-session-journal/journal-row-table'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import {
+  createTrackedJournalOpener,
+  openTestJournalHostDatabase,
+  insertTestJournalRow
+} from '../agent-session-journal/journal-host-database-test-support'
 import type {
   JournalItemRow,
   JournalRow,
@@ -77,7 +78,7 @@ beforeEach(async () => {
   epochs = 0
   journal = await journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => {
       epochs += 1
@@ -512,17 +513,17 @@ async function reopenWithRawRows(rows: readonly RawSeedRow[]): Promise<AgentSess
   // Rows are staged straight into the session database: the reopen below has to
   // see them exactly as a previous writer would have committed them.
   await journal.close()
-  const opened = openJournalDatabase(journalDatabaseFile(root))
+  const opened = openTestJournalHostDatabase(root)
   try {
     opened.db.exec('BEGIN IMMEDIATE')
     for (const row of full) {
-      insertJournalRow(opened.db, IDENTITY.sessionId, row)
+      insertTestJournalRow(opened.db, IDENTITY.sessionId, row)
     }
     opened.db.exec('COMMIT')
   } finally {
-    opened.db.close()
+    opened.close()
   }
-  return journals.open({ identity: IDENTITY, journalDir: root, now: tick })
+  return journals.open({ identity: IDENTITY, stateDirectory: root, now: tick })
 }
 
 describe('pre-existing oversized identities', () => {

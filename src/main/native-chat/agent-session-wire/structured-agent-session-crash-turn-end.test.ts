@@ -20,7 +20,10 @@ import {
 } from '../../../shared/structured-agent-session-turn-timing'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import { AGENT_SESSION_STORE_FILE_NAME } from '../../runtime/agent-session-record-store-file'
-import { journalDirectoryFor } from '../agent-session-journal/journal-paths'
+import {
+  closeTestJournalHostDatabases,
+  openTestJournalHostDatabase
+} from '../agent-session-journal/journal-host-database-test-support'
 import { openAgentSessionJournal } from '../agent-session-journal/journal-store-factory'
 import {
   AgentSessionAcquisitionExitUnprovenError,
@@ -122,10 +125,7 @@ async function seedClaudeToolTurn(): Promise<void> {
       agent: 'claude',
       providerHandle: { kind: 'claude', sessionId: PROVIDER_SESSION, leafUuid: null }
     },
-    journalDir: journalDirectoryFor(root, {
-      workspaceId: LOCATION.workspaceId,
-      sessionId: SESSION
-    }),
+    database: openTestJournalHostDatabase(root),
     now: () => now
   })
   await journal.appendSubmission({
@@ -170,7 +170,7 @@ function openHost(overrides: Partial<StructuredAgentSessionHostDeps>): void {
       setOption: vi.fn(),
       supportsCreate: () => true
     },
-    journalRoot: root,
+    journalDatabase: openTestJournalHostDatabase(root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-new',
     now: () => RELAUNCHED_AT,
@@ -193,6 +193,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await host?.flushAllStreamedEvents()
+  closeTestJournalHostDatabases()
   await rm(root, { recursive: true, force: true })
 })
 

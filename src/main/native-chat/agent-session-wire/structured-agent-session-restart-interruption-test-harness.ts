@@ -29,6 +29,7 @@ import {
   hostTestAttachParams,
   hostTestMessage
 } from './structured-agent-session-host-test-data'
+import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
 /** Starts the agent explicitly — the attach a client's ensure makes — for a test that needs a
  *  running child before its next step. Nothing else starts one ahead of a send. */
@@ -136,7 +137,7 @@ export async function interruptedRestart(
           }
         : {})
     },
-    journalRoot: previous.root,
+    journalDatabase: openTestJournalHostDatabase(previous.root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-next',
     probeOwner,

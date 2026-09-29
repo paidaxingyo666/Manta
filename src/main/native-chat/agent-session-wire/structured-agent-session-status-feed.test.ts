@@ -13,7 +13,7 @@ import type {
 import { createClaudeJournalTranslator } from '../../claude/claude-structured-journal-translation'
 import { publishCodexTurnLifecycle } from '../../codex/codex-structured-journal-translation-turns'
 import { createDeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import { indexedStatusFeedSession as indexed } from './structured-agent-session-status-feed-test-session'
 import {
   StructuredAgentSessionStatusFeed,
@@ -59,7 +59,7 @@ async function openJournal(sessionId = SESSION, now?: () => number) {
       providerHandle: { kind: 'codex', threadId: 'thread-1' }
     },
     now,
-    journalDir: join(root, sessionId)
+    stateDirectory: join(root, sessionId)
   })
 }
 

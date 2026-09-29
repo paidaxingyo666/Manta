@@ -15,7 +15,7 @@ import type {
 import { digestPayload } from './journal-payload-bounds'
 import { reconcileJournalSubmissionsAgainstHistory } from './journal-restart-reconciliation'
 import type { ProviderHistoryItem, ProviderHistoryWindow } from './journal-submission-reconciler'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import { createTrackedJournalOpener } from './journal-host-database-test-support'
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import { classifyDispatchRejection } from '../../../shared/structured-agent-session-dispatch-rejection'
@@ -49,7 +49,7 @@ const journals = createTrackedJournalOpener()
 async function open() {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => `epoch-${clock}`
   })

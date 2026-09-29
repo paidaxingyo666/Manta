@@ -19,6 +19,7 @@ import type { AgentSessionJournal } from '../native-chat/agent-session-journal/j
 import { createDeferredStructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import { createCodexJournalTranslator } from './codex-structured-journal-translation'
 import type { CodexThreadItem } from './codex-thread-item-identity'
+import { openTestJournalHostDatabase } from '../native-chat/agent-session-journal/journal-host-database-test-support'
 
 const SESSION = 'session-codex-children'
 const PARENT = 'thread-parent'
@@ -42,7 +43,7 @@ async function openJournal(root: string): Promise<AgentSessionJournal> {
       agent: 'codex',
       providerHandle: { kind: 'codex', threadId: PARENT }
     },
-    journalDir: root,
+    database: openTestJournalHostDatabase(root),
     now: () => 1_000
   })
 }

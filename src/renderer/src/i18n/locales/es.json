@@ -14958,6 +14958,8 @@
         "historyUnreadable": "Manta no pudo leer el historial guardado de este chat.",
         "historyUnusable": "No se puede cargar este chat.",
         "historyUnavailable": "Manta no pudo abrir el historial de este chat en este momento.",
+        "savedByNewerOrca": "Los chats se guardaron con una versión más reciente de Manta.",
+        "updateOrcaToKeepUsing": "Actualice Manta para seguir usándolos.",
         "unsupported": "La versión de Manta que ejecuta este chat no lo admite. Actualice Manta y vuelva a intentarlo.",
         "unreachable": "Manta no pudo comunicarse con el agente.",
         "recordFailed": "Manta no pudo registrarlo en el historial de este chat.",

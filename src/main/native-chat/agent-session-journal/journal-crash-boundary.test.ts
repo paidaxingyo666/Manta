@@ -25,7 +25,7 @@ import {
   type ProviderHistoryItem,
   type ProviderHistoryWindow
 } from './journal-submission-reconciler'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import { createTrackedJournalOpener } from './journal-host-database-test-support'
 
 const IDENTITY: AgentSessionJournalIdentity = {
   sessionId: 'session-1',
@@ -63,7 +63,7 @@ const journals = createTrackedJournalOpener()
 async function open() {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: tick,
     mintEpoch: () => `epoch-${clock}`
   })

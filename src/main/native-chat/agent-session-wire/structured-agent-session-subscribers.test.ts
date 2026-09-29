@@ -14,11 +14,12 @@ import {
   REMOTE_RUNTIME_MAX_OUTBOUND_JSON_BYTES,
   serializeRemoteRuntimePayload
 } from '../../../shared/remote-runtime-memory-limits'
-import { openJournalDatabase } from '../agent-session-journal/journal-database'
-import { journalDatabaseFile } from '../agent-session-journal/journal-paths'
-import { insertJournalRow } from '../agent-session-journal/journal-row-table'
 import type { JournalRow } from '../agent-session-journal/journal-row-schema'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import {
+  createTrackedJournalOpener,
+  openTestJournalHostDatabase,
+  insertTestJournalRow
+} from '../agent-session-journal/journal-host-database-test-support'
 import { StructuredAgentSessionStatusFeed } from './structured-agent-session-status-feed'
 import { MAX_RETAINED_SESSION_ACTIVITIES } from './structured-agent-session-activity-retention'
 import { AgentSessionSubscribers } from './structured-agent-session-subscribers'
@@ -47,7 +48,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'activity-churn-journal')
+      stateDirectory: join(root, 'activity-churn-journal')
     })
     const subscribers = new AgentSessionSubscribers()
 
@@ -67,7 +68,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'checkpoint-journal')
+      stateDirectory: join(root, 'checkpoint-journal')
     })
     const events: AgentSessionSubscribeEvent[] = []
 
@@ -106,7 +107,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'clock-journal')
+      stateDirectory: join(root, 'clock-journal')
     })
     let now = 1_000
     const events: AgentSessionSubscribeEvent[] = []
@@ -151,7 +152,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'catalog-journal')
+      stateDirectory: join(root, 'catalog-journal')
     })
     let commands = [{ name: 'first', kind: 'skill' as const }]
     const events: AgentSessionSubscribeEvent[] = []
@@ -194,7 +195,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'hook-journal')
+      stateDirectory: join(root, 'hook-journal')
     })
     const published: string[] = []
     const subscribers = new AgentSessionSubscribers({
@@ -223,7 +224,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'unread-journal')
+      stateDirectory: join(root, 'unread-journal')
     })
     const statusFeed = new StructuredAgentSessionStatusFeed({
       sessions: new Map([
@@ -288,7 +289,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'claude',
         providerHandle: { kind: 'claude', sessionId: 'provider-1', leafUuid: null }
       },
-      journalDir: join(root, 'background-journal')
+      stateDirectory: join(root, 'background-journal')
     })
     const subscribers = new AgentSessionSubscribers()
     const events: AgentSessionSubscribeEvent[] = []
@@ -337,7 +338,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir: join(root, 'activity-journal')
+      stateDirectory: join(root, 'activity-journal')
     })
     const subscribers = new AgentSessionSubscribers()
     const events: AgentSessionSubscribeEvent[] = []
@@ -389,7 +390,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir
+      stateDirectory: journalDir
     })
     // A row admitted before identity bounding: its removal id alone exceeds
     // the outbound cap, so no catch-up batch can ever carry it.
@@ -422,15 +423,15 @@ describe('AgentSessionSubscribers', () => {
     // Staged straight into the session database, exactly as a previous writer
     // would have committed them.
     await seeded.close()
-    const opened = openJournalDatabase(journalDatabaseFile(journalDir))
+    const opened = openTestJournalHostDatabase(journalDir)
     try {
       opened.db.exec('BEGIN IMMEDIATE')
       for (const row of rows) {
-        insertJournalRow(opened.db, SESSION, row)
+        insertTestJournalRow(opened.db, SESSION, row)
       }
       opened.db.exec('COMMIT')
     } finally {
-      opened.db.close()
+      opened.close()
     }
     const journal = await journals.open({
       identity: {
@@ -440,7 +441,7 @@ describe('AgentSessionSubscribers', () => {
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: 'thread-1' }
       },
-      journalDir
+      stateDirectory: journalDir
     })
 
     const subscribers = new AgentSessionSubscribers()

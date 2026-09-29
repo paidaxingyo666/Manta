@@ -14,7 +14,7 @@ import type {
 import { createJournalReducerState, applyJournalRow } from './journal-reducer'
 import { parseJournalRow, serializeJournalRow, type JournalRow } from './journal-row-schema'
 import type { AgentSessionJournal } from './journal-store'
-import { createTrackedJournalOpener } from './journal-store-test-open'
+import { createTrackedJournalOpener } from './journal-host-database-test-support'
 
 const IDENTITY: AgentSessionJournalIdentity = {
   sessionId: 'session-q',
@@ -36,7 +36,7 @@ const journals = createTrackedJournalOpener()
 function open(): Promise<AgentSessionJournal> {
   return journals.open({
     identity: IDENTITY,
-    journalDir: root,
+    stateDirectory: root,
     now: () => ++clock,
     mintEpoch: () => `epoch-${clock}`
   })

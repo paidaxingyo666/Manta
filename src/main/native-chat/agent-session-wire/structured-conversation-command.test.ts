@@ -21,6 +21,7 @@ import {
   hostTestOperationId,
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
+import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
 const caller = { callerKey: 'desktop' }
 let directory: string
@@ -67,7 +68,7 @@ async function openHost(): Promise<void> {
   host = new StructuredAgentSessionHost({
     store,
     adapter,
-    journalRoot: generationRoot(),
+    journalDatabase: openTestJournalHostDatabase(generationRoot()),
     claimKeyId: 'key',
     now: () => clock,
     mintSpawnToken: () => `spawn-${acquisitions}`,

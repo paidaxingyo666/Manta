@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AgentSessionJournalIdentity } from '../../../shared/agent-session-journal-types'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { performCancel, type AgentSessionTurnContext } from './structured-agent-session-turns'
 
@@ -30,7 +30,7 @@ afterEach(async () => {
 describe('performCancel', () => {
   it('acknowledges only the request and leaves the running lifecycle row intact', async () => {
     root = await mkdtemp(join(tmpdir(), 'manta-turn-cancel-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     const lifecycleIdentity = {
       provider: 'legacy' as const,
       agent: 'codex' as const,
@@ -78,7 +78,7 @@ describe('performCancel', () => {
 
   it('hands the adapter a live-turn read of the published journal', async () => {
     root = await mkdtemp(join(tmpdir(), 'orca-turn-cancel-live-turn-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     const lifecycleIdentity = {
       provider: 'legacy' as const,
       agent: 'codex' as const,
@@ -131,7 +131,7 @@ describe('performCancel', () => {
 
   it('keeps the running lifecycle when cancellation cannot be confirmed', async () => {
     root = await mkdtemp(join(tmpdir(), 'orca-turn-cancel-unconfirmed-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     await journal.appendItem(
       {
         provider: 'legacy',
@@ -178,7 +178,7 @@ describe('performCancel', () => {
 
   it('stops background tasks without interrupting the foreground turn or writing a row', async () => {
     root = await mkdtemp(join(tmpdir(), 'orca-background-task-cancel-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     const cancelTurn = vi.fn(async () => ({ cancelled: true }))
     const stopBackgroundTasks = vi.fn(async () => ({ cancelled: true }))
     const ctx: AgentSessionTurnContext = {
@@ -210,7 +210,7 @@ describe('performCancel', () => {
 
   it('routes one background task id without interrupting the foreground turn or writing a row', async () => {
     root = await mkdtemp(join(tmpdir(), 'orca-background-task-targeted-cancel-'))
-    const journal = await journals.open({ identity: IDENTITY, journalDir: root })
+    const journal = await journals.open({ identity: IDENTITY, stateDirectory: root })
     const cancelTurn = vi.fn(async () => ({ cancelled: true }))
     const stopBackgroundTasks = vi.fn(async () => ({ cancelled: true }))
     const ctx: AgentSessionTurnContext = {

@@ -1,5 +1,6 @@
 import type Database from '../../sqlite/sync-database'
-import { insertJournalRow, upsertJournalSessionRow } from './journal-row-table'
+import { insertJournalRow } from './journal-row-table'
+import type { JournalHostDatabase } from './journal-host-database'
 import type { AgentJournalCursor } from '../../../shared/agent-session-journal-types'
 import type { JournalRow } from './journal-row-schema'
 import { assertJournalFence, assertJournalWritable } from './journal-write-guards'
@@ -13,7 +14,7 @@ export type JournalRowWriterDeps = {
   sessionId: string
   now: () => number
   serialize: <T>(run: () => Promise<T>) => Promise<T>
-  database: () => { db: Database.Database }
+  database: () => JournalHostDatabase
   readOnly: () => boolean
   highestFence: () => number
   nextSequence: () => number
@@ -39,16 +40,14 @@ export class JournalRowWriter {
       assertJournalWritable(this.deps.readOnly(), this.deps.sessionId)
       const row = build(this.deps.nextSequence(), this.deps.now())
       assertJournalFence(row.fence, this.deps.highestFence())
-      const { db } = this.deps.database()
-      db.exec('BEGIN IMMEDIATE')
       try {
-        insertJournalRow(db, this.deps.sessionId, row)
-        upsertJournalSessionRow(db, this.deps.sessionId, row.epoch, row.ts)
-        hook?.(db, row)
-        this.runBookkeeping(db, row)
-        db.exec('COMMIT')
+        // One INSERT: the chat's epoch pointer moves only when the epoch does.
+        this.deps.database().transaction((db) => {
+          insertJournalRow(db, this.deps.sessionId, row)
+          hook?.(db, row)
+          this.runBookkeeping(db, row)
+        })
       } catch (error) {
-        db.exec('ROLLBACK')
         this.deps.rolledBack?.()
         throw error
       }

@@ -6,13 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../../../shared/agent-session-mutation-envelope'
 import { STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
 import { activeStructuredAgentSessionTurnId } from '../../../../shared/structured-agent-session-projection'
-import { openJournalDatabase } from '../../../native-chat/agent-session-journal/journal-database'
 import {
-  journalDatabaseFile,
-  journalDirectoryFor
-} from '../../../native-chat/agent-session-journal/journal-paths'
-import {
-  HOST_TEST_LOCATION,
   hostTestAttachParams,
   hostTestMessage,
   hostTestOperationId
@@ -34,6 +28,10 @@ import { RpcDispatcher } from '../dispatcher'
 import { closeStructuredAgentSessionChild } from '../../structured-agent-session-close'
 import { discardStructuredWorkerSession } from './orchestration-structured-worker-session'
 import { STRUCTURED_AGENT_SESSION_METHODS } from './structured-agent-session'
+import {
+  openTestJournalHostDatabase,
+  updateTestJournalRowJson
+} from '../../../native-chat/agent-session-journal/journal-host-database-test-support'
 
 const CLIENT = {
   clientId: 'device-1',
@@ -313,17 +311,8 @@ describe('the accessor', () => {
   it('opens a corrupt journal through the recovering open and still accepts a send (P2-03)', async () => {
     await foundRestTestChat(rig)
     await rig.host.flushAllStreamedEvents()
-    const directory = journalDirectoryFor(rig.root, {
-      workspaceId: HOST_TEST_LOCATION.workspaceId,
-      sessionId: SESSION
-    })
     // A row that no longer parses: the recovering open keeps the readable prefix and rebuilds.
-    const opened = openJournalDatabase(journalDatabaseFile(directory))
-    try {
-      opened.db.prepare('UPDATE journal_rows SET row_json = ? WHERE seq = ?').run('}{', 2)
-    } finally {
-      opened.db.close()
-    }
+    updateTestJournalRowJson(openTestJournalHostDatabase(rig.root).db, SESSION, 2, '}{')
     await rig.restart()
     setStructuredAgentSessionHost(rig.host)
 

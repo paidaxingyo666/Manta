@@ -22,7 +22,6 @@ import {
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
 import { openAgentSessionJournal } from '../agent-session-journal/journal-store-factory'
-import { journalDirectoryFor } from '../agent-session-journal/journal-paths'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { ensureStructuredAgentSessionAgent } from './structured-agent-session-agent-start'
@@ -38,6 +37,7 @@ import {
   hostTestOperationId,
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
+import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
 const CALLER = { callerKey: 'client-1' }
 
@@ -89,7 +89,7 @@ function startHost(): void {
       setOption: vi.fn(async () => undefined),
       ...adapterExtras
     },
-    journalRoot: root,
+    journalDatabase: openTestJournalHostDatabase(root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => `spawn-${acquire.mock.calls.length}`,
     now: () => NOW
@@ -332,10 +332,7 @@ describe('settling an earlier child before the next one takes its message', () =
         agent: 'codex',
         providerHandle: { kind: 'codex', threadId: THREAD }
       },
-      journalDir: journalDirectoryFor(root, {
-        workspaceId: HOST_TEST_LOCATION.workspaceId,
-        sessionId: SESSION
-      })
+      database: openTestJournalHostDatabase(root)
     })
     await journal.appendItem(
       { provider: 'codex', threadId: THREAD, turnId: 'earlier-turn', ordinal: 0 },

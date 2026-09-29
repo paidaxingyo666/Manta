@@ -11,7 +11,7 @@ import type {
   AgentJournalItemIdentity
 } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionStatusSummary } from '../../../shared/agent-session-wire'
-import { createTrackedJournalOpener } from '../agent-session-journal/journal-store-test-open'
+import { createTrackedJournalOpener } from '../agent-session-journal/journal-host-database-test-support'
 import { StructuredAgentSessionStatusFeed } from './structured-agent-session-status-feed'
 import { indexedStatusFeedSession } from './structured-agent-session-status-feed-test-session'
 
@@ -57,7 +57,7 @@ async function openFeed() {
       providerHandle: { kind: 'codex', threadId: THREAD }
     },
     now: () => (clock += 100),
-    journalDir: join(root, SESSION)
+    stateDirectory: join(root, SESSION)
   })
   const feed = new StructuredAgentSessionStatusFeed({
     sessions: new Map([[SESSION, indexedStatusFeedSession({ journal })]]),

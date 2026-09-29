@@ -200,7 +200,8 @@ const REASON_WORDS = {
     // No retry reads past damage, and the words name no step: it only can't load.
     journalCorrupt: causeWords('historyUnusable', 'hostFinding'),
     // Says its step despite 'retry' unless a Retry stands beside it: the phone often has none.
-    journalUnavailable: causeWords('historyUnavailable', 'retry', 'tryAgain')
+    journalUnavailable: causeWords('historyUnavailable', 'retry', 'tryAgain'),
+    journalWrittenByNewerOrca: causeWords('savedByNewerOrca', 'updateOrca', 'updateOrcaToKeepUsing')
   },
   // Thrown, so a client meets these only as an RPC error; the code's words stand.
   structured_agent_session_unsupported: {
@@ -226,11 +227,12 @@ export function agentSessionRefusalReasonWords(
   return reason === undefined ? undefined : byReason?.[reason]
 }
 
-// Each already says the history was not read.
+// Each already says the history can't be read here.
 const HISTORY_CAUSES: ReadonlySet<AgentSessionWriteNoticeSentence> = new Set([
   'historyUnusable',
   'historyUnavailable',
-  'historyUnreadable'
+  'historyUnreadable',
+  'savedByNewerOrca'
 ])
 
 /** A cause, and that the request did not happen unless the cause already says so. */

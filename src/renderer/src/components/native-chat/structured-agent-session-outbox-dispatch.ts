@@ -3,7 +3,12 @@ import type {
   AgentSessionSendResult
 } from '../../../../shared/agent-session-wire'
 import {
+  agentSessionRefusalFailure,
+  readAgentSessionErrorRefusal
+} from '../../../../shared/agent-session-write-failure'
+import {
   disposeStructuredAgentSessionSendFailure,
+  disposeStructuredAgentSessionSendRefusal,
   disposeStructuredAgentSessionSendResult,
   type StructuredAgentSessionSendDisposition
 } from '../../../../shared/structured-agent-session-send-disposition'
@@ -133,14 +138,25 @@ export function dispatchStructuredAgentSessionOutboxEntry(args: {
       if (args.dispatchGenerationRef.current !== args.dispatchGeneration) {
         return false
       }
+      const input = {
+        entries: args.outboxRef.current,
+        entry: args.next,
+        blockedClientMessageId: args.blockedIdRef.current
+      }
+      const thrown = readAgentSessionErrorRefusal(caught)
+      const refusal = thrown ? agentSessionRefusalFailure(thrown) : undefined
       args.applyDisposition(
-        disposeStructuredAgentSessionSendFailure({
-          entries: args.outboxRef.current,
-          entry: args.next,
-          blockedClientMessageId: args.blockedIdRef.current,
-          cause: caught,
-          isDeliveryUnknown: isDesktopDeliveryUnknown
-        })
+        refusal
+          ? disposeStructuredAgentSessionSendRefusal({
+              ...input,
+              refusal,
+              createOperationId: args.createOperationId
+            })
+          : disposeStructuredAgentSessionSendFailure({
+              ...input,
+              cause: caught,
+              isDeliveryUnknown: isDesktopDeliveryUnknown
+            })
       )
       return false
     }
