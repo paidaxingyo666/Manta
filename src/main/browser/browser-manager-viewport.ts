@@ -41,11 +41,13 @@ export abstract class BrowserManagerViewport extends BrowserManagerDownloadLifec
     // Why: chain per-tab so rapid toggles don't interleave CDP commands and the last-requested override wins.
     const expectedWebContentsId = this.webContentsIdByTabId.get(browserTabId)
     if (expectedWebContentsId !== undefined) {
-      // Record the request before CDP runs: host panning and the tab's identity both follow it, so a
-      // navigation mid-apply already sees it. The guest id fence keeps it off a replacement guest.
+      // Record the request before CDP runs so host panning follows it at once. What is applied only
+      // moves once Chromium accepts it. The guest id fence keeps both off a replacement guest.
+      const previous = this.viewportPresetByTabId.get(browserTabId)
       this.viewportPresetByTabId.set(browserTabId, {
         guestWebContentsId: expectedWebContentsId,
-        override
+        requested: override,
+        applied: previous?.guestWebContentsId === expectedWebContentsId ? previous.applied : null
       })
     }
     // The renderer resizes the host before CDP completes; discard the old geometry until it
@@ -161,6 +163,11 @@ export abstract class BrowserManagerViewport extends BrowserManagerDownloadLifec
             })
           : dbg.sendCommand('Emulation.clearDeviceMetricsOverride', {})
     )
+    // Why record before any further await: a debugger detach clears the metrics, and its handler
+    // must land after this write, not be overwritten by it.
+    if (metricsApplied) {
+      this.recordAppliedViewportOverride(browserTabId, webContentsId, override)
+    }
     const touchApplied = await this.runViewportEmulationStep(browserTabId, 'touch emulation', () =>
       dbg.sendCommand(
         'Emulation.setTouchEmulationEnabled',
@@ -170,8 +177,8 @@ export abstract class BrowserManagerViewport extends BrowserManagerDownloadLifec
     if (this.webContentsIdByTabId.get(browserTabId) !== webContentsId) {
       return false
     }
-    // Why: identity is not an emulation step. It follows the requested preset whatever the steps
-    // above did, so a failed metrics or touch write can never strand a mobile identity on the tab.
+    // Why: identity follows the device metrics Chromium actually holds, not the request, so a failed
+    // metrics write never pairs a phone identity with a desktop viewport, or the reverse.
     const identityApplied = await this.runViewportEmulationStep(browserTabId, 'identity', () =>
       this.retargetTabIdentity(guest, this.resolveTabNavigationUrl(guest))
     )
