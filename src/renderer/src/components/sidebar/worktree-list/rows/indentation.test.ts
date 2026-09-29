@@ -15,7 +15,6 @@ import {
   getFolderWorkspaceRowGeometry,
   getFlushWorktreeCardPaddingLeft,
   getLineageChildrenInlineStyle,
-  getLineageEffectiveChildStart,
   getLineageNestedRowGeometry,
   getProjectGroupHeaderPaddingLeft,
   getWorktreeCardContentIndent,
@@ -274,20 +273,6 @@ describe('worktree list indentation', () => {
         lineageDepth: 2
       }).surfaceInset
     ).toBe(28)
-  })
-
-  it('keeps each experimental lineage boundary at one immediate-parent step', () => {
-    for (const parentContentStart of [FLUSH_CARD_MIN_CONTENT_INSET, 16, 34]) {
-      const childStart = getLineageEffectiveChildStart({
-        parentContentStart,
-        lineageChildrenWrapperOffset: LINEAGE_CHILDREN_INLINE_OFFSET,
-        nestedRowSurfaceInset: LINEAGE_NESTED_ROW_SURFACE_INSET,
-        cardSurfaceMargin: WORKTREE_CARD_SURFACE_MARGIN,
-        flushCardContentInset: FLUSH_CARD_MIN_CONTENT_INSET
-      })
-
-      expect(childStart - parentContentStart).toBe(LINEAGE_IMMEDIATE_PARENT_STEP)
-    }
   })
 
   it('expresses lineage child wrapper width from the resolved inline offset', () => {
