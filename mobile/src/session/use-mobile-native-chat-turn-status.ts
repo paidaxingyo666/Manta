@@ -28,6 +28,7 @@ export function useMobileNativeChatTurnStatus({
   workingStartedAt,
   settledTurns,
   activeTurnOpenedBy = null,
+  turnKeysByItemId = null,
   thinking = false,
   scopeKey
 }: {
@@ -39,6 +40,9 @@ export function useMobileNativeChatTurnStatus({
   settledTurns?: NativeChatSettledTurns | null
   /** The user message the host says opened the running turn; absent, the latest one. */
   activeTurnOpenedBy?: string | null
+  /** Host-attributed turn ownership; a turn keyed to its own record is still in
+   *  the transcript, so its clock is not an echo to hand to the next prompt. */
+  turnKeysByItemId?: ReadonlyMap<string, string> | null
   /** Whether the turn is reasoning right now, derived from its journal content. */
   thinking?: boolean
   /** Host/worktree/tab identity. Timings never carry across chat surfaces. */
@@ -72,6 +76,9 @@ export function useMobileNativeChatTurnStatus({
     const validTurnKeys = new Set(
       messages.filter((message) => message.role === 'user').map((message) => message.id)
     )
+    for (const turnKey of turnKeysByItemId?.values() ?? []) {
+      validTurnKeys.add(turnKey)
+    }
     const previousActiveTurnKey =
       previousActiveTurn.current?.scopeKey === scopeKey
         ? previousActiveTurn.current.turnKey
@@ -92,7 +99,7 @@ export function useMobileNativeChatTurnStatus({
         ? current
         : { scopeKey, timingByTurn: nextTiming }
     })
-  }, [activeTurnKey, enabled, isWorking, messages, scopeKey, workingStartedAt])
+  }, [activeTurnKey, enabled, isWorking, messages, scopeKey, turnKeysByItemId, workingStartedAt])
 
   // Why: the selection rebuilds its status objects on every call, and a streaming
   // turn re-renders ~20x/s. Without this, every settled turn's row gets fresh

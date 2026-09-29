@@ -533,8 +533,8 @@ describe('codex turn lifecycle rows', () => {
       })
     ).toEqual({ accepted: true })
 
+    // Each record precedes its turn's items, the order the live path writes.
     expect(tap.rows).toEqual([
-      expect.objectContaining({ body: expect.objectContaining({ kind: 'message' }) }),
       {
         key: 'legacy:codex:session-1:turn-lifecycle%3Aturn-done',
         body: {
@@ -548,6 +548,7 @@ describe('codex turn lifecycle rows', () => {
           durationMs: 41_900
         }
       },
+      expect.objectContaining({ body: expect.objectContaining({ kind: 'message' }) }),
       {
         key: 'legacy:codex:session-1:turn-lifecycle%3Aturn-cut',
         body: {

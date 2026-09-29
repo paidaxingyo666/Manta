@@ -280,6 +280,7 @@ export function NativeChatStructuredSession(
             workingStartedAt={controller.workingStartedAt}
             settledTurns={controller.settledTurns}
             activeTurnOpenedBy={controller.activeTurnOpenedBy}
+            turnKeysByItemId={controller.turnKeysByItemId}
             showTurnStatus
             showLiveTurnActivity={prompt === null}
             turnActivity={controller.turnActivity}

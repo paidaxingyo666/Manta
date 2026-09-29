@@ -333,7 +333,7 @@ describe('turns whose host names no opener', () => {
     expect([...selectStructuredAgentSettledTurns(items).keys()]).toEqual(['manta:u1'])
   })
 
-  it('falls back for a turn the provider opened and keyed to itself', () => {
+  it('anchors a turn the provider opened to its own record, never a bystander prompt', () => {
     const self = 'legacy:claude:55368cfb:turn-lifecycle%3Aresumed'
     const items = [
       user(1, 'u1', 1_000),
@@ -344,7 +344,37 @@ describe('turns whose host names no opener', () => {
         userItemId: self
       })
     ]
-    expect(selectStructuredAgentTurnBars(items, [], 'resumed').activeTurnOpenedBy).toBeNull()
+    expect(selectStructuredAgentTurnBars(items, [], 'resumed').activeTurnOpenedBy).toBe(self)
+  })
+
+  it('keeps the running bar on the send Codex opened a turn for before it echoes it', () => {
+    // Codex reports turn/started before hooks and prewarm run, so the turn names its
+    // provider key while the send that opened it is still pending (no alias yet).
+    const key = 'codex:thread:t2:0'
+    const items: AgentJournalRenderItem[] = [
+      user(1, 'first', 1_000),
+      turn(2, 1_100, {
+        turnId: 't1',
+        state: 'completed',
+        userItemId: 'manta:first',
+        startedAt: 1_100,
+        completedAt: 2_000
+      }),
+      tool(3, 1_500),
+      user(4, 'second', 3_000),
+      turn(5, 3_100, { turnId: 't2', state: 'running', startedAt: 3_100, userItemId: key })
+    ]
+    const submissions = [accepted('first', 'claude:first'), accepted('second', null)]
+    const bars = selectStructuredAgentTurnBars(items, submissions, 't2')
+    expect(bars.activeTurnOpenedBy).toBe('manta:second')
+    expect(bars.turnKeysByItemId.get('manta:second')).toBe('manta:second')
+    // A turn with no send in flight still anchors to its own record.
+    const selfOpened = selectStructuredAgentTurnBars(
+      items,
+      [accepted('first', 'claude:first'), accepted('second', 'claude:second')],
+      't2'
+    )
+    expect(selfOpened.activeTurnOpenedBy).toBe('legacy:claude:55368cfb:turn-lifecycle%3At2')
   })
 
   it('names nothing for the unanchored transcript', () => {
@@ -397,5 +427,106 @@ describe('the previous turn has no recorded end', () => {
       ).runningTiming!
     expect(structuredAgentTurnOrigin(queued(6_000))).toBe(6_000)
     expect(structuredAgentTurnOrigin(queued(12_000))).toBe(9_000)
+  })
+})
+
+describe('which turn owns each transcript row', () => {
+  const keysOf = (snapshot: {
+    turnId: string | null
+    items: AgentJournalRenderItem[]
+    submissions: AgentJournalSubmission[]
+  }) =>
+    selectStructuredAgentTurnBars(snapshot.items, snapshot.submissions, snapshot.turnId)
+      .turnKeysByItemId
+
+  it('keeps the rows Claude produces after a mid-turn send with the turn that ran them', () => {
+    // The #23621 shape: B lands mid-turn and three tool calls follow, one turn.
+    const midTurn = {
+      turnId: turn1.turnId,
+      items: [
+        user(54, 'A', A.sent),
+        turn(57, T + 77_224, {
+          ...turn1,
+          state: 'running',
+          startedAt: A.started,
+          requestedAt: A.sent
+        }),
+        tool(58, T + 77_300),
+        user(60, 'B', B.sent),
+        tool(61, T + 80_100),
+        tool(62, T + 80_200),
+        tool(63, T + 80_300)
+      ],
+      submissions: [accepted('A', turn1.userItemId), accepted('B', null)]
+    }
+    const keys = keysOf(midTurn)
+    expect(keys.get('manta:A')).toBe('manta:A')
+    expect(keys.get('manta:B')).toBe('manta:A')
+    for (const sequence of [58, 61, 62, 63]) {
+      expect(keys.get(`manta:claude-tool%3A${sequence}`)).toBe('manta:A')
+    }
+  })
+
+  it('leaves a fresh tail send unowned until the turn proves it continued past it', () => {
+    // B is the newest row: nothing after it says the running turn absorbed it.
+    expect(keysOf(whileQueued).has('manta:B')).toBe(false)
+    // B's own turn opened: B is an opener and keys itself.
+    expect(keysOf(whileB).get('manta:B')).toBe('manta:B')
+    expect(keysOf(whileB).get(`manta:claude-tool%3A58`)).toBe('manta:A')
+  })
+
+  it('folds a Codex-coalesced send into the turn its provider key names', () => {
+    const key = 'codex:thread:t1:0'
+    const items: AgentJournalRenderItem[] = [
+      user(1, 'first', 1_000),
+      {
+        itemId: 'legacy:codex:s:turn-lifecycle%3At1',
+        revision: 1,
+        sequence: 2,
+        observedAt: 1_200,
+        body: {
+          kind: 'turn',
+          turnId: 't1',
+          state: 'running',
+          userItemId: key,
+          requestedAt: 1_000,
+          startedAt: 1_200
+        }
+      },
+      user(3, 'second', 4_000),
+      tool(4, 5_000)
+    ]
+    const submissions = [accepted('first', key), accepted('second', key)]
+    const keys = keysOf({ turnId: 't1', items, submissions })
+    expect(keys.get('manta:first')).toBe('manta:first')
+    expect(keys.get('manta:second')).toBe('manta:first')
+    expect(keys.get('manta:claude-tool%3A4')).toBe('manta:first')
+  })
+
+  it('keys a provider-opened turn and its rows to the turn record itself', () => {
+    const self = 'legacy:claude:55368cfb:turn-lifecycle%3Aresumed'
+    const items = [
+      user(1, 'u1', 1_000),
+      turn(2, 5_000, {
+        turnId: 'resumed',
+        state: 'running',
+        startedAt: 5_000,
+        userItemId: self
+      }),
+      tool(3, 6_000)
+    ]
+    const keys = keysOf({ turnId: 'resumed', items, submissions: [] })
+    // u1 predates the wake turn and never opened one: positional grouping keeps it.
+    expect(keys.has('manta:u1')).toBe(false)
+    expect(keys.get('manta:claude-tool%3A3')).toBe(self)
+  })
+
+  it('attributes nothing for an older host that names no opener', () => {
+    const items = [
+      user(1, 'u1', 1_000),
+      turn(2, 1_100, { turnId: 't1', state: 'running', startedAt: 1_100 }),
+      tool(3, 1_200)
+    ]
+    expect(keysOf({ turnId: 't1', items, submissions: [] }).size).toBe(0)
   })
 })

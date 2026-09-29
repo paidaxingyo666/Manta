@@ -12,7 +12,8 @@ import {
 } from '../../../../shared/structured-agent-turn-clock-anchor'
 
 /** Host-recorded turn timing for the structured lane: settled durations straight
- *  off the journal, the user message that owns the running turn's bar, and a
+ *  off the journal, the transcript key that owns the running turn's bar, each
+ *  row's owning turn, and a
  *  skew-free start for the live counter whose host-to-local conversion is latched
  *  once per turn. */
 export function useStructuredAgentTurnTiming(
@@ -30,8 +31,9 @@ export function useStructuredAgentTurnTiming(
   settledTurns: NativeChatSettledTurns
   workingStartedAt: number | null
   activeTurnOpenedBy: string | null
+  turnKeysByItemId: ReadonlyMap<string, string>
 } {
-  const { settledTurns, runningTiming, activeTurnOpenedBy } = useMemo(
+  const { settledTurns, runningTiming, activeTurnOpenedBy, turnKeysByItemId } = useMemo(
     () => selectStructuredAgentTurnBars(items, submissions, turnId),
     [items, submissions, turnId]
   )
@@ -48,5 +50,10 @@ export function useStructuredAgentTurnTiming(
   if (step.latch !== latch) {
     setLatch(step.latch)
   }
-  return { settledTurns, workingStartedAt: step.workingStartedAt, activeTurnOpenedBy }
+  return {
+    settledTurns,
+    workingStartedAt: step.workingStartedAt,
+    activeTurnOpenedBy,
+    turnKeysByItemId
+  }
 }

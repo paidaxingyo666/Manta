@@ -83,7 +83,6 @@ function loadedRailItems(items: AgentJournalRenderItem[], submissions: AgentJour
     messages,
     turnKeys,
     activeTurnKey: selectNativeChatActiveTurnKey(messages),
-    currentTurnKey: turn,
     receipts: new Map<string, NativeChatResolvedPrompt>(),
     turnStatuses: { active: null, completedByTurn: {} },
     turnDiffs: new Map<string, NativeChatTurnDiff>(),
