@@ -52,8 +52,7 @@ type StructuredSessionMessageListProps = {
   allowFileUriLinks?: boolean
   isVisible?: boolean
   onLinkClick?: (...args: unknown[]) => void
-  showTurnStatus?: boolean
-  showLiveTurnActivity?: boolean
+  awaitingInput?: 'shown' | 'unshown' | null
   isWorking?: boolean
   runtimeContext?: unknown
   session?: { hasMore: boolean; loadingEarlier: boolean; loadEarlier: () => Promise<void> }

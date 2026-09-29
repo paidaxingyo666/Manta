@@ -17681,6 +17681,7 @@
       "railEmptyMessage": "メッセージ",
       "ask": {
         "awaiting": "ユーザー入力を待っています:",
+        "awaitingUnnamed": "ユーザー入力を待っています",
         "asked": "質問:",
         "questionCount": "{{value0}} の質問"
       },

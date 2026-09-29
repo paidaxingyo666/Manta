@@ -23,7 +23,7 @@ export function useNativeChatTurnStatus({
   activeTurnKey: string
   isWorking: boolean
   workingStartedAt?: number | null
-  /** Host-recorded durations; they outrank whatever this client observed. */
+  /** Recorded durations (the host's journal or the transcript); they outrank what this client observed. */
   settledTurns?: NativeChatSettledTurns | null
   /** Whether the turn is reasoning right now, derived from its journal content. */
   thinking?: boolean

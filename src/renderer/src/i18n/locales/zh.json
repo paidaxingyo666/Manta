@@ -17646,6 +17646,7 @@
       "railEmptyMessage": "信息",
       "ask": {
         "awaiting": "等待用户输入：",
+        "awaitingUnnamed": "等待用户输入",
         "asked": "问：",
         "questionCount": "{{value0}} 问题"
       },

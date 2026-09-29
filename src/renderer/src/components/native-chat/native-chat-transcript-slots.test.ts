@@ -43,7 +43,6 @@ function build(
     receipts: new Map<string, NativeChatResolvedPrompt>(),
     turnStatuses: NO_STATUSES,
     turnDiffs: new Map<string, NativeChatTurnDiff>(),
-    showTurnStatus: true,
     expandedTurnKeys: new Set<string>(),
     isWorking: false,
     lifecycleWorking: false,

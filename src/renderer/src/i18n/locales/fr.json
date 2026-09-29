@@ -17745,6 +17745,7 @@
       "railEmptyMessage": "Message",
       "ask": {
         "awaiting": "En attente de la saisie de l'utilisateur :",
+        "awaitingUnnamed": "En attente de la saisie de l'utilisateur",
         "asked": "Demandé:",
         "questionCount": "{{value0}} questions"
       },

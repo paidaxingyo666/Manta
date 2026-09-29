@@ -2674,6 +2674,7 @@
       "ask": {
         "asked": "Asked:",
         "awaiting": "Awaiting user input:",
+        "awaitingUnnamed": "Awaiting user input",
         "questionCount": "{{value0}} questions"
       },
       "composer": {
