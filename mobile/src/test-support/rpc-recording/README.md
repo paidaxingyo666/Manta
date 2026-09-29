@@ -529,9 +529,15 @@ a tree that does not produce them, which is the one claim this header exists to 
    derived scenarios rather than the manifest, so a repin alone never moves it.
 5. Commit the repin and the refresh together, and state the cause.
 
-After a squash-merge the pinned sha is unreachable from main, so the next recording on main repins
-to main's tip in a follow-up — the same two-step #20563 and #20895 used. A reviewer checking an
-in-flight branch resolves the pin against the branch, where it is a real commit.
+A squash-merge leaves the pinned sha out of main's history, and no follow-up repin is needed: the
+pin guard asks GitHub which pull requests contain the pinned commit
+(`GET /repos/{owner}/{repo}/commits/{sha}/pulls`), fetches each one's `refs/pull/<n>/head`, which
+GitHub keeps after the branch is deleted, and passes only when git finds the pin in one of those
+heads. The squash title plays no part, so editing it at merge time is safe. Run `pnpm --dir mobile
+exec tsx scripts/rpc-recording-pin-guard.mts reachable` to fetch a pin your clone does not have
+before checking it out. It works without a token, and sends `GITHUB_TOKEN` or `GH_TOKEN` when one
+is set, which lifts GitHub's unauthenticated rate limit. A reviewer checking an in-flight branch
+resolves the pin against the branch, where it is a real commit.
 
 Editing the recorder engine on a migration branch is the awkward case: `recorderSha256` moves, so
 every golden needs rewriting, but the product tree no longer matches `baseline`, and bumping
