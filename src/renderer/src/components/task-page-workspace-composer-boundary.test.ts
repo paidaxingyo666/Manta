@@ -110,7 +110,7 @@ describe('TaskPage workspace creation source boundaries', () => {
     expect(section).toContain('findGithubWorkItemWorkspaceAttachment(')
     expect(section).toContain('if (!currentAttached)')
     expect(section).toContain('handleUseWorkItem(item)')
-    expect(section).toContain('activateAndRevealWorktree(currentAttached.id)')
+    expect(section).toContain('activateAndRevealWorktree(currentAttached.id, {')
   })
 
   it('uses the shared composer handler from GitHub detail and start-new actions', () => {

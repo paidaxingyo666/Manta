@@ -33,7 +33,7 @@ describe('agent launch caller profiles', () => {
     const ids = AGENT_LAUNCH_CALLER_PROFILES.map((profile) => profile.id)
 
     expect(new Set(ids).size).toBe(ids.length)
-    expect(ids.length).toBe(12)
+    expect(ids.length).toBe(13)
   })
 
   it.each(AGENT_LAUNCH_CALLER_PROFILES.map((profile) => [profile.id, profile] as const))(
@@ -70,6 +70,7 @@ describe('agent launch caller profiles', () => {
     // Why: this is the coupling a move to an async launch RPC threatens most directly — these
     // call sites cannot tolerate a tab id that only exists after the launch settles.
     expect(readers.sort()).toEqual([
+      'empty-workspace-default-chat',
       'fix-checks',
       'floating-default-agent',
       'quick-command',

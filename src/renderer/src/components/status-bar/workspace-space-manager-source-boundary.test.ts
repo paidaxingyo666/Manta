@@ -74,6 +74,6 @@ describe('workspace space manager source boundaries', () => {
     expect(controller).toContain(
       'removeWorktree(\n        { id: worktree.worktreeId, executionHostId: worktree.executionHostId ?? null },\n        true,\n        { allowUnverifiedPtyStop: true }\n      )'
     )
-    expect(table).toContain('activateAndRevealWorktree(worktree.worktreeId)')
+    expect(table).toContain('activateAndRevealWorktree(worktree.worktreeId, {')
   })
 })

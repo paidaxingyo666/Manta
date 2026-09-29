@@ -59,6 +59,21 @@ export const AGENT_LAUNCH_CALLER_PROFILES: readonly AgentLaunchCallerProfile[] =
     readsBack: ['null-only']
   },
   {
+    id: 'empty-workspace-default-chat',
+    caller: 'src/renderer/src/lib/empty-workspace-default-agent-chat.ts',
+    sourceMarkers: ["launchSource: 'unknown'", 'pendingActivationSpawn: true'],
+    args: {
+      agent: 'codex',
+      worktreeId: 'wt-1',
+      launchSource: 'unknown',
+      pendingActivationSpawn: true
+    },
+    passesBeforeSurfaceOpen: false,
+    passesLaunchPlan: true,
+    passesOnPromptDelivered: false,
+    readsBack: ['surface-tab-id']
+  },
+  {
     id: 'floating-default-agent',
     caller: 'src/renderer/src/components/floating-terminal/FloatingTerminalWindowControls.tsx',
     sourceMarkers: ['worktreeId: FLOATING_TERMINAL_WORKTREE_ID', "launchSource: 'shortcut'"],
