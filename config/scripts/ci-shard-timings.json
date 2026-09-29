@@ -193,7 +193,6 @@
       "config/scripts/package-electron-runtime-contract.test.mjs": 447,
       "config/scripts/package-linux-formats.test.mjs": 208,
       "config/scripts/packaged-browser-lane-contract.test.mjs": 104,
-      "config/scripts/packaged-hang-watchdog-worker-contract.test.mjs": 161,
       "config/scripts/packaged-node-pty-prebuild-prune.test.mjs": 93,
       "config/scripts/packaged-source-map-prune.test.mjs": 117,
       "config/scripts/patched-dependencies-frozen-install.test.mjs": 900,

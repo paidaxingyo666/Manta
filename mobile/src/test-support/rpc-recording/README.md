@@ -185,15 +185,13 @@ five spellings were five independent ways to reach a `ReferenceError` seconds in
 `hostClientContextExposure` is the one copy; the trade is that it sits inside `recorderSha256`, so
 editing it re-records all 787 goldens rather than the five families. A rename of the local is still
 invisible to `tsc` — nothing short of editing the product module makes a private local checkable —
-so `adapter-seam.test.ts` asserts the declaration it names exists exactly once, and refuses a sixth
-inline copy.
+so a rename lands as a `ReferenceError` in every recording that mounts through it.
 
-The adapter seam is the directory, not a filename convention, because a convention is a rule nobody
-enforces. `adapter-seam.test.ts` enforces this one: every file under `adapters/` is a registered
-module, every registered module is declared in the file it is registered under, no adapter module
-imports a sibling (which would leave a golden pinned to one module and driven by two), and
-`pilotMountAdapters` mounts nothing of its own — an adapter defined in an engine file would be
-pinned by `recorderSha256` on all 153 goldens instead of by `adapterSha256` on its own.
+The adapter seam is the directory, not a filename convention: every file under `adapters/` is a
+registered module, every registered module is declared in the file it is registered under, no
+adapter module imports a sibling (which would leave a golden pinned to one module and driven by
+two), and `pilotMountAdapters` mounts nothing of its own — an adapter defined in an engine file
+would be pinned by `recorderSha256` on all 153 goldens instead of by `adapterSha256` on its own.
 
 `scenarioSha256` covers the scenario input _that golden_ was recorded from — one manifest scenario
 for a pilot golden, the generated variants and any hoisted prelude for a matrix or schedule golden,

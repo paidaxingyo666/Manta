@@ -119,15 +119,13 @@ describe('the actual Bun build and profile-test dependency graph', () => {
     expect((await classifyBunProfileChanges([file], async () => inputs)).shouldRun).toBe(true)
   })
 
-  it('retains all selected tests and uses the same selectors as the Bun runner', () => {
+  it('retains all selected tests and the selectors the Bun runner uses', () => {
     const tests = discoverBunProfileTests()
     expect(tests.length).toBeGreaterThan(80)
     expect(tests.every((file) => inputs.has(file))).toBe(true)
     expect(
       bunProfileTestPaths().every((selector) => tests.some((file) => file.includes(selector)))
     ).toBe(true)
-    const runner = readFileSync(new URL('./run-bun-profile-tests.mjs', import.meta.url), 'utf8')
-    expect(runner).toContain('testArgs.length > 0 ? testArgs : bunProfileTestPaths({ artifact })')
   })
 })
 

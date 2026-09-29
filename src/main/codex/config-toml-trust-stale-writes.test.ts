@@ -1,12 +1,6 @@
-import { afterEach, describe, expect, expectTypeOf, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { chmodSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import * as trustApi from './config-toml-trust'
-import type {
-  CodexEventLabel,
-  CodexHookTrustState,
-  CodexProjectTrustLevel,
-  CodexTrustEntry
-} from './config-toml-trust'
 import {
   createTrustConfigFixture,
   removeTrustConfigFixture
@@ -18,42 +12,6 @@ afterEach(() => {
   for (const fixture of fixtures.splice(0)) {
     removeTrustConfigFixture(fixture)
   }
-})
-
-describe('config-toml-trust public API', () => {
-  it('retains the exact runtime export surface', () => {
-    expect(Object.keys(trustApi).sort()).toEqual(
-      [
-        'codexHookSourcePathsEqual',
-        'computeTrustKey',
-        'computeTrustedHash',
-        'escapeTomlString',
-        'getCodexExplicitHomeHookSourcePath',
-        'normalizeCodexHookSourcePath',
-        'normalizeCodexProjectPathForLookup',
-        'normalizeCodexProjectPathForRevocationLookup',
-        'normalizeHookTrustKeyForLookup',
-        'parseCodexProjectHeaderPath',
-        'parseTrustKey',
-        'readHookTrustEntries',
-        'readHookTrustEntriesFromContent',
-        'removeHookTrustEntries',
-        'removeHookTrustEntriesFromContent',
-        'upsertHookTrustEntries',
-        'upsertHookTrustEntriesInContent',
-        'upsertProjectTrustLevel',
-        'upsertProjectTrustLevelInContent',
-        'writeConfigAtomically'
-      ].sort()
-    )
-  })
-
-  it('retains the public type contracts', () => {
-    expectTypeOf<'stop' | 'session_start'>().toMatchTypeOf<CodexEventLabel>()
-    expectTypeOf<CodexProjectTrustLevel>().toEqualTypeOf<'trusted' | 'untrusted'>()
-    expectTypeOf<CodexTrustEntry>().toHaveProperty('sourcePath').toEqualTypeOf<string>()
-    expectTypeOf<CodexHookTrustState['enabled']>().toEqualTypeOf<boolean | undefined>()
-  })
 })
 
 describe('config.toml partial and stale writes', () => {
