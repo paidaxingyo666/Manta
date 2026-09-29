@@ -170,6 +170,16 @@ export function codexSessionLifecycle(
   }
 }
 
+/** A child that exited while being acquired never becomes the session's. */
+export function assertCodexConnectionOpen(
+  connection: Pick<CodexAppServerConnection, 'closed'>,
+  sessionId: string
+): void {
+  if (connection.closed) {
+    throw new Error(`codex app-server for session ${sessionId} exited while being acquired`)
+  }
+}
+
 export function requireLiveCodexSession(
   sessions: Map<string, CodexSession>,
   sessionId: string

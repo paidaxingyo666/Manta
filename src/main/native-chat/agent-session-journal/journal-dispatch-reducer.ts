@@ -7,6 +7,7 @@ import {
 } from '../../../shared/agent-session-failure'
 import { agentJournalSubmissionKey } from '../../../shared/agent-session-journal-item-key'
 import type { JournalReducerState } from './journal-reducer'
+import { placeHandedOverMessage } from './journal-submission-fold'
 import type { JournalRow } from './journal-row-schema'
 
 export function applyJournalDispatchRow(
@@ -39,6 +40,7 @@ export function applyJournalDispatchRow(
   submission.resolvedAt = row.state === 'pending' ? null : row.ts
   if (row.state === 'pending') {
     submission.handedOverAt = row.ts
+    placeHandedOverMessage(state, submission, row)
   }
   if (row.recovered) {
     submission.recovered = row.recovered

@@ -1,3 +1,4 @@
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -54,7 +55,7 @@ async function seedUnfinishedWork(): Promise<void> {
   await journal.appendItem(
     { provider: 'codex', threadId: THREAD, turnId: 'turn-1', ordinal: 1 },
     { kind: 'tool-call', name: 'shell', input: { command: 'pnpm test' }, state: 'running' },
-    { fence: 7 }
+    { fence: 7, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
   )
   await journal.appendItem(
     { provider: 'codex', threadId: THREAD, turnId: 'turn-1', ordinal: 2 },
@@ -65,7 +66,7 @@ async function seedUnfinishedWork(): Promise<void> {
       options: [{ id: 'yes', label: 'Allow' }],
       resolution: { state: 'pending', selectedOptionId: null, resolvedBy: null, resolvedAt: null }
     },
-    { fence: 7 }
+    { fence: 7, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
   )
   await journal.appendItem(
     { provider: 'codex', threadId: THREAD, turnId: 'turn-1', ordinal: 3 },
@@ -75,12 +76,12 @@ async function seedUnfinishedWork(): Promise<void> {
       options: [{ id: 'web', label: 'Web' }],
       resolution: { state: 'pending', selectedOptionId: null, resolvedBy: null, resolvedAt: null }
     },
-    { fence: 7 }
+    { fence: 7, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
   )
   await journal.appendItem(
     { provider: 'codex', threadId: THREAD, turnId: 'turn-1', ordinal: 4 },
     { kind: 'turn', turnId: 'turn-1', state: 'running', startedAt: 900 },
-    { fence: 7 }
+    { fence: 7, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
   )
 }
 
@@ -198,7 +199,8 @@ describe('dead structured-session generation settlement', () => {
       {
         kind: 'status',
         text: "Manta ran into a problem, so this didn't go through. Try again.",
-        failure: { kind: 'hostFault' }
+        failure: { kind: 'hostFault' },
+        tone: 'error'
       }
     ])
   })
@@ -349,7 +351,7 @@ describe('dead structured-session generation settlement', () => {
     await journal.appendItem(
       childCall,
       { kind: 'tool-call', name: 'shell', input: { command: 'ls' }, state: 'running' },
-      { fence: 7, ...child }
+      { fence: 7, ...child, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
     await journal.appendItem(
       childAsk,
@@ -360,7 +362,7 @@ describe('dead structured-session generation settlement', () => {
         options: [{ id: 'yes', label: 'Allow' }],
         resolution: { state: 'pending', selectedOptionId: null, resolvedBy: null, resolvedAt: null }
       },
-      { fence: 7, ...child }
+      { fence: 7, ...child, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
 
     await settleStructuredAgentSessionDeadGeneration({
@@ -420,12 +422,12 @@ describe('whether a dead generation interrupted anything', () => {
         options: [{ id: 'yes', label: 'Allow' }],
         resolution: { state: 'pending', selectedOptionId: null, resolvedBy: null, resolvedAt: null }
       },
-      { fence: 7 }
+      { fence: 7, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
     await journal.appendItem(
       { provider: 'codex', threadId: THREAD, turnId: 'turn-1', ordinal: 2 },
       { kind: 'turn', turnId: 'turn-1', state: 'completed', startedAt: 900, completedAt: 950 },
-      { fence: 7 }
+      { fence: 7, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
   }
 

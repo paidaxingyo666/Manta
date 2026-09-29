@@ -30,6 +30,7 @@ import type { StructuredAgentSessionLaunchView } from './use-native-chat-provisi
 import { useStructuredAgentSessionThreadGoal } from './use-structured-agent-session-thread-goal'
 import { useStructuredAgentSessionContextUsage } from './use-structured-agent-session-context-usage'
 import { useStructuredAgentSessionRailOutline } from './use-structured-agent-session-rail-outline'
+import { hostStatesTurnScopes } from '../../../../shared/native-chat-turn-membership'
 
 export type { StructuredPromptItem } from './structured-agent-session-message-projection'
 
@@ -169,14 +170,15 @@ export function useStructuredAgentSession(args: {
     /** The journal's rows for sent messages, which carry a rejected message's whole fact. */
     submissions: transportState.submissions,
     blockedClientMessageId: outboxController.blockedClientMessageId,
+    // A message typed during a command queues behind it on the host.
     send: (...input: Parameters<typeof outboxController.send>) =>
-      !commandPending.current && outboxController.send(...input),
+      // Legacy: an older host refuses sends while a command runs; removable once those hosts age out.
+      (!commandPending.current || hostStatesTurnScopes(transportState.journalItems)) &&
+      outboxController.send(...input),
     retry: outboxController.retry,
     isWorking: transportState.isWorking,
     workingStartedAt: transportState.turnTiming.workingStartedAt,
     settledTurns: transportState.turnTiming.settledTurns,
-    activeTurnOpenedBy: transportState.turnTiming.activeTurnOpenedBy,
-    turnKeysByItemId: transportState.turnTiming.turnKeysByItemId,
     turnActivity: transportState.turnActivity,
     backgroundTasks: transportState.backgroundTasks,
     turnId: transportState.turnId,

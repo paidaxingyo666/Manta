@@ -9,7 +9,10 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../../shared/agent-session-mutation-envelope'
 import type { AgentSessionBackgroundTaskState } from '../../../shared/agent-session-background-task-wire'
-import type { AgentJournalItemBody } from '../../../shared/agent-session-journal-types'
+import {
+  AGENT_JOURNAL_THREAD_SCOPE,
+  type AgentJournalItemBody
+} from '../../../shared/agent-session-journal-types'
 import type { AgentSessionStatusSummary } from '../../../shared/agent-session-wire'
 import { structuredAgentSessionAgentStatus } from '../../../shared/structured-agent-session-agent-status'
 import { activeStructuredAgentSessionTurnId } from '../../../shared/structured-agent-session-live-turn'
@@ -138,7 +141,7 @@ async function send(text: string): Promise<string> {
 }
 
 async function provider(ordinal: number, body: AgentJournalItemBody): Promise<void> {
-  events!.appendItem({ ...PROVIDER_ROW, ordinal }, body)
+  events!.appendItem({ ...PROVIDER_ROW, ordinal }, body, { turnScope: AGENT_JOURNAL_THREAD_SCOPE })
   events!.publish()
   await host.flushStreamedEvents(SESSION)
 }

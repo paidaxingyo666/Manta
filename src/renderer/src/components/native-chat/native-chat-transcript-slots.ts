@@ -7,6 +7,7 @@
 // single place that answers "does this message take a slot?", and it answers it
 // with the same derivation the row itself renders from.
 
+import type { AgentJournalRenderItem } from '../../../../shared/agent-session-journal-types'
 import {
   isBackgroundTaskBlock,
   isSubagentGroupBlock,
@@ -15,11 +16,9 @@ import {
 } from '../../../../shared/native-chat-types'
 import { agentJournalItemSubagentId } from '../../../../shared/agent-session-journal-producer'
 import { nativeChatSubagentLabel } from '../../../../shared/native-chat-subagent-attribution'
-import {
-  NATIVE_CHAT_UNANCHORED_TURN_KEY,
-  type NativeChatTurnStatus
-} from '../../../../shared/native-chat-turn-status'
-import { nativeChatSelfAnchoredTurnRows } from '../../../../shared/native-chat-turn-grouping'
+import type { NativeChatTurnStatus } from '../../../../shared/native-chat-turn-status'
+import { nativeChatMessagesWaitingBehindLiveTurn } from '../../../../shared/native-chat-turn-membership'
+import { nativeChatTurnBarRows } from '../../../../shared/native-chat-turn-grouping'
 import {
   nativeChatTurnFold,
   type NativeChatTurnFoldRow
@@ -67,8 +66,9 @@ export type NativeChatTranscriptSlot = {
 export type NativeChatTranscriptSlotsInput = {
   messages: readonly NativeChatMessage[]
   turnKeys: readonly (string | undefined)[]
-  /** The transcript key whose bar carries the live turn's status. */
-  activeTurnKey: string
+  /** The live turn (`nativeChatTurnMembership`): its bar carries the running clock and its rows
+   *  stay live. Undefined when no row has opened one. */
+  liveTurnKey: string | undefined
   receipts: ReadonlyMap<string, NativeChatResolvedPrompt>
   turnStatuses: {
     active: NativeChatTurnStatus | null
@@ -90,7 +90,7 @@ export function buildNativeChatTranscriptSlots(
   const {
     messages,
     turnKeys,
-    activeTurnKey,
+    liveTurnKey,
     receipts,
     turnStatuses,
     turnDiffs,
@@ -112,6 +112,10 @@ export function buildNativeChatTranscriptSlots(
       // and its plain-text twin is then the only record the spawn happened.
       outlivesTurn: message.blocks.some(
         (block) => isSubagentGroupBlock(block) || isBackgroundTaskBlock(block)
+      ),
+      reportsTurnOutcome: message.blocks.some(
+        (block) =>
+          block.type === 'text' && (block.tone === 'error' || block.presentation === 'compaction')
       ),
       ...(agentId === null ? {} : { agentId })
     }
@@ -148,8 +152,7 @@ export function buildNativeChatTranscriptSlots(
     settledTurnKeys,
     expandedTurnKeys
   })
-  // A turn with no user bubble (provider-opened) anchors its bar at its first row.
-  const selfAnchors = nativeChatSelfAnchoredTurnRows(messages, turnKeys)
+  const bars = nativeChatTurnBarRows(messages, turnKeys)
   // A turn's rows need not be contiguous (another turn's prompt can land among
   // them), so its rollup goes under its last row, not every run boundary.
   const lastRowByTurn = new Map<string, number>()
@@ -162,19 +165,14 @@ export function buildNativeChatTranscriptSlots(
   for (const [index, message] of messages.entries()) {
     const turnKey = turnKeys[index]
     const receipt = receipts.get(message.id)
-    const anchorsTurnHere = turnKey !== undefined && selfAnchors.get(turnKey) === index
-    // Only the bubble that opened a turn carries its bar: a message the provider
-    // folded into a running turn shares the turn's key but not its bar.
+    const bar = turnKey === undefined ? undefined : bars.get(turnKey)
+    // A turn's bar draws at its first row, so a message folded into it (a steer) carries none.
     const candidateStatus =
-      message.role === 'user' && message.id === activeTurnKey
-        ? turnStatuses.active
-        : message.role === 'user' && turnKey === message.id
-          ? turnStatuses.completedByTurn[turnKey]
-          : anchorsTurnHere
-            ? turnKey === activeTurnKey
-              ? (turnStatuses.active ?? turnStatuses.completedByTurn[turnKey])
-              : turnStatuses.completedByTurn[turnKey]
-            : undefined
+      turnKey === undefined || bar?.index !== index
+        ? undefined
+        : turnKey === liveTurnKey
+          ? turnStatuses.active
+          : turnStatuses.completedByTurn[turnKey]
     // The live turn's bar carries its running clock; it settles in place.
     const status = candidateStatus ?? undefined
     const turnDiff =
@@ -195,13 +193,12 @@ export function buildNativeChatTranscriptSlots(
       // Liveness is the owning turn's, not the newest prompt's: a running turn's
       // rows stay live while a newer message waits behind it.
       activeTurnIsWorking:
-        (turnKey === activeTurnKey ||
-          (turnKey === undefined && activeTurnKey === NATIVE_CHAT_UNANCHORED_TURN_KEY)) &&
+        (liveTurnKey ? turnKey === liveTurnKey : turnKey === undefined) &&
         (isWorking || lifecycleWorking),
       trailingRun: trailingRunIndexes.has(index),
       receipt,
       status: status ?? undefined,
-      statusAbove: anchorsTurnHere && status !== undefined,
+      statusAbove: bar?.above === true && status !== undefined,
       folded,
       turnFolds: turnKey !== undefined && foldableTurnKeys.has(turnKey),
       turnDiff,
@@ -229,4 +226,20 @@ export function nativeChatSlotIndexOf(
     return -1
   }
   return slots.findIndex((slot) => slot.message.id === messageId)
+}
+
+/** Splits off the slots of messages waiting behind the live turn: they draw after its live
+ *  activity, not inside it. */
+export function splitNativeChatSlotsWaitingBehindLiveTurn(
+  slots: readonly NativeChatTranscriptSlot[],
+  journalItems: readonly AgentJournalRenderItem[] | undefined
+): { slots: NativeChatTranscriptSlot[]; waitingSlots: NativeChatTranscriptSlot[] } {
+  const waiting = nativeChatMessagesWaitingBehindLiveTurn(
+    slots.map((slot) => slot.message),
+    journalItems
+  )
+  return {
+    slots: slots.filter((slot) => !waiting.has(slot.message.id)),
+    waitingSlots: slots.filter((slot) => waiting.has(slot.message.id))
+  }
 }

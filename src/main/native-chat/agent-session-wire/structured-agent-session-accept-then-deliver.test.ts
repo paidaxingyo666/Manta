@@ -1,3 +1,4 @@
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 // A send is accepted, then delivered: the host answers once the message is recorded, and the
 // session's delivery loop starts a provider child for it and hands it over. Against the real host,
 // store and journal; each assertion reads what an open chat or the journal's next reader sees.
@@ -545,7 +546,12 @@ describe('what an earlier host process left behind', () => {
     await writeAsEarlierProcess(async (journal, fence) => {
       await journal.appendSubmission({ ...earlierSubmission('legacy', 'l'), fence })
       await journal.appendSubmission({ ...earlierSubmission('handed', 'h', true), fence })
-      await journal.resolveDispatch({ clientMessageId: 'handed', state: 'pending', fence })
+      await journal.resolveDispatch({
+        clientMessageId: 'handed',
+        state: 'pending',
+        fence,
+        turnScope: AGENT_JOURNAL_THREAD_SCOPE
+      })
     })
     await host.flushAllStreamedEvents()
     await startHost()
@@ -819,7 +825,7 @@ describe('a compaction or rewind an earlier child left prepared', () => {
     await startHost()
   }
 
-  it('settles an interrupted compaction at open, so a send is accepted and delivered (R16)', async () => {
+  it("ignores an older build's interrupted compaction, so a send is accepted and delivered (R16)", async () => {
     await leftPrepared((fence) =>
       store.setConversationCommand(SESSION, fence, {
         command: 'compact',
@@ -834,10 +840,8 @@ describe('a compaction or rewind an earlier child left prepared', () => {
     const id = await accept('after the compaction')
 
     await eventually(async () => expect((await submission(id))?.dispatchState).toBe('accepted'))
-    expect(store.getRecord(SESSION)?.conversationCommand).toMatchObject({
-      phase: 'committed',
-      state: 'unknown'
-    })
+    // Nothing settles the record: it belongs to a child this host no longer runs.
+    expect(store.getRecord(SESSION)?.conversationCommand).toMatchObject({ phase: 'prepared' })
   })
 
   it('completes a rewind the provider already applied at open, so a send is accepted (R16)', async () => {

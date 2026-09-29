@@ -64,6 +64,8 @@ export function structuredClaudeLifecycleEvent(
       cause: event.cause,
       fence: event.fence,
       acquisitionGeneration: event.acquisitionGeneration,
+      // The instant the translator ended the open turn at; the host reads the exit's turn by it.
+      ...(event.observedAt === undefined ? {} : { observedAt: event.observedAt }),
       ...(event.startupUnproven ? { startupUnproven: event.startupUnproven } : {})
     }
   }

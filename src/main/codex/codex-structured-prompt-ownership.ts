@@ -4,7 +4,6 @@ import {
   type AgentSessionCancelOutcome,
   type StructuredAgentSessionAdapter
 } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
-import type { StructuredSessionCompaction } from '../native-chat/agent-session-wire/structured-session-compaction'
 import {
   answerCodexPrompt,
   prepareCodexPromptAnswer,
@@ -16,6 +15,11 @@ import type { CodexStructuredTurnCancellation } from './codex-structured-turn-ca
 
 type CancelInput = Parameters<StructuredAgentSessionAdapter['cancelTurn']>[0]
 type AnswerInput = Parameters<StructuredAgentSessionAdapter['answerPrompt']>[0]
+
+/** A command's Stop interrupts the provider turn carrying it; any other turn is its own. */
+function providerTurnId(session: CodexSession, turnId: string): string | undefined {
+  return session.translator ? session.translator.commandProviderTurnId(turnId) : turnId
+}
 
 /** How long a Stop waits for Codex to open the turn it answered a send into. Under the quit
  *  path's eviction budget, which a close or quit queued behind the Stop spends. */
@@ -30,13 +34,13 @@ async function cancelCodexConversation(
   input: Parameters<typeof cancelCodexStructuredTurn>[0],
   session: CodexSession
 ): Promise<AgentSessionCancelOutcome> {
-  const { request, sessions, compactions, cancellation } = input
+  const { request, sessions, cancellation } = input
   const liveTurnId = request.resolveLiveTurnId?.() ?? null
   // A turn the journal shows that Codex has not started yet (a compaction's) has nothing to stop.
   const turnId =
     liveTurnId === null
       ? ([...(session.activeTurnIds ?? [])].at(-1) ?? (await openedAnsweredTurn(session)))
-      : compactions.providerTurnId(request.sessionId, liveTurnId)
+      : providerTurnId(session, liveTurnId)
   if (!turnId) {
     return { cancelled: false }
   }
@@ -69,17 +73,16 @@ async function openedAnsweredTurn(session: CodexSession): Promise<string | null>
 export async function cancelCodexStructuredTurn(input: {
   request: CancelInput
   sessions: Map<string, CodexSession>
-  compactions: StructuredSessionCompaction
   cancellation: CodexStructuredTurnCancellation
 }): Promise<AgentSessionCancelOutcome> {
-  const { request, sessions, compactions, cancellation } = input
+  const { request, sessions, cancellation } = input
   const session = requireLiveCodexSession(sessions, request.sessionId)
   const prompt = request.prompt
   const requestedTurnId = request.turnId
   if (requestedTurnId === undefined) {
     return prompt ? { cancelled: false } : cancelCodexConversation(input, session)
   }
-  const turnId = compactions.providerTurnId(request.sessionId, requestedTurnId)
+  const turnId = providerTurnId(session, requestedTurnId)
   if (!turnId) {
     return { cancelled: false }
   }
@@ -103,7 +106,7 @@ export async function cancelCodexStructuredTurn(input: {
     !session.ended &&
     session.fence === request.fence &&
     session.acquisitionGeneration === acquisitionGeneration &&
-    compactions.providerTurnId(request.sessionId, requestedTurnId) === turnId &&
+    providerTurnId(session, requestedTurnId) === turnId &&
     session.prompts.ownsBoundClaim(claim, prompt.itemId, claim.prompt.threadId, promptTurnId)
   let interruptConfirmed = false
   try {

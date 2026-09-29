@@ -34,6 +34,8 @@ export const AGENT_SESSION_FAILURE_KINDS = [
   'chatClosed',
   'hostRestarted',
   'notDelivered',
+  /** A conversation command the chat's state refused when its turn to run came. */
+  'commandRefused',
   'compactionFailed',
   'compactionUnconfirmed',
   'cancelUnconfirmed',
@@ -119,7 +121,8 @@ export type AgentSessionFailureFact = {
   kind: AgentSessionFailureKind
   /** Provider-authored only; absent whenever Manta wrote the words. */
   detail?: ProviderDiagnostic
-  /** On `restartFailed` and `startFailed`: the refusal that kept the agent from starting. */
+  /** On `restartFailed` and `startFailed`: the refusal that kept the agent from starting. On
+   *  `commandRefused`: the refusal that kept the command from running. */
   refusal?: AgentSessionRefusalReference
   /** On `attachmentInvalid`: which check the attachment failed. */
   attachment?: AgentSessionAttachmentProblem

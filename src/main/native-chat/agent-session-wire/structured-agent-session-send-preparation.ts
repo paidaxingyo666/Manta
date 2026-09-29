@@ -17,6 +17,10 @@ import {
   classifyJournalOpenFailure,
   type JournalOpenFailure
 } from '../agent-session-journal/journal-open-failure'
+import {
+  structuredAgentSessionAwaitedCommand,
+  type StructuredAgentSessionAwaitedCommandJournal
+} from './structured-agent-session-command-turn'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
 import {
   AGENT_SESSION_NOT_ATTACHED,
@@ -34,10 +38,11 @@ export function structuredAgentSessionSendBlock(
     return rewindRefusal('outcome-unknown')
   }
   const command = record?.conversationCommand
+  // Only a clear's record gates sends; an older build's compaction record belongs to a child this
+  // host no longer runs.
   if (
-    command &&
-    ((command.state === 'unknown' && command.phase === 'prepared') ||
-      (command.command === 'clear' && command.replacementSessionId))
+    command?.command === 'clear' &&
+    ((command.state === 'unknown' && command.phase === 'prepared') || command.replacementSessionId)
   ) {
     return {
       ok: false,
@@ -49,17 +54,11 @@ export function structuredAgentSessionSendBlock(
               'This conversation has been cleared. Use the current conversation.'
             )
           : // A prepared /clear names its replacement before that conversation exists.
-            command.command === 'clear'
-            ? refuse(
-                'agent_session_operation_invalid',
-                { reason: 'clearUnconfirmed' },
-                "The last /clear didn't finish. Start a new chat to continue."
-              )
-            : refuse(
-                'agent_session_operation_invalid',
-                { reason: 'conversationCommandUnconfirmed' },
-                'The conversation operation is unconfirmed.'
-              )
+            refuse(
+              'agent_session_operation_invalid',
+              { reason: 'clearUnconfirmed' },
+              "The last /clear didn't finish. Start a new chat to continue."
+            )
     }
   }
   return null
@@ -125,9 +124,15 @@ export function sendPreparation(
   }
 }
 
-/** Who a failure sentence names: the chat's agent, when the record says. */
+/** Who a failure sentence names: the chat's agent, when the record says; and, given the journal,
+ *  the command a failed start leaves to run again. */
 export function structuredAgentSessionFailureWordsContext(
-  record: AgentSessionRecord | null
+  record: AgentSessionRecord | null,
+  journal?: StructuredAgentSessionAwaitedCommandJournal
 ): AgentSessionFailureWordsContext {
-  return record ? { agentName: TUI_AGENT_DISPLAY_NAMES[record.provider] } : {}
+  const command = journal && structuredAgentSessionAwaitedCommand(journal)
+  return {
+    ...(record ? { agentName: TUI_AGENT_DISPLAY_NAMES[record.provider] } : {}),
+    ...(command ? { command } : {})
+  }
 }

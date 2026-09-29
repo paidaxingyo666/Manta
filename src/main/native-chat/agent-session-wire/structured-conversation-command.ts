@@ -23,39 +23,15 @@ import {
 import type { StructuredAgentSessionCaller } from './structured-agent-session-host-types'
 import type { StructuredAgentSessionHost } from './structured-agent-session-host'
 import { conversationCommandBlocked } from './structured-conversation-command-admission'
-import {
-  agentSessionFailureFact,
-  type AgentSessionFailureFact
-} from '../../../shared/agent-session-failure'
+import type { AgentSessionFailureFact } from '../../../shared/agent-session-failure'
 import {
   agentSessionFailureWords,
   type AgentSessionFailureWordsContext
 } from '../../../shared/agent-session-failure-words'
 import { structuredAgentSessionStartFailureFact } from './structured-agent-session-failure-text'
-import type { StructuredSessionCompactionResult } from './structured-session-compaction'
-
-/** A compaction that did not succeed, keeping only what the provider wrote for a person. */
-function compactionFailure(
-  result: StructuredSessionCompactionResult
-): AgentSessionFailureFact | undefined {
-  switch (result.outcome) {
-    case 'compacted':
-      return undefined
-    case 'unconfirmed':
-      return agentSessionFailureFact('compactionUnconfirmed')
-    case 'failed':
-      return agentSessionFailureFact('compactionFailed', { detail: result.detail })
-  }
-}
-
-function compactionStatusBody(failure: AgentSessionFailureFact | undefined) {
-  return failure
-    ? { kind: 'status' as const, ...agentSessionFailureWords(failure, { surface: 'row' }) }
-    : { kind: 'status' as const, text: 'Conversation compacted.' }
-}
 
 /** A command's `error` is the sentence its row shows. */
-function conversationCommandFailure(
+export function conversationCommandFailure(
   failure: AgentSessionFailureFact | undefined,
   context: AgentSessionFailureWordsContext = {}
 ) {
@@ -114,19 +90,7 @@ export function runStructuredConversationCommand(
             return outcome.conversationCommand
           }
           const prior = matching()
-          if (prior?.phase === 'committed') {
-            return prior
-          }
-          if (command === 'compact' && prior && outcome.status !== 'unknown') {
-            return {
-              command,
-              state: 'unknown',
-              error: 'Compaction completion is unconfirmed; it was not run again.'
-            }
-          }
-          return outcome.status === 'succeeded' && command === 'compact'
-            ? { command, state: 'completed' }
-            : null
+          return prior?.phase === 'committed' ? prior : null
         },
         rerunWhenReplayMissing: () => command === 'clear' && matching()?.phase === 'prepared',
         run: async (ctx) => {
@@ -158,7 +122,6 @@ export function runStructuredConversationCommand(
             ...(replacementSessionId ? { replacementSessionId } : {})
           }
           await store.setConversationCommand(sessionId, ctx.fence, prepared)
-          let failure: AgentSessionFailureFact | undefined
           if (command === 'clear' && replacementSessionId) {
             const attach: AgentSessionAttachParams = {
               envelope: {
@@ -211,78 +174,11 @@ export function runStructuredConversationCommand(
               await store.setConversationCommand(sessionId, ctx.fence, failed)
               return { ok: true, value: failed }
             }
-          } else {
-            if (!ctx.adapter.compact) {
-              throw new Error('Compaction is unavailable for this provider.')
-            }
-            const identity = {
-              provider: 'manta' as const,
-              clientMessageId: `compact:${clientOperationId}`
-            }
-            await ctx.journal.appendItem(
-              identity,
-              {
-                kind: 'status',
-                text: 'Compacting conversation…',
-                turnLifecycle: { turnId: `compact:${clientOperationId}`, state: 'running' }
-              },
-              { fence: ctx.fence }
-            )
-            try {
-              failure = compactionFailure(
-                await ctx.adapter.compact({
-                  turnId: `compact:${clientOperationId}`,
-                  sessionId,
-                  fence: ctx.fence,
-                  onLateResult: (result) =>
-                    context.serialize(sessionId, async () => {
-                      if (
-                        matching()?.phase !== 'prepared' ||
-                        context.sessions.get(sessionId)?.journal !== ctx.journal
-                      ) {
-                        return
-                      }
-                      await host.flushStreamedEvents(sessionId)
-                      const late = compactionFailure(result)
-                      await ctx.journal.appendItem(identity, compactionStatusBody(late), {
-                        fence: ctx.fence
-                      })
-                      await store.setConversationCommand(sessionId, ctx.fence, {
-                        ...prepared,
-                        phase: 'committed',
-                        state: 'completed',
-                        ...conversationCommandFailure(late)
-                      })
-                      await store.recordOperationOutcome({
-                        callerKey: caller.callerKey,
-                        operationId: clientOperationId,
-                        outcome: {
-                          status: 'succeeded',
-                          sessionId,
-                          conversationCommand: matching()!
-                        }
-                      })
-                    })
-                })
-              )
-              await host.flushStreamedEvents(sessionId)
-            } catch (cause) {
-              await ctx.journal.appendItem(
-                identity,
-                compactionStatusBody(agentSessionFailureFact('compactionUnconfirmed')),
-                { fence: ctx.fence }
-              )
-              throw cause
-            }
-            await ctx.journal.appendItem(identity, compactionStatusBody(failure), {
-              fence: ctx.fence
-            })
           }
           const completed = {
             ...prepared,
             phase: 'committed' as const,
-            state: 'completed' as const,
-            ...conversationCommandFailure(failure)
+            state: 'completed' as const
           }
           await store.setConversationCommand(sessionId, ctx.fence, completed)
           return { ok: true, value: completed }

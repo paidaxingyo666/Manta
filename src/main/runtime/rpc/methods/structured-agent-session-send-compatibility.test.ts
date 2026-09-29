@@ -34,7 +34,7 @@ describe('agentSession.send reply timing', () => {
     await call('agentSession.send', sendParams(), STRUCTURED_CLIENT)
 
     expect(hostCalls.waitForSendSettlement).toHaveBeenCalledWith(SESSION, 'client-1', {
-      until: 'handed-over',
+      until: 'handed-over-or-behind-command',
       budgetMs: STRUCTURED_AGENT_SESSION_START_WAIT_MS
     })
   })

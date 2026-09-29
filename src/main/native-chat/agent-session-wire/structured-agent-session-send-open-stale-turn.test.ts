@@ -1,3 +1,4 @@
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 // A send can be what opens a conversation this process has not read yet: a chat nobody has on
 // screen after the app died, sent to from a phone or the CLI. Whatever that journal shows running
 // belongs to a generation that is gone, so it is settled when the journal opens, not only when a
@@ -51,7 +52,8 @@ async function relaunchAfterCrashMidTurn(
   }
   events.appendItem(
     { provider: 'codex', threadId: THREAD, turnId: 'crashed-turn', ordinal: 1 },
-    { kind: 'turn', turnId: 'crashed-turn', state: 'running' }
+    { kind: 'turn', turnId: 'crashed-turn', state: 'running' },
+    { turnScope: AGENT_JOURNAL_THREAD_SCOPE }
   )
   await dying.host.flushStreamedEvents(SESSION)
   // An empty renewal queues behind every record write, so they are on disk.

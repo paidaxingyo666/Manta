@@ -1,3 +1,4 @@
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 // What an open chat receives, asserted at its subscriber rather than in the journal: a fresh
 // subscribe re-reads the journal and hides a write that never reached the readers already open.
 
@@ -176,7 +177,11 @@ describe('an open chat receives every row its journal commits', () => {
     const identity = { provider: 'manta' as const, clientMessageId: 'context-usage' }
     const body = { kind: 'status' as const, text: 'context usage answered after the turn' }
 
-    expect(providerSink().tryReviseResolvedItem?.(4_096, () => ({ identity, body }))).toEqual({
+    expect(
+      providerSink().tryReviseResolvedItem?.(4_096, () => ({ identity, body }), {
+        turnScope: AGENT_JOURNAL_THREAD_SCOPE
+      })
+    ).toEqual({
       accepted: true
     })
     await host.flushStreamedEvents(SESSION)
@@ -194,7 +199,10 @@ describe('an open chat receives every row its journal commits', () => {
     await journal.appendItem(
       { provider: 'manta', clientMessageId: 'host-note' },
       { kind: 'status', text: 'written by a writer that publishes nothing' },
-      { fence: store.getRecord(SESSION)?.lease.runtimeFence ?? 0 }
+      {
+        fence: store.getRecord(SESSION)?.lease.runtimeFence ?? 0,
+        turnScope: AGENT_JOURNAL_THREAD_SCOPE
+      }
     )
 
     expect(pane.received().statuses).toEqual(['written by a writer that publishes nothing'])
@@ -213,7 +221,8 @@ describe('an open chat receives each row once', () => {
 
     sink.appendItem(
       { provider: 'manta', clientMessageId: 'streamed' },
-      { kind: 'status', text: 'streamed row' }
+      { kind: 'status', text: 'streamed row' },
+      { turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
     sink.publish()
     await host.flushStreamedEvents(SESSION)
@@ -233,7 +242,10 @@ describe('an open chat receives each row once', () => {
     await journal.appendItem(
       { provider: 'manta', clientMessageId: 'host-row' },
       { kind: 'status', text: 'host row' },
-      { fence: store.getRecord(SESSION)?.lease.runtimeFence ?? 0 }
+      {
+        fence: store.getRecord(SESSION)?.lease.runtimeFence ?? 0,
+        turnScope: AGENT_JOURNAL_THREAD_SCOPE
+      }
     )
     host['subscribers'].publish(SESSION, journal)
 

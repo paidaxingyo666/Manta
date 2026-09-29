@@ -1,3 +1,4 @@
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 // The provider child is its own record on the conversation: stopping it, losing it or failing to
 // start it ends the child, never the conversation. Against the real host, store and journal, with a
 // live subscriber opened before each action.
@@ -339,7 +340,7 @@ describe('settling an earlier child before the next one takes its message', () =
     await journal.appendItem(
       { provider: 'codex', threadId: THREAD, turnId: 'earlier-turn', ordinal: 0 },
       { kind: 'turn', turnId: 'earlier-turn', state: 'running', startedAt: NOW - 5_000 },
-      { fence: releasedFence }
+      { fence: releasedFence, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
     await journal.close()
     const id = await accept('for the next child')

@@ -63,7 +63,10 @@ export class StructuredAgentSessionHost {
     this
   )
   private readonly sessions = new StructuredAgentSessionConversations({
-    deliver: (sessionId, journal) => this.subscribers.publish(sessionId, journal),
+    deliver: (sessionId, journal) => {
+      this.subscribers.publish(sessionId, journal)
+      this.conversationDelivery.afterCommit(sessionId, journal)
+    },
     onDeliveryError: (sessionId, error) => this.deps.onEventSinkError?.({ sessionId, error }),
     now: () => this.now()
   })
@@ -123,7 +126,8 @@ export class StructuredAgentSessionHost {
           reset,
           structuredAgentSessionConversationFence(deps.store, sessionId)
         ),
-      publishRestored: this.clientDelivery.publishRestored
+      publishRestored: this.clientDelivery.publishRestored,
+      flushStreamedEvents: (sessionId) => this.flushStreamedEvents(sessionId)
     })
     this.restore = createStructuredAgentSessionHostRestore(deps, {
       reconcile: this.reconcileLeases,
@@ -170,6 +174,7 @@ export class StructuredAgentSessionHost {
   private now = (): number => this.deps.now?.() ?? Date.now()
 
   hasSession = (sessionId: string): boolean => this.sessions.has(sessionId)
+  sessionAgent = (sessionId: string) => this.deps.store.getRecord(sessionId)?.provider ?? null
 
   handleAdapterEvent = (event: Parameters<StructuredAgentSessionEventRecovery['handle']>[0]) =>
     this.eventRecovery.handle(event)

@@ -5,7 +5,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../shared/agent-session-mutation-envelope'
-import type { AgentJournalRenderItem } from '../../shared/agent-session-journal-types'
+import {
+  AGENT_JOURNAL_THREAD_SCOPE,
+  type AgentJournalRenderItem
+} from '../../shared/agent-session-journal-types'
 import {
   EMPTY_STRUCTURED_AGENT_SESSION,
   reduceStructuredAgentSession,
@@ -125,7 +128,7 @@ function codexPrompts(): CodexJournalPrompts {
     throw new Error('session was never acquired')
   }
   return new CodexJournalPrompts(
-    { sink, linkageFor: () => ({}) },
+    { sink, attributionFor: () => ({ turnScope: AGENT_JOURNAL_THREAD_SCOPE }) },
     () => null,
     () => 'turn-1'
   )

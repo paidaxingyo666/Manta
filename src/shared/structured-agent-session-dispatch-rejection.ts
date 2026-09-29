@@ -95,6 +95,7 @@ const KIND_CATEGORY = {
   attachmentInvalid: 'content',
   attachmentUnreadable: 'content',
   emptyMessage: 'content',
+  commandRefused: 'content',
   queueFull: 'transport',
   writeFailed: 'transport',
   hostFault: 'transport'
@@ -119,6 +120,7 @@ const KIND_VERDICT = {
   attachmentInvalid: 'failure',
   attachmentUnreadable: 'failure',
   emptyMessage: 'failure',
+  commandRefused: 'failure',
   queueFull: 'failure',
   writeFailed: 'failure',
   hostFault: 'failure',

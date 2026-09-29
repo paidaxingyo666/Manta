@@ -15,6 +15,7 @@ import type {
   AgentJournalItemBody,
   AgentJournalMessageItem,
   AgentJournalDispatchState,
+  AgentJournalTurnItem,
   AgentSessionJournalIdentity
 } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionProviderHandleLink } from '../../../shared/agent-session-provider-handle'
@@ -41,7 +42,6 @@ import type { AgentJournalDispatchRejection } from '../../../shared/agent-sessio
 import type { AgentSessionPromptResponse } from '../../../shared/agent-session-question-answer'
 import type { ProviderHistoryWindow } from '../agent-session-journal/journal-submission-reconciler'
 import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
-import type { StructuredSessionCompactionResult } from './structured-session-compaction'
 import type { AgentSessionCreatePhaseRecorder } from '../../observability/agent-session-instrumentation'
 
 export class AgentSessionAcquisitionRefusal extends Error {
@@ -144,6 +144,23 @@ export class AgentSessionPreSpawnError extends Error {
 export function isAgentSessionPreSpawnError(error: unknown): error is AgentSessionPreSpawnError {
   return error instanceof Error && error.name === 'AgentSessionPreSpawnError'
 }
+
+/** A conversation command the host handed to a provider child: the running turn it opened for it,
+ *  which the child's translator ends, and where the command's own result row goes. */
+export type StructuredAgentSessionCommandRun = {
+  clientMessageId: string
+  /** What a Stop names. */
+  turnId: string
+  identity: AgentJournalItemIdentity
+  resultIdentity: AgentJournalItemIdentity
+  /** The turn record as the host wrote it; the translator's end revises it. */
+  running: AgentJournalTurnItem
+}
+
+/** A command the provider took answers it in place and echoes no item of its own. */
+export type AgentSessionCommandAdmission =
+  | AgentSessionDispatchOutcome
+  | { state: 'accepted'; providerIdentity: null }
 
 export type AgentSessionDispatchOutcome =
   /** The provider owns the turn now, under this identity. */
@@ -274,12 +291,14 @@ export type StructuredAgentSessionAdapter = {
     | { ok: true; items?: { identity: AgentJournalItemIdentity; body: AgentJournalItemBody }[] }
     | { ok: false; reason: AgentSessionRewindReason }
   >
+  /** Sends a conversation compaction and answers with the provider's receipt of it, as a dispatch
+   *  does. The command's turn is the child's journal translator's to end, from the provider's own
+   *  frames; a child that ends first leaves it to the host's settlement of that child. */
   compact?(input: {
-    turnId: string
     sessionId: string
     fence: number
-    onLateResult?: (result: StructuredSessionCompactionResult) => Promise<void>
-  }): Promise<StructuredSessionCompactionResult>
+    command: StructuredAgentSessionCommandRun
+  }): Promise<AgentSessionCommandAdmission>
   /** Cancels one turn, not the session: a session-wide interrupt would also kill
    *  a turn the client never asked to stop. With no `turnId` the conversation asked to stop
    *  everything it has in flight — a running turn, or a dispatch whose turn has not opened yet. */

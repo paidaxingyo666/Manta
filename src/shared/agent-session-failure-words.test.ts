@@ -120,6 +120,22 @@ describe('the words written beside a failure fact', () => {
     )
   })
 
+  it('names /compact as the next step for the start a /compact needed', () => {
+    const compact = (kind: AgentSessionFailureKind) =>
+      agentSessionFailureSentence({ kind }, 'rejection', {
+        agentName: 'Claude',
+        command: 'compact'
+      })
+    expect(compact('notSignedIn')).toBe(
+      'Claude is not signed in for the selected account. Sign in, then run /compact again.'
+    )
+    expect(compact('startFailed')).toBe("Claude couldn't start. Run /compact again.")
+    expect(compact('restartFailed')).toBe("Claude couldn't restart. Run /compact again.")
+    expect(compact('providerStartFailed')).toBe(
+      'Claude stopped before it finished starting. Run /compact again.'
+    )
+  })
+
   it('names the agent that stopped starting, and a failed start or restart gives a next step', () => {
     const sentence = (kind: AgentSessionFailureKind, agentName?: string) =>
       agentSessionFailureSentence({ kind }, 'rejection', { agentName })
