@@ -41,13 +41,14 @@ const settleRejected: QueuedMessageTestRig['settleRejected'] = (...args) =>
   rig.settleRejected(...args)
 
 describe('the one queue gate', () => {
-  it('Send-now refuses while a clear is in doubt, with the refusal any send gets', async () => {
-    const working = await workingSend()
+  it('a clear an older build left prepared holds nothing: Send-now sends the draft', async () => {
+    await workingSend()
     const queued = await send('queued behind the clear', 'queue-if-active').result
     if (!queued.ok || !('queued' in queued.value)) {
       throw new Error('expected a queued receipt')
     }
     const draftId = queued.value.queued.messageId
+    // An unfinished /clear changed nothing the chat reads, so it refuses no send.
     await store.setConversationCommand(SESSION, 1, {
       command: 'clear',
       runtimeFence: 1,
@@ -56,10 +57,8 @@ describe('the one queue gate', () => {
       phase: 'prepared',
       state: 'unknown'
     })
-    expect(await sendNow(draftId)).toMatchObject({ ok: false })
-    await settleAccepted(working, 'a')
-    await new Promise((resolve) => setTimeout(resolve, 150))
-    expect(await rig.handoff(draftId)).toBeUndefined()
+    expect(await sendNow(draftId)).toMatchObject({ ok: true })
+    await eventually(async () => expect(await rig.handoff(draftId)).toBeDefined())
   })
 
   it('Send-now refuses on a pending prompt and overrides a running turn', async () => {

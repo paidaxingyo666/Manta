@@ -702,39 +702,22 @@ describe('/clear', () => {
     expect(await drafts()).toHaveLength(0)
   })
 
-  it('a draft held by a clear left prepared drains when the retried clear fails with no journal commit', async () => {
+  it('a clear an older build left prepared holds no draft: it drains when the turn settles', async () => {
     const working = await workingSend()
     const queued = await send('behind the clear', 'queue-if-active').result
     if (!queued.ok || !('queued' in queued.value)) {
       throw new Error('expected a queued receipt')
     }
     const draftId = queued.value.queued.messageId
-    // A clear that threw left its prepared phase behind; the settling turn's drain step meets it.
-    const operationId = hostTestOperationId()
     await store.setConversationCommand(SESSION, 1, {
       command: 'clear',
       runtimeFence: 1,
-      operationId,
+      operationId: hostTestOperationId(),
       callerKey: CALLER.callerKey,
       phase: 'prepared',
       state: 'unknown'
     })
     await settleAccepted(working, 'a')
-    await new Promise((resolve) => setTimeout(resolve, 250))
-    expect(await rig.handoff(draftId)).toBeUndefined()
-    // The retried clear fails definitively: it settles on the record alone.
-    const attach = vi.spyOn(host, 'attach').mockResolvedValueOnce({
-      ok: false,
-      refusal: { code: 'structured_agent_session_unsupported', message: 'unsupported' }
-    })
-    try {
-      expect(await clear(operationId)).toMatchObject({
-        ok: true,
-        value: { command: 'clear', state: 'completed', error: expect.any(String) }
-      })
-    } finally {
-      attach.mockRestore()
-    }
     await eventually(async () => expect(await rig.handoff(draftId)).toBeDefined())
   })
 

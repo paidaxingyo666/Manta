@@ -14,7 +14,6 @@ import {
   type QueuedMessageTestRig
 } from './structured-agent-session-queued-message-rig.test-fixture'
 import {
-  HOST_TEST_SESSION as SESSION,
   HOST_TEST_THREAD as THREAD,
   hostTestMessage,
   hostTestOperationId
@@ -110,13 +109,8 @@ describe('/clear', () => {
     })
     try {
       const cleared = command('clear')
-      await eventually(() =>
-        expect(rig.store.getRecord(SESSION)?.conversationCommand).toMatchObject({
-          command: 'clear',
-          phase: 'prepared',
-          replacementSessionId: expect.any(String)
-        })
-      )
+      // Nothing is recorded before the clear commits; wait until it is starting the replacement.
+      await eventually(() => expect(spy).toHaveBeenCalled())
       expect(await rig.send('sent while clearing', 'queue-if-active').result).toEqual(WAIT_REFUSAL)
       release?.()
       const done = await cleared

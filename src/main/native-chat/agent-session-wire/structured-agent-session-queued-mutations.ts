@@ -80,8 +80,7 @@ export async function withdrawQueuedMessagesForOperation(
  * transaction, so the drain never sees a carried card unpaused and no pause is
  * left over an empty queue if an insert fails. Runs after the
  * replacement's attach succeeded and before the clear commits. Each insert is
- * idempotent on (session, message), so the clear's rerun-while-prepared replays
- * it safely; the source rows are then tombstoned. Bookkeeping around the clear:
+ * idempotent on (session, message), so a retried clear replays it safely; the source rows are then tombstoned. Bookkeeping around the clear:
  * a failure leaves the cards on the superseded source — whose supersession
  * fence already blocks the drain — reported, never gating the clear. A crash
  * between the copy and the tombstone leaves both, which the fence also makes

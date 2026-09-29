@@ -270,8 +270,8 @@ export function runStructuredConversationCommand(
             // the cards stay visible where the user now is, and no text rides the wire.
             // Bookkeeping — a failure is reported and never fails the clear.
             await carryQueuedMessagesToClearReplacement(ctx, {
-              replacementSessionId,
-              replacementJournal: context.sessions.get(replacementSessionId)?.journal,
+              replacementSessionId: ids.sessionId,
+              replacementJournal: context.sessions.get(ids.sessionId)?.journal,
               callerKey: caller.callerKey,
               operationId: clientOperationId
             })

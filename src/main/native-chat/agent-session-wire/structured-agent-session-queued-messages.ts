@@ -92,8 +92,8 @@ function oldestActionableQueuedMessage(
  *   Send-now: overrides only `working` (plus FIFO order and the stored hold);
  *     `blocked` and `prompt` refuse readably.
  *
- * `blocked` is whatever refuses any send (an uncertain rewind, a clear in doubt,
- * a cleared source); the rest are waits. A /compact is a queued message and then a turn,
+ * `blocked` is whatever refuses any send (an uncertain rewind, a cleared source);
+ * the rest are waits. A /compact is a queued message and then a turn,
  * so it holds the queue as `working`; an older build's compaction record belongs
  * to a child this host no longer runs and holds nothing. Host-local vocabulary —
  * never on the wire.
@@ -105,8 +105,8 @@ export function structuredQueueHold(input: {
   record: AgentSessionRecord | null
   fence: number
 }): StructuredQueueHold | null {
-  // Whatever refuses any send refuses the queue too: an uncertain rewind, a clear in
-  // doubt, or a source a clear superseded. One rule, the immediate path's own.
+  // Whatever refuses any send refuses the queue too: an uncertain rewind or a source a
+  // clear superseded. One rule, the immediate path's own.
   if (structuredAgentSessionSendBlock(input.record)) {
     return 'blocked'
   }
