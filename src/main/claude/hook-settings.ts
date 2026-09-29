@@ -19,8 +19,8 @@ import { isGitBashAvailable } from '../git-bash'
 import type { ClaudeManagedHookPlan } from './claude-managed-hook-events'
 
 export type ClaudeCompatibleHookSettings = {
-  configDirName: '.claude' | '.openclaude' | '.qoder'
-  scriptBaseName: 'claude-hook' | 'openclaude-hook' | 'qoder-hook'
+  configDirName: '.claude' | '.openclaude' | '.qoder' | '.codebuddy'
+  scriptBaseName: 'claude-hook' | 'openclaude-hook' | 'qoder-hook' | 'codebuddy-hook'
   usesWindowsCompatLauncher: boolean
   windowsHookShell?: 'powershell'
 }
