@@ -8,6 +8,7 @@ import { isClaudeAuthSwitchInProgress } from '../claude-accounts/live-pty-gate'
 import { openClaudeStreamJsonConnection } from './claude-stream-json-connection'
 import { buildClaudePermissionCallbacks } from './claude-structured-inbound-control'
 import { resolveClaudeReplayTurn } from './claude-replay-turn-resolution'
+import { claudeSessionStateEndsTurn } from './claude-session-state-turn-over'
 import {
   readClaudeCapabilities,
   readClaudeFrameString,
@@ -116,6 +117,10 @@ export async function acquireClaudeSession({
       // Recording a turn end is an owner action; a result that trails the child's exit has no owner.
       if (message.type === 'result' && sessions.get(sessionId) === liveSession) {
         persistClaudeTurnResumePoint(sessionId, liveSession, deps)
+      }
+      // The CLI idles only once its queue drains, so it holds none of this session's sends.
+      if (claudeSessionStateEndsTurn(message) && sessions.get(sessionId) === liveSession) {
+        deps.onSessionIdle?.({ sessionId })
       }
     }
     // Settled after the turn this echo opens is emitted: a send read as answered before its turn
