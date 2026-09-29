@@ -34,6 +34,27 @@ export function findCodexScreenReadyPromptIndex(screen: string): number | null {
     : null
 }
 
+// Why the text copy: 0.157 leaves its alternate screen while it starts its daemon, so the live
+// screen shows no header then, while the text copy keeps the provisional one until the live chat
+// paints its footer after it (a later model repaint rewrites only the value, never the label).
+// Why `·`: every live footer row draws one (status row, `← for agents · ?`, `⚠ N warning · f2`);
+// startup dialogs draw one too, which is why startup-dialog-blocked-signals.ts matches them first.
+export function isCodexProvisionalStartupText(normalized: string): boolean {
+  const headerIndex = normalized.lastIndexOf('openai codex')
+  if (headerIndex === -1) {
+    return false
+  }
+  const loading = /model:\s+loading/.exec(normalized.slice(headerIndex))
+  return loading !== null && !normalized.includes('·', headerIndex + loading.index)
+}
+
+// Why: Codex repaints its whole screen, header included, once a startup dialog closes, and the
+// dialog never draws the header; 0.158's header has no labels, so the header alone marks it answered.
+export function findCodexHeaderIndex(normalized: string): number | null {
+  const index = normalized.lastIndexOf('openai codex (v')
+  return index === -1 ? null : index
+}
+
 /**
  * Tier 1b, codex panes only: the empty composer with no busy status row just above it and no
  * header load. Codex 0.158 dropped `model:`/`directory:`, and a long session scrolls the header

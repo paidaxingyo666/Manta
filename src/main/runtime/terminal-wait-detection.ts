@@ -9,9 +9,12 @@ import type { RuntimeTerminalWaitBlockedReason } from '../../shared/runtime-type
 import type { TuiAgent } from '../../shared/tui-agent'
 import { findAntigravityReadyPromptIndex } from './antigravity-terminal-readiness'
 import {
+  findCodexHeaderIndex,
   findCodexScreenReadyPromptIndex,
-  isCodexComposerReadyScreen
+  isCodexComposerReadyScreen,
+  isCodexProvisionalStartupText
 } from './codex-terminal-readiness'
+import { findStartupDialogBlockedSignals } from './startup-dialog-blocked-signals'
 import { startOfLastLines, startOfLastNonBlankLines } from './terminal-wait-tail-window'
 
 const EXPLICIT_IDLE_TITLE_RE = /(^|\s)(ready|idle|done)(\s|$|[.!?])/i
@@ -53,6 +56,19 @@ export function isKnownReadyPromptPreview(preview: string): boolean {
 }
 
 /**
+ * The ready-prompt text rules for a pane about to take input. Unlike isKnownReadyPromptPreview
+ * (agent presence), Codex's provisional startup header does not count: 0.157 discards input typed
+ * behind it while its daemon starts.
+ */
+export function isKnownReadyPromptSettled(preview: string): boolean {
+  const normalized = preview.toLowerCase()
+  return (
+    isReadyPromptUnblocked(normalized, findKnownReadyPromptIndex(normalized)) &&
+    !isCodexProvisionalStartupText(normalized)
+  )
+}
+
+/**
  * Tier 1 body evidence for every tui-idle site. `readScreenLines` yields the live emulator's
  * visible grid, or null when the runtime has no trustworthy one.
  *
@@ -69,7 +85,7 @@ export function isKnownReadyPromptBody(
   if (agent === 'qoder') {
     return isQoderComposerReady(readScreenLines())
   }
-  if (isKnownReadyPromptPreview(waitText)) {
+  if (isKnownReadyPromptSettled(waitText)) {
     return true
   }
   // Why the agent gate: another agent's screen can merely mention "OpenAI Codex".
@@ -139,6 +155,7 @@ export function findActionableTerminalWaitBlockedSignal(
 function findDismissedStartupModalIndex(normalized: string): number | null {
   const indexes = [
     findCodexReadyPromptIndex(normalized),
+    findCodexHeaderIndex(normalized),
     findAntigravityReadyPromptIndex(normalized),
     findCursorActivePromptIndex(normalized),
     findMuseReadyPromptIndex(normalized)
@@ -199,7 +216,7 @@ function findCodexReadyPromptIndex(normalized: string): number | null {
 }
 
 export const TERMINAL_WAIT_BLOCKED_SENTINEL_RE =
-  /update available|choose working directory to|codex just got an upgrade|hooks need review|do you trust|trust this|trusted workspace|press enter to (?:confirm|continue|view|insert)|press t to trust|permission required|requires permission|allow once|allow always|run this command\?/i
+  /update available|choose working directory to|codex just got an upgrade|available\s*·|esc\s*skip|enter\s*confirm\s*·|enter\/esc\s*(?:continue|confirm)|hooks need review|do you trust|trust this|trusted workspace|press enter to (?:confirm|continue|view|insert)|press t to trust|permission required|requires permission|allow once|allow always|run this command\?/i
 
 // Why text at all: cursor-agent has no approval hook, so the key-bound menu is the only authority.
 const CURSOR_APPROVAL_CHOICE_MARKERS = [
@@ -268,27 +285,7 @@ function findTerminalWaitBlockedSignal(
 function findBlockedSignalInLiveWindow(
   normalized: string
 ): { reason: RuntimeTerminalWaitBlockedReason; index: number } | null {
-  const candidates: { reason: RuntimeTerminalWaitBlockedReason; index: number }[] = []
-  const updateIndex = normalized.lastIndexOf('update available')
-  if (updateIndex !== -1 && normalized.includes('press enter to continue', updateIndex)) {
-    candidates.push({ reason: 'agent-update-prompt', index: updateIndex })
-  }
-  const cwdIndex = normalized.lastIndexOf('choose working directory to')
-  if (cwdIndex !== -1 && normalized.includes('press enter to continue', cwdIndex)) {
-    candidates.push({ reason: 'agent-cwd-prompt', index: cwdIndex })
-  }
-  const modelMigrationIndex = normalized.lastIndexOf('codex just got an upgrade')
-  if (
-    modelMigrationIndex !== -1 &&
-    normalized.includes('press enter to continue', modelMigrationIndex)
-  ) {
-    candidates.push({ reason: 'codex-model-migration-prompt', index: modelMigrationIndex })
-  }
-  const hooksIndex = normalized.lastIndexOf('hooks need review')
-  if (hooksIndex !== -1 && normalized.includes('press enter to confirm', hooksIndex)) {
-    // Why neutral: this matcher never inspects the agent -- 'hooks need review' is not Codex-only wording.
-    candidates.push({ reason: 'agent-hooks-review-prompt', index: hooksIndex })
-  }
+  const candidates = findStartupDialogBlockedSignals(normalized)
   const trustIndex = Math.max(
     normalized.lastIndexOf('do you trust'),
     normalized.lastIndexOf('trust this'),
