@@ -845,6 +845,8 @@ export class PtyHandler {
     // pane to another worktree's history file — and wrapping a zsh pane that
     // nothing asked to wrap, since `history` is selected on its presence.
     delete result.MANTA_HISTFILE
+    // Why: the codex wrapper runs this path as hook prep, and a relay pane never gets one of its own.
+    delete result.MANTA_CODEX_LAUNCH_PREFLIGHT
     // Why: match local/daemon precedence so defaults/augmenters can't resurrect explicitly-removed values.
     for (const key of envToDelete) {
       delete result[key]

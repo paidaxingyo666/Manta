@@ -82,6 +82,7 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     // Why /p: the managed CLI launcher lives in the host's userData tree.
     'MANTA_WSL_CLI_DIR/p',
     'MANTA_CODEX_LAUNCH_PREFLIGHT/p',
+    'ORCA_CODEX_ISOLATE/u',
     'MANTA_PANE_KEY/u',
     'MANTA_TAB_ID/u',
     'MANTA_WORKTREE_ID/u',
@@ -107,7 +108,7 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     `MANTA_OMP_STATUS_EXTENSION/${env.MANTA_OMP_STATUS_EXTENSION?.startsWith('/') ? 'u' : 'p'}`,
     ...(env.MANTA_PI_SOURCE_AGENT_DIR?.startsWith('/') ? ['MANTA_PI_SOURCE_AGENT_DIR/u'] : []),
     `${ORCA_IMAGE_PROTOCOL_ENV}/u`,
-    'MANTA_OMP_FRESH_CONFIG/p',
+    'ORCA_OMP_FRESH_CONFIG/p',
     ...worktreeSetupWslenvEntries(env)
   ]
   applyWslenvPassthrough(env, passthroughEntries)
