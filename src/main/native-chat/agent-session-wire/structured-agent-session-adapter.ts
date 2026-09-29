@@ -33,7 +33,10 @@ import {
   isAgentSessionWireRefusalCode,
   type AgentSessionRefusalReason
 } from '../../../shared/agent-session-wire-refusals'
-import type { SubmissionRejectionFact } from '../../../shared/agent-session-failure'
+import type {
+  ProviderDiagnostic,
+  SubmissionRejectionFact
+} from '../../../shared/agent-session-failure'
 import type { AgentJournalDispatchRejection } from '../../../shared/agent-session-failure-words'
 import type { AgentSessionPromptResponse } from '../../../shared/agent-session-question-answer'
 import type { ProviderHistoryWindow } from '../agent-session-journal/journal-submission-reconciler'
@@ -216,6 +219,14 @@ export type StructuredAgentSessionSetOptionInput = {
   fence: number
 }
 
+/** `refusal`: the provider answered the Stop and declined it, in its own words when it gave any.
+ *  `unconfirmed`: the provider took the Stop, but Manta could not confirm the turn's work ended. */
+export type AgentSessionCancelOutcome = {
+  cancelled: boolean
+  refusal?: { detail?: ProviderDiagnostic }
+  unconfirmed?: true
+}
+
 export type StructuredAgentSessionAdapter = {
   /** Provider-aware capability check for hosts that route more than one adapter. */
   supportsCreate?(location: AgentSessionExecutionLocation, agent: string): boolean
@@ -270,10 +281,11 @@ export type StructuredAgentSessionAdapter = {
     onLateResult?: (result: StructuredSessionCompactionResult) => Promise<void>
   }): Promise<StructuredSessionCompactionResult>
   /** Cancels one turn, not the session: a session-wide interrupt would also kill
-   *  a turn the client never asked to stop. */
+   *  a turn the client never asked to stop. With no `turnId` the conversation asked to stop
+   *  everything it has in flight — a running turn, or a dispatch whose turn has not opened yet. */
   cancelTurn(input: {
     sessionId: string
-    turnId: string
+    turnId?: string
     fence: number
     prompt?: { itemId: string }
     /** Latest journal submission for this fence, when the host has one. */
@@ -282,7 +294,7 @@ export type StructuredAgentSessionAdapter = {
      *  could have named. A function, not a value, because the guard re-checks after the
      *  delivery fence may have waited. Absent for direct callers with no journal. */
     resolveLiveTurnId?: () => string | null
-  }): Promise<{ cancelled: boolean }>
+  }): Promise<AgentSessionCancelOutcome>
   /** Changes the provider thread's goal. `rejected` is the provider refusing the
    *  change; a throw leaves its effect unknown. Absent where no goal exists. */
   changeThreadGoal?(input: {

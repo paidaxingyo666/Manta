@@ -166,6 +166,16 @@ export function classifyDispatchRejection(
   return { category: KIND_CATEGORY[kind], verdict: KIND_VERDICT[kind], kind }
 }
 
+/** A Stop withdrew it before it ran: it will not land, and only its sender can send it again. */
+export function dispatchWasWithdrawn(
+  submission: Pick<AgentJournalSubmission, 'dispatchState' | 'reason' | 'rejection'> | undefined
+): boolean {
+  return (
+    submission?.dispatchState === 'rejected' &&
+    classifyDispatchRejection(submission).category === 'withdrawn'
+  )
+}
+
 /** A submission that says Manta never handed it over, in any dispatch state: journals written
  *  before this state moved hold it as `unknown` carrying the marker. */
 export function isWriteFailureSubmission(

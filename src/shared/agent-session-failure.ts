@@ -37,6 +37,8 @@ export const AGENT_SESSION_FAILURE_KINDS = [
   'compactionFailed',
   'compactionUnconfirmed',
   'cancelUnconfirmed',
+  /** A Stop naming no turn reached the agent, which ended nothing while the chat read working. */
+  'stopRefused',
   'answerUnconfirmed',
   'hostFault',
   /** Manta stopped an agent whose start never finished. */
@@ -55,6 +57,7 @@ const STATUS_ROW_ONLY_FAILURE_KINDS = [
   'compactionFailed',
   'compactionUnconfirmed',
   'cancelUnconfirmed',
+  'stopRefused',
   'answerUnconfirmed',
   'providerRetrying'
 ] as const satisfies readonly AgentSessionFailureKind[]

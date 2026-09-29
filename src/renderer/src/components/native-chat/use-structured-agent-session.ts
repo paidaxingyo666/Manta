@@ -12,6 +12,8 @@ import {
   supportsStructuredAgentSessionPromptCancel,
   supportsStructuredAgentSessionQuestionAnswers
 } from '@/runtime/structured-agent-session-client'
+import { useStructuredAgentSessionHostStopsConversation } from '@/runtime/structured-agent-session-host-capability'
+import { hasUnsentStructuredAgentSessionOutboxEntry } from '../../../../shared/structured-agent-session-outbox-stop-withdrawal'
 import {
   legacyAgentSessionSelectedOptionId,
   type AgentSessionPromptResponse
@@ -43,9 +45,12 @@ export function useStructuredAgentSession(args: {
   providerStarting?: boolean
   /** This view started the session; only then does the stored selection name what it runs. */
   launch?: StructuredAgentSessionLaunchView
+  /** The composer that gets back what a Stop withdrew. */
+  composerScopeKey?: string
 }) {
   const {
     agent,
+    composerScopeKey,
     isVisible,
     launch,
     providerStarting = false,
@@ -87,7 +92,8 @@ export function useStructuredAgentSession(args: {
     sessionId,
     target,
     fence: transportState.fence,
-    submissions: transportState.submissions
+    submissions: transportState.submissions,
+    composerScopeKey
   })
 
   const threadGoal = useStructuredAgentSessionThreadGoal({
@@ -109,6 +115,19 @@ export function useStructuredAgentSession(args: {
 
   const prompts = pendingStructuredSessionPrompts(transportState.journalItems)
   const { outbox } = outboxController
+  // A host that takes a Stop naming no turn gets Stop from the send until the work settles; every
+  // Stop before a turn opens needs that form. An older host can stop only a turn it has opened.
+  const stopsConversation =
+    useStructuredAgentSessionHostStopsConversation(target) && transportState.fence !== null
+  const canStop =
+    transportState.turnId !== null ||
+    (stopsConversation &&
+      (transportState.isWorking ||
+        hasUnsentStructuredAgentSessionOutboxEntry(
+          outbox,
+          transportState.submissions,
+          outboxController.blockedClientMessageId
+        )))
   const messages = useStructuredAgentSessionMessages(
     transportState.journalItems,
     outbox,
@@ -161,6 +180,16 @@ export function useStructuredAgentSession(args: {
     turnActivity: transportState.turnActivity,
     backgroundTasks: transportState.backgroundTasks,
     turnId: transportState.turnId,
+    canStop,
+    stop: () => {
+      if (stopsConversation) {
+        outboxController.withdrawUnsent()
+        return mutate('agentSession.cancel', 'agentSession.cancel', {})
+      }
+      return transportState.turnId
+        ? mutate('agentSession.cancel', 'agentSession.cancel', { turnId: transportState.turnId })
+        : Promise.resolve(null)
+    },
     cancel: async (turnId: string, prompt?: StructuredPromptCancelTarget) => {
       // Capability negotiation must complete before mutate constructs the payload
       // fingerprint and operation id: older hosts reject the strict prompt field.

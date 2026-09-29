@@ -204,6 +204,11 @@ const FAILURE_SENTENCES = {
   compactionFailed: (_, fact) => quotingPersonDetail('Compaction failed', fact.detail),
   compactionUnconfirmed: () => 'Compaction completion is unconfirmed.',
   cancelUnconfirmed: () => 'Cancellation was not confirmed.',
+  // The agent was reached and declined, so the sentence says that, not that the Stop was lost.
+  stopRefused: ({ agentName }, fact) =>
+    fact.detail?.audience === 'person'
+      ? quotingPersonDetail(`${agentName ?? 'The agent'} didn't stop`, fact.detail)
+      : `${agentName ?? 'The agent'} had no turn running to stop.`,
   answerUnconfirmed: () => 'Your answer was recorded but the agent did not confirm it.',
   hostFault: ({ retryControl }) =>
     `Manta ran into a problem, so this didn't go through.${retryControl ? '' : ' Try again.'}`,

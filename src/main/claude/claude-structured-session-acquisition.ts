@@ -118,9 +118,12 @@ export async function acquireClaudeSession({
         persistClaudeTurnResumePoint(sessionId, liveSession, deps)
       }
     }
+    // Settled after the turn this echo opens is emitted: a send read as answered before its turn
+    // lands reads as nothing running, and Stop and Working blink off in between.
+    const settlements: (() => void)[] = []
     const turnOrigin = liveSession
       ? resolveClaudeReplayTurn(liveSession, message, (settlement) =>
-          deps.onDispatchSettledLate?.({ sessionId, ...settlement })
+          settlements.push(() => deps.onDispatchSettledLate?.({ sessionId, ...settlement }))
         )
       : null
     const startsTurn = turnOrigin !== null
@@ -138,6 +141,9 @@ export async function acquireClaudeSession({
         ...observedAt
       })
     )
+    for (const settle of settlements) {
+      settle()
+    }
   }
   const { canUseTool, onUserDialog } = buildClaudePermissionCallbacks({
     sessionId,

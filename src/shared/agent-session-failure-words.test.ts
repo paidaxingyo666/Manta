@@ -169,6 +169,23 @@ describe('the words written beside a failure fact', () => {
     ).toBe('The agent stopped before this message was sent.')
   })
 
+  it('says a refused Stop reached the agent, which declined it', () => {
+    const refused = (detail?: { text: string; audience: 'person' | 'log' }, agentName?: string) =>
+      agentSessionFailureWords(
+        { kind: 'stopRefused', ...(detail ? { detail } : {}) },
+        { surface: 'row', agentName }
+      ).text
+    expect(refused(undefined, 'Codex')).toBe('Codex had no turn running to stop.')
+    expect(refused()).toBe('The agent had no turn running to stop.')
+    expect(refused({ text: 'no active turn to interrupt.', audience: 'person' }, 'Codex')).toBe(
+      "Codex didn't stop: no active turn to interrupt."
+    )
+    // Words Codex wrote for the log are never quoted to a person.
+    expect(refused({ text: 'rpc -32600', audience: 'log' }, 'Codex')).toBe(
+      'Codex had no turn running to stop.'
+    )
+  })
+
   it('says what frees a chat a terminal agent still holds, without naming its process', () => {
     expect(
       agentSessionFailureSentence(

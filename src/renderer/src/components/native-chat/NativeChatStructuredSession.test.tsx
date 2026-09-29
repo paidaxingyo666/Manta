@@ -27,11 +27,28 @@ vi.mock('./NativeChatApprovalCard', () => moduleFactories.nativeChatApprovalCard
 vi.mock('./NativeChatQuestionCard', () => moduleFactories.nativeChatQuestionCard())
 
 import { NativeChatStructuredSession } from './NativeChatStructuredSession'
+import { structuredAgentSessionPaneKey } from '../../../../shared/structured-agent-session-projection'
 
 describe('NativeChatStructuredSession', () => {
   afterEach(() => {
     cleanup()
     resetStructuredSessionMocks()
+  })
+
+  it('gives what a Stop withdrew back to the composer this pane shows', () => {
+    render(
+      <NativeChatStructuredSession
+        isVisible
+        isFocusedGroup
+        tabId="structured-tab-1"
+        sessionId="session-1"
+        target={{ kind: 'local' }}
+        agent="codex"
+      />
+    )
+    const paneKey = structuredAgentSessionPaneKey('structured-tab-1', 'session-1')
+    expect(mocks.composerProps).toMatchObject({ paneKey })
+    expect(mocks.controllerProps).toMatchObject({ composerScopeKey: paneKey })
   })
 
   it('routes the launch draft and app-menu paste to the structured composer', () => {
@@ -365,6 +382,16 @@ describe('NativeChatStructuredSession', () => {
     mocks.monitoringBackgroundTasks = true
     rerender(claudeSessionView('structured-tab-background', 'session-background'))
     expect(screen.getByRole('list', { name: 'Agents' })).toBeTruthy()
+  })
+
+  it('offers Stop before any turn opens when the controller can stop, and stops through it', () => {
+    mocks.canStop = true
+    render(claudeSessionView('structured-tab-pre-turn', 'session-pre-turn'))
+
+    expect(mocks.composerProps?.isWorking).toBe(true)
+    act(() => mocks.composerProps?.onStop?.())
+    expect(mocks.stop).toHaveBeenCalledOnce()
+    expect(mocks.cancel).not.toHaveBeenCalled()
   })
 
   it('keeps the strip mounted through a running turn, with the turn owning the voice', () => {

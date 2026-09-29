@@ -27,6 +27,7 @@ import { DISPATCH_DOUBT_PERSISTENCE_FAILED } from '../agent-session-journal/jour
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import { latestJournalDispatchObservation } from '../agent-session-journal/journal-dispatch-observation'
 import type {
+  AgentSessionCancelOutcome,
   AgentSessionDispatchOutcome,
   StructuredAgentSessionAdapter,
   StructuredAgentSessionProviderChildPhase
@@ -53,6 +54,8 @@ export type AgentSessionTurnContext = {
   flushStreamedEvents: () => Promise<void>
   /** What the host holds about the child this dispatch is for, read at the moment it is needed. */
   providerChildPhase?: () => StructuredAgentSessionProviderChildPhase | undefined
+  /** Who a Stop's refusal row names. */
+  failureTextContext?: AgentSessionFailureWordsContext
   now: () => number
 }
 
@@ -239,7 +242,8 @@ export async function performCancel(
   ctx: AgentSessionTurnContext,
   input: {
     clientOperationId: string
-    turnId: string
+    /** Absent: whatever the conversation has in flight; present: only while that turn is current. */
+    turnId?: string
     scope?: 'background-tasks'
     taskId?: string
     prompt?: { itemId: string; expectedRevision: number }
@@ -252,30 +256,51 @@ export async function performCancel(
     }
   }
   let cancelled = false
-  let note: AgentJournalStatusItem = { kind: 'status', text: 'Cancellation requested.' }
+  let note: AgentJournalStatusItem | null = { kind: 'status', text: 'Cancellation requested.' }
   try {
     const dispatchStatus = latestJournalDispatchObservation(ctx.journal, ctx.fence)
-    cancelled = input.scope
-      ? (
-          await ctx.adapter.stopBackgroundTasks?.({
-            sessionId: ctx.sessionId,
-            fence: ctx.fence,
-            ...(input.taskId ? { taskId: input.taskId } : {})
-          })
-        )?.cancelled === true
-      : (
-          await ctx.adapter.cancelTurn({
-            sessionId: ctx.sessionId,
-            turnId: input.turnId,
-            fence: ctx.fence,
-            // The journal is what the client read to name a turn, so it is what judges the request.
-            resolveLiveTurnId: () => ctx.journal.activeTurnId(),
-            ...(dispatchStatus ? { dispatchStatus } : {}),
-            ...(input.prompt ? { prompt: { itemId: input.prompt.itemId } } : {})
-          })
-        ).cancelled
-    if (!cancelled) {
+    const outcome: AgentSessionCancelOutcome = input.scope
+      ? {
+          cancelled:
+            (
+              await ctx.adapter.stopBackgroundTasks?.({
+                sessionId: ctx.sessionId,
+                fence: ctx.fence,
+                ...(input.taskId ? { taskId: input.taskId } : {})
+              })
+            )?.cancelled === true
+        }
+      : await ctx.adapter.cancelTurn({
+          sessionId: ctx.sessionId,
+          ...(input.turnId !== undefined ? { turnId: input.turnId } : {}),
+          fence: ctx.fence,
+          // The journal is what the client read to name a turn, so it is what judges the request.
+          resolveLiveTurnId: () => ctx.journal.activeTurnId(),
+          ...(dispatchStatus ? { dispatchStatus } : {}),
+          ...(input.prompt ? { prompt: { itemId: input.prompt.itemId } } : {})
+        })
+    cancelled = outcome.cancelled
+    if (!cancelled && input.turnId !== undefined) {
       note = { kind: 'status', text: 'The provider had already finished this turn.' }
+    } else if (!cancelled && input.prompt) {
+      note = null
+    } else if (!cancelled && outcome.unconfirmed) {
+      note = {
+        kind: 'status',
+        ...agentSessionFailureWords(agentSessionFailureFact('cancelUnconfirmed'), {
+          surface: 'row'
+        })
+      }
+    } else if (!cancelled) {
+      // Sent only while the chat reads working, so a Stop that ended nothing must say why.
+      const detail = outcome.refusal?.detail
+      note = {
+        kind: 'status',
+        ...agentSessionFailureWords(
+          agentSessionFailureFact('stopRefused', detail ? { detail } : {}),
+          { ...ctx.failureTextContext, surface: 'row' }
+        )
+      }
     }
   } catch (error) {
     if (input.prompt) {
@@ -290,10 +315,11 @@ export async function performCancel(
   if (cancelled && input.prompt) {
     await ctx.flushStreamedEvents()
   }
-  if (input.scope) {
-    return { ok: true, value: { turnId: input.turnId, cancelled } }
+  const value = { ...(input.turnId !== undefined ? { turnId: input.turnId } : {}), cancelled }
+  if (input.scope || note === null) {
+    return { ok: true, value }
   }
   // Keyed by the operation id so a replayed cancel upserts one item, not two.
   await appendStatus(ctx, input.clientOperationId, note)
-  return { ok: true, value: { turnId: input.turnId, cancelled } }
+  return { ok: true, value }
 }
