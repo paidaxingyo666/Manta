@@ -7,6 +7,10 @@ import {
 import type { BrowserViewportOverride } from '../../shared/browser-workspace-types'
 import { BrowserManagerDownloadLifecycle } from './browser-manager-download-lifecycle'
 
+// Why no maxTouchPoints: Chromium rejects values outside 1..16 even when disabling, which left
+// touch emulation (and no-hover media features) on after leaving a mobile preset (#22749).
+const TOUCH_EMULATION_DISABLED = { enabled: false } as const
+
 export abstract class BrowserManagerViewport extends BrowserManagerDownloadLifecycle {
   // Why: guests are isolated from Manta's preload bridge, so main owns the devtools escape hatch after a tab→guest lookup.
   async openDevTools(browserTabId: string): Promise<boolean> {
@@ -158,10 +162,10 @@ export abstract class BrowserManagerViewport extends BrowserManagerDownloadLifec
           : dbg.sendCommand('Emulation.clearDeviceMetricsOverride', {})
     )
     const touchApplied = await this.runViewportEmulationStep(browserTabId, 'touch emulation', () =>
-      dbg.sendCommand('Emulation.setTouchEmulationEnabled', {
-        enabled: override?.mobile ?? false,
-        maxTouchPoints: override?.mobile ? 5 : 0
-      })
+      dbg.sendCommand(
+        'Emulation.setTouchEmulationEnabled',
+        override?.mobile ? { enabled: true, maxTouchPoints: 5 } : TOUCH_EMULATION_DISABLED
+      )
     )
     if (this.webContentsIdByTabId.get(browserTabId) !== webContentsId) {
       return false
