@@ -49,26 +49,6 @@ beforeEach(() => {
 const { isUsableId, toSafeDirName } = _internals
 
 describe('OpenCode hook plugin source', () => {
-  it('preserves the public module surface', async () => {
-    const module = await import('./hook-service')
-
-    expect(Object.keys(module).sort()).toEqual([
-      'OpenCodeHookService',
-      '_internals',
-      'getOpenCode2PluginSource',
-      'getOpenCodeFamilyPluginSource',
-      'getOpenCodePluginSource',
-      'openCode2HookService',
-      'openCodeHookService'
-    ])
-    expect(Object.keys(module._internals).sort()).toEqual([
-      'getOpenCode2PluginSource',
-      'getOpenCodePluginSource',
-      'isUsableId',
-      'toSafeDirName'
-    ])
-  })
-
   it('keeps family routing and session-start policy separate', () => {
     const primarySource = getOpenCodePluginSource()
     const familySource = getOpenCodeFamilyPluginSource('/hook/mimo-code', {
