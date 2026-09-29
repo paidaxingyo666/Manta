@@ -8,6 +8,10 @@ import {
 import type { RuntimeTerminalWaitBlockedReason } from '../../shared/runtime-types'
 import type { TuiAgent } from '../../shared/tui-agent'
 import { findAntigravityReadyPromptIndex } from './antigravity-terminal-readiness'
+import {
+  findCodexScreenReadyPromptIndex,
+  isCodexComposerReadyScreen
+} from './codex-terminal-readiness'
 import { startOfLastLines, startOfLastNonBlankLines } from './terminal-wait-tail-window'
 
 const EXPLICIT_IDLE_TITLE_RE = /(^|\s)(ready|idle|done)(\s|$|[.!?])/i
@@ -72,12 +76,29 @@ export function isKnownReadyPromptBody(
   if (agent !== null && agent !== 'codex') {
     return false
   }
-  const screenLines = readScreenLines()
-  if (screenLines === null) {
-    return false
+  const screen = readScreen(readScreenLines)
+  return screen !== null && isReadyPromptUnblocked(screen, findCodexScreenReadyPromptIndex(screen))
+}
+
+/**
+ * Tier 1b body evidence: a ready screen from an agent with no title rest signal. Unlike tier 1
+ * it only proves the TUI is up, so the ranking holds it to quiescence.
+ * Why codex panes only: a `cat`ed transcript or pager in an unknown pane can show the composer.
+ */
+export function isQuietReadyScreenBody(
+  waitText: string,
+  agent: TuiAgent | null,
+  readScreenLines: () => readonly string[] | null
+): boolean {
+  if (agent === 'codex') {
+    const screen = readScreen(readScreenLines)
+    return screen !== null && isCodexComposerReadyScreen(screen)
   }
-  const screen = screenLines.join('\n').toLowerCase()
-  return isReadyPromptUnblocked(screen, findCodexScreenReadyPromptIndex(screen))
+  return (agent === null || agent === 'muse') && isMuseReadyPromptPreview(waitText)
+}
+
+function readScreen(readScreenLines: () => readonly string[] | null): string | null {
+  return readScreenLines()?.join('\n').toLowerCase() ?? null
 }
 
 function isReadyPromptUnblocked(normalized: string, readyIndex: number | null): boolean {
@@ -88,8 +109,6 @@ function isReadyPromptUnblocked(normalized: string, readyIndex: number | null): 
   return blockedSignal === null || blockedSignal.index <= readyIndex
 }
 
-// Why separate from isKnownReadyPromptPreview: that one settles tier 1 immediately, while
-// a Muse ready screen only proves the TUI is up — the ranking holds it to quiescence.
 export function isMuseReadyPromptPreview(preview: string): boolean {
   const normalized = preview.toLowerCase()
   return isReadyPromptUnblocked(normalized, findMuseReadyPromptIndex(normalized))
@@ -177,24 +196,6 @@ function findCodexReadyPromptIndex(normalized: string): number | null {
   const readySegment = normalized.slice(headerIndex)
   // Why: Codex prints permissions only in YOLO mode; the stable ready header is OpenAI Codex + model + directory.
   return readySegment.includes('model:') && readySegment.includes('directory:') ? headerIndex : null
-}
-
-const CODEX_HEADER_LOADING_RE = /(?:model|directory):\s+loading/
-
-// Why the header box only: chat below it can mention "OpenAI Codex" or `model: loading`.
-// Why `loading`: a header still loading is not ready; the screen must not add readiness early.
-function findCodexScreenReadyPromptIndex(screen: string): number | null {
-  const headerIndex = screen.indexOf('openai codex')
-  if (headerIndex === -1) {
-    return null
-  }
-  const boxEnd = screen.indexOf('╰', headerIndex)
-  const header = screen.slice(headerIndex, boxEnd === -1 ? undefined : boxEnd)
-  return header.includes('model:') &&
-    header.includes('directory:') &&
-    !CODEX_HEADER_LOADING_RE.test(header)
-    ? headerIndex
-    : null
 }
 
 export const TERMINAL_WAIT_BLOCKED_SENTINEL_RE =

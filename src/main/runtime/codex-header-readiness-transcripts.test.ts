@@ -1,14 +1,11 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { HeadlessEmulator } from '../daemon/headless-emulator'
 import { createTranscriptPane } from './agent-transcript-pane-test-harness'
-import { projectTerminalVisibleLines } from './manta-runtime-terminal-projection'
-import { normalizeTerminalChunk } from './terminal-ansi-normalization'
-import { appendNormalizedToTailBuffer } from './terminal-tail-buffer'
-import { buildPreview } from './terminal-tail-state'
+import {
+  readRuntimeFixture,
+  replayTranscript,
+  type TranscriptReplayFrame
+} from './agent-transcript-replay-test-harness'
 import { isKnownReadyPromptBody, isKnownReadyPromptPreview } from './terminal-wait-detection'
-import { buildTerminalWaitText } from './terminal-wait-tail-state'
 
 vi.mock('electron', () => ({
   BrowserWindow: { fromId: vi.fn(() => null) },
@@ -23,44 +20,14 @@ const EFFORT_OVERRIDE = 'codex-0157-effort-override-embedded-warning'
 const CONFIG_OVERRIDE = 'codex-0157-config-override-embedded-warning'
 const NO_DAEMON = 'codex-0157-no-daemon-effort-override'
 const ALL_FIXTURES = [PLAIN, EFFORT_OVERRIDE, CONFIG_OVERRIDE, NO_DAEMON]
-const CHUNK_CHARS = 64
 
-function readFixture(name: string): string {
-  return readFileSync(join(__dirname, '__fixtures__', `${name}.txt`), 'utf8')
-}
-
-type ReplayFrame = { screenLines: string[]; waitText: string }
-
-/** Feeds the bytes the way onPtyData does: one emulator grid, one line-folded wait text. */
-async function* replay(data: string, cols: number, rows: number): AsyncGenerator<ReplayFrame> {
-  const emulator = new HeadlessEmulator({ cols, rows })
-  let lines: string[] = []
-  let partialLine = ''
-  let pendingAnsi = ''
-  let redrawCursor: ReturnType<typeof appendNormalizedToTailBuffer>['redrawCursor'] = null
-  try {
-    for (let offset = 0; offset < data.length; offset += CHUNK_CHARS) {
-      const chunk = data.slice(offset, offset + CHUNK_CHARS)
-      await emulator.write(chunk)
-      const normalized = normalizeTerminalChunk(chunk, pendingAnsi)
-      pendingAnsi = normalized.pendingAnsi
-      const tail = appendNormalizedToTailBuffer(lines, partialLine, normalized.text, redrawCursor)
-      lines = tail.lines
-      partialLine = tail.partialLine
-      redrawCursor = tail.redrawCursor
-      yield {
-        screenLines: projectTerminalVisibleLines(emulator).lines,
-        waitText: buildTerminalWaitText(lines, partialLine, buildPreview(lines, partialLine))
-      }
-    }
-  } finally {
-    emulator.dispose()
-  }
-}
-
-async function finalFrame(name: string, cols: number, rows: number): Promise<ReplayFrame> {
-  let last: ReplayFrame | null = null
-  for await (const frame of replay(readFixture(name), cols, rows)) {
+async function finalFrame(
+  name: string,
+  cols: number,
+  rows: number
+): Promise<TranscriptReplayFrame> {
+  let last: TranscriptReplayFrame | null = null
+  for await (const frame of replayTranscript(readRuntimeFixture(name), cols, rows)) {
     last = frame
   }
   if (!last) {
@@ -89,8 +56,8 @@ describe('Codex 0.157 header readiness from captured bytes', () => {
     '%s: the screen never adds readiness while loading, and is ready at the final screen',
     async (name) => {
       let sawLoadingHeader = false
-      let last: ReplayFrame | null = null
-      for await (const frame of replay(readFixture(name), 120, 40)) {
+      let last: TranscriptReplayFrame | null = null
+      for await (const frame of replayTranscript(readRuntimeFixture(name), 120, 40)) {
         if (screenShowsLoadingHeader(frame.screenLines)) {
           sawLoadingHeader = true
           expect(isKnownReadyPromptBody('', 'codex', () => frame.screenLines)).toBe(false)
@@ -113,7 +80,7 @@ describe('Codex 0.157 header readiness from captured bytes', () => {
     [60, 5]
   ])('at %ix%i the screen never takes readiness away from the text rules', (cols, rows) => {
     it.each(ALL_FIXTURES)('%s', async (name) => {
-      for await (const frame of replay(readFixture(name), cols, rows)) {
+      for await (const frame of replayTranscript(readRuntimeFixture(name), cols, rows)) {
         if (isKnownReadyPromptPreview(frame.waitText)) {
           expect(isKnownReadyPromptBody(frame.waitText, 'codex', () => frame.screenLines)).toBe(
             true
@@ -191,7 +158,7 @@ describe('Codex 0.157 header readiness from captured bytes', () => {
         paneTitle: 'Terminal',
         foregroundProcess: 'codex',
         launchAgent: 'codex',
-        data: readFixture(name),
+        data: readRuntimeFixture(name),
         size
       })
     }
