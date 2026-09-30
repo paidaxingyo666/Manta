@@ -54,9 +54,8 @@ import { vitestRecordingScheduler } from './vitest-recording-scheduler'
  *
  * The claim it is built to certify is the one C1 needs before a screen moves to the web: a screen
  * driven through `BridgeRpcClient` observes what it observes on the native client, down to the
- * byte. Headers are excluded because they are provenance of the committed recording, not of this
- * run. This suite writes nothing, and it is not in `RECORDING_DRIVERS`, so `recorderSha256` does
- * not pin it — a suite that cannot put an observation in a recorded file is not provenance for one.
+ * byte. This suite writes nothing, and it is not in `RECORDING_DRIVERS`: a suite that cannot put
+ * an observation in a recorded file does not record one.
  *
  * It runs by default, in `pnpm test` and so in CI, and `RPC_FOUNDATION_BRIDGE=0` is what skips it
  * for a local run that does not want the three minutes. Vitest gives the file a worker of its own
@@ -268,7 +267,7 @@ async function verdict(
   const expected = readGolden(directory, id)
   const fields = run.recording === null ? [] : divergingFields(expected.recording, run.recording)
   if (run.recording !== null && fields.length === 0) {
-    // Not redundant with the field walk: this one also pins the encoding and the header.
+    // Not redundant with the field walk: this one also pins the encoding.
     compareGolden(expected, { ...expected, recording: run.recording })
     identical += 1
     record('identical')

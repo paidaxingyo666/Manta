@@ -117,7 +117,6 @@
       "config/scripts/mobile-launch-contract-workflow.test.mjs": 439,
       "config/scripts/mobile-mirrored-storage-write-path.test.mjs": 136,
       "config/scripts/mobile-pairing-qrcode-import-plugin.test.mjs": 421,
-      "config/scripts/mobile-recording-pin-checkout.test.mjs": 309,
       "config/scripts/mobile-release-check-scope.test.mjs": 610,
       "config/scripts/mobile-release-shell-switch-workflow.test.mjs": 227,
       "config/scripts/mobile-set-native-props-web-siblings.test.mjs": 959,

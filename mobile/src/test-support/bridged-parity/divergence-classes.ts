@@ -1,10 +1,8 @@
 /**
  * What a bridged-replay divergence is called, decided by a rule rather than by reading a message.
  *
- * Beside the recorder rather than inside it. Reading a failure cannot change what a recording
- * records, so `recorderSha256` must not cover this: a tightened rule would otherwise re-record 787
- * headers to say nothing. The recorder's own directory is digested whole, which is why this lives
- * one level up in `test-support`.
+ * Beside the recorder rather than inside it: reading a failure cannot change what a recording
+ * records, and nothing on the recording path loads this.
  */
 
 /**
