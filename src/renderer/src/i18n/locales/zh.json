@@ -9500,7 +9500,8 @@
               "openclaude": "开放克劳德",
               "omp": "奥普",
               "terminal": "终端",
-              "agent": "代理"
+              "agent": "代理",
+              "queue": "队列"
             },
             "agentDashboard": {
               "title": "智能体仪表盘",
@@ -17722,6 +17723,29 @@
         "label": "上下文 {{used}}/{{window}} token，已用 {{percent}}%",
         "title": "上下文",
         "estimated": "根据上一次响应的估算值。"
+      },
+      "queuedMessages": {
+        "alreadySent": "此消息已发送。",
+        "editAlreadySent": "已发送 — 你的文本仍在输入框中。",
+        "listLabel": "排队的消息",
+        "behindReturnedHold": "等待中 — 前面有一条消息需要处理",
+        "awaitingAnswerHold": "等待你的回答",
+        "steer": "立即发送",
+        "send": "发送",
+        "steerHint": "提交且不中断模型",
+        "sendHint": "立即发送此消息",
+        "delete": "删除",
+        "moreActions": "更多操作",
+        "editMessage": "编辑消息",
+        "turnOffQueueing": "关闭排队",
+        "withdrawnHold": "在发送前已停止",
+        "pausedSendFailed": "无法发送。点按发送以重试。",
+        "paused": "已暂停",
+        "queuePausedStopped": "因你中断了操作，队列已暂停",
+        "queuePausedRestarted": "因 Manta 重新启动，队列已暂停",
+        "queuePausedCleared": "清除对话后，队列已暂停",
+        "queuePaused": "队列已暂停",
+        "resume": "继续"
       }
     },
     "tab": {
@@ -18084,6 +18108,11 @@
             "spaces": "空间"
           }
         }
+      },
+      "nativeChat": {
+        "queueFollowUpsTitle": "将后续消息加入队列",
+        "queueFollowUpsCopy": "Agent 工作时发送的消息会以卡片形式等待，你可以立即发送、编辑或删除。带图片的消息会立即发送。",
+        "queueFollowUpsToggleLabel": "切换后续消息队列"
       }
     },
     "agentChildRow": {

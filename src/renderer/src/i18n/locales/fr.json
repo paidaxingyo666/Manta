@@ -9660,7 +9660,8 @@
               "openclaude": "openclaude",
               "omp": "omp",
               "terminal": "Terminal",
-              "agent": "agent"
+              "agent": "agent",
+              "queue": "file d'attente"
             },
             "agentDashboard": {
               "title": "Tableau de bord des agents",
@@ -17821,6 +17822,29 @@
         "label": "Contexte : {{used}} tokens sur {{window}}, {{percent}} % utilisés",
         "title": "Contexte",
         "estimated": "Estimation basée sur la dernière réponse."
+      },
+      "queuedMessages": {
+        "alreadySent": "Ce message a déjà été envoyé.",
+        "editAlreadySent": "Déjà envoyé — votre texte reste dans la zone de saisie.",
+        "listLabel": "Messages en file d'attente",
+        "behindReturnedHold": "En attente — un message précédent nécessite votre attention",
+        "awaitingAnswerHold": "En attente de votre réponse",
+        "steer": "Envoyer maintenant",
+        "send": "Envoyer",
+        "steerHint": "Envoyer sans interrompre le modèle",
+        "sendHint": "Envoyer ce message maintenant",
+        "delete": "Supprimer",
+        "moreActions": "Plus d'actions",
+        "editMessage": "Modifier le message",
+        "turnOffQueueing": "Désactiver la file d'attente",
+        "withdrawnHold": "Arrêté avant l'envoi",
+        "pausedSendFailed": "Envoi impossible. Appuyez sur Envoyer pour réessayer.",
+        "paused": "En pause",
+        "queuePausedStopped": "File d'attente en pause, car vous avez interrompu",
+        "queuePausedRestarted": "File d'attente en pause, car Manta a redémarré",
+        "queuePausedCleared": "File d'attente en pause après l'effacement de la conversation",
+        "queuePaused": "File d'attente en pause",
+        "resume": "Reprendre"
       }
     },
     "tab": {
@@ -18183,6 +18207,11 @@
             "spaces": "espaces"
           }
         }
+      },
+      "nativeChat": {
+        "queueFollowUpsTitle": "Mettre les messages en file d’attente",
+        "queueFollowUpsCopy": "Les messages envoyés pendant que l'agent travaille attendent sous forme de cartes que vous pouvez envoyer maintenant, modifier ou supprimer. Les messages avec des images sont envoyés immédiatement.",
+        "queueFollowUpsToggleLabel": "Activer ou désactiver la file d'attente"
       }
     },
     "agentChildRow": {

@@ -9500,7 +9500,8 @@
               "openclaude": "개방형",
               "omp": "펌프",
               "terminal": "터미널",
-              "agent": "에이전트"
+              "agent": "에이전트",
+              "queue": "대기열"
             },
             "agentDashboard": {
               "title": "에이전트 대시보드",
@@ -17757,6 +17758,29 @@
         "label": "컨텍스트 {{used}}/{{window}} 토큰, {{percent}}% 사용",
         "title": "컨텍스트",
         "estimated": "마지막 응답 기준 추정치입니다."
+      },
+      "queuedMessages": {
+        "alreadySent": "이 메시지는 이미 전송되었습니다.",
+        "editAlreadySent": "이미 전송되었습니다 — 텍스트는 입력창에 남아 있습니다.",
+        "listLabel": "대기 중인 메시지",
+        "behindReturnedHold": "대기 중 — 앞의 메시지에 확인이 필요합니다",
+        "awaitingAnswerHold": "답변을 기다리는 중",
+        "steer": "지금 보내기",
+        "send": "보내기",
+        "steerHint": "모델을 중단하지 않고 보냅니다",
+        "sendHint": "이 메시지를 지금 보냅니다",
+        "delete": "삭제",
+        "moreActions": "추가 작업",
+        "editMessage": "메시지 편집",
+        "turnOffQueueing": "대기열 사용 안 함",
+        "withdrawnHold": "전송 전에 중지됨",
+        "pausedSendFailed": "보낼 수 없습니다. 보내기를 눌러 다시 시도하세요.",
+        "paused": "일시 중지됨",
+        "queuePausedStopped": "중단했기 때문에 대기열이 일시 중지되었습니다",
+        "queuePausedRestarted": "Manta가 다시 시작되어 대기열이 일시 중지되었습니다",
+        "queuePausedCleared": "대화를 지워서 대기열이 일시 중지되었습니다",
+        "queuePaused": "대기열이 일시 중지되었습니다",
+        "resume": "재개"
       }
     },
     "tab": {
@@ -18084,6 +18108,11 @@
             "spaces": "공백"
           }
         }
+      },
+      "nativeChat": {
+        "queueFollowUpsTitle": "후속 메시지 대기열에 추가",
+        "queueFollowUpsCopy": "Agent가 작업하는 동안 보낸 메시지는 지금 보내기, 편집, 삭제할 수 있는 카드로 대기합니다. 이미지가 포함된 메시지는 바로 전송됩니다.",
+        "queueFollowUpsToggleLabel": "후속 메시지 대기열 전환"
       }
     },
     "agentChildRow": {

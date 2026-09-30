@@ -9537,7 +9537,8 @@
               "openclaude": "オープンクロード",
               "omp": "ああ",
               "terminal": "ターミナル",
-              "agent": "Agent"
+              "agent": "Agent",
+              "queue": "キュー"
             },
             "agentDashboard": {
               "title": "Agent ダッシュボード",
@@ -17757,6 +17758,29 @@
         "label": "コンテキスト {{used}} / {{window}} トークン、{{percent}}% 使用済み",
         "title": "コンテキスト",
         "estimated": "最後の応答から推定。"
+      },
+      "queuedMessages": {
+        "alreadySent": "このメッセージはすでに送信されています。",
+        "editAlreadySent": "すでに送信されています — テキストは入力欄に残っています。",
+        "listLabel": "キュー内のメッセージ",
+        "behindReturnedHold": "待機中 — 前のメッセージの対応が必要です",
+        "awaitingAnswerHold": "回答を待っています",
+        "steer": "今すぐ送信",
+        "send": "送信",
+        "steerHint": "モデルを中断せずに送信します",
+        "sendHint": "このメッセージを今すぐ送信します",
+        "delete": "削除",
+        "moreActions": "その他の操作",
+        "editMessage": "メッセージを編集",
+        "turnOffQueueing": "キューへの追加をオフにする",
+        "withdrawnHold": "送信前に停止されました",
+        "pausedSendFailed": "送信できませんでした。「送信」を押して再試行してください。",
+        "paused": "一時停止中",
+        "queuePausedStopped": "中断したため、キューを一時停止しました",
+        "queuePausedRestarted": "Manta が再起動したため、キューを一時停止しました",
+        "queuePausedCleared": "会話を消去したため、キューを一時停止しました",
+        "queuePaused": "キューは一時停止中です",
+        "resume": "再開"
       }
     },
     "tab": {
@@ -18084,6 +18108,11 @@
             "spaces": "スペース"
           }
         }
+      },
+      "nativeChat": {
+        "queueFollowUpsTitle": "フォローアップをキューに入れる",
+        "queueFollowUpsCopy": "Agent の作業中に送信したメッセージは、今すぐ送信・編集・削除できるカードとして待機します。画像付きのメッセージはすぐに送信されます。",
+        "queueFollowUpsToggleLabel": "フォローアップのキューを切り替え"
       }
     },
     "agentChildRow": {

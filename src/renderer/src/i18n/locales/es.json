@@ -8379,7 +8379,8 @@
             "nativeChat": {
               "title": "Chat UI",
               "description": "Previsualiza la interfaz de chat de escritorio para sesiones de terminal de agentes compatibles.",
-              "grok": "grok"
+              "grok": "grok",
+              "queue": "cola"
             },
             "agentDashboard": {
               "title": "Panel de agentes",
@@ -15121,6 +15122,29 @@
       "subagents": {
         "unnamed": "Subagente",
         "writtenBy": "Escrito por el subagente {{value0}}"
+      },
+      "queuedMessages": {
+        "alreadySent": "Este mensaje ya se envió.",
+        "editAlreadySent": "Ya se envió — tu texto sigue en el cuadro de mensaje.",
+        "listLabel": "Mensajes en cola",
+        "behindReturnedHold": "En espera: un mensaje anterior necesita atención",
+        "awaitingAnswerHold": "Esperando tu respuesta",
+        "steer": "Enviar ahora",
+        "send": "Enviar",
+        "steerHint": "Enviar sin interrumpir al modelo",
+        "sendHint": "Enviar este mensaje ahora",
+        "delete": "Eliminar",
+        "moreActions": "Más acciones",
+        "editMessage": "Editar mensaje",
+        "turnOffQueueing": "Desactivar la cola",
+        "withdrawnHold": "Detenido antes de enviarse",
+        "pausedSendFailed": "No se pudo enviar. Pulsa Enviar para reintentar.",
+        "paused": "En pausa",
+        "queuePausedStopped": "Cola en pausa porque interrumpiste",
+        "queuePausedRestarted": "Cola en pausa porque Manta se reinició",
+        "queuePausedCleared": "Cola en pausa después de que borraste la conversación",
+        "queuePaused": "Cola en pausa",
+        "resume": "Reanudar"
       }
     },
     "tab": {
@@ -15188,6 +15212,13 @@
     },
     "agentChildRow": {
       "ended": "Finalizado"
+    },
+    "settings": {
+      "nativeChat": {
+        "queueFollowUpsTitle": "Poner mensajes en cola",
+        "queueFollowUpsCopy": "Los mensajes que envías mientras el agente trabaja esperan como tarjetas que puedes enviar ahora, editar o eliminar. Los mensajes con imágenes se envían de inmediato.",
+        "queueFollowUpsToggleLabel": "Alternar la cola de mensajes"
+      }
     }
   },
   "dashboardPopout": {
