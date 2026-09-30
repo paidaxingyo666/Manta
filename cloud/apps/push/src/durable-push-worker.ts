@@ -2,6 +2,10 @@ import { buildPushDelivery } from './push-delivery-message.js'
 import type { PushDispatcher } from './push-dispatcher.js'
 import type { DurablePushStore } from './durable-push-store.js'
 
+// Four drains capped delivery near 30/s at ~120 ms per item, below the 2026-09 inflow; each drain
+// holds one delivery in flight, so this is the worker's concurrency, not its DB draw.
+const WORKER_DRAINS = 12
+
 export class DurablePushWorker {
   private timer?: NodeJS.Timeout
   private running: Promise<void> | null = null
@@ -29,7 +33,7 @@ export class DurablePushWorker {
       return
     }
     if (this.stopped) return
-    const pending = Promise.allSettled(Array.from({ length: 4 }, () => this.drain())).then(
+    const pending = Promise.allSettled(Array.from({ length: WORKER_DRAINS }, () => this.drain())).then(
       (results) => {
         const failure = results.find((result) => result.status === 'rejected')
         if (failure?.status === 'rejected') throw failure.reason
