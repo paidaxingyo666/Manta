@@ -21,8 +21,9 @@ function providerTurnId(session: CodexSession, turnId: string): string | undefin
   return session.translator ? session.translator.commandProviderTurnId(turnId) : turnId
 }
 
-/** How long a Stop waits for Codex to open the turn it answered a send into. Under the quit
- *  path's eviction budget, which a close or quit queued behind the Stop spends. */
+/** How long a Stop waits for Codex to open the turn it answered a send into. A close or quit queued
+ *  behind the Stop spends this out of the eviction budget, so a full wait plus a slow provider
+ *  close can overrun it; the next launch's recovery then settles the lease. */
 export const CODEX_STOP_TURN_OPEN_WAIT_MS = 5_000
 
 /**
