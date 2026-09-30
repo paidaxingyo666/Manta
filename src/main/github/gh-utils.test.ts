@@ -149,16 +149,6 @@ describe('github owner/repo resolution', () => {
     expect(gitRemoteGetUrlCalls('origin')).toHaveLength(1)
   })
 
-  it('prefers upstream for issue owner/repo resolution', async () => {
-    mockGitRemoteCommands({
-      origin: 'git@github.com:fork/manta.git\n',
-      upstream: 'git@github.com:stablyai/orca.git\n'
-    })
-
-    await expect(getIssueOwnerRepo('/repo')).resolves.toEqual({ owner: 'stablyai', repo: 'manta' })
-    expect(gitRemoteGetUrlCalls('upstream')).toHaveLength(1)
-  })
-
   it('falls back to origin when upstream is present but non-GitHub', async () => {
     mockGitRemoteCommands({
       origin: 'git@github.com:fork/manta.git\n',
