@@ -1,5 +1,7 @@
+import type { AgentJournalStatusItem } from '../../shared/agent-session-journal-types'
 import {
   unhandledProviderFrameJournalItem,
+  type UnhandledProviderFrameJournalItem,
   type UnhandledProviderFrameJournalItemOptions
 } from '../native-chat/agent-session-wire/unhandled-provider-frame'
 import { DEFAULT_JOURNAL_PAYLOAD_LIMITS } from '../native-chat/agent-session-journal/journal-payload-bounds'
@@ -63,7 +65,10 @@ export class CodexJournalGenericFrames {
   private cancelSuppressionFlush: (() => void) | null = null
 
   constructor(
-    private readonly deps: Pick<CodexJournalTranslatorDeps, 'sink' | 'schedule' | 'coalesceMs'> & {
+    private readonly deps: Pick<
+      CodexJournalTranslatorDeps,
+      'sink' | 'schedule' | 'coalesceMs' | 'acquisitionId'
+    > & {
       attributionFor: CodexRowAttribution
     },
     private readonly activeTurn: (threadId: string) => string | null
@@ -87,9 +92,18 @@ export class CodexJournalGenericFrames {
     )
     // A frame the classifier declines is deliberately not journaled, which is success.
     // Failing admission here force-closes the provider through the retry queue.
-    if (!translated) {
-      return CODEX_JOURNAL_ADMITTED
+    return translated ? this.appendFrameRow(threadId, payload, translated) : CODEX_JOURNAL_ADMITTED
+  }
+
+  /** One frame's own row, under the identity every frame row gets, however it is worded. */
+  appendFrameRow(
+    threadId: string,
+    payload: unknown,
+    translated: {
+      body: AgentJournalStatusItem
+      classification: UnhandledProviderFrameJournalItem['classification']
     }
+  ): CodexJournalTranslationAdmission {
     const frameTurnId = readCodexTurnId(payload) ?? this.activeTurn(threadId)
     const turnId = frameTurnId ?? 'outside-turn'
     const bucket = this.bucketFor(threadId, turnId)
@@ -112,7 +126,7 @@ export class CodexJournalGenericFrames {
     this.fallbackSequence += 1
     const identity = {
       provider: 'manta' as const,
-      clientMessageId: `provider-frame:codex:${this.fallbackSequence}`
+      clientMessageId: `provider-frame:codex:${this.deps.acquisitionId ?? 'acquisition'}:${this.fallbackSequence}`
     }
     const attribution = this.deps.attributionFor(threadId, frameTurnId)
     const admission = this.deps.sink.tryAppendItem

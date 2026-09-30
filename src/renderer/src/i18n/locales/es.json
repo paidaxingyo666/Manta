@@ -14961,7 +14961,8 @@
         "hostFaultTryAgain": "Manta tuvo un problema, así que esto no se completó. Vuelva a intentarlo.",
         "hostStopped": "{{agent}} no terminó de iniciarse, así que Manta lo detuvo.",
         "providerRateLimited": "{{agent}} alcanzó un límite de solicitudes y está reintentando.",
-        "providerRetrying": "{{agent}} tuvo un problema temporal y está reintentando."
+        "providerRetrying": "{{agent}} tuvo un problema temporal y está reintentando.",
+        "providerRetryingQuoted": "{{agent}} está reintentando: {{detail}}."
       },
       "writeNotice": {
         "notDoneReadHistory": "No se pudo cargar el historial de este chat.",

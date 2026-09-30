@@ -77,10 +77,13 @@ export async function acquireCodexStructuredSession(input: {
       : null
   const subagentExecutions = new CodexSubagentExecutions()
   const dispatchEchoes = createCodexDispatchEchoes()
+  // Minted before the translator, which names this connection's frame rows with it.
+  const acquisitionGeneration = mintCodexAcquisitionGeneration(deps)
   const translator = acquireInput.events
     ? createCodexJournalTranslator({
         sink: acquireInput.events,
         sessionId,
+        acquisitionId: acquisitionGeneration,
         ...(deps.now ? { now: deps.now } : {}),
         primaryThreadId: () => primaryThreadId,
         onPrimaryThreadStoppedRunning: () => deps.onPrimaryThreadStoppedRunning?.({ sessionId }),
@@ -210,7 +213,7 @@ export async function acquireCodexStructuredSession(input: {
         linkId: deps.mintLinkId?.(),
         observedAt: deps.now?.() ?? Date.now()
       }),
-      acquisitionGeneration: mintCodexAcquisitionGeneration(deps)
+      acquisitionGeneration
     }
     assertCodexConnectionOpen(connection, sessionId)
     acquisitions.assertCurrent(sessionId, attempt)

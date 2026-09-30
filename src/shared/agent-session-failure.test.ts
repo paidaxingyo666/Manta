@@ -72,6 +72,16 @@ describe('reading a failure fact', () => {
     expect(
       readAgentSessionFailureFact({ kind: 'providerRetrying', retry: { error: '', status: 'x' } })
     ).toEqual({ kind: 'providerRetrying' })
+    // The provider's own account of what failed survives a read, bounded like any detail.
+    expect(
+      readAgentSessionFailureFact({
+        kind: 'providerRetrying',
+        retry: { cause: `  stream disconnected${' x'.repeat(400)}` }
+      })?.retry?.cause
+    ).toBe(`stream disconnected${' x'.repeat(400)}`.slice(0, 512).trim())
+    expect(
+      readAgentSessionFailureFact({ kind: 'providerRetrying', retry: { cause: '  ' } })
+    ).toEqual({ kind: 'providerRetrying' })
   })
 
   it('reads a row an unreleased build wrote with a cause as a refusal with no details', () => {

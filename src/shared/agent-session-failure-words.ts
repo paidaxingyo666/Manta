@@ -122,6 +122,11 @@ function quotingPersonDetail(
   return quoted ? say(quotedLead, { ...values, detail: quoted }) : say(lead, values)
 }
 
+/** The provider's account of what failed goes on the line under the sentence, as it wrote it. */
+function withRetryCause(sentence: string, cause: string | undefined): string {
+  return cause ? `${sentence}\n${cause}` : sentence
+}
+
 /** The next step after a start or restart that failed: the command, or the message, again. */
 function startRetry(
   say: AgentSessionFailureSay,
@@ -244,12 +249,24 @@ const FAILURE_SENTENCES = {
   hostFault: ({ retryControl }, _fact, _surface, say) =>
     say(retryControl ? 'hostFault' : 'hostFaultTryAgain'),
   hostStopped: (context, _fact, _surface, say) => say('hostStopped', agent(say, context)),
-  providerRetrying: (context, { retry }, _surface, say) =>
-    say(
-      retry?.error === 'rate_limit' || retry?.status === 429
-        ? 'providerRateLimited'
-        : 'providerRetrying',
-      agent(say, context)
+  // A provider that says how its retry is going, for a person, is quoted: that is the progress.
+  providerRetrying: (context, { retry, detail }, _surface, say) =>
+    withRetryCause(
+      detail?.audience === 'person'
+        ? quotingPersonDetail(
+            say,
+            'providerRetrying',
+            'providerRetryingQuoted',
+            detail,
+            agent(say, context)
+          )
+        : say(
+            retry?.error === 'rate_limit' || retry?.status === 429
+              ? 'providerRateLimited'
+              : 'providerRetrying',
+            agent(say, context)
+          ),
+      retry?.cause
     )
 } satisfies Record<AgentSessionFailureKind, Sentence>
 

@@ -79,7 +79,8 @@ export const AGENT_SESSION_FAILURE_COPY = {
   hostFaultTryAgain: "Manta ran into a problem, so this didn't go through. Try again.",
   hostStopped: '{{agent}} never finished starting, so Manta stopped it.',
   providerRateLimited: '{{agent}} is rate-limited and retrying.',
-  providerRetrying: '{{agent}} hit a temporary problem and is retrying.'
+  providerRetrying: '{{agent}} hit a temporary problem and is retrying.',
+  providerRetryingQuoted: '{{agent}} is retrying: {{detail}}.'
 } as const
 
 export type AgentSessionFailureCopyId = keyof typeof AGENT_SESSION_FAILURE_COPY

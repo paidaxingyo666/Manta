@@ -116,6 +116,8 @@ export type AgentSessionProviderRetry = {
   error?: string
   /** The HTTP status the request failed with. */
   status?: number
+  /** The provider's own account of what failed, written for a person: the row's second line. */
+  cause?: string
 }
 
 export type AgentSessionFailureFact = {
@@ -201,7 +203,7 @@ function readAttachmentProblem(value: unknown): AgentSessionAttachmentProblem | 
     : { reason }
 }
 
-/** A retry as a reader meets it; undefined when it names neither field. */
+/** A retry as a reader meets it; undefined when it names no field. */
 export function readProviderRetry(value: unknown): AgentSessionProviderRetry | undefined {
   if (!isRecord(value)) {
     return undefined
@@ -212,8 +214,10 @@ export function readProviderRetry(value: unknown): AgentSessionProviderRetry | u
     typeof value.status === 'number' && Number.isInteger(value.status) && value.status > 0
       ? value.status
       : undefined
-  return error || status
-    ? { ...(error ? { error } : {}), ...(status ? { status } : {}) }
+  const cause =
+    typeof value.cause === 'string' ? providerDiagnostic(value.cause, 'person')?.text : undefined
+  return error || status || cause
+    ? { ...(error ? { error } : {}), ...(status ? { status } : {}), ...(cause ? { cause } : {}) }
     : undefined
 }
 
