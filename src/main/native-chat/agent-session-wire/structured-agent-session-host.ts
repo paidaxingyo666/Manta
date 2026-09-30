@@ -216,6 +216,8 @@ export class StructuredAgentSessionHost {
   getPersistedVisibleSessionTabIndex = () => this.deps.store.getVisibleSessionTabIndex()
   getSessionTabId = (sessionId: string): string | null => this.deps.store.getSessionTabId(sessionId)
   showSessionTabs = (sessionIds: readonly string[]) => this.deps.store.showSessionTabs(sessionIds)
+  /** The records file could not be read this launch, so chats it holds are not listed yet. */
+  legacyRecordImportOwed = (): boolean => this.deps.journalDatabase.legacyRecordImportOwed === true
 
   setSessionTabVisibility = async (
     sessionId: string,

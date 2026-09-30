@@ -18,7 +18,8 @@ export async function seedStructuredAgentSessionTabIndex(
   if (!host?.getPersistedVisibleSessionTabIndex || !host.showSessionTabs) {
     return
   }
-  const listed = new Set(host.getPersistedVisibleSessionTabIndex().sessionIds)
+  const index = host.getPersistedVisibleSessionTabIndex()
+  const listed = new Set(index.present ? index.sessionIds : [])
   const opened = new Set(restored)
   // In the restore's own order, so the seeded tabs keep the order the profile gave them.
   const unlisted = [...new Set([...targets, ...restored])].filter(

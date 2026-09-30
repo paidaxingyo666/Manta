@@ -1,18 +1,17 @@
-// The lease reconcile is bookkeeping: a lock that gives up or a store this build may not write is
-// reported, and startup and every read carry on. Nothing is owed after it, because an unreconciled
-// lease grants no writer and the next send reconciles every lease again before it acts.
+// The lease reconcile is bookkeeping: a write that fails is reported, and startup and every read
+// carry on. Nothing is owed after it, because an unreconciled lease grants no writer and the next
+// send reconciles every lease again before it acts. Over records a newer Manta wrote, the reconcile
+// adjudicates in memory and writes nothing.
 
 import { cp, readdir, readFile, rm } from 'node:fs/promises'
-import { dirname } from 'node:path'
 import { afterEach, expect, it, vi } from 'vitest'
-import type * as FileTransactionLock from '../../file-transaction-lock'
-import { AGENT_SESSION_STORE_SCHEMA_VERSION } from '../../runtime/agent-session-record-store-file'
+import type * as AgentSessionRecordRows from '../../runtime/agent-session-record-rows'
 import {
-  editPersistedTestAgentSessionStore,
   openTestAgentSessionRecordStore,
-  type PersistedTestAgentSessionStore,
-  testAgentSessionStoreFilePath
+  seedTestAgentSessionStoreFromNewerBuild
 } from '../../runtime/agent-session-record-store-test-harness'
+import { journalDatabasePath } from '../agent-session-journal/journal-host-database'
+import { JOURNAL_NEWER_SCHEMA_MESSAGE } from '../agent-session-journal/journal-open-failure'
 import {
   StructuredAgentSessionHost,
   type StructuredAgentSessionHostDeps
@@ -32,34 +31,37 @@ import {
 } from './structured-agent-session-host-test-data'
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 
-const lock = vi.hoisted(() => ({ failing: false }))
+const writes = vi.hoisted(() => ({ failing: false }))
 
-vi.mock('../../file-transaction-lock', async (importOriginal) => {
-  const actual = await importOriginal<typeof FileTransactionLock>()
+vi.mock('../../runtime/agent-session-record-rows', async (importOriginal) => {
+  const actual = await importOriginal<typeof AgentSessionRecordRows>()
   return {
     ...actual,
-    withFileTransactionLock: (...args: Parameters<typeof actual.withFileTransactionLock>) =>
-      lock.failing
-        ? // What proper-lockfile throws once its retries give up.
-          Promise.reject(
-            Object.assign(new Error('Lock file is already being held'), { code: 'ELOCKED' })
-          )
-        : actual.withFileTransactionLock(...args)
+    writeAgentSessionStoreRows: (...args: Parameters<typeof actual.writeAgentSessionStoreRows>) => {
+      if (writes.failing) {
+        // What SQLite throws when the disk will not take the commit.
+        throw Object.assign(new Error('disk I/O error'), { code: 'ERR_SQLITE_ERROR', errcode: 10 })
+      }
+      return actual.writeAgentSessionStoreRows(...args)
+    }
   }
 })
+
+const IO_ERROR = expect.objectContaining({ message: 'disk I/O error' })
 
 const relaunchedRoots: string[] = []
 
 afterEach(async () => {
-  lock.failing = false
+  writes.failing = false
   await Promise.all(
     relaunchedRoots.splice(0).map((dir) => rm(dir, { recursive: true, force: true }))
   )
 })
 
-/** A host with one chat, relaunched over a copy of its files; `rewrite` edits the copied store. */
+/** A host with one chat, relaunched over a copy of its files; `newer` marks the copied records as
+ *  a newer Manta's. */
 async function relaunch(
-  rewrite?: (persisted: PersistedTestAgentSessionStore) => void,
+  newer = false,
   probeOwner: StructuredAgentSessionHostDeps['probeOwner'] = async () => ({
     outcome: 'pid-absent'
   })
@@ -75,9 +77,8 @@ async function relaunch(
     recursive: true,
     filter: (source) => !source.includes('.lock')
   })
-  const storePath = testAgentSessionStoreFilePath(relaunched)
-  if (rewrite) {
-    await editPersistedTestAgentSessionStore(relaunched, rewrite)
+  if (newer) {
+    await seedTestAgentSessionStoreFromNewerBuild(relaunched)
   }
   const store = await openTestAgentSessionRecordStore(relaunched)
   const onLeaseReconcileFailure = vi.fn()
@@ -95,27 +96,27 @@ async function relaunch(
     onLeaseReconcileFailure
   })
   replaceHostTestState({ store, host })
-  return { host, store, storePath, onLeaseReconcileFailure }
+  return { host, store, stateDirectory: relaunched, onLeaseReconcileFailure }
 }
 
 it('reports a startup reconcile whose store write fails, and does not reject', async () => {
   const { host, store, onLeaseReconcileFailure } = await relaunch()
 
-  lock.failing = true
+  writes.failing = true
   await expect(host.reconcileRestartLeases()).resolves.toBeUndefined()
 
   expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
-  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(expect.objectContaining({ code: 'ELOCKED' }))
+  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(IO_ERROR)
   // Nothing was adjudicated, so the lease still grants no writer.
   expect(store.getRecord(SESSION)?.lease.unreconciled).toBe(true)
 })
 
 it('reconciles the chat on its next send once the store can be written again', async () => {
   const { host, store, onLeaseReconcileFailure } = await relaunch()
-  lock.failing = true
+  writes.failing = true
   await host.reconcileRestartLeases()
   expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
-  lock.failing = false
+  writes.failing = false
 
   const body = hostTestMessage('sent after a startup reconcile failed')
   await expect(
@@ -132,28 +133,27 @@ it('reconciles the chat on its next send once the store can be written again', a
   await host.flushAllStreamedEvents()
 })
 
-it('reports a store a newer Manta wrote without writing it, and does not reject', async () => {
-  const { host, store, storePath, onLeaseReconcileFailure } = await relaunch((persisted) => {
-    persisted.schemaVersion = AGENT_SESSION_STORE_SCHEMA_VERSION + 1
-  })
+it('adjudicates records a newer Manta wrote in memory only, and writes nothing', async () => {
+  const { host, store, stateDirectory, onLeaseReconcileFailure } = await relaunch(true)
   expect(store.readOnly).toBe(true)
-  const bytes = await readFile(storePath)
-  const files = await readdir(dirname(storePath))
+  const path = journalDatabasePath(stateDirectory)
+  const bytes = await readFile(path)
+  const files = await readdir(stateDirectory)
 
   await expect(host.reconcileRestartLeases()).resolves.toBeUndefined()
 
-  expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
-  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(
-    expect.objectContaining({ message: 'agent_session_legacy_required' })
-  )
-  expect(store.listRecords().map((record) => record.sessionId)).toEqual([SESSION])
-  expect(await readFile(storePath)).toEqual(bytes)
-  expect(await readdir(dirname(storePath))).toEqual(files)
+  expect(onLeaseReconcileFailure).not.toHaveBeenCalled()
+  expect(store.getRecord(SESSION)?.lease).toMatchObject({
+    unreconciled: false,
+    claimStatus: 'released'
+  })
+  expect(await readFile(path)).toEqual(bytes)
+  expect(await readdir(stateDirectory)).toEqual(files)
 })
 
 it('restores a chat for reading while the reconcile keeps failing, and reports it once', async () => {
   const { host, store, onLeaseReconcileFailure } = await relaunch()
-  lock.failing = true
+  writes.failing = true
   await host.reconcileRestartLeases()
 
   await expect(host.restoreReadableSessions([SESSION])).resolves.toBeUndefined()
@@ -161,38 +161,54 @@ it('restores a chat for reading while the reconcile keeps failing, and reports i
   expect(host.hasSession(SESSION)).toBe(true)
   expect(store.getRecord(SESSION)?.lease.unreconciled).toBe(true)
   expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
-  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(expect.objectContaining({ code: 'ELOCKED' }))
+  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(IO_ERROR)
 })
 
-it('restores a chat for reading from a store a newer Manta wrote', async () => {
-  const { host, storePath, onLeaseReconcileFailure } = await relaunch((persisted) => {
-    persisted.schemaVersion = AGENT_SESSION_STORE_SCHEMA_VERSION + 1
+it('refuses a send over records a newer Manta wrote with the update words', async () => {
+  const { host } = await relaunch(true)
+  await host.reconcileRestartLeases()
+
+  const body = hostTestMessage('sent to a chat a newer Manta saved')
+  await expect(
+    host.send(CALLER, { envelope: envelope('agentSession.send', { body }), body })
+  ).resolves.toMatchObject({
+    ok: false,
+    refusal: {
+      code: 'agent_session_journal_unreadable',
+      details: { reason: 'journalWrittenByNewerOrca' },
+      message: JOURNAL_NEWER_SCHEMA_MESSAGE
+    }
   })
-  const bytes = await readFile(storePath)
+})
+
+it('restores a chat for reading from records a newer Manta wrote', async () => {
+  const { host, stateDirectory, onLeaseReconcileFailure } = await relaunch(true)
+  const path = journalDatabasePath(stateDirectory)
+  const bytes = await readFile(path)
 
   await expect(host.restoreReadableSessions([SESSION])).resolves.toBeUndefined()
 
   expect(host.hasSession(SESSION)).toBe(true)
-  expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
-  expect(await readFile(storePath)).toEqual(bytes)
+  expect(onLeaseReconcileFailure).not.toHaveBeenCalled()
+  expect(await readFile(path)).toEqual(bytes)
 })
 
 // A chat whose owner could not be proven gone is left recovering; the next attach or send retries it.
 it('restores a chat for reading when resolving its recovery cannot write the store', async () => {
-  const { host, store, onLeaseReconcileFailure } = await relaunch(undefined, async () => ({
+  const { host, store, onLeaseReconcileFailure } = await relaunch(false, async () => ({
     outcome: 'indeterminate',
     reason: 'probe'
   }))
   await host.reconcileRestartLeases()
   expect(store.getRecord(SESSION)?.lease.handoffStage).toBe('recovering')
-  lock.failing = true
+  writes.failing = true
 
   await expect(host.restoreReadableSessions([SESSION])).resolves.toBeUndefined()
 
   expect(host.hasSession(SESSION)).toBe(true)
   expect(store.getRecord(SESSION)?.lease.handoffStage).toBe('recovering')
   expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
-  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(expect.objectContaining({ code: 'ELOCKED' }))
+  expect(onLeaseReconcileFailure).toHaveBeenCalledWith(IO_ERROR)
 })
 
 it.each([
@@ -205,14 +221,14 @@ it.each([
     throw sinkError
   })
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-  lock.failing = true
+  writes.failing = true
   try {
     await expect(read(host)).resolves.toBeUndefined()
 
     expect(onLeaseReconcileFailure).toHaveBeenCalledOnce()
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining('reporting a lease bookkeeping failure failed'),
-      expect.objectContaining({ failure: expect.objectContaining({ code: 'ELOCKED' }), sinkError })
+      expect.objectContaining({ failure: IO_ERROR, sinkError })
     )
   } finally {
     warn.mockRestore()

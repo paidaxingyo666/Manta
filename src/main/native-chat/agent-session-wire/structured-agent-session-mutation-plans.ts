@@ -48,6 +48,8 @@ export type MutationPlan<TValue> = {
   operationIdScope?: 'global'
   /** Admitted without the writer lease: see `admitAgentSessionMutation`. */
   conversationWrite?: true
+  /** Still runs, decided from the committed ledger, when its ledger row cannot be written. */
+  runsWithoutLedgerRow?: true
   markUnknownBeforeRun?: boolean
   run: (ctx: AgentSessionTurnContext) => Promise<TurnOutcome<TValue>>
   replay: (ctx: AgentSessionTurnContext, outcome: AgentSessionOperationOutcome) => TValue | null
@@ -176,6 +178,8 @@ export function cancelPlan(params: {
     method: 'agentSession.cancel',
     // Stop is a conversation write; a prompt or background-task cancel needs the live child.
     ...(params.scope || params.prompt ? {} : { conversationWrite: true as const }),
+    // A Stop must reach the agent even when storage refuses the row recording it.
+    runsWithoutLedgerRow: true,
     fields: {
       ...(params.turnId !== undefined ? { turnId: params.turnId } : {}),
       ...(params.scope ? { scope: params.scope } : {}),

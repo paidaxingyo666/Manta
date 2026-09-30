@@ -1,5 +1,4 @@
 import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
-import { AgentSessionRecoveryCapsule } from '../../runtime/agent-session-recovery-capsule'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -20,6 +19,7 @@ import type {
 } from './structured-agent-session-adapter'
 import type { AgentSessionAttachParams } from './structured-agent-session-attach'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { TrackedTestRecoveryCapsule } from './structured-agent-session-host-test-recovery-capsule'
 import {
   HOST_TEST_NOW as NOW,
   HOST_TEST_SESSION as SESSION,
@@ -58,6 +58,7 @@ const attachParams = (
 const ensureParams = (fence: number): AgentSessionAttachParams => hostTestAttachParams(fence)
 
 let root: string
+let recoveryCapsule: TrackedTestRecoveryCapsule
 let store: AgentSessionRecordStore
 let host: StructuredAgentSessionHost
 let acquire: Mock<StructuredAgentSessionAdapter['acquire']>
@@ -149,11 +150,12 @@ beforeEach(async () => {
   answerPrompt = vi.fn(async ({ commit }) => commit())
   setOption = vi.fn(async () => undefined)
   store = await openTestAgentSessionRecordStore(root)
+  recoveryCapsule = new TrackedTestRecoveryCapsule(root)
   host = new StructuredAgentSessionHost({
     store,
     adapter: adapter(),
     journalDatabase: openTestJournalHostDatabase(root),
-    recoveryCapsule: new AgentSessionRecoveryCapsule(root),
+    recoveryCapsule,
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-a',
     now: () => NOW
@@ -163,8 +165,15 @@ beforeEach(async () => {
 afterEach(async () => {
   await host.flushAllStreamedEvents()
   await journals.closeAll()
+  // A host a test replaced can still hold the capsule's lock directory under `root`.
+  await recoveryCapsule.settled()
   await rm(root, { recursive: true, force: true })
 })
+
+/** Waits out every recovery-capsule operation a host of this test started, replaced ones too. */
+function hostTestRecoveryCapsuleSettled(): Promise<void> {
+  return recoveryCapsule.settled()
+}
 
 /** A restarted process swaps the store and the host under the same directories.
  *  The helpers here close over both, so they have to be told. */
@@ -201,6 +210,7 @@ export {
   attachParams,
   ensureParams,
   envelope,
+  hostTestRecoveryCapsuleSettled,
   journals,
   seedApproval
 }

@@ -1,11 +1,11 @@
 // With native chat on, the renderer's startup also awaits the chat tab restore (`session.tabs.listAll`),
 // which reads every chat whose tab was open at quit. That read must not wait on record-store
 // bookkeeping: with a saved tab index it writes nothing, and a store that cannot be written costs
-// a bounded number of lock waits, not one per chat.
+// a bounded number of failed writes, not one per chat.
 
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
 import type { RuntimeMobileSessionTabsSnapshot } from '../../shared/runtime-types'
@@ -13,40 +13,43 @@ import {
   agentSessionLeaseFixture,
   agentSessionRecordFixture
 } from '../../shared/agent-session-record.test-fixture'
-import type * as FileTransactionLock from '../file-transaction-lock'
-import { JournalHostDatabase } from '../native-chat/agent-session-journal/journal-host-database'
+import { journalDatabasePath } from '../native-chat/agent-session-journal/journal-host-database'
+import { closeTestJournalHostDatabases } from '../native-chat/agent-session-journal/journal-host-database-test-support'
 import { openAgentSessionJournal } from '../native-chat/agent-session-journal/journal-store-factory'
 import { journalIdentityFor } from '../native-chat/agent-session-wire/structured-agent-session-attach'
 import { attachParamsForRecord } from '../native-chat/agent-session-wire/structured-agent-session-conversation-open'
 import { getStructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-registry'
 import { AgentSessionRecordStore } from './agent-session-record-store'
+import type * as AgentSessionRecordRows from './agent-session-record-rows'
 import {
   AGENT_SESSION_STORE_SCHEMA_VERSION,
-  agentSessionStorePath
+  legacyAgentSessionStorePath
 } from './agent-session-record-store-file'
+import {
+  readPersistedTestAgentSessionStore,
+  seedTestAgentSessionStoreFromNewerBuild
+} from './agent-session-record-store-test-harness'
+import { openStructuredAgentSessionJournalDatabase } from './structured-agent-session-journal-open'
 import { MantaRuntimeService } from './manta-runtime'
 import {
   ensureStructuredAgentSessionHost,
   stopStructuredAgentSessionRuntime
 } from './structured-agent-session-runtime'
 
-// `failing` refuses every take; `grants` lets that many more through, then refuses.
-const lock = vi.hoisted(() => ({ failing: false, grants: Infinity, refused: 0 }))
+// `failing` fails every record write; `grants` lets that many more through, then fails.
+const writes = vi.hoisted(() => ({ failing: false, grants: Infinity, refused: 0 }))
 
-vi.mock('../file-transaction-lock', async (importOriginal) => {
-  const actual = await importOriginal<typeof FileTransactionLock>()
+vi.mock('./agent-session-record-rows', async (importOriginal) => {
+  const actual = await importOriginal<typeof AgentSessionRecordRows>()
   return {
     ...actual,
-    withFileTransactionLock: (...args: Parameters<typeof actual.withFileTransactionLock>) => {
-      if (lock.failing || lock.grants <= 0) {
-        lock.refused += 1
-        // What proper-lockfile throws once its retries give up, about 3 s later.
-        return Promise.reject(
-          Object.assign(new Error('Lock file is already being held'), { code: 'ELOCKED' })
-        )
+    writeAgentSessionStoreRows: (...args: Parameters<typeof actual.writeAgentSessionStoreRows>) => {
+      if (writes.failing || writes.grants <= 0) {
+        writes.refused += 1
+        throw new Error('disk I/O error')
       }
-      lock.grants -= 1
-      return actual.withFileTransactionLock(...args)
+      writes.grants -= 1
+      return actual.writeAgentSessionStoreRows(...args)
     }
   }
 })
@@ -55,6 +58,7 @@ const PROMPT = 'add a retry'
 const CHAT_A = 'chat-a-0001'
 const CHAT_B = 'chat-b-0002'
 const CLEARED = 'chat-s-0003'
+const OWED = 'chat-o-0004'
 
 let root: string
 
@@ -63,8 +67,9 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  Object.assign(lock, { failing: false, grants: Infinity, refused: 0 })
+  Object.assign(writes, { failing: false, grants: Infinity, refused: 0 })
   await stopStructuredAgentSessionRuntime().catch(() => undefined)
+  closeTestJournalHostDatabases()
   vi.restoreAllMocks()
   await rm(root, { recursive: true, force: true })
 })
@@ -107,18 +112,19 @@ function chatRecord(
   return { ...record, ...codex, ...clear }
 }
 
-/** Writes the record store; `visible` is the saved tab index, absent on a legacy profile. */
-async function seedStore(
+/** The records file a profile from before the chat database carries, which the install imports;
+ *  `visible` is its saved tab index, absent on a legacy profile. `newer` instead leaves the records
+ *  in a database a newer Manta wrote. Then each chat's history as the last run left it: one prompt,
+ *  accepted, so nothing is left to send. */
+async function seedProfile(
   records: AgentSessionRecord[],
-  options: { newer?: boolean; visible?: string[] } = {}
+  options: { newer?: boolean; visible?: string[]; history?: AgentSessionRecord[] } = {}
 ) {
-  const storeDirectory = join(root, 'agent-sessions')
-  const path = agentSessionStorePath(storeDirectory)
-  await mkdir(storeDirectory, { recursive: true })
+  await mkdir(dirname(legacyAgentSessionStorePath(root)), { recursive: true })
   await writeFile(
-    path,
+    legacyAgentSessionStorePath(root),
     JSON.stringify({
-      schemaVersion: AGENT_SESSION_STORE_SCHEMA_VERSION + (options.newer ? 1 : 0),
+      schemaVersion: AGENT_SESSION_STORE_SCHEMA_VERSION,
       hostId: 'local',
       records: Object.fromEntries(records.map((record) => [record.sessionId, record])),
       operations: {},
@@ -127,13 +133,12 @@ async function seedStore(
       ...(options.visible ? { visibleSessionIds: options.visible } : {})
     })
   )
-  return { storeDirectory, path }
-}
-
-/** Each chat's history as the last run left it: one prompt, accepted, so nothing is left to send. */
-async function seedHistory(records: AgentSessionRecord[]): Promise<void> {
-  const database = JournalHostDatabase.open(root)
-  for (const record of records) {
+  const database = await openStructuredAgentSessionJournalDatabase({
+    stateDirectory: root,
+    hostId: 'local',
+    onLegacyRecordImportReport: () => undefined
+  })
+  for (const record of options.history ?? records) {
     const fence = record.lease.runtimeFence
     const journal = await openAgentSessionJournal({
       identity: journalIdentityFor(
@@ -158,6 +163,30 @@ async function seedHistory(records: AgentSessionRecord[]): Promise<void> {
     await journal.close()
   }
   database.close()
+  if (options.newer) {
+    await seedTestAgentSessionStoreFromNewerBuild(root)
+  }
+  return { path: journalDatabasePath(root) }
+}
+
+/** A chat opened, with its tab, while the records file could not be read and the copy was owed. */
+async function seedChatOpenedWhileOwed(record: AgentSessionRecord, tabId: string): Promise<void> {
+  // A directory where the file belongs: the read fails in a way that can clear.
+  await mkdir(legacyAgentSessionStorePath(root), { recursive: true })
+  const database = await openStructuredAgentSessionJournalDatabase({
+    stateDirectory: root,
+    hostId: 'local',
+    onLegacyRecordImportReport: () => undefined
+  })
+  database.db
+    .prepare('INSERT INTO agent_session_records (session_id, record_json) VALUES (?, ?)')
+    .run(record.sessionId, JSON.stringify(record))
+  await AgentSessionRecordStore.open({
+    journalDatabase: database,
+    hostId: 'local'
+  }).setSessionTabVisibility(record.sessionId, true, tabId)
+  database.close()
+  await rm(legacyAgentSessionStorePath(root), { recursive: true })
 }
 
 function startupRuntime(options: { afterInstall?: () => void; profileChats?: string[] } = {}) {
@@ -229,82 +258,85 @@ function spyOnTabWrites() {
   }
 }
 
-async function tabIndexOnDisk(path: string): Promise<unknown> {
-  return JSON.parse(await readFile(path, 'utf-8')).visibleSessionIds
+async function tabIndexOnDisk(): Promise<string[] | undefined> {
+  return (await readPersistedTestAgentSessionStore(root)).sessionTabs?.map((tab) => tab.sessionId)
 }
 
 describe('restoring the chat tabs open at quit', () => {
   it.each([
-    { store: 'records a newer Manta wrote', newer: true, lockFails: false },
-    { store: 'a lock that keeps failing', newer: false, lockFails: true }
-  ])('lists and reads every chat from $store, and writes nothing', async ({ newer, lockFails }) => {
-    const records = [
-      chatRecord(CHAT_A),
-      chatRecord(CHAT_B),
-      chatRecord(CLEARED, { clearedInto: CHAT_A })
-    ]
-    const { storeDirectory, path } = await seedStore(records, { newer, visible: [CHAT_A, CHAT_B] })
-    await seedHistory(records.slice(0, 2))
-    const bytes = await readFile(path)
-    const files = await readdir(storeDirectory)
-    const writes = spyOnTabWrites()
-    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-    // Free when the store opens, then held for good.
-    const { runtime, onError, published } = startupRuntime({
-      afterInstall: () => {
-        lock.failing = lockFails
-      }
-    })
-
-    await expect(runtime.restoreStructuredAgentSessionTabs()).resolves.toBeUndefined()
-
-    expect(published().map((tab) => tab.id)).toEqual([
-      `agent-session:${CHAT_A}`,
-      `agent-session:${CHAT_B}`
-    ])
-    expect(published()[0]).toMatchObject({ replacesSessionId: CLEARED })
-    await expectHistory(CHAT_A)
-    await expectHistory(CHAT_B)
-    expect(onError).toHaveBeenCalledOnce()
-    expect(onError).toHaveBeenCalledWith({
-      scope: 'structured-agent-session-lease-reconcile',
-      error: expect.objectContaining(
-        newer ? { message: 'agent_session_legacy_required' } : { code: 'ELOCKED' }
-      )
-    })
-    expect(writes.visibility).not.toHaveBeenCalled()
-    expect(writes.seed).not.toHaveBeenCalled()
-    await stopStructuredAgentSessionRuntime()
-    if (newer) {
-      expect(await readFile(path)).toEqual(bytes)
-      expect(await readdir(storeDirectory)).toEqual(files)
-    }
-  })
-
-  // Each refused take stands for one lock wait of about 3 s.
-  it.each([1, 4, 8])(
-    'waits on a held lock once per startup step with %i chats open',
-    async (count) => {
-      const chats = Array.from({ length: count }, (_, index) => `chat-${index}-000${index}`)
-      const records = chats.map((sessionId) => chatRecord(sessionId))
-      await seedStore(records, { visible: chats })
-      await seedHistory(records)
+    { store: 'records a newer Manta wrote', newer: true, writesFail: false },
+    { store: 'a store whose writes keep failing', newer: false, writesFail: true }
+  ])(
+    'lists and reads every chat from $store, and writes nothing',
+    async ({ newer, writesFail }) => {
+      const records = [
+        chatRecord(CHAT_A),
+        chatRecord(CHAT_B),
+        chatRecord(CLEARED, { clearedInto: CHAT_A })
+      ]
+      const { path } = await seedProfile(records, {
+        newer,
+        visible: [CHAT_A, CHAT_B],
+        history: records.slice(0, 2)
+      })
+      const bytes = await readFile(path)
+      const tabWrites = spyOnTabWrites()
       vi.spyOn(console, 'warn').mockImplementation(() => undefined)
-      const { runtime, published } = startupRuntime({
+      // Writable when the store opens, then failing for good.
+      const { runtime, onError, published } = startupRuntime({
         afterInstall: () => {
-          lock.failing = true
+          writes.failing = writesFail
         }
       })
 
-      await runtime.prepareStructuredAgentSessionStartupRestoration()
-      const prepared = lock.refused
-      await runtime.restoreStructuredAgentSessionTabs()
+      await expect(runtime.restoreStructuredAgentSessionTabs()).resolves.toBeUndefined()
 
-      expect(published()).toHaveLength(count)
-      expect(prepared).toBe(1)
-      expect(lock.refused - prepared).toBe(1)
+      expect(published().map((tab) => tab.id)).toEqual([
+        `agent-session:${CHAT_A}`,
+        `agent-session:${CHAT_B}`
+      ])
+      expect(published()[0]).toMatchObject({ replacesSessionId: CLEARED })
+      await expectHistory(CHAT_A)
+      await expectHistory(CHAT_B)
+      // A newer Manta's leases are adjudicated in memory, so nothing fails there.
+      if (newer) {
+        expect(onError).not.toHaveBeenCalled()
+      } else {
+        expect(onError).toHaveBeenCalledOnce()
+        expect(onError).toHaveBeenCalledWith({
+          scope: 'structured-agent-session-lease-reconcile',
+          error: expect.objectContaining({ message: 'disk I/O error' })
+        })
+      }
+      expect(tabWrites.visibility).not.toHaveBeenCalled()
+      expect(tabWrites.seed).not.toHaveBeenCalled()
+      await stopStructuredAgentSessionRuntime()
+      if (newer) {
+        expect(await readFile(path)).toEqual(bytes)
+      }
     }
   )
+
+  // Each failed write stands for one refused commit.
+  it.each([1, 4, 8])('fails one write per startup step with %i chats open', async (count) => {
+    const chats = Array.from({ length: count }, (_, index) => `chat-${index}-000${index}`)
+    const records = chats.map((sessionId) => chatRecord(sessionId))
+    await seedProfile(records, { visible: chats })
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const { runtime, published } = startupRuntime({
+      afterInstall: () => {
+        writes.failing = true
+      }
+    })
+
+    await runtime.prepareStructuredAgentSessionStartupRestoration()
+    const prepared = writes.refused
+    await runtime.restoreStructuredAgentSessionTabs()
+
+    expect(published()).toHaveLength(count)
+    expect(prepared).toBe(1)
+    expect(writes.refused - prepared).toBe(1)
+  })
 
   describe('on a legacy profile, with no tab index yet', () => {
     const legacyChats = () => [
@@ -314,13 +346,12 @@ describe('restoring the chat tabs open at quit', () => {
 
     it('records every restored chat in one write', async () => {
       const records = legacyChats()
-      const { path } = await seedStore(records)
-      await seedHistory(records)
-      const writes = spyOnTabWrites()
+      await seedProfile(records)
+      const tabWrites = spyOnTabWrites()
       const { runtime, published } = startupRuntime({ profileChats: [CHAT_A, CHAT_B] })
       await runtime.prepareStructuredAgentSessionStartupRestoration()
-      // One more take, then held: a seed written chat by chat would stop part way.
-      lock.grants = 1
+      // One more write, then failing: a seed written chat by chat would stop part way.
+      writes.grants = 1
 
       await runtime.restoreStructuredAgentSessionTabs()
 
@@ -328,41 +359,59 @@ describe('restoring the chat tabs open at quit', () => {
         `agent-session:${CHAT_A}`,
         `agent-session:${CHAT_B}`
       ])
-      expect(await tabIndexOnDisk(path)).toEqual([CHAT_A, CHAT_B])
-      expect(writes.seed).toHaveBeenCalledOnce()
-      expect(writes.visibility).not.toHaveBeenCalled()
+      expect(await tabIndexOnDisk()).toEqual([CHAT_A, CHAT_B])
+      expect(tabWrites.seed).toHaveBeenCalledOnce()
+      expect(tabWrites.visibility).not.toHaveBeenCalled()
     })
 
-    it('waits on a held lock once more, for that one write', async () => {
+    it('fails one write more, for that one write', async () => {
       const records = legacyChats()
-      await seedStore(records)
-      await seedHistory(records)
+      await seedProfile(records)
       vi.spyOn(console, 'warn').mockImplementation(() => undefined)
       const { runtime, published } = startupRuntime({
         profileChats: [CHAT_A, CHAT_B],
         afterInstall: () => {
-          lock.failing = true
+          writes.failing = true
         }
       })
 
       await runtime.prepareStructuredAgentSessionStartupRestoration()
-      const prepared = lock.refused
+      const prepared = writes.refused
       await runtime.restoreStructuredAgentSessionTabs()
 
       expect(published()).toHaveLength(2)
       expect(prepared).toBe(1)
       // The restore's lease check and the seed.
-      expect(lock.refused - prepared).toBe(2)
+      expect(writes.refused - prepared).toBe(2)
+    })
+
+    // The profile never lists a Claude chat, so only the tab row that chat left brings it back.
+    it("restores a chat opened while the copy was owed beside the profile's chats", async () => {
+      const owed = chatRecord(OWED)
+      await seedChatOpenedWhileOwed(owed, 'tab-opened-while-owed')
+      const records = [chatRecord(CHAT_A, { codex: true })]
+      await seedProfile(records, { history: [owed, ...records] })
+      const { runtime, published } = startupRuntime({ profileChats: [CHAT_A] })
+
+      await runtime.restoreStructuredAgentSessionTabs()
+
+      expect(published().map((tab) => tab.id)).toEqual([
+        `agent-session:${OWED}`,
+        `agent-session:${CHAT_A}`
+      ])
+      expect((await readPersistedTestAgentSessionStore(root)).sessionTabs).toEqual([
+        { tabId: 'tab-opened-while-owed', sessionId: OWED },
+        { tabId: `structured-agent-session-${CHAT_A}`, sessionId: CHAT_A }
+      ])
     })
 
     it('still lists the chats when that write fails, and leaves the index absent', async () => {
       const records = legacyChats()
-      const { path } = await seedStore(records)
-      await seedHistory(records)
+      await seedProfile(records)
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
       const { runtime, published } = startupRuntime({ profileChats: [CHAT_A, CHAT_B] })
       await runtime.prepareStructuredAgentSessionStartupRestoration()
-      lock.failing = true
+      writes.failing = true
 
       await expect(runtime.restoreStructuredAgentSessionTabs()).resolves.toBeUndefined()
 
@@ -370,9 +419,12 @@ describe('restoring the chat tabs open at quit', () => {
       await expectHistory(CHAT_A)
       expect(warn).toHaveBeenCalledWith(
         '[structured-agent-session] recording restored chat tabs failed',
-        { sessionIds: [CHAT_A, CHAT_B], error: expect.objectContaining({ code: 'ELOCKED' }) }
+        {
+          sessionIds: [CHAT_A, CHAT_B],
+          error: expect.objectContaining({ message: 'disk I/O error' })
+        }
       )
-      expect(await tabIndexOnDisk(path)).toBeUndefined()
+      expect(await tabIndexOnDisk()).toBeUndefined()
     })
   })
 })

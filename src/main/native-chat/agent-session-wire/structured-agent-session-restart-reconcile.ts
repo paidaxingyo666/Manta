@@ -11,7 +11,7 @@ import { classifyStoreFailure } from './structured-agent-session-attach'
 
 const MAX_RECONCILIATION_PASSES = 8
 
-/** Adjudicates leases loaded by this process or refreshed from another writer.
+/** Adjudicates leases loaded by this process.
  *  Answers with the refusal attach owes its caller, or null once settled. */
 export function createRestartReconciler(deps: {
   store: AgentSessionRecordStore

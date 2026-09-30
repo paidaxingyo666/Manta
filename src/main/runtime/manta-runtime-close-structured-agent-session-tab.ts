@@ -20,7 +20,11 @@ export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntime
     const host = getStructuredAgentSessionHost()
     if (host) {
       if (typeof host.setSessionTabVisibility === 'function') {
-        await host.setSessionTabVisibility(tab.sessionId, false)
+        // The restore index is bookkeeping: one that cannot be written (a newer Manta's records, a
+        // failing disk) is reported, and the tab still closes.
+        await host.setSessionTabVisibility(tab.sessionId, false).catch((error: unknown) => {
+          console.warn('[structured-agent-session] recording a closed chat tab failed', error)
+        })
       }
     }
     // Retire durable visibility and the runtime snapshot before stopping the provider.

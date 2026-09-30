@@ -165,7 +165,7 @@ describe('restart journal restoration', () => {
     expect(calls).toEqual(['resolveRecovery', 'open', 'onReadable:restored'])
   })
 
-  // Each failed bookkeeping call stands for one wait on a held store lock.
+  // Each failed bookkeeping call stands for one refused store write.
   describe('once lease bookkeeping fails in a pass', () => {
     const records = Array.from(
       { length: 8 },
