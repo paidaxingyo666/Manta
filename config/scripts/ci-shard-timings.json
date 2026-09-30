@@ -1608,7 +1608,6 @@
       "src/main/daemon/terminal-host-teardown-recreate.test.ts": 484,
       "src/main/daemon/terminal-host-wsl-context.test.ts": 249,
       "src/main/daemon/terminal-host.test.ts": 691,
-      "src/main/daemon/terminal-mouse-tail-retention.test.ts": 171,
       "src/main/daemon/terminal-session-teardown.test.ts": 95,
       "src/main/daemon/terminal-shell-armed-input-mode-recovery.test.ts": 215,
       "src/main/daemon/terminal-shell-lifecycle-scanner.test.ts": 56,
