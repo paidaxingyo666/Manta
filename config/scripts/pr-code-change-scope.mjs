@@ -60,6 +60,7 @@ const CODEX_INDEX_HEAL_CONTRACT_PREFIXES = [
   'src/main/codex/config-toml-trust',
   'src/main/pty/codex-no-daemon-binary-contract',
   'src/main/pty/codex-shell-launch-preflight',
+  'src/shared/codex-shell-function',
   'src/main/codex/codex-index-heal-binary-contract',
   'src/main/codex/codex-session-index-heal',
   'src/main/codex/codex-app-server-session',

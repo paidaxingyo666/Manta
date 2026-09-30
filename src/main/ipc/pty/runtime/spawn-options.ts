@@ -23,6 +23,7 @@ import { CLAUDE_AUTH_ENV_VARS } from '../../../claude-accounts/environment'
 import { LEGACY_TERMINAL_SHIM_REMOTE_ENV_KEYS } from '../../../pty/legacy-terminal-shim-dir'
 import { PI_PROCESS_OWNER_ENV_KEYS } from '../../../pty/pi-process-owner-env'
 import { resolveConfiguredTerminalShellArgs } from '../configured-terminal-shell-args'
+import { planCodexNoDaemonLaunch } from '../../../pty/codex-no-daemon-launch-command'
 import { resolveStablePaneOwner } from '../pane/stable-owner'
 import { getStartupTerminalIngressIntent } from '../../terminal-startup-color-query-replies'
 import {
@@ -99,8 +100,17 @@ export async function buildRuntimePtySpawnOptions(
   }
   deleteRequestedEnvKeys(ctx.env, ctx.spawnOptions.envToDelete)
   promoteAgentTeamsShimPath(ctx.env, ctx.requestedAgentTeamsPath)
-  if (ctx.launchCommand !== undefined) {
-    ctx.spawnOptions.command = ctx.launchCommand
+  const noDaemonLaunch = planCodexNoDaemonLaunch({
+    command: ctx.launchCommand,
+    executesOnThisHost: !args.connectionId && ctx.codexSelectionTarget.runtime !== 'wsl',
+    shellOverride: ctx.daemonShellOverride,
+    env: ctx.env,
+    envToDelete: ctx.spawnOptions.envToDelete,
+    cwd: ctx.cwd
+  })
+  const launchCommand = noDaemonLaunch ? await noDaemonLaunch : ctx.launchCommand
+  if (launchCommand !== undefined) {
+    ctx.spawnOptions.command = launchCommand
   }
   if (args.commandDelivery !== undefined) {
     ctx.spawnOptions.commandDelivery = args.commandDelivery
