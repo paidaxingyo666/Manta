@@ -439,7 +439,8 @@ async function spawnLocalStartupAndSetupTerminals(args: {
       ...(sequencedStartup.viewMode ? { viewMode: sequencedStartup.viewMode } : {}),
       startupCommandDelivery: sequencedStartup.startupCommandDelivery,
       telemetry: sequencedStartup.telemetry,
-      activate: true
+      // Why: the submitting renderer decides whether to open the workspace; activating here yanked users who moved on (#9944).
+      surfaceOwner: false
     })
     startupTerminalHandle = terminal.handle
     startupTerminal = {
@@ -477,14 +478,16 @@ async function spawnLocalStartupAndSetupTerminals(args: {
           direction: setupLaunchMode === 'split-horizontal' ? 'horizontal' : 'vertical',
           command: setupCommand,
           env: setup.envVars,
-          activate: false
+          activate: false,
+          surfaceOwner: false
         })
       } else {
         await runtime.createTerminal(`id:${worktree.id}`, {
           title: 'Setup',
           command: setupCommand,
           env: setup.envVars,
-          activate: false
+          activate: false,
+          surfaceOwner: false
         })
       }
       didSpawnSetup = true

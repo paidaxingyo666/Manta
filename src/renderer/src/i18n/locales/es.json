@@ -15202,6 +15202,12 @@
           "gitlabMergeRequestNumber": "MR #{{value0}}",
           "githubPullRequestNumber": "PR #{{value0}}"
         }
+      },
+      "creation": {
+        "worktreeReadyToast": "El worktree {{name}} está listo",
+        "workspaceReadyToast": "El espacio de trabajo {{name}} está listo",
+        "goToWorktree": "Ir al worktree",
+        "goToWorkspace": "Ir al espacio de trabajo"
       }
     },
     "agentSessionContinuation": {

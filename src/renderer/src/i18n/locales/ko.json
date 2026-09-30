@@ -18054,6 +18054,12 @@
           "unknown": "알 수 없는 호스트",
           "candidateName": "{{value1}}의 {{value0}}"
         }
+      },
+      "creation": {
+        "worktreeReadyToast": "작업 트리 {{name}} 준비 완료",
+        "workspaceReadyToast": "워크스페이스 {{name}} 준비 완료",
+        "goToWorktree": "작업 트리로 이동",
+        "goToWorkspace": "워크스페이스로 이동"
       }
     },
     "agentSessionContinuation": {

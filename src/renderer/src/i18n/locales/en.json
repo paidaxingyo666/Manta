@@ -18206,6 +18206,12 @@
           "unknown": "Unknown host",
           "candidateName": "{{value0}} on {{value1}}"
         }
+      },
+      "creation": {
+        "worktreeReadyToast": "Worktree {{name}} is ready",
+        "workspaceReadyToast": "Workspace {{name}} is ready",
+        "goToWorktree": "Go to worktree",
+        "goToWorkspace": "Go to workspace"
       }
     },
     "agentSessionContinuation": {
