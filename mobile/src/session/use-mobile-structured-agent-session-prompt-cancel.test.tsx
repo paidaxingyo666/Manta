@@ -143,7 +143,8 @@ describe('mobile structured prompt cancellation', () => {
       fence: 3,
       items: [runningTurn(), pendingApproval()],
       submissions: [],
-      retainedItemLimit: 1024,
+      retainedOwnItemLimit: 1024,
+      retainedItemCap: 8192,
       hasOlder: false,
       status: 'ready'
     }

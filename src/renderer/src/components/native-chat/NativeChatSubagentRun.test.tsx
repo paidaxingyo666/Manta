@@ -2,7 +2,7 @@
 
 import '@testing-library/jest-dom/vitest'
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type {
   NativeChatSubagentEntry,
@@ -256,5 +256,49 @@ describe('NativeChatToolRun with a spawn group', () => {
 
     expect(screen.getByText('Ran 1 subagent')).toBeInTheDocument()
     expect(screen.getByText('ls').closest('button')).toHaveTextContent('ls')
+  })
+
+  it('lists every child as a plain line when none has rows of its own', () => {
+    const agents = [
+      { id: 'a', label: 'read', state: 'completed' as const },
+      { id: 'b', label: 'search', state: 'completed' as const },
+      { id: 'c', label: 'list', state: 'completed' as const }
+    ]
+    render(<NativeChatSubagentRun block={group(agents)} />)
+    fireEvent.click(screen.getByRole('button', { name: /Ran 3 subagents/ }))
+
+    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'readcompleted',
+      'searchcompleted',
+      'listcompleted'
+    ])
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+  })
+
+  it('draws its entries through the first open one, whose rows the transcript draws next', () => {
+    const agents = [
+      { id: 'a', label: 'read', state: 'completed' as const },
+      { id: 'b', label: 'search', state: 'completed' as const },
+      { id: 'c', label: 'list', state: 'completed' as const }
+    ]
+    render(
+      <NativeChatSubagentRun
+        block={group(agents)}
+        open
+        sections={
+          new Map([
+            ['a', false],
+            ['b', true],
+            ['c', false]
+          ])
+        }
+      />
+    )
+
+    expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      'readcompleted',
+      'searchcompleted'
+    ])
+    expect(screen.getByRole('button', { name: /search/, expanded: true })).toBeInTheDocument()
   })
 })

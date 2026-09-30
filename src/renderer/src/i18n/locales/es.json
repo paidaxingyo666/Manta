@@ -15083,8 +15083,7 @@
         "estimated": "Estimado a partir de la última respuesta."
       },
       "subagents": {
-        "unnamed": "Subagente",
-        "writtenBy": "Escrito por el subagente {{value0}}"
+        "unnamed": "Subagente"
       },
       "queuedMessages": {
         "alreadySent": "Este mensaje ya se envió.",

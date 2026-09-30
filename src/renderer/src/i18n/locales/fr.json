@@ -17739,8 +17739,7 @@
         "ranOne": "A exécuté 1 sous-agent",
         "ranN": "Ran les sous-agents {{value0}}",
         "tokens": "Jetons {{value0}}",
-        "unnamed": "Sous-agent",
-        "writtenBy": "Écrit par le sous-agent {{value0}}"
+        "unnamed": "Sous-agent"
       },
       "conversationCommand": {
         "pendingWork": "Attendez la fin du travail et des messages en attente avant d'utiliser cette commande.",

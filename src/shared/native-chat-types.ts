@@ -213,6 +213,9 @@ export type NativeChatMessage = AgentJournalProducerLinkage & {
   /** Set only by the structured projection, on rows the journal holds, and ranks
    *  them ahead of time. Terminal-backed messages never carry it, and worker reads strip it. */
   journalPosition?: AgentJournalPosition
+  /** Set only by the tool fold, on a row that absorbed later tool rows: the newest
+   *  absorbed row's journal position. The row still sorts by its own. */
+  foldedJournalPosition?: AgentJournalPosition
 }
 
 export const NATIVE_CHAT_TURN_LIFECYCLE_STATES = ['working', 'completed', 'interrupted'] as const

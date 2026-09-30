@@ -17818,8 +17818,7 @@
         "ranOne": "Ran 1 subagent",
         "ranN": "Ran {{value0}} subagents",
         "tokens": "{{value0}} tokens",
-        "unnamed": "Subagent",
-        "writtenBy": "Written by subagent {{value0}}"
+        "unnamed": "Subagent"
       },
       "conversationCommand": {
         "pendingWork": "Wait for pending work and messages to finish before using this command.",

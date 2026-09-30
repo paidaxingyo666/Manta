@@ -17640,8 +17640,7 @@
         "ranOne": "Ran 1 子代理",
         "ranN": "Ran {{value0}} 子代理",
         "tokens": "{{value0}} 代币",
-        "unnamed": "子代理",
-        "writtenBy": "由子代理 {{value0}} 输出"
+        "unnamed": "子代理"
       },
       "conversationCommand": {
         "pendingWork": "在使用此命令之前，请等待挂起的工作和消息完成。",

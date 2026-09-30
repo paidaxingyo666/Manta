@@ -201,6 +201,7 @@ export function useStructuredAgentSession(args: {
           )
       }),
     journalItems: transportState.journalItems,
+    subagentRoster: transportState.subagentRoster,
     messages,
     status: transportEnabled ? state.status : 'ready',
     /** The outbox's own line; a failed read is worded from `readRefusal`, never its text. */

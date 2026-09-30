@@ -2744,8 +2744,7 @@
         "workingFor": "Working for {{value0}}"
       },
       "subagents": {
-        "unnamed": "Subagent",
-        "writtenBy": "Written by subagent {{value0}}"
+        "unnamed": "Subagent"
       },
       "tool": {
         "countN": "{{value0}} tool calls",
