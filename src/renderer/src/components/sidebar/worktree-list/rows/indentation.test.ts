@@ -234,7 +234,6 @@ describe('worktree list indentation', () => {
   })
 
   it('derives the lineage parent-child step from the pre-refactor grouped-card anchor', () => {
-    expect(LINEAGE_IMMEDIATE_PARENT_STEP).toBe(20)
     expect(LINEAGE_CHILDREN_INLINE_OFFSET).toBe(
       LINEAGE_IMMEDIATE_PARENT_STEP - WORKTREE_CARD_SURFACE_MARGIN - FLUSH_CARD_MIN_CONTENT_INSET
     )

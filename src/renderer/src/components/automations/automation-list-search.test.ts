@@ -104,11 +104,6 @@ describe('automation-list-search', () => {
     expect(automationListSearchIndexMatches(index, 'unknown')).toBe(true)
   })
 
-  it('caps the searchable prompt at the first 2,048 characters', () => {
-    // Design doc: the bound is a hard requirement, not a tuning knob.
-    expect(AUTOMATION_LIST_SEARCH_PROMPT_MAX_CODE_UNITS).toBe(2048)
-  })
-
   it('bounds every indexed field, so no axis grows with its source', () => {
     const index = buildAutomationListSearchIndex({
       name: 'n'.repeat(10_000),

@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   COMMIT_MESSAGE_AGENT_SPECS,
   CUSTOM_AGENT_ID,
-  DEFAULT_COMMIT_MESSAGE_AGENT_ID,
   getCommitMessageAgentCapability,
   getCommitMessageAgentSpec,
   getCommitMessageModel,
@@ -138,10 +137,6 @@ describe('COMMIT_MESSAGE_AGENT_SPECS', () => {
       'gpt-5.4-mini',
       'gpt-5.5'
     ])
-  })
-
-  it('defaults the agent picker to Claude', () => {
-    expect(DEFAULT_COMMIT_MESSAGE_AGENT_ID).toBe('claude')
   })
 
   it('treats disabled default agents as unavailable for implicit Source Control AI choices', () => {

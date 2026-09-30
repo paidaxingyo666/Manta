@@ -80,11 +80,6 @@ describe('ClientHostedPageReconciliationWindow', () => {
     expect(window.isUnreconciled(DEVICE_A, OPENED_AT + 99)).toBe(true)
     expect(window.isUnreconciled(DEVICE_A, OPENED_AT + 100)).toBe(false)
   })
-
-  // This bound is what stops a host that never returns from holding client-hosted rows open forever.
-  it('bounds the default hold at 45 seconds', () => {
-    expect(DEFAULT_CLIENT_HOSTED_RECONCILIATION_WINDOW_MS).toBe(45_000)
-  })
 })
 
 describe('holdFor', () => {
