@@ -412,167 +412,86 @@ describe('PowerShell Codex shell launch preflight', () => {
 })
 
 describe('Codex shell launch preflight command', () => {
-  function makeCliRoot(): { root: string; userDataPath: string; resourcesPath: string } {
+  function makeCliRoot(): { resourcesPath: string } {
     const root = mkdtempSync(join(tmpdir(), 'manta-codex-preflight-cli-'))
     roots.push(root)
-    const userDataPath = join(root, 'user-data')
     const resourcesPath = join(root, 'resources')
-    mkdirSync(join(userDataPath, 'cli', 'bin'), { recursive: true })
     mkdirSync(join(resourcesPath, 'bin'), { recursive: true })
-    return { root, userDataPath, resourcesPath }
+    return { resourcesPath }
+  }
+
+  function wslOptions(resourcesPath: string | null) {
+    return {
+      hooksEnabled: true,
+      isPackaged: true,
+      isWsl: true,
+      managedHomePath: '/home/jin/.local/share/manta/codex-runtime-home/home',
+      resourcesPath,
+      platform: 'win32' as const
+    }
   }
 
   it.each([
-    { platform: 'darwin' as const, bundled: 'manta' },
-    { platform: 'linux' as const, bundled: 'manta-ide' },
-    { platform: 'win32' as const, bundled: 'manta.exe' }
-  ])('carries the verified bundled $platform launcher as an absolute path', (config) => {
-    const { userDataPath, resourcesPath } = makeCliRoot()
-    const launcherPath = join(resourcesPath, 'bin', config.bundled)
-    writeExecutable(launcherPath, '#!/bin/sh\nexit 0\n')
+    { platform: 'darwin' as const, bundled: 'manta', isPackaged: true },
+    { platform: 'linux' as const, bundled: 'manta-ide', isPackaged: true },
+    { platform: 'win32' as const, bundled: 'manta.exe', isPackaged: true },
+    { platform: 'darwin' as const, bundled: 'manta', isPackaged: false }
+  ])(
+    'gives a native $platform pane no preflight: the app prepares its Codex home (packaged $isPackaged)',
+    (config) => {
+      const { resourcesPath } = makeCliRoot()
+      writeExecutable(join(resourcesPath, 'bin', config.bundled), '#!/bin/sh\nexit 0\n')
 
-    expect(
-      resolveCodexShellLaunchPreflightCommand({
-        hooksEnabled: true,
-        isPackaged: true,
-        managedHomePath: '/managed/home',
-        userDataPath,
-        resourcesPath,
-        platform: config.platform
-      })
-    ).toBe(launcherPath)
-  })
+      expect(
+        resolveCodexShellLaunchPreflightCommand({
+          hooksEnabled: true,
+          isPackaged: config.isPackaged,
+          managedHomePath: '/managed/home',
+          resourcesPath,
+          platform: config.platform
+        })
+      ).toBeNull()
+    }
+  )
 
-  it('carries the verified dev launcher as an absolute path', () => {
-    const { userDataPath, resourcesPath } = makeCliRoot()
-    const launcherPath = join(userDataPath, 'cli', 'bin', 'manta-dev')
-    writeExecutable(launcherPath, '#!/bin/sh\nexit 0\n')
-
-    expect(
-      resolveCodexShellLaunchPreflightCommand({
-        hooksEnabled: true,
-        isPackaged: false,
-        managedHomePath: '/managed/home',
-        userDataPath,
-        resourcesPath,
-        platform: 'darwin'
-      })
-    ).toBe(launcherPath)
-  })
-
-  it('carries the packaged Windows launcher for WSLENV path translation', () => {
-    const { userDataPath, resourcesPath } = makeCliRoot()
+  it('carries the packaged Windows launcher, as an absolute path, for WSLENV path translation', () => {
+    const { resourcesPath } = makeCliRoot()
     const launcherPath = join(resourcesPath, 'bin', 'manta.exe')
     writeExecutable(launcherPath, '#!/bin/sh\nexit 0\n')
 
-    expect(
-      resolveCodexShellLaunchPreflightCommand({
-        hooksEnabled: true,
-        isPackaged: true,
-        isWsl: true,
-        managedHomePath: '/home/jin/.local/share/manta/codex-runtime-home/home',
-        userDataPath,
-        resourcesPath,
-        platform: 'win32'
-      })
-    ).toBe(launcherPath)
-  })
+    const command = resolveCodexShellLaunchPreflightCommand(wslOptions(resourcesPath))
 
-  it('never returns an unqualified command name that a profile-rewritten PATH could hijack', () => {
-    const { userDataPath, resourcesPath } = makeCliRoot()
-    writeExecutable(join(resourcesPath, 'bin', 'manta'), '#!/bin/sh\nexit 0\n')
-    writeExecutable(join(userDataPath, 'cli', 'bin', 'manta-dev'), '#!/bin/sh\nexit 0\n')
-
-    for (const isPackaged of [true, false]) {
-      const command = resolveCodexShellLaunchPreflightCommand({
-        hooksEnabled: true,
-        isPackaged,
-        managedHomePath: '/managed/home',
-        userDataPath,
-        resourcesPath,
-        platform: 'darwin'
-      })
-      expect(command).not.toBeNull()
-      expect(isAbsolute(command as string)).toBe(true)
-    }
+    expect(command).toBe(launcherPath)
+    expect(isAbsolute(command as string)).toBe(true)
   })
 
   it.each([
     { label: 'the launcher file is missing', create: null },
     { label: 'the launcher path is a directory', create: 'directory' as const }
   ])('skips the preflight when $label', (config) => {
-    const { userDataPath, resourcesPath } = makeCliRoot()
-    const launcherPath = join(resourcesPath, 'bin', 'manta')
+    const { resourcesPath } = makeCliRoot()
     if (config.create === 'directory') {
-      mkdirSync(launcherPath)
+      mkdirSync(join(resourcesPath, 'bin', 'manta.exe'))
     }
 
-    expect(
-      resolveCodexShellLaunchPreflightCommand({
-        hooksEnabled: true,
-        isPackaged: true,
-        managedHomePath: '/managed/home',
-        userDataPath,
-        resourcesPath,
-        platform: 'darwin'
-      })
-    ).toBeNull()
+    expect(resolveCodexShellLaunchPreflightCommand(wslOptions(resourcesPath))).toBeNull()
   })
 
-  it.skipIf(process.platform === 'win32')(
-    'skips the preflight when the launcher is not executable',
-    () => {
-      const { userDataPath, resourcesPath } = makeCliRoot()
-      const launcherPath = join(resourcesPath, 'bin', 'manta')
-      writeFileSync(launcherPath, '#!/bin/sh\nexit 0\n')
-      chmodSync(launcherPath, 0o644)
+  it('skips the preflight when the packaged build exposes no resources root', () => {
+    expect(resolveCodexShellLaunchPreflightCommand(wslOptions(null))).toBeNull()
+  })
+
+  it.each([{ hooksEnabled: false }, { isPackaged: false }, { managedHomePath: null }])(
+    'does not enable an unsupported WSL preflight for %o',
+    (override) => {
+      const { resourcesPath } = makeCliRoot()
+      writeExecutable(join(resourcesPath, 'bin', 'manta.exe'), '#!/bin/sh\nexit 0\n')
 
       expect(
-        resolveCodexShellLaunchPreflightCommand({
-          hooksEnabled: true,
-          isPackaged: true,
-          managedHomePath: '/managed/home',
-          userDataPath,
-          resourcesPath,
-          platform: 'darwin'
-        })
+        resolveCodexShellLaunchPreflightCommand({ ...wslOptions(resourcesPath), ...override })
       ).toBeNull()
     }
   )
-
-  it('skips the preflight when the packaged build exposes no resources root', () => {
-    const { userDataPath } = makeCliRoot()
-
-    expect(
-      resolveCodexShellLaunchPreflightCommand({
-        hooksEnabled: true,
-        isPackaged: true,
-        managedHomePath: '/managed/home',
-        userDataPath,
-        resourcesPath: null,
-        platform: 'darwin'
-      })
-    ).toBeNull()
-  })
-
-  it.each([
-    { hooksEnabled: false, isWsl: false, managedHomePath: '/managed/home' },
-    { hooksEnabled: true, isWsl: true, managedHomePath: '/managed/home', isPackaged: false },
-    { hooksEnabled: true, isWsl: false, managedHomePath: null }
-  ])('does not enable an unsupported preflight for %o', (options) => {
-    const { userDataPath, resourcesPath } = makeCliRoot()
-    writeExecutable(join(resourcesPath, 'bin', 'manta'), '#!/bin/sh\nexit 0\n')
-
-    expect(
-      resolveCodexShellLaunchPreflightCommand({
-        ...options,
-        isPackaged: options.isPackaged ?? true,
-        userDataPath,
-        resourcesPath,
-        platform: 'darwin'
-      })
-    ).toBeNull()
-  })
 })
 
 // Why: the resolved value is now an absolute path, and app bundles (macOS) and

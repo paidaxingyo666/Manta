@@ -1312,7 +1312,7 @@
       "src/main/codex/codex-trust-grant-telemetry.test.ts": 70,
       "src/main/codex/codex-turn-ordinals.test.ts": 96,
       "src/main/codex/codex-user-hook-trust-rebase-client.test.ts": 104,
-      "src/main/codex/codex-user-hook-trust-rebase.test.ts": 127,
+      "src/main/codex/codex-user-hook-trust-moves.test.ts": 127,
       "src/main/codex/codex-wsl-hook-install-plan.test.ts": 51,
       "src/main/codex/config-plugin-registration-promotion.test.ts": 370,
       "src/main/codex/config-settings-baseline-upgrade.test.ts": 104,

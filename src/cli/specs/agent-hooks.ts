@@ -4,7 +4,7 @@ import { GLOBAL_FLAGS } from '../args'
 export const AGENT_HOOK_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['agent', 'hooks', 'prepare-codex'],
-    summary: 'Repair Manta-managed Codex hook trust before a shell launch',
+    summary: "Prepare a WSL pane's Manta-managed Codex home before a shell launch",
     usage: 'manta agent hooks prepare-codex',
     allowedFlags: [...GLOBAL_FLAGS]
   },
