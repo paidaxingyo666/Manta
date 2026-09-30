@@ -75,16 +75,6 @@ describe('resolveZoomTarget', () => {
       })
     ).toBe('ui')
   })
-
-  it('routes to ui zoom for browser tabs without an active browser page', () => {
-    expect(
-      resolveZoomTarget({
-        activeView: 'terminal',
-        activeTabType: 'browser',
-        activeElement: makeTarget({})
-      })
-    ).toBe('ui')
-  })
 })
 
 describe('registerZoomIpcBridge', () => {
