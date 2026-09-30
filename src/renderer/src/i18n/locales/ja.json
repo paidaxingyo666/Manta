@@ -17713,6 +17713,9 @@
         "title": "コンテキスト",
         "estimated": "最後の応答から推定。"
       },
+      "dismissDeliveryNotice": "閉じる",
+      "messageNotSent": "メッセージは送信されませんでした",
+      "deliveryUnconfirmed": "配信を確認できません — 再試行する前にチャットを確認してください",
       "queuedMessages": {
         "alreadySent": "このメッセージはすでに送信されています。",
         "editAlreadySent": "すでに送信されています — テキストは入力欄に残っています。",

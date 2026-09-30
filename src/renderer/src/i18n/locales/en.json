@@ -17856,6 +17856,9 @@
         "title": "Context",
         "estimated": "Estimated from the last response."
       },
+      "dismissDeliveryNotice": "Dismiss",
+      "messageNotSent": "Message not sent",
+      "deliveryUnconfirmed": "Delivery unconfirmed — check chat before retrying",
       "queuedMessages": {
         "behindReturnedHold": "Waiting — a message ahead needs attention",
         "awaitingAnswerHold": "Waiting for your answer",

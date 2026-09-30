@@ -15083,6 +15083,9 @@
         "title": "Contexto",
         "estimated": "Estimado a partir de la última respuesta."
       },
+      "dismissDeliveryNotice": "Descartar",
+      "messageNotSent": "Mensaje no enviado",
+      "deliveryUnconfirmed": "Entrega sin confirmar — revisa el chat antes de reintentar",
       "subagents": {
         "unnamed": "Subagente"
       },
