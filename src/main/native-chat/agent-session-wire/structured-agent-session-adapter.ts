@@ -331,6 +331,9 @@ export type StructuredAgentSessionAdapter = {
     taskId?: string
   }): Promise<{ cancelled: boolean }>
   backgroundTaskState?(sessionId: string): AgentSessionBackgroundTaskState | null | undefined
+  /** The provider reported taking a send it has neither answered nor ended, as a queued follow-up
+   *  or a silent retry does. Derived from the live child; false with none. */
+  holdsDispatch?(sessionId: string): boolean
   /** The `/` surface the running provider reports for itself. Undefined when the
    *  provider never reports one, which is what keeps the client on its catalog. */
   readCommands?(sessionId: string): AgentSessionSlashCommand[] | undefined

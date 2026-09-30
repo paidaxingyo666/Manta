@@ -313,6 +313,7 @@ describe('the wind-down retry with a message queued (P2-31)', () => {
       deliveryActive: () => true,
       backgroundTaskState: () => undefined,
       hasOpenDispatch: () => false,
+      providerHoldsDispatch: () => false,
       stopAgent,
       stopStartingAgent: stopAgent,
       closeConversation: vi.fn(async () => false),

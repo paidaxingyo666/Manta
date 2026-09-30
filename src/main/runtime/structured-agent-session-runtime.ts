@@ -232,7 +232,7 @@ async function installOnJournal(
       })
     )
   }
-  // The provider going idle is what re-derives a doubted send: it can no longer be holding it.
+  // The provider going idle is what re-derives a doubted send; a late echo still accepts it.
   const releaseUnansweredDispatches = ({ sessionId }: { sessionId: string }): void => {
     void host
       ?.releaseUnansweredDispatches({

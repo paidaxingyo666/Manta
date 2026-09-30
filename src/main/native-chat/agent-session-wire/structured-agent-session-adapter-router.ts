@@ -112,6 +112,9 @@ export class StructuredAgentSessionAdapterRouter implements StructuredAgentSessi
     sessionId
   ) => this.liveOwnerOrNull(sessionId)?.backgroundTaskState?.(sessionId)
 
+  holdsDispatch = (sessionId: string): boolean =>
+    this.liveOwnerOrNull(sessionId)?.holdsDispatch?.(sessionId) ?? false
+
   readCommands: NonNullable<StructuredAgentSessionAdapter['readCommands']> = (sessionId) =>
     this.liveOwnerOrNull(sessionId)?.readCommands?.(sessionId)
 

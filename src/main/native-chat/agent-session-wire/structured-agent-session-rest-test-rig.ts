@@ -45,6 +45,7 @@ export type RestTestAdapter = {
     NonNullable<StructuredAgentSessionAdapter['acknowledgeSessionRelease']>
   >
   backgroundTaskState: Mock<NonNullable<StructuredAgentSessionAdapter['backgroundTaskState']>>
+  holdsDispatch: Mock<NonNullable<StructuredAgentSessionAdapter['holdsDispatch']>>
   readOptions: Mock<NonNullable<StructuredAgentSessionAdapter['readOptions']>>
 }
 
@@ -146,6 +147,7 @@ export async function createRestTestRig(
     dispatch: vi.fn(async () => acceptedDispatch()),
     acknowledgeSessionRelease: vi.fn(),
     backgroundTaskState: vi.fn(() => undefined),
+    holdsDispatch: vi.fn(() => false),
     readOptions: vi.fn(async () => ({ models: [], current: { model: 'gpt-live' } }))
   }
   const hostFor = (overrides: Partial<StructuredAgentSessionHostDeps>) =>

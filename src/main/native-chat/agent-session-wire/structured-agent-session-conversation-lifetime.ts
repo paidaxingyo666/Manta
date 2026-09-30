@@ -74,6 +74,7 @@ export function createStructuredAgentSessionConversationLifetime(host: {
       const record = deps().store.getRecord(sessionId)
       return record !== null && deps().hasOpenDispatch?.(record) === true
     },
+    providerHoldsDispatch: (sessionId) => deps().adapter.holdsDispatch?.(sessionId) === true,
     stopAgent,
     // A host stop: the delivery loop waiting on this child writes the one error row and rejects
     // what is queued with it, both worded from the hostStopped fact.

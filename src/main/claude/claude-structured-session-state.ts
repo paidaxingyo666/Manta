@@ -87,6 +87,8 @@ export type ClaudeLateDispatchOutcome =
       providerIdentity: AgentJournalItemIdentity
     }
   | ({ clientMessageId: string; state: 'rejected' } & AgentJournalDispatchRejection)
+  /** The CLI took the send and let it go unanswered: it may have run, so it is never re-sent. */
+  | { clientMessageId: string; state: 'unknown'; reason: string }
 
 export type ClaudeStructuredSessionAdapterDeps = {
   resolveLaunch: (input: {
@@ -95,7 +97,7 @@ export type ClaudeStructuredSessionAdapterDeps = {
   onEvent?: (event: ClaudeStructuredSessionEvent) => void
   /** Direct settlement path for provider-proven late dispatch outcomes. */
   onDispatchSettledLate?: (input: { sessionId: string } & ClaudeLateDispatchOutcome) => void
-  /** The CLI reported `session_state_changed idle`, which it sends only once its queue drains. */
+  /** The CLI reported `session_state_changed idle`: its turn is over. */
   onSessionIdle?: (input: { sessionId: string }) => void
   onBackgroundTasksChanged?: (
     sessionId: string,
@@ -139,7 +141,7 @@ export type ClaudeDispatchWaiter = {
   requestedAt: number | null
   /** Set when the provider replay settled this waiter before send returned. */
   settledUuid?: string
-  /** The write failed or the child died, but a replay may still name it. */
+  /** Settled with no echo (failed write, child exit, doubt after start); a replay may name it. */
   retired?: boolean
   /** The CLI's last non-terminal `command_lifecycle` state for this send; in memory only. */
   commandLifecycle?: 'queued' | 'started'
@@ -158,7 +160,7 @@ export type ClaudeSession = {
   acquisitionGeneration: string
   prompts: ClaudePromptRegistry
   dispatchWaiters: ClaudeDispatchWaiter[]
-  /** Bounded identities for dispatches whose child died or whose write failed. */
+  /** Bounded identities for dispatches settled without an echo; a late replay still accepts one. */
   retiredDispatchWaiters: ClaudeDispatchWaiter[]
   /** Once a retired waiter is evicted, legacy content-only replay matching is unsafe. */
   replayContentFallbackBlocked: boolean

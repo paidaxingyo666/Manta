@@ -240,6 +240,23 @@ describe('the idle sweep', () => {
     await vi.waitFor(() => expect(rig.adapter.closeSession).toHaveBeenCalledWith(SESSION))
   })
 
+  // A Claude retrying a rate-limited request has taken the send but echoes nothing, so no turn row
+  // exists yet; only the provider can say it still holds the send.
+  it('never stops an agent while its provider holds a send, and gives a full window once it lets go', async () => {
+    await foundRestTestChat(rig)
+    rig.adapter.holdsDispatch.mockReturnValue(true)
+    rig.clock.now += 2 * IDLE_MS
+
+    await sweepTicks(12)
+    expect(rig.adapter.closeSession).not.toHaveBeenCalled()
+    expect(rig.adapter.holdsDispatch).toHaveBeenCalledWith(SESSION)
+    rig.adapter.holdsDispatch.mockReturnValue(false)
+    await sweepTicks()
+    expect(rig.adapter.closeSession).not.toHaveBeenCalled()
+    rig.clock.now += IDLE_MS + 1
+    await vi.waitFor(() => expect(rig.adapter.closeSession).toHaveBeenCalledWith(SESSION))
+  })
+
   it('keeps a child an unanswered prompt waits on (P2-22 i)', async () => {
     await foundRestTestChat(rig)
     providerEvents().appendItem(
@@ -304,6 +321,7 @@ describe('the idle sweep with no child running (P2-22 ii)', () => {
       deliveryActive: () => false,
       backgroundTaskState: () => undefined,
       hasOpenDispatch: () => false,
+      providerHoldsDispatch: () => false,
       stopAgent,
       stopStartingAgent: stopAgent,
       closeConversation,
