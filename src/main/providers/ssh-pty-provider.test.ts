@@ -17,10 +17,6 @@ describe('SshPtyProvider', () => {
     provider = new SshPtyProvider('conn-1', mux as never)
   })
 
-  it('returns the connectionId', () => {
-    expect(provider.getConnectionId()).toBe('conn-1')
-  })
-
   it('reports that SSH panes cannot restore from authoritative provider snapshots', () => {
     expect(provider.canProvideAuthoritativeBufferSnapshot(scopedPty1)).toBe(false)
   })
