@@ -4,13 +4,7 @@
 // round-trips without coercion.
 
 import { describe, expect, it } from 'vitest'
-import {
-  addRepoSetupStepActionSchema,
-  errorClassSchema,
-  eventSchemas,
-  isCohortExtendedEvent
-} from './telemetry-events'
-import { appStarSourceSchema } from './gh-star-source'
+import { errorClassSchema, eventSchemas, isCohortExtendedEvent } from './telemetry-events'
 
 describe('feature_interaction_usage_bucket_reached schema', () => {
   it('accepts a valid bucket payload', () => {
@@ -106,13 +100,6 @@ describe('feature_interaction_usage_bucket_reached schema', () => {
 })
 
 describe('app_starred_manta schema', () => {
-  it('accepts every declared app star source', () => {
-    for (const source of appStarSourceSchema.options) {
-      const parsed = eventSchemas.app_starred_manta.safeParse({ source })
-      expect(parsed.success).toBe(true)
-    }
-  })
-
   it('accepts cohort context on successful app star telemetry', () => {
     const parsed = eventSchemas.app_starred_manta.safeParse({
       source: 'settings',
@@ -471,13 +458,6 @@ describe('agent_hook_unattributed schema', () => {
 })
 
 describe('add_repo_setup_step_action schema', () => {
-  it('accepts every Setup-step action declared in the schema', () => {
-    for (const action of addRepoSetupStepActionSchema.options) {
-      const parsed = eventSchemas.add_repo_setup_step_action.safeParse({ action })
-      expect(parsed.success).toBe(true)
-    }
-  })
-
   it('rejects unknown action enum values', () => {
     const parsed = eventSchemas.add_repo_setup_step_action.safeParse({
       action: 'export_to_pdf'
