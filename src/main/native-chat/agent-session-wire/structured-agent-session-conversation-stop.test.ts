@@ -217,11 +217,12 @@ describe('a Stop that names no turn', () => {
     expect(await statusRows()).toEqual(["Codex didn't stop: no active turn to interrupt."])
   })
 
-  it('says the Stop is unconfirmed, not that nothing ran, when the provider took it', async () => {
+  it('says the Stop is unconfirmed, not that nothing ran, when the provider never answered it', async () => {
     const { id, result } = send('hello')
     await result
     await eventually(async () => expect((await submission(id))?.handedOverAt).toBeDefined())
-    cancelTurn.mockResolvedValueOnce({ cancelled: false, unconfirmed: true })
+    // Codex answers an interrupt as the turn ends, so a turn that never ends leaves it unanswered.
+    cancelTurn.mockRejectedValueOnce(new Error('codex app-server turn/interrupt exceeded 30000ms'))
 
     expect(await stop()).toMatchObject({ ok: true, value: { cancelled: false } })
 

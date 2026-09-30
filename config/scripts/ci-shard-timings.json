@@ -1300,7 +1300,6 @@
       "src/main/codex/codex-structured-session-shutdown.test.ts": 471,
       "src/main/codex/codex-structured-thread-goal.test.ts": 73,
       "src/main/codex/codex-structured-thread-open.test.ts": 300,
-      "src/main/codex/codex-structured-turn-processes.integration.test.ts": 194,
       "src/main/codex/codex-subagent-execution-projection.test.ts": 202,
       "src/main/codex/codex-subagent-executions.test.ts": 71,
       "src/main/codex/codex-subagent-roster.test.ts": 118,

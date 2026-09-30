@@ -75,13 +75,6 @@ export async function performCancel(
       note = { kind: 'status', text: 'The provider had already finished this turn.' }
     } else if (!cancelled && input.prompt) {
       note = null
-    } else if (!cancelled && outcome.unconfirmed) {
-      note = {
-        kind: 'status',
-        ...agentSessionFailureWords(agentSessionFailureFact('cancelUnconfirmed'), {
-          surface: 'row'
-        })
-      }
     } else if (!cancelled) {
       // Sent only while the chat reads working, so a Stop that ended nothing must say why.
       const detail = outcome.refusal?.detail

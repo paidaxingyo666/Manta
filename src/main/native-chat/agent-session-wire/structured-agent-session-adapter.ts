@@ -236,12 +236,10 @@ export type StructuredAgentSessionSetOptionInput = {
   fence: number
 }
 
-/** `refusal`: the provider answered the Stop and declined it, in its own words when it gave any.
- *  `unconfirmed`: the provider took the Stop, but Manta could not confirm the turn's work ended. */
+/** `refusal`: the provider answered the Stop and declined it, in its own words when it gave any. */
 export type AgentSessionCancelOutcome = {
   cancelled: boolean
   refusal?: { detail?: ProviderDiagnostic }
-  unconfirmed?: true
 }
 
 export type StructuredAgentSessionAdapter = {
