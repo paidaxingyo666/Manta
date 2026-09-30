@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../../../shared/agent-session-mutation-envelope'
 import { STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
-import { AgentSessionRecordStore } from '../../agent-session-record-store'
+import { openTestAgentSessionRecordStore } from '../../agent-session-record-store-test-harness'
 import type { StructuredAgentSessionAdapter } from '../../../native-chat/agent-session-wire/structured-agent-session-adapter'
 import { StructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-host'
 import { setStructuredAgentSessionHost } from '../../../native-chat/agent-session-wire/structured-agent-session-registry'
@@ -176,10 +176,7 @@ describe('committed adopting create RPC replay', () => {
       .mockRejectedValueOnce(new Error('simulated lost tab publication'))
       .mockResolvedValue(undefined)
 
-    const store = await AgentSessionRecordStore.open({
-      directory: join(root, 'store'),
-      hostId: 'local'
-    })
+    const store = await openTestAgentSessionRecordStore(root)
     const sessionAdapter = adapter()
     host = new StructuredAgentSessionHost({
       store,

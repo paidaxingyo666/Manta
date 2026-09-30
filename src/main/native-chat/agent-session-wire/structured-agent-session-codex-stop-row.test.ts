@@ -14,7 +14,7 @@ import {
   fakeCodex
 } from '../../codex/codex-structured-session-adapter-fixture'
 import { codexTurnLifecycleFake } from '../../codex/codex-turn-lifecycle-fake'
-import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
+import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-record-store-test-harness'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
 import {
   HOST_TEST_NOW as NOW,
@@ -49,10 +49,7 @@ beforeEach(async () => {
     )
     return {}
   }
-  const store = await AgentSessionRecordStore.open({
-    directory: join(root, 'store'),
-    hostId: 'local'
-  })
+  const store = await openTestAgentSessionRecordStore(root)
   host = new StructuredAgentSessionHost({
     store,
     adapter: Object.assign(adapterFor(codex), { supportsCreate: () => true }),

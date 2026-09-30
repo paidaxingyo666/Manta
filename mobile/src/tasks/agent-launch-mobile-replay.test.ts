@@ -12,7 +12,8 @@ import {
 } from '../../../src/shared/agent-session-host-authority'
 import { setStructuredAgentSessionHost } from '../../../src/main/native-chat/agent-session-wire/structured-agent-session-registry'
 import type { StructuredAgentSessionHost } from '../../../src/main/native-chat/agent-session-wire/structured-agent-session-host'
-import { AgentSessionRecordStore } from '../../../src/main/runtime/agent-session-record-store'
+import type { AgentSessionRecordStore } from '../../../src/main/runtime/agent-session-record-store'
+import { openTestAgentSessionRecordStore } from '../../../src/main/runtime/agent-session-record-store-test-harness'
 import type { MantaRuntimeService } from '../../../src/main/runtime/manta-runtime'
 import { RpcDispatcher } from '../../../src/main/runtime/rpc/dispatcher'
 import { runtimeStub } from '../../../src/main/runtime/rpc/methods/agent-launch.test-fixture'
@@ -30,7 +31,7 @@ beforeEach(async () => {
   createStructuredSession.mockReset()
   createStructuredSession.mockResolvedValue({ ok: true, value: { sessionId: 'session-1' } })
   directory = await mkdtemp(join(tmpdir(), 'orca-mobile-launch-replay-'))
-  store = await AgentSessionRecordStore.open({ directory, hostId: 'local' })
+  store = await openTestAgentSessionRecordStore(directory)
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the launch reads only deps.store; structured session creation is the injected boundary above.
   setStructuredAgentSessionHost({ deps: { store } } as unknown as StructuredAgentSessionHost)
 })

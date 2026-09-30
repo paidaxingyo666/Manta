@@ -11,7 +11,8 @@ import { computeAgentSessionPayloadFingerprint } from '../../../shared/agent-ses
 import type { AgentJournalSubmission } from '../../../shared/agent-session-journal-types'
 import { DISPATCH_REJECTED_CANCELLED } from '../../../shared/structured-agent-session-dispatch-rejection'
 import { CancelParams } from '../../../shared/rpc-contract/structured-agent-session-params'
-import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
+import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
+import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-record-store-test-harness'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
@@ -48,7 +49,7 @@ beforeEach(async () => {
   dispatch = vi.fn(async () => ({ state: 'admitted' as const }))
   cancelTurn = vi.fn(async () => ({ cancelled: true }))
   awaitStarted = vi.fn(async () => undefined)
-  store = await AgentSessionRecordStore.open({ directory: join(root, 'store'), hostId: 'local' })
+  store = await openTestAgentSessionRecordStore(root)
   host = new StructuredAgentSessionHost({
     store,
     adapter: {
