@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process'
-import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -190,19 +190,6 @@ describeBinaryCompatibility('real Git binary compatibility', () => {
       await runGit(['worktree', 'remove', '--force', 'held-wt'])
       await runGit(['branch', '-D', 'compat-held'])
     }
-  })
-
-  it('deregisters a worktree whose directory was renamed away', async () => {
-    // Manta renames the checkout into a trash directory and then clears the registration, so every
-    // supported Git must accept `worktree remove --force` on the now-missing path.
-    await runGit(['worktree', 'add', '-b', 'compat-deferred', 'deferred-wt'])
-    await rename(join(repoPath, 'deferred-wt'), join(repoPath, 'deferred-trash'))
-
-    await expect(runGit(['worktree', 'remove', '--force', 'deferred-wt'])).resolves.toBeDefined()
-
-    const remaining = await runGit(['worktree', 'list', '--porcelain'])
-    expect(remaining.stdout).not.toContain('deferred-wt')
-    await rm(join(repoPath, 'deferred-trash'), { recursive: true, force: true })
   })
 
   it('removes locked prepared worktrees without a separate unlock', async () => {

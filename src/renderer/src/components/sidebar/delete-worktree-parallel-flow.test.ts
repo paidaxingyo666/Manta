@@ -223,6 +223,57 @@ describe('runWorktreeDeletesInParallel', () => {
     )
   })
 
+  it('starts same-repo deletes on this machine without waiting for earlier ones to finish', async () => {
+    const first = deferredDeleteResult()
+    mocks.state.removeWorktree.mockImplementationOnce(() => first.promise)
+
+    const deleted = runDeletesForCurrentWorktrees([
+      { id: 'wt-1', displayName: 'one', repoId: 'repo-a', path: '/workspaces/one' },
+      { id: 'wt-2', displayName: 'two', repoId: 'repo-a', path: '/workspaces/two' }
+    ])
+
+    await vi.waitFor(() => expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(2))
+    first.resolve({ ok: true })
+    await expect(deleted).resolves.toHaveLength(2)
+  })
+
+  it('runs same-repo deletes one at a time on a host that does not serialize them itself', async () => {
+    const first = deferredDeleteResult()
+    mocks.state.removeWorktree.mockImplementationOnce(() => first.promise)
+    const hostId = 'ssh:builder' as const
+
+    const deleted = runDeletesForCurrentWorktrees([
+      { id: 'wt-1', displayName: 'one', repoId: 'repo-a', path: '/workspaces/one', hostId },
+      { id: 'wt-2', displayName: 'two', repoId: 'repo-a', path: '/workspaces/two', hostId }
+    ])
+
+    await vi.waitFor(() => expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(1))
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(1)
+    first.resolve({ ok: true })
+    await expect(deleted).resolves.toHaveLength(2)
+    expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps a parent delete waiting for its child to finish on this machine', async () => {
+    const child = deferredDeleteResult()
+    mocks.state.removeWorktree.mockImplementationOnce(() => child.promise)
+
+    const deleted = runDeletesForCurrentWorktrees([
+      { id: 'parent', displayName: 'parent', repoId: 'repo-a', path: '/workspaces/parent' },
+      { id: 'child', displayName: 'child', repoId: 'repo-a', path: '/workspaces/parent/child' }
+    ])
+
+    await vi.waitFor(() => expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(1))
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(1)
+    child.resolve({ ok: true })
+    await expect(deleted).resolves.toHaveLength(2)
+    expect(mocks.state.removeWorktree).toHaveBeenCalledTimes(2)
+  })
+
   it('passes confirmed force to each delete', async () => {
     await runDeletesForCurrentWorktrees(
       [

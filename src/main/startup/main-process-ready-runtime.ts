@@ -32,6 +32,7 @@ import {
 import { initializeMainProcessAutomations } from './main-process-automations'
 import { initializeMainProcessPlugins } from './main-process-plugins'
 import { collectWorktreeTrashSweepRoots, sweepStaleWorktreeTrash } from '../worktree-trash'
+import { loadWorktreeRemovalRecords } from '../worktree-background-removal'
 import { runAfterFirstWindowShown } from './first-window-deferral'
 import { logStartupMilestone } from './startup-diagnostics'
 import { refreshInstalledOpenCodeStatusPlugins } from '../opencode/opencode-status-plugin-startup-refresh'
@@ -44,6 +45,8 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
   if (!store) {
     throw new Error('Store must be initialized before ready services')
   }
+  // Why before any listing: a delete a quit or crash interrupted must show as Deleting from first paint.
+  await loadWorktreeRemovalRecords(store.getProfileStorageDirectory())
   initializeMainProcessObservers()
   initializeMainProcessAccountServices()
   const runtime = initializeMainProcessRuntime()
@@ -78,16 +81,17 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
   // Why: externally started serve-sim processes must stay independent — only Manta-managed/attached helpers belong to a workspace.
   state.emulatorBridge = new EmulatorBridge()
   runtime.setEmulatorBridge(state.emulatorBridge)
-  // Why: worktree deletion renames the checkout aside and deletes it in the background, so a quit or
-  // crash mid-delete can leave the moved directory on disk. Why deferred: the sweep's recursive
-  // readdir/rm runs on the same libuv threadpool the window's first paint and worktree-catalog
-  // hydration are reading disk on, and nothing on the startup path consumes its result.
+  // Why: older releases renamed removed checkouts into a trash root and deleted them in the background,
+  // so a quit mid-delete left directories on disk; drain them. Removals this version recorded are
+  // finished by the same delete. Why deferred: both touch disk on the same libuv threadpool the
+  // window's first paint and worktree-catalog hydration read on, and startup consumes neither.
   runAfterFirstWindowShown(() => {
     void sweepStaleWorktreeTrash(
       collectWorktreeTrashSweepRoots(store.getRepos(), store.getSettings())
     ).catch((error) => {
       console.warn('[worktrees] Failed to sweep leftover worktree directories:', error)
     })
+    runtime.finishInterruptedWorktreeRemovals()
   }, WORKTREE_TRASH_SWEEP_FALLBACK_MS)
   // Why deferred: nothing on the startup path needs it, and it only rewrites plugin files that changed.
   runAfterFirstWindowShown(() => {

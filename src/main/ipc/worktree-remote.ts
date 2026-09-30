@@ -170,6 +170,7 @@ import {
   retireGeneratedWorktreeName
 } from '../worktree-name-retirement'
 import { createRetiredNameLookup } from '../../shared/worktree/retired-name-registry'
+import { findPendingWorktreeRemovalConflict } from '../worktree-background-removal'
 
 const SSH_WORKTREE_CREATE_FETCH_FRESHNESS_MS = 30_000
 const SSH_WORKTREE_CREATE_FETCH_CACHE_MAX = 512
@@ -2630,7 +2631,12 @@ async function performLocalWorktreeCreate(
         computeWorktreePath(effectiveSanitizedName, repo.path, worktreePathSettings, workspaceRoot),
         workspaceRoot
       )
-      if (existsSync(worktreePath)) {
+      // Why the pending check: Git may already have deleted the directory while Manta still owns
+      // the path until its removal settles; take the next name instead of racing it.
+      if (
+        existsSync(worktreePath) ||
+        findPendingWorktreeRemovalConflict(repo.path, { worktreePath })
+      ) {
         continue
       }
 

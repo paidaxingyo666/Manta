@@ -21,6 +21,7 @@ import {
   SESSION_TAB_CLOSE_INTENT_RUNTIME_CAPABILITY,
   SESSION_TABS_RETIREMENT_PROOF_DELTA_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY,
+  WORKTREE_BACKGROUND_REMOVAL_RUNTIME_CAPABILITY,
   WORKTREE_GITHUB_PR_SUPPRESSION_RUNTIME_CAPABILITY,
   WORKTREE_VISIBILITY_DEFAULTS_RUNTIME_CAPABILITY,
   WORKTREE_VISIBILITY_SOURCE_DEFAULTS_RUNTIME_CAPABILITY,
@@ -47,7 +48,10 @@ const REMOTE_ONLY_BY_DECISION: readonly RuntimeCapability[] = [
   BROWSER_CLIENT_HOST_RUNTIME_CAPABILITY,
   BROWSER_CLIENT_PAGE_METADATA_RUNTIME_CAPABILITY,
   // Opts into a delta feed in place of the full tab list — a remote-transport concern.
-  SESSION_TABS_RETIREMENT_PROOF_DELTA_RUNTIME_CAPABILITY
+  SESSION_TABS_RETIREMENT_PROOF_DELTA_RUNTIME_CAPABILITY,
+  // Main marks `removing` on its own worktree IPC listings unconditionally; the renderer never
+  // lists its own host's worktrees over runtime RPC, where this capability decides mark vs omit.
+  WORKTREE_BACKGROUND_REMOVAL_RUNTIME_CAPABILITY
 ]
 
 /** Gates the renderer must pass against its own main process. The Electron remote list omits all
