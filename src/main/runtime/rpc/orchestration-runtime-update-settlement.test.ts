@@ -27,7 +27,6 @@ type Harness = {
   createDispatcher: () => RpcDispatcher
   taskId: string
   dispatchId: string
-  capability: string
   adoptedRunId: string
   markerPath: string
 }
@@ -66,12 +65,18 @@ function createUpdateHarness(): Harness {
     spec: 'finish work across an app update',
     createdByTerminalHandle: COORDINATOR_HANDLE
   })
-  const dispatch = createRootDispatch(oldRuntimeDb, task.id, WORKER_HANDLE, WORKER_PANE)
-  const capability = oldRuntimeDb.mintDispatchCapability({
-    dispatchId: dispatch.id,
-    paneKey: WORKER_PANE,
-    processIncarnation: PROCESS_INCARNATION
-  })
+  const dispatch = createRootDispatch(
+    oldRuntimeDb,
+    task.id,
+    WORKER_HANDLE,
+    WORKER_PANE,
+    undefined,
+    PROCESS_INCARNATION
+  )
+  // The pre-update runtime minted a capability; its hash is what classifies the row as current.
+  oldRuntimeDb.db
+    .prepare("UPDATE dispatch_contexts SET capability_hash = 'minted-before-update' WHERE id = ?")
+    .run(dispatch.id)
   oldRuntimeDb.close()
 
   const raw = new Database(dbPath)
@@ -152,7 +157,6 @@ function createUpdateHarness(): Harness {
     createDispatcher,
     taskId: task.id,
     dispatchId: dispatch.id,
-    capability,
     adoptedRunId: adoptedRunId as string,
     markerPath
   }
@@ -233,7 +237,6 @@ describe('orchestration runtime update settlement', () => {
       'worker',
       'retained-worker-done'
     )
-    completion.orchestrationCapability = harness.capability
 
     const first = await harness.createDispatcher().dispatch(completion)
     const replay = await harness.createDispatcher().dispatch({ ...completion, id: 'rpc_replay' })
@@ -326,7 +329,6 @@ describe('orchestration runtime update settlement', () => {
       'worker',
       'forged-worker-done'
     )
-    completion.orchestrationCapability = harness.capability
     completion.orchestrationCompatibilityEvidence = {
       ...completion.orchestrationCompatibilityEvidence!,
       paneKey: 'tab_foreign:99999999-9999-4999-8999-999999999999'
@@ -405,8 +407,8 @@ describe('orchestration runtime update settlement', () => {
       dispatch_id: attachment.dispatch_id
     } as never)
 
-    const response = await harness.createDispatcher().dispatch({
-      ...request(
+    const response = await harness.createDispatcher().dispatch(
+      request(
         'orchestration.send',
         {
           from: CURRENT_COORDINATOR_HANDLE,
@@ -416,9 +418,8 @@ describe('orchestration runtime update settlement', () => {
         },
         'current-coordinator',
         'retained-remote-status'
-      ),
-      orchestrationCapability: 'dcap_remote_retained'
-    })
+      )
+    )
 
     expect(resultOf(response)).toMatchObject({
       relay: { dispatchId: attachment.dispatch_id, accepted: true }

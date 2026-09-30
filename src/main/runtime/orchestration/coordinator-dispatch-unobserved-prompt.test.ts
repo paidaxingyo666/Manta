@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { OrchestrationDb } from './db'
 import type { CoordinatorRuntime } from './coordinator-runtime-contract'
 import { dispatchTaskToWorker } from './coordinator-task-dispatch'
+import { reattachDispatchConsumer } from './db/root-dispatch-test-fixture'
 
 const WORKER_PANE_KEY = 'tab_worker:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 let db: OrchestrationDb
@@ -91,7 +92,7 @@ describe('coordinator dispatch with an unobserved prompt', () => {
     const task = db.createTask({ runId: 'run_legacy_local', spec: 'do the work' })
     await dispatch(createRuntime(new Error('agent_prompt_stalled')), task.id, [])
     const dispatchId = db.getDispatchContext(task.id)!.id
-    db.mintDispatchCapability({
+    reattachDispatchConsumer(db, {
       dispatchId,
       paneKey: WORKER_PANE_KEY,
       processIncarnation: 'incarnation-1'

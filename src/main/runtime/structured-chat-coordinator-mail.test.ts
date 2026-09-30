@@ -58,7 +58,7 @@ let requests = 0
 function request(
   method: string,
   params: Record<string, unknown>,
-  options: { sessionId?: string; capability?: string } = {}
+  options: { sessionId?: string } = {}
 ): RpcRequest {
   requests += 1
   return {
@@ -70,15 +70,14 @@ function request(
     orchestrationRequestId: `req-${requests}`,
     ...(options.sessionId
       ? { orchestrationCompatibilityEvidence: { agentSessionId: options.sessionId } }
-      : {}),
-    ...(options.capability ? { orchestrationCapability: options.capability } : {})
+      : {})
   }
 }
 
 async function call(
   method: string,
   params: Record<string, unknown>,
-  options?: { sessionId?: string; capability?: string }
+  options?: { sessionId?: string }
 ): Promise<Record<string, unknown>> {
   const response = await dispatcher.dispatch(request(method, params, options))
   if (!response.ok) {
@@ -160,7 +159,7 @@ async function userTexts(sessionId: string): Promise<string[]> {
   )
 }
 
-/** A capability-backed terminal worker under the coordinator's Run, and its worker_done. */
+/** A supervised terminal worker under the coordinator's Run, and its worker_done. */
 async function finishWorker(
   taskId: string,
   worker: { handle: string; paneKey: string } = { handle: 'term_worker', paneKey: WORKER_PANE }
@@ -171,7 +170,7 @@ async function finishWorker(
     taskId,
     startOptions: {}
   })
-  const capability = db.prepareStartingWorkerAuthority({
+  db.prepareStartingWorkerAuthority({
     dispatchId: started.dispatch.id,
     handle: worker.handle,
     paneKey: worker.paneKey,
@@ -181,16 +180,12 @@ async function finishWorker(
     setupState: 'not_applicable'
   })
   db.markWorkerDispatchReady(started.dispatch.id)
-  await call(
-    'orchestration.send',
-    {
-      from: worker.handle,
-      subject: 'Done',
-      type: 'worker_done',
-      payload: JSON.stringify({ taskId, dispatchId: started.dispatch.id, outcome: 'succeeded' })
-    },
-    { capability }
-  )
+  await call('orchestration.send', {
+    from: worker.handle,
+    subject: 'Done',
+    type: 'worker_done',
+    payload: JSON.stringify({ taskId, dispatchId: started.dispatch.id, outcome: 'succeeded' })
+  })
 }
 
 async function coordinatorRunAndTask(): Promise<{ runId: string; taskId: string }> {

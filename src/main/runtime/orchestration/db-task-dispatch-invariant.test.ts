@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type Database from '../../sqlite/sync-database'
 import { OrchestrationDb } from './db'
-import { createRootDispatch } from './db/root-dispatch-test-fixture'
+import { createRootDispatch, reattachDispatchConsumer } from './db/root-dispatch-test-fixture'
 
 type DatabaseHarness = {
   db: OrchestrationDb
@@ -82,7 +82,7 @@ describe('Task/Dispatch invariant transactions', () => {
         deps: [task.id]
       })
       const dispatch = createRootDispatch(db, task.id, 'term_worker')
-      db.mintDispatchCapability({
+      reattachDispatchConsumer(db, {
         dispatchId: dispatch.id,
         paneKey: 'tab_worker:leaf_worker',
         processIncarnation: 'worker:1'

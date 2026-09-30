@@ -1,7 +1,5 @@
-import { randomBytes } from 'node:crypto'
 import type { RemoteDispatchAttachmentRow } from '../../types'
 import { OrchestrationError } from '../../orchestration-error'
-import { hashDispatchCapability } from '../dispatch-capability-hash'
 import { isEquivalentPaneKey } from '../pane-key-match'
 import type { OrchestrationDb } from '../orchestration-db'
 
@@ -18,7 +16,7 @@ export function prepareRemoteAttachmentAuthority(
     hostScope?: string | null
     terminalOwnership?: 'created' | 'external'
   }
-): string {
+): void {
   this.db.exec('BEGIN IMMEDIATE')
   try {
     const attachment = this.getRemoteDispatchAttachment(params.dispatchId)
@@ -35,18 +33,16 @@ export function prepareRemoteAttachmentAuthority(
         `Terminal ${params.terminalHandle} already has active remote Dispatch ${active.dispatch_id}.`
       )
     }
-    const capability = `dcap_${randomBytes(32).toString('base64url')}`
     const result = this.db
       .prepare(
         `UPDATE remote_dispatch_attachments
-         SET stage = 'authority_attached', capability_hash = ?, pane_key = ?,
+         SET stage = 'authority_attached', pane_key = ?,
              process_incarnation = ?, worktree_id = ?, terminal_handle = ?, setup_state = ?,
              effects = ?, residual_resources = ?, updated_at = datetime('now'),
              consumer_generation = consumer_generation + 1
          WHERE dispatch_id = ? AND state = 'starting'`
       )
       .run(
-        hashDispatchCapability(capability),
         params.paneKey,
         params.processIncarnation,
         params.worktreeId,
@@ -108,7 +104,6 @@ export function prepareRemoteAttachmentAuthority(
       }
     }
     this.db.exec('COMMIT')
-    return capability
   } catch (error) {
     this.db.exec('ROLLBACK')
     throw error

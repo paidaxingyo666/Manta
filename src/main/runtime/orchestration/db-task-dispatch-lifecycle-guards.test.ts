@@ -8,7 +8,6 @@ import { createRootDispatch } from './db/root-dispatch-test-fixture'
 
 type WorkerFixture = {
   dispatchId: string
-  capability: string
   handle: string
   paneKey: string
   processIncarnation: string
@@ -690,7 +689,7 @@ function startWorker(database: OrchestrationDb, taskId: string, name: string): W
   const paneKey = `tab_${name}:aaaaaaaa-aaaa-4aaa-8aaa-${paneSuffix}`
   const processIncarnation = `${name}:1`
   const handle = `term_${name}`
-  const capability = database.prepareStartingWorkerAuthority({
+  database.prepareStartingWorkerAuthority({
     dispatchId: started.dispatch.id,
     handle,
     paneKey,
@@ -701,7 +700,7 @@ function startWorker(database: OrchestrationDb, taskId: string, name: string): W
     terminalOwnership: 'created'
   })
   database.markWorkerDispatchReady(started.dispatch.id)
-  return { dispatchId: started.dispatch.id, capability, handle, paneKey, processIncarnation }
+  return { dispatchId: started.dispatch.id, handle, paneKey, processIncarnation }
 }
 
 function sqliteFor(database: OrchestrationDb): Database.Database {
