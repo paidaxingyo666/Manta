@@ -126,7 +126,7 @@ describe('Task/Dispatch concurrency', () => {
       taskId: task.id,
       startOptions: {}
     })
-    const capability = first.db.prepareStartingWorkerAuthority({
+    first.db.prepareStartingWorkerAuthority({
       dispatchId: started.dispatch.id,
       handle: 'term_worker',
       paneKey: 'tab_worker:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -171,14 +171,6 @@ describe('Task/Dispatch concurrency', () => {
       status: 'completed',
       last_failure: null
     })
-    expect(
-      first.db.verifyDispatchCapability({
-        dispatchId: started.dispatch.id,
-        capability,
-        paneKey: 'tab_worker:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-        processIncarnation: 'worker:1'
-      })
-    ).toMatchObject({ valid: false })
   })
 
   it('keeps nested dispatch failure atomic with its caller transaction', () => {

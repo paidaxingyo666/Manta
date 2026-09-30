@@ -94,7 +94,7 @@ describe('Task/Dispatch state invariant', () => {
   it('atomically fails a context-only Dispatch, revokes its capability, and frees the terminal', async () => {
     const harness = createHarness()
     const task = harness.db.createTask({ spec: 'failing assignment', runId: harness.runId })
-    const { dispatch, capability } = await createCapableDispatch(harness, task.id, 'dispatched')
+    const { dispatch } = await createCapableDispatch(harness, task.id, 'dispatched')
 
     const response = await updateTask(harness, task.id, 'failed', 'coordinator stopped work')
 
@@ -107,14 +107,6 @@ describe('Task/Dispatch state invariant', () => {
       dispatchCompletedAt: expect.any(String),
       capabilityRevokedAt: expect.any(String)
     })
-    expect(
-      harness.db.verifyDispatchCapability({
-        dispatchId: dispatch.id,
-        capability,
-        paneKey: WORKER_PANE,
-        processIncarnation: WORKER_PROCESS
-      })
-    ).toEqual({ valid: false, reason: `Dispatch ${dispatch.id} capability is revoked.` })
 
     const laterTask = harness.db.createTask({ spec: 'later assignment', runId: harness.runId })
     await expect(dispatchTask(harness, laterTask.id, WORKER_HANDLE)).resolves.toMatchObject({
@@ -132,7 +124,7 @@ describe('Task/Dispatch state invariant', () => {
     async (dispatchStatus, taskStatus) => {
       const harness = createHarness()
       const task = harness.db.createTask({ spec: 'supervised assignment', runId: harness.runId })
-      const { dispatch, capability } = createSupervisedDispatch(harness, task.id, dispatchStatus)
+      const { dispatch } = createSupervisedDispatch(harness, task.id, dispatchStatus)
 
       const response = await updateTask(harness, task.id, taskStatus, 'must not persist')
 
@@ -156,14 +148,6 @@ describe('Task/Dispatch state invariant', () => {
         ownershipState: 'owned',
         releaseState: 'not_requested'
       })
-      expect(
-        harness.db.verifyDispatchCapability({
-          dispatchId: dispatch.id,
-          capability,
-          paneKey: WORKER_PANE,
-          processIncarnation: WORKER_PROCESS
-        })
-      ).toEqual({ valid: true })
     }
   )
 

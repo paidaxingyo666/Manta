@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import type { RemoteDispatchAttachmentRow } from '../../types'
 import { OrchestrationError } from '../../orchestration-error'
 import { hashDispatchCapability } from '../dispatch-capability-hash'
@@ -162,32 +162,6 @@ export function failRemoteAttachment(
   return this.getRemoteDispatchAttachment(dispatchId) as RemoteDispatchAttachmentRow
 }
 
-export function verifyRemoteAttachmentAuthority(
-  this: OrchestrationDb,
-  params: {
-    dispatchId: string
-    capability: string | undefined
-    paneKey: string | null
-    processIncarnation: string | null
-  }
-): boolean {
-  const attachment = this.getRemoteDispatchAttachment(params.dispatchId)
-  if (
-    !attachment?.capability_hash ||
-    !params.capability ||
-    !attachment.pane_key ||
-    !params.paneKey ||
-    !isEquivalentPaneKey(attachment.pane_key, params.paneKey) ||
-    !attachment.process_incarnation ||
-    attachment.process_incarnation !== params.processIncarnation
-  ) {
-    return false
-  }
-  const expected = Buffer.from(attachment.capability_hash, 'hex')
-  const observed = Buffer.from(hashDispatchCapability(params.capability), 'hex')
-  return expected.length === observed.length && timingSafeEqual(expected, observed)
-}
-
 export function isRemoteAttachmentProcessCurrent(
   this: OrchestrationDb,
   params: {
@@ -210,7 +184,6 @@ export type RemoteDispatchAttachmentAuthorityMethods = {
   prepareRemoteAttachmentAuthority: typeof prepareRemoteAttachmentAuthority
   markRemoteAttachmentReady: typeof markRemoteAttachmentReady
   failRemoteAttachment: typeof failRemoteAttachment
-  verifyRemoteAttachmentAuthority: typeof verifyRemoteAttachmentAuthority
   isRemoteAttachmentProcessCurrent: typeof isRemoteAttachmentProcessCurrent
 }
 
@@ -219,7 +192,6 @@ export function attachRemoteDispatchAttachmentAuthority(ctor: { prototype: objec
     prepareRemoteAttachmentAuthority,
     markRemoteAttachmentReady,
     failRemoteAttachment,
-    verifyRemoteAttachmentAuthority,
     isRemoteAttachmentProcessCurrent
   })
 }

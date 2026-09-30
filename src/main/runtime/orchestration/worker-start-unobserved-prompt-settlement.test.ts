@@ -5,7 +5,7 @@ const WORKER_PANE_KEY = 'tab_worker:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const INCARNATION = 'runtime_test:term_worker:1'
 let db: OrchestrationDb
 
-function startWorker(spec: string): { taskId: string; dispatchId: string; capability: string } {
+function startWorker(spec: string): { taskId: string; dispatchId: string } {
   const task = db.createTask({ runId: 'run_legacy_local', spec })
   const started = db.createStartingWorkerDispatch({
     creator: { kind: 'system' },
@@ -13,29 +13,20 @@ function startWorker(spec: string): { taskId: string; dispatchId: string; capabi
     taskId: task.id,
     startOptions: {}
   })
-  const capability = db.mintDispatchCapability({
+  db.mintDispatchCapability({
     dispatchId: started.dispatch.id,
     paneKey: WORKER_PANE_KEY,
     processIncarnation: INCARNATION
   })
-  return { taskId: task.id, dispatchId: started.dispatch.id, capability }
-}
-
-function verify(dispatchId: string, capability: string): { valid: boolean; reason?: string } {
-  return db.verifyDispatchCapability({
-    dispatchId,
-    capability,
-    paneKey: WORKER_PANE_KEY,
-    processIncarnation: INCARNATION
-  })
+  return { taskId: task.id, dispatchId: started.dispatch.id }
 }
 
 describe('worker start settled by an unobserved prompt', () => {
   afterEach(() => db?.close())
 
-  it('keeps the capability and lets the worker report correct the record', () => {
+  it('lets the worker report correct the record', () => {
     db = new OrchestrationDb(':memory:')
-    const { taskId, dispatchId, capability } = startWorker('run to completion')
+    const { taskId, dispatchId } = startWorker('run to completion')
 
     db.failWorkerStart(dispatchId, 'dispatch_input', 'agent_prompt_stalled', {
       retainCapability: true
@@ -46,7 +37,6 @@ describe('worker start settled by an unobserved prompt', () => {
       last_failure: 'agent_prompt_stalled',
       capability_revoked_at: null
     })
-    expect(verify(dispatchId, capability)).toEqual({ valid: true })
 
     expect(
       db.settleWorkerReport({
@@ -63,12 +53,11 @@ describe('worker start settled by an unobserved prompt', () => {
 
   it('revokes and stays settled when the start failed for any other cause', () => {
     db = new OrchestrationDb(':memory:')
-    const { taskId, dispatchId, capability } = startWorker('never became ready')
+    const { taskId, dispatchId } = startWorker('never became ready')
 
     db.failWorkerStart(dispatchId, 'agent_readiness', 'Agent did not become ready (idle).')
 
     expect(db.getDispatchContextById(dispatchId)?.capability_revoked_at).toEqual(expect.any(String))
-    expect(verify(dispatchId, capability).valid).toBe(false)
     expect(
       db.settleWorkerReport({ taskId, dispatchId, outcome: 'succeeded', result: 'done' })
     ).toMatchObject({ action: 'rejected', code: 'inactive_dispatch' })

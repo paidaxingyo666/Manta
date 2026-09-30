@@ -49,6 +49,8 @@ If `check` returns `consumer_fenced`, this process no longer owns its Dispatch:
 the Attempt was re-attached to another worker or settled without you. Stop, do
 not send `worker_done`, and do not retry the check. An empty `check` never means
 you were replaced; `consumer_fenced` is the only way you learn that.
+If `send` or `ask` returns `consumer_fenced`, the command ran from another
+party's terminal (a coordinator or another worker); run it from your own terminal.
 
 ## Escalation
 

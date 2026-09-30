@@ -91,20 +91,12 @@ describe('coordinator dispatch with an unobserved prompt', () => {
     const task = db.createTask({ runId: 'run_legacy_local', spec: 'do the work' })
     await dispatch(createRuntime(new Error('agent_prompt_stalled')), task.id, [])
     const dispatchId = db.getDispatchContext(task.id)!.id
-    const minted = db.mintDispatchCapability({
+    db.mintDispatchCapability({
       dispatchId,
       paneKey: WORKER_PANE_KEY,
       processIncarnation: 'incarnation-1'
     })
 
-    expect(
-      db.verifyDispatchCapability({
-        dispatchId,
-        capability: minted,
-        paneKey: WORKER_PANE_KEY,
-        processIncarnation: 'incarnation-1'
-      })
-    ).toEqual({ valid: true })
     expect(
       db.settleWorkerReport({
         taskId: task.id,
