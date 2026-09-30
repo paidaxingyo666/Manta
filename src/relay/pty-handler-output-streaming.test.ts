@@ -713,6 +713,41 @@ describe('PtyHandler', () => {
     })
   })
 
+  it('does not split a bounded slice inside an open DEC 2026 frame', async () => {
+    let dataCallback: ((data: string) => void) | undefined
+    mockPtySpawn.mockReturnValue({
+      ...mockPtyInstance,
+      onData: vi.fn((cb: (data: string) => void) => {
+        dataCallback = cb
+      }),
+      onExit: vi.fn()
+    })
+
+    await dispatcher.callRequest('pty.spawn', {})
+    // A frame that closes just before the 16KB boundary, then a second frame
+    // that straddles it. Cutting at the raw boundary would strand the second
+    // frame's \x1b[?2026l, and xterm paints nothing while the latch is open.
+    const open = '\x1b[?2026h'
+    const close = '\x1b[?2026l'
+    const firstFrame = `${open}${'x'.repeat(16 * 1024 - 2 * open.length - close.length)}${close}`
+    const secondFrame = `${open}${'y'.repeat(64)}${close}`
+    dataCallback!(`${firstFrame}${secondFrame}`)
+
+    vi.advanceTimersByTime(8)
+    expect(dispatcher.notify).toHaveBeenCalledTimes(1)
+    expect(dispatcher.notify).toHaveBeenNthCalledWith(1, 'pty.data', {
+      id: PTY_1,
+      data: firstFrame
+    })
+
+    vi.advanceTimersByTime(1)
+    expect(dispatcher.notify).toHaveBeenCalledTimes(2)
+    expect(dispatcher.notify).toHaveBeenNthCalledWith(2, 'pty.data', {
+      id: PTY_1,
+      data: secondFrame
+    })
+  })
+
   it('writes data to PTY via pty.data notification', async () => {
     const mockWrite = vi.fn()
     mockPtySpawn.mockReturnValue({
