@@ -158,6 +158,7 @@ export class MantaRuntimeWithApplyTrackedPtyTitle extends MantaRuntimeWithGetUnp
     this.ptyTitleTrackersByPtyId.get(ptyId)?.tracker.dispose()
     this.ptyTitleTrackersByPtyId.delete(ptyId)
     this.ptyForegroundAgent.clearDelayedSnapshot(ptyId)
+    this.openCodeRunLifetime.forgetPty(ptyId)
     this.mobileSessionTabsAgentStatusHeartbeat.removePty(ptyId)
     this.clientEvents.clearPtyTitleGate(ptyId)
   }

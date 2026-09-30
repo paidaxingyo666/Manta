@@ -55,7 +55,7 @@ export function normalizeHookPayload(
     source === 'codex' && readString(hookPayloadRecord, 'agent_id')
       ? null
       : extractAgentProviderSession(source, hookPayloadRecord)
-  // Why (#21359): the shared OpenCode server stamps every post with its own
+  // Why (#21359): an OpenCode 1 `serve` process stamps every post with its own
   // frozen pane. When the binder has mapped this session to its real pane,
   // the stamp is replaced before anything downstream (status lookup, dispatch,
   // fences) can act on the wrong owner. Unbound sessions keep the stamp.
@@ -68,7 +68,8 @@ export function normalizeHookPayload(
       worktreeId: stampedWorktreeId,
       launchToken: stampedLaunchToken
     },
-    sessionId: providerSession?.id
+    sessionId: providerSession?.id,
+    body: record
   })
   // Why after the resolve: tracking the stamped token first would let a stale
   // shared-server stamp overwrite the pane's live token; the resolved envelope

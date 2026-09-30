@@ -143,9 +143,13 @@ export class MantaRuntimeWithGetUnpersistedTrackedTitleForPty extends MantaRunti
         onAgentExited: () => {
           this.confirmPtyAgentExit(ptyId)
         },
+        onCommandStarted: () => {
+          this.openCodeRunLifetime.onCommandStarted(ptyId)
+        },
         onCommandFinished: (exitCode: number | null) => {
           this.retirePtyAgentLaunchAuthority(ptyId)
           this.recordTerminalSideEffectFact(ptyId, { kind: 'command-finished', exitCode })
+          this.openCodeRunLifetime.onCommandFinished(ptyId, exitCode)
         },
         onBell: () => {
           this.recordTerminalSideEffectFact(ptyId, { kind: 'bell' })
@@ -171,6 +175,7 @@ export class MantaRuntimeWithGetUnpersistedTrackedTitleForPty extends MantaRunti
       lastTitleFactAtMs: null,
       chunkTouchedSessionTabs: false,
       pendingFacts: [],
+      afterFacts: [],
       // Why: command-code facts exist only for the pty:sideEffect channel —
       // headless serve skips the per-chunk scrape entirely. The detector
       // self-arms on the Command Code banner; the spawn command (when main

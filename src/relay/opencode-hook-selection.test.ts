@@ -55,7 +55,7 @@ beforeEach(async () => {
     'OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_CONFIG_DIR',
     'MANTA_OPENCODE_SOURCE_CONFIG_DIR',
-    'ORCA_OPENCODE_AGENT',
+    'MANTA_OPENCODE_AGENT',
     'ZDOTDIR'
   ]) {
     vi.stubEnv(key, undefined)
@@ -96,7 +96,7 @@ async function spawn(params: Record<string, unknown> = {}): Promise<Record<strin
 describe('relay OpenCode source selection on real fixture files', () => {
   it('leaves a standalone relay without supplied sources unconfigured', async () => {
     const env = await spawn()
-    expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+    expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
     expect(existsSync(join(root, 'xdg', 'opencode'))).toBe(false)
   })
   it.each([
@@ -107,7 +107,7 @@ describe('relay OpenCode source selection on real fixture files', () => {
   ])('ordinary terminal with sources $v1 / $v2', async ({ v1, v2, selected }) => {
     await install(v1, v2)
     const env = await spawn()
-    expect(env.ORCA_OPENCODE_AGENT).toBe(selected)
+    expect(env.MANTA_OPENCODE_AGENT).toBe(selected)
     for (const agent of ['opencode', 'opencode2']) {
       expect(existsSync(plugin(join(root, 'xdg', 'opencode'), agent))).toBe(agent === selected)
     }
@@ -118,7 +118,7 @@ describe('relay OpenCode source selection on real fixture files', () => {
       await install(agent === 'opencode' ? '' : '// v1', agent === 'opencode2' ? '' : '// v2')
       for (const params of [{ command: `${agent} --session fixture` }, { launchAgent: agent }]) {
         const env = await spawn(params)
-        expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+        expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
         expect(existsSync(join(root, 'xdg', 'opencode'))).toBe(false)
       }
     }
@@ -129,11 +129,22 @@ describe('relay OpenCode source selection on real fixture files', () => {
     const original = plugin(join(root, 'xdg', 'opencode'), 'opencode')
     writeFileSync(original, '// sentinel')
     await install('', '// v2')
-    expect((await spawn()).ORCA_OPENCODE_AGENT).toBe('opencode2')
+    expect((await spawn()).MANTA_OPENCODE_AGENT).toBe('opencode2')
     expect(readFileSync(original, 'utf8')).toBe('// sentinel')
     await install('// refreshed v1', '// v2')
-    expect((await spawn()).ORCA_OPENCODE_AGENT).toBe('opencode')
+    expect((await spawn()).MANTA_OPENCODE_AGENT).toBe('opencode')
     expect(readFileSync(original, 'utf8')).toBe('// refreshed v1')
+  })
+  // Why: a running OpenCode 2 service reloads a changed plugin file, so connecting must upgrade it.
+  it('refreshes an existing canonical plugin on install without creating a new one', async () => {
+    const dir = join(root, 'xdg', 'opencode')
+    mkdirSync(join(dir, 'plugins'), { recursive: true })
+    writeFileSync(plugin(dir, 'opencode2'), '// old v2')
+    await install('// v1', '// v2')
+    expect(readFileSync(plugin(dir, 'opencode2'), 'utf8')).toBe('// v2')
+    const tuiEntry = join(dir, 'plugins', 'orca-opencode2-status-tui', 'tui.js')
+    expect(readFileSync(tuiEntry, 'utf8')).toBe('// v2')
+    expect(existsSync(plugin(dir, 'opencode'))).toBe(false)
   })
   it('restores the real custom source when all OpenCode sources are revoked', async () => {
     await install('// v1', '// v2')
@@ -143,7 +154,7 @@ describe('relay OpenCode source selection on real fixture files', () => {
     await install('', '')
     const env = await spawn({ env: first })
     expect(env.OPENCODE_CONFIG_DIR).toBe(custom)
-    expect(env.ORCA_OPENCODE_AGENT).toBeUndefined()
+    expect(env.MANTA_OPENCODE_AGENT).toBeUndefined()
     expect(env.MANTA_OPENCODE_CONFIG_DIR).toBeUndefined()
     expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
     expect(readFileSync(path, 'utf8')).toBe('// v1')

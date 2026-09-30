@@ -1,8 +1,10 @@
+import { homedir } from 'node:os'
 import type { RelayDispatcher } from './dispatcher'
 import type { PtyEnvAugmenter, PtyHandler } from './pty-handler'
 import { RelayAgentHookServer } from './agent-hook-server'
 import { endpointDirForRelaySocket } from './agent-hook-endpoint-coordinates'
 import { PluginOverlayManager } from './plugin-overlay'
+import { installOpenCodePluginInCanonicalConfig } from './opencode-canonical-config'
 import {
   AGENT_HOOK_INSTALL_PLUGINS_METHOD,
   AGENT_HOOK_REQUEST_REPLAY_METHOD
@@ -99,9 +101,9 @@ export class RelayAgentHookRuntime {
       },
       {}
     )
-    delete context.env.ORCA_OPENCODE_AGENT
+    delete context.env.MANTA_OPENCODE_AGENT
     if (opencodeAgent) {
-      env.ORCA_OPENCODE_AGENT = opencodeAgent
+      env.MANTA_OPENCODE_AGENT = opencodeAgent
       const sourceDir = resolveOpenCodeSourceConfigDir(context.env, context.shell)
       const inheritedRelayOverlay = sourceDir
         ? this.pluginOverlay.isRelayOverlayPath(sourceDir)
@@ -195,6 +197,16 @@ export class RelayAgentHookRuntime {
         ompExtensionSource: typeof omp === 'string' ? omp : undefined,
         primeAgentExtensionSource: typeof primeAgent === 'string' ? primeAgent : undefined
       })
+      // Why: a running OpenCode 2 service reloads a changed plugin file, so a Manta upgrade
+      // reaches it on connect instead of at the next pane spawn. Never creates an install.
+      for (const [agent, source] of [
+        ['opencode', opencode],
+        ['opencode2', opencode2]
+      ] as const) {
+        if (typeof source === 'string' && source) {
+          installOpenCodePluginInCanonicalConfig(source, agent, process.env, homedir(), true)
+        }
+      }
       return {
         installed: {
           opencode: this.pluginOverlay.hasOpenCodeSource(),
