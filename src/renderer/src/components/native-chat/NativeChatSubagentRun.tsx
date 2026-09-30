@@ -272,18 +272,18 @@ export function NativeChatSubagentRun({
   const alertState = working ? summary.adverseState : null
   const alert =
     alertState === null ? null : subagentStateLabel(alertState, summary.adverseCount, summary.total)
-  // A child settled by the reopen reads `unverifiable` with no terminal stamp:
-  // it stopped being observable at an unknown moment. Measuring to `now` would
-  // report the time since the host died as how long the child ran, on a row that
-  // is not even counting. A sibling's stamp is no better: in a mixed group it
-  // would present that sibling's duration as the group's while a child's fate is
-  // still unknown.
+  // A child settled with no terminal stamp — swept by the reopen, or given the
+  // provider's verdict after that — stopped being observable at an unknown
+  // moment. Measuring to `now` would report the time since the host died as how
+  // long the child ran, on a row that is not even counting. A sibling's stamp is
+  // no better: in a mixed group it would present that sibling's duration as the
+  // group's while a child's run length is still unknown.
   const runLengthUnknown = agents.some(
     (agent) =>
-      normalizeSubagentState(agent.state) === 'unverifiable' && typeof agent.settledAt !== 'number'
+      normalizeSubagentState(agent.state) !== 'working' && typeof agent.settledAt !== 'number'
   )
   const clockStartedAt =
-    !runLengthUnknown && (working || summary.settledAt !== null) ? summary.startedAt : null
+    !runLengthUnknown && (working || summary.settledAt !== null) ? summary.clockStartedAt : null
 
   return (
     <div>
