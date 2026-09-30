@@ -297,8 +297,8 @@ describe('OrchestrationDb worker Dispatch state', () => {
     })
     d.markWorkerDispatchReady(second.dispatch.id)
 
-    expect(d.abandonWorkerDispatch(first.dispatch.id)).toMatchObject({
-      disposition: 'stale',
+    expect(d.abandonWorkerDispatch(first.dispatch.id, 'epoch_test')).toMatchObject({
+      disposition: 'already_settled',
       worker: { state: 'failed' }
     })
     expect(d.getTask(task.id)?.status).toBe('dispatched')
