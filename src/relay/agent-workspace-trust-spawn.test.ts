@@ -18,7 +18,7 @@ import { linkGitWorktree, workspaceTrustWritten } from '../main/workspace-trust-
 
 const state = vi.hoisted(() => ({ home: '' }))
 
-// Why: the non-Claude writers resolve their files from this process's home, as on a real relay.
+// Why: a spawn env without HOME leaves the writers on this process's home, as on a real relay.
 vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<typeof Os>()
   return { ...actual, homedir: () => state.home }

@@ -42,7 +42,7 @@ describe('Qoder managed configuration', () => {
     }
     expect(installed.hooks.TeammateIdle).toBeUndefined()
     expect(installed.statusLine).toBeUndefined()
-    markQoderWorkspaceTrusted('/new-workspace')
+    markQoderWorkspaceTrusted('/new-workspace', sandbox.home)
     const trusted = JSON.parse(readFileSync(path, 'utf8'))
     expect(trusted.permissions.trustDirectories).toEqual(['/existing', '/new-workspace'])
     expect(trusted.hooks).toEqual(installed.hooks)
@@ -67,7 +67,7 @@ describe('Qoder managed configuration', () => {
     const path = join(sandbox.home, '.qoder', 'settings.json')
     writeFileSync(path, '{broken')
     expect(qoderHookService.install().state).toBe('error')
-    markQoderWorkspaceTrusted('/new-workspace')
+    markQoderWorkspaceTrusted('/new-workspace', sandbox.home)
     expect(readFileSync(path, 'utf8')).toBe('{broken')
     expect(withQoderTrustedWorkspace({ permissions: 'invalid' }, '/workspace')).toBeNull()
     expect(

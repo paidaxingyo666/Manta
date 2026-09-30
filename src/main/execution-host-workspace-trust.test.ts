@@ -59,6 +59,7 @@ afterEach(() => {
 function thisHost(overrides: Partial<WorkspaceTrustHost> = {}): () => WorkspaceTrustHost {
   return () => ({
     homes: [state.home],
+    agentHome: state.home,
     claudeConfig: () => ({ configFile: join(state.home, '.claude.json'), keyStyle: 'posix' }),
     codexConfigFiles: () => [join(state.home, '.codex', 'config.toml')],
     deadlineMs: 1_500,

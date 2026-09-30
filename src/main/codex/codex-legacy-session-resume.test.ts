@@ -41,6 +41,17 @@ vi.mock('node:fs/promises', async (importOriginal) => {
   }
 })
 
+// Why: session backfill resolves Manta's managed Codex home from userData, which otherwise resolves to the live one.
+let userDataRoot: string
+beforeEach(() => {
+  userDataRoot = mkdtempSync(join(tmpdir(), 'orca-codex-resume-user-data-'))
+  vi.stubEnv('MANTA_USER_DATA_PATH', userDataRoot)
+})
+afterEach(() => {
+  vi.unstubAllEnvs()
+  rmSync(userDataRoot, { recursive: true, force: true })
+})
+
 describe('prepareLegacySharedCodexSessionResume', () => {
   let root: string
   let legacyHome: string

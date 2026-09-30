@@ -1,4 +1,5 @@
 import { realpathSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 import { markQoderWorkspaceTrusted } from './qoder/workspace-trust'
 import {
@@ -22,11 +23,20 @@ import { isTooBroadToPreTrust } from '../shared/home-or-filesystem-root'
 export type WorkspaceTrustHost = {
   /** Homes the agent may read trust under; with none known, an agent that inherits trust writes nothing. */
   homes: readonly (string | null | undefined)[]
+  /** The home the launched agent resolves `~` to, where the per-user trust files live. */
+  agentHome: string
   /** The config Claude reads on this host, or null when this host cannot tell. */
   claudeConfig: () => ClaudeTrustConfigTarget | null
   /** Every config.toml the launched Codex may read, in the hook installer's lock order. */
   codexConfigFiles: () => readonly string[]
   deadlineMs: number
+}
+
+/** The home an agent launched with `launchEnv` on this host resolves `~` to. */
+export function launchedAgentHome(
+  launchEnv: Record<string, string | undefined> | undefined
+): string {
+  return (process.platform === 'win32' ? launchEnv?.USERPROFILE : launchEnv?.HOME) || homedir()
 }
 
 /**
@@ -93,13 +103,13 @@ async function writePreset(
     case 'codex':
       return markCodexProjectTrusted(storedPath, host.codexConfigFiles())
     case 'cursor':
-      return markCursorWorkspaceTrusted(storedPath)
+      return markCursorWorkspaceTrusted(storedPath, host.agentHome)
     case 'copilot':
-      return markCopilotFolderTrusted(storedPath)
+      return markCopilotFolderTrusted(storedPath, host.agentHome)
     case 'qoder':
-      return markQoderWorkspaceTrusted(storedPath)
+      return markQoderWorkspaceTrusted(storedPath, host.agentHome)
     case 'antigravity':
-      return markAntigravityWorkspaceTrusted(storedPath)
+      return markAntigravityWorkspaceTrusted(storedPath, host.agentHome)
   }
 }
 

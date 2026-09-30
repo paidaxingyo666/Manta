@@ -1,5 +1,4 @@
 import { existsSync, mkdirSync, readFileSync, realpathSync } from 'node:fs'
-import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { writeFileAtomically } from './codex-accounts/fs-utils'
 import { upsertProjectTrustLevel } from './codex/config-toml-trust'
@@ -37,13 +36,13 @@ export type AgentTrustPreset = NonNullable<TuiAgentConfig['preflightTrust']>
  * (versions/2026.04.17-787b533/index.ts: `_=".workspace-trusted"`, slug
  * derived via the same util that resolves `~/.cursor/projects/<slug>`).
  */
-export function markCursorWorkspaceTrusted(workspacePath: string): void {
+export function markCursorWorkspaceTrusted(workspacePath: string, home: string): void {
   const absPath = canonicalize(workspacePath)
   const slug = cursorWorkspaceSlug(absPath)
   if (!slug) {
     return
   }
-  const trustDir = join(homedir(), '.cursor', 'projects', slug)
+  const trustDir = join(home, '.cursor', 'projects', slug)
   const trustFile = join(trustDir, '.workspace-trusted')
   if (existsSync(trustFile)) {
     return
@@ -67,9 +66,9 @@ export function markCursorWorkspaceTrusted(workspacePath: string): void {
  * We append to the array in-place so unrelated config keys (loggedInUsers,
  * copilotTokens, etc.) survive untouched.
  */
-export function markCopilotFolderTrusted(workspacePath: string): void {
+export function markCopilotFolderTrusted(workspacePath: string, home: string): void {
   const absPath = canonicalize(workspacePath)
-  const configDir = join(homedir(), '.copilot')
+  const configDir = join(home, '.copilot')
   const configPath = join(configDir, 'config.json')
   let config: Record<string, unknown> = {}
   try {
@@ -121,9 +120,9 @@ export function markCopilotFolderTrusted(workspacePath: string): void {
  * We append in-place so the sibling keys in the same file (model, permissions,
  * toolPermission, agentMode, …) survive untouched.
  */
-export function markAntigravityWorkspaceTrusted(workspacePath: string): void {
+export function markAntigravityWorkspaceTrusted(workspacePath: string, home: string): void {
   const absPath = canonicalize(workspacePath)
-  const configDir = join(homedir(), '.gemini', 'antigravity-cli')
+  const configDir = join(home, '.gemini', 'antigravity-cli')
   const configPath = join(configDir, 'settings.json')
   let config: Record<string, unknown> = {}
   try {
