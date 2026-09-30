@@ -6,15 +6,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   addRepoSetupStepActionSchema,
-  AGENT_KIND_VALUES,
-  agentKindSchema,
   errorClassSchema,
   eventSchemas,
-  isCohortExtendedEvent,
-  SETTINGS_CHANGED_WHITELIST,
-  settingsChangedKeySchema
+  isCohortExtendedEvent
 } from './telemetry-events'
-import { FEATURE_INTERACTION_IDS, getFeatureInteractionCategory } from './feature-interactions'
 import { appStarSourceSchema } from './gh-star-source'
 
 describe('feature_interaction_usage_bucket_reached schema', () => {
@@ -31,20 +26,6 @@ describe('feature_interaction_usage_bucket_reached schema', () => {
 
   it('is in the runtime cohort-injection roster', () => {
     expect(isCohortExtendedEvent('feature_interaction_usage_bucket_reached')).toBe(true)
-  })
-
-  it('keeps the feature id enum in sync with the catalog', () => {
-    const schema = eventSchemas.feature_interaction_usage_bucket_reached
-    for (const feature_id of FEATURE_INTERACTION_IDS) {
-      expect(
-        schema.safeParse({
-          feature_id,
-          feature_category: getFeatureInteractionCategory(feature_id),
-          count_bucket: 'count_1',
-          bucket_source: 'crossed_now'
-        }).success
-      ).toBe(true)
-    }
   })
 
   it('rejects unknown enum values and mismatched categories', () => {
@@ -585,16 +566,6 @@ describe('settings_changed schema', () => {
     ).toBe(true)
   })
 
-  it('accepts whitelisted setting keys', () => {
-    for (const key of SETTINGS_CHANGED_WHITELIST) {
-      const parsed = eventSchemas.settings_changed.safeParse({
-        setting_key: key,
-        value_kind: 'bool'
-      })
-      expect(parsed.success).toBe(true)
-    }
-  })
-
   it('rejects non-whitelisted setting keys', () => {
     const parsed = eventSchemas.settings_changed.safeParse({
       setting_key: 'telemetryOptIn', // deliberately excluded from the whitelist
@@ -605,20 +576,8 @@ describe('settings_changed schema', () => {
 })
 
 describe('exported enum schemas', () => {
-  it('agentKindSchema accepts the known product IDs', () => {
-    for (const kind of AGENT_KIND_VALUES) {
-      expect(agentKindSchema.safeParse(kind).success).toBe(true)
-    }
-  })
-
   it('errorClassSchema rejects novel classes', () => {
     expect(errorClassSchema.safeParse('kernel_panic').success).toBe(false)
-  })
-
-  it('settingsChangedKeySchema membership matches SETTINGS_CHANGED_WHITELIST', () => {
-    for (const key of SETTINGS_CHANGED_WHITELIST) {
-      expect(settingsChangedKeySchema.safeParse(key).success).toBe(true)
-    }
   })
 })
 

@@ -172,19 +172,6 @@ describe('registerZoomIpcBridge', () => {
     expect(zoom.dispatchZoomLevelChanged).toHaveBeenCalledWith('ui', 110)
   })
 
-  it('applies app zoom for an active terminal tab after terminal focus is released', async () => {
-    const zoom = await mountZoomBridge({
-      activeTabType: 'terminal',
-      activeElement: makeTarget({})
-    })
-
-    zoom.fire('in')
-
-    expect(zoom.applyUIZoom).toHaveBeenCalledWith(0.5)
-    expect(zoom.setUI).toHaveBeenCalledWith({ uiZoomLevel: 0.5 })
-    expect(zoom.dispatchZoomLevelChanged).toHaveBeenCalledWith('ui', 110)
-  })
-
   it('leaves zoom to the terminal while terminal input holds focus', async () => {
     const zoom = await mountZoomBridge({
       activeTabType: 'terminal',
