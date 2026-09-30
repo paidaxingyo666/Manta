@@ -329,7 +329,12 @@ export function leafTuiIdleEvidence(
     readTailBlockedReason: () => detectTerminalWaitBlockedReason(waitText()),
     rendererTitle: leaf.paneTitle ?? source.getTabTitle(leaf.tabId),
     readPositiveBodyEvidence: () =>
-      isKnownReadyPromptBody(waitText(), agent, () => source.readScreenLines(leaf.ptyId)),
+      isKnownReadyPromptBody(
+        waitText(),
+        agent,
+        () => source.readScreenLines(leaf.ptyId),
+        leaf.lastOutputAt !== null
+      ),
     readQuietReadyBodyEvidence: () =>
       isQuietReadyScreenBody(waitText(), agent, () => source.readScreenLines(leaf.ptyId)),
     agent,
@@ -350,7 +355,12 @@ export function ptyTuiIdleEvidence(
     readTailBlockedReason: () => detectTerminalWaitBlockedReason(waitText()),
     readPositiveBodyEvidence: () =>
       (agent !== 'qoder' && source.getAdoptedPtyIdleStatus(pty) === 'idle') ||
-      isKnownReadyPromptBody(waitText(), agent, () => source.readScreenLines(pty.ptyId)),
+      isKnownReadyPromptBody(
+        waitText(),
+        agent,
+        () => source.readScreenLines(pty.ptyId),
+        pty.lastOutputAt !== null
+      ),
     readQuietReadyBodyEvidence: () =>
       isQuietReadyScreenBody(waitText(), agent, () => source.readScreenLines(pty.ptyId)),
     agent,
