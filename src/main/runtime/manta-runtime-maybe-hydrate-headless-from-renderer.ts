@@ -184,7 +184,11 @@ export class MantaRuntimeWithMaybeHydrateHeadlessFromRenderer extends MantaRunti
             pty.launchAgent
           )
           if (payload) {
-            pty.lastExplicitAgentStatus = { state: payload.state, updatedAt: Date.now() }
+            pty.lastExplicitAgentStatus = {
+              state: payload.state,
+              updatedAt: Date.now(),
+              sessionBoundary: payload.sessionBoundary
+            }
             this.emitTerminalAgentStatusEvents(ptyId, {
               cleanData: '',
               payloads: [payload],
