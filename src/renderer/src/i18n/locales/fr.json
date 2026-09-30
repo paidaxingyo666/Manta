@@ -993,6 +993,12 @@
       },
       "clipboardWriteFailure": {
         "tooLarge": "Le texte est trop volumineux pour être copié."
+      },
+      "dropSkipReason": {
+        "missing": "N'est plus sur son chemin d'origine.",
+        "symlink": "Les liens symboliques ne peuvent pas être attachés.",
+        "permissionDenied": "Autorisation refusée.",
+        "unsupported": "Type de fichier non pris en charge."
       }
     },
     "hooks": {
@@ -1015,11 +1021,7 @@
         "5f3d2c8a1b": "Échec de la résolution de la base de la MR.",
         "dropPartiallyAttached": "Impossible de joindre {{failureCount}} des {{count}} éléments.",
         "dropPartiallyAttached_one": "Impossible de joindre l'élément {{failureCount}} de {{count}}.",
-        "dropPartiallyAttached_other": "Impossible de joindre {{failureCount}} des {{count}} éléments.",
-        "attachSkipMissing": "N'est plus sur son chemin d'origine.",
-        "attachSkipSymlink": "Les liens symboliques ne peuvent pas être attachés.",
-        "attachSkipPermissionDenied": "Autorisation refusée.",
-        "attachSkipUnsupported": "Type de fichier non pris en charge."
+        "dropPartiallyAttached_other": "Impossible de joindre {{failureCount}} des {{count}} éléments."
       },
       "useGlobalFileDrop": {
         "38c9f034ff": "Échec de l'envoi des fichiers déposés.",

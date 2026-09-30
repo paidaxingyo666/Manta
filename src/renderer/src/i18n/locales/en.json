@@ -1020,6 +1020,12 @@
       },
       "clipboardWriteFailure": {
         "tooLarge": "The text is too large to copy."
+      },
+      "dropSkipReason": {
+        "missing": "No longer at its original path.",
+        "symlink": "Symbolic links cannot be attached.",
+        "permissionDenied": "Permission denied.",
+        "unsupported": "Unsupported file type."
       }
     },
     "hooks": {
@@ -1042,11 +1048,7 @@
         "5f3d2c8a1b": "Failed to resolve MR base.",
         "dropPartiallyAttached": "{{failureCount}} of {{count}} items could not be attached.",
         "dropPartiallyAttached_one": "{{failureCount}} of {{count}} item could not be attached.",
-        "dropPartiallyAttached_other": "{{failureCount}} of {{count}} items could not be attached.",
-        "attachSkipMissing": "No longer at its original path.",
-        "attachSkipSymlink": "Symbolic links cannot be attached.",
-        "attachSkipPermissionDenied": "Permission denied.",
-        "attachSkipUnsupported": "Unsupported file type."
+        "dropPartiallyAttached_other": "{{failureCount}} of {{count}} items could not be attached."
       },
       "useGlobalFileDrop": {
         "38c9f034ff": "Failed to upload dropped files.",

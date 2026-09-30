@@ -894,6 +894,12 @@
       },
       "clipboardWriteFailure": {
         "tooLarge": "文字太大，无法复制。"
+      },
+      "dropSkipReason": {
+        "missing": "该文件已不在原始路径。",
+        "symlink": "无法附加符号链接。",
+        "permissionDenied": "没有访问权限。",
+        "unsupported": "不支持的文件类型。"
       }
     },
     "hooks": {
@@ -916,11 +922,7 @@
         "5f3d2c8a1b": "解析 MR 基础分支失败",
         "dropPartiallyAttached": "无法附加 {{count}} 项中的 {{failureCount}} 项。",
         "dropPartiallyAttached_one": "无法附加 {{count}} 项目的 {{failureCount}}。",
-        "dropPartiallyAttached_other": "无法附加 {{count}} 项中的 {{failureCount}} 项。",
-        "attachSkipMissing": "不再走原来的路。",
-        "attachSkipSymlink": "无法附加符号链接。",
-        "attachSkipPermissionDenied": "没有权限。",
-        "attachSkipUnsupported": "不支持的文件类型。"
+        "dropPartiallyAttached_other": "无法附加 {{count}} 项中的 {{failureCount}} 项。"
       },
       "useGlobalFileDrop": {
         "38c9f034ff": "无法上传删除的文件。",

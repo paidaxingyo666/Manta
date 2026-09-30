@@ -894,6 +894,12 @@
       },
       "clipboardWriteFailure": {
         "tooLarge": "テキストが大きすぎてコピーできません。"
+      },
+      "dropSkipReason": {
+        "missing": "元のパスにもう存在しません。",
+        "symlink": "シンボリックリンクは接続できません。",
+        "permissionDenied": "アクセスが拒否されました。",
+        "unsupported": "サポートされていないファイル形式です。"
       }
     },
     "hooks": {
@@ -916,11 +922,7 @@
         "5f3d2c8a1b": "MR のベースブランチを特定できませんでした。",
         "dropPartiallyAttached": "{{count}} 個のアイテムのうち {{failureCount}} 個を接続できませんでした。",
         "dropPartiallyAttached_one": "{{count}} アイテムの {{failureCount}} を接続できませんでした。",
-        "dropPartiallyAttached_other": "{{count}} 個のアイテムのうち {{failureCount}} 個を接続できませんでした。",
-        "attachSkipMissing": "もう本来の道には存在しません。",
-        "attachSkipSymlink": "シンボリックリンクは貼れません。",
-        "attachSkipPermissionDenied": "許可が拒否されました。",
-        "attachSkipUnsupported": "サポートされていないファイル形式です。"
+        "dropPartiallyAttached_other": "{{count}} 個のアイテムのうち {{failureCount}} 個を接続できませんでした。"
       },
       "useGlobalFileDrop": {
         "38c9f034ff": "ドロップされたファイルのアップロードに失敗しました。",
