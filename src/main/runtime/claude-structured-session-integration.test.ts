@@ -504,7 +504,7 @@ describe('a structured Claude session over agentSession.*', () => {
       }
       const host = getStructuredAgentSessionHost()
       // The lease follows the root, so the host lets go.
-      await host?.close(SESSION)
+      await host?.close(SESSION, 'evict')
       expect(host?.hasSession(SESSION)).toBe(false)
 
       // The user comes back and sends: that send is what starts Claude again.

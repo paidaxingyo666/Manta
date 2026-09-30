@@ -16500,6 +16500,7 @@
             "done": "完成",
             "idle": "空闲",
             "unverifiable": "暂无近期更新",
+            "unconfirmed": "无法确认",
             "permission": "需注意"
           },
           "filtersSection": "筛选",
@@ -17532,6 +17533,8 @@
         "thinking": "思维",
         "workingFor": "已工作 {{value0}}",
         "workedFor": "工作了 {{value0}}",
+        "interruptedAfter": "{{value0}} 后中断",
+        "failedAfter": "{{value0}} 后失败",
         "toggleDetails": "切换回合详情"
       },
       "jumpToLatest": "跳到最新消息",

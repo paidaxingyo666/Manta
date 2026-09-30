@@ -16500,6 +16500,7 @@
             "done": "완료",
             "idle": "유휴",
             "unverifiable": "최근 업데이트 없음",
+            "unconfirmed": "확인하지 못함",
             "permission": "주의 필요"
           },
           "filtersSection": "필터",
@@ -17567,6 +17568,8 @@
         "thinking": "생각",
         "workingFor": "{{value0}} 작업 중",
         "workedFor": "{{value0}} 작업 완료",
+        "interruptedAfter": "{{value0}} 후 중단됨",
+        "failedAfter": "{{value0}} 후 실패",
         "toggleDetails": "턴 세부정보 전환"
       },
       "jumpToLatest": "최신으로 이동",

@@ -13,10 +13,14 @@ import type { BrowserSessionTabSelectionOptions } from './browser-tab-create-pub
 import { getRuntimeBrowserPageRegistry } from './runtime-browser-page-registry'
 import { applyBrowserSessionTabSelection } from './browser-session-tab-selection-snapshot'
 import { getStructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-registry'
+import type { StructuredAgentSessionCloseCause } from '../native-chat/agent-session-wire/structured-agent-session-host-lifetime'
 import { retireStructuredAgentSessionTabFrom } from './structured-agent-session-tab-retirement'
 
 export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntimeWithCloseMobileSessionTab {
-  protected async closeStructuredAgentSessionTab(tab: RuntimeMobileSessionAgentTab): Promise<void> {
+  protected async closeStructuredAgentSessionTab(
+    tab: RuntimeMobileSessionAgentTab,
+    cause: StructuredAgentSessionCloseCause
+  ): Promise<void> {
     const host = getStructuredAgentSessionHost()
     if (host) {
       if (typeof host.setSessionTabVisibility === 'function') {
@@ -30,7 +34,7 @@ export class MantaRuntimeWithCloseStructuredAgentSessionTab extends MantaRuntime
     // Retire durable visibility and the runtime snapshot before stopping the provider.
     this.retireStructuredAgentSessionTabFromSnapshot(tab.sessionId)
     if (typeof host?.close === 'function') {
-      await host.close(tab.sessionId)
+      await host.close(tab.sessionId, cause)
     }
   }
 

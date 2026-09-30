@@ -9,7 +9,8 @@ import type {
   AgentSessionDispatchOutcome,
   StructuredAgentSessionAcquireInput,
   StructuredAgentSessionAdapter,
-  StructuredAgentSessionSetOptionInput
+  StructuredAgentSessionSetOptionInput,
+  StructuredAgentSessionStopCause
 } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 import type { CodexJournalTranslationAdmission } from './codex-structured-journal-translation'
 import { dispatchCodexTurn, isCodexTurnOptionKey } from './codex-structured-turn-start'
@@ -285,9 +286,11 @@ export class CodexStructuredSessionAdapter implements StructuredAgentSessionAdap
     identity: AgentSessionJournalIdentity
   }): Promise<string | null> => this.sessions.get(input.identity.sessionId)?.historyPath ?? null
 
-  closeSession = (sessionId: string): Promise<boolean> => this.teardown.close(sessionId)
+  closeSession = (sessionId: string, cause?: StructuredAgentSessionStopCause): Promise<boolean> =>
+    this.teardown.close(sessionId, cause)
   forceCloseSession = (sessionId: string): Promise<boolean> => this.teardown.forceClose(sessionId)
-  disposeSession = (sessionId: string): Promise<boolean> => this.teardown.close(sessionId)
+  disposeSession = (sessionId: string, cause?: StructuredAgentSessionStopCause): Promise<boolean> =>
+    this.teardown.close(sessionId, cause)
   closeAll = (): Promise<void> => this.teardown.closeAll()
   releaseAcquisition = (input: { sessionId: string }): Promise<boolean> =>
     this.teardown.close(input.sessionId)

@@ -463,7 +463,7 @@ describe('a worker result reaches the structured chat that coordinates it', () =
   it('leaves a pointer the person stopped while its agent was starting stopped', async () => {
     await openChat(COORDINATOR)
     const { runId, taskId } = await coordinatorRunAndTask()
-    await host.close(COORDINATOR)
+    await host.close(COORDINATOR, 'evict')
     providerFaults.startDelayMs = 400
     const before = providerFaults.starts
     await finishWorker(taskId)
@@ -528,7 +528,7 @@ describe('a worker result reaches the structured chat that coordinates it', () =
   ): Promise<{ runId: string; starts: number }> {
     await openChat(COORDINATOR)
     const { runId, taskId } = await coordinatorRunAndTask()
-    await host.close(COORDINATOR)
+    await host.close(COORDINATOR, 'evict')
     providerFaults.refuseStart = refusal
     const before = providerFaults.starts
     await finishWorker(taskId)
@@ -672,7 +672,7 @@ describe('a worker result reaches the structured chat that coordinates it', () =
     await openChat(COORDINATOR)
     const { taskId } = await coordinatorRunAndTask()
     // What the idle sweep leaves of a chat nobody is looking at: agent stopped, no map entry.
-    await host.close(COORDINATOR)
+    await host.close(COORDINATOR, 'evict')
     expect(host.hasSession(COORDINATOR)).toBe(false)
     const before = codex.connections.length
 

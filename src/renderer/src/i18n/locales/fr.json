@@ -16605,6 +16605,7 @@
             "done": "Fait",
             "idle": "Inactif",
             "unverifiable": "Aucune mise à jour récente",
+            "unconfirmed": "Impossible de confirmer",
             "permission": "A besoin d'attention"
           }
         },
@@ -17631,6 +17632,8 @@
         "thinking": "Réflexion",
         "workingFor": "En cours depuis {{value0}}",
         "workedFor": "A travaillé pendant {{value0}}",
+        "interruptedAfter": "Interrompu après {{value0}}",
+        "failedAfter": "Échoué après {{value0}}",
         "toggleDetails": "Basculer les détails du tour"
       },
       "jumpToLatest": "Aller au dernier message",

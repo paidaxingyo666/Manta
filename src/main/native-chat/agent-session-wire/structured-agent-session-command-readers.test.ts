@@ -131,7 +131,7 @@ describe('the completion feed around /compact (B6)', () => {
       expect(latestStructuredAgentSessionRequest(items, submissions)).toMatchObject({
         kind: 'turn',
         id: 'turn-1',
-        running: false,
+        turnState: 'completed',
         outcome: 'success'
       })
     }

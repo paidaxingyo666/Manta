@@ -135,7 +135,8 @@ describe('Claude root-exit stop', () => {
           now: () => NOW + 30 * 60_000,
           publishStatus
         },
-        'session-1'
+        'session-1',
+        { cause: 'evict' }
       )
     ).resolves.toBeUndefined()
 

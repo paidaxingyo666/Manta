@@ -16500,6 +16500,7 @@
             "done": "完了",
             "idle": "アイドル",
             "unverifiable": "最近の更新なし",
+            "unconfirmed": "確認できませんでした",
             "permission": "要対応"
           },
           "filtersSection": "フィルター",
@@ -17567,6 +17568,8 @@
         "thinking": "考え",
         "workingFor": "{{value0}} 処理中",
         "workedFor": "{{value0}} で完了",
+        "interruptedAfter": "{{value0}} 後に中断",
+        "failedAfter": "{{value0}} 後に失敗",
         "toggleDetails": "ターンの詳細を切り替えます"
       },
       "jumpToLatest": "最新にジャンプ",

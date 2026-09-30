@@ -8,7 +8,10 @@ import {
   type CodexStructuredSessionAdapterDeps,
   type CodexStructuredSessionEvent
 } from './codex-structured-session-state'
-import type { StructuredAgentSessionEndedEvent } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
+import type {
+  StructuredAgentSessionEndedEvent,
+  StructuredAgentSessionStopCause
+} from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 
 export function handleCodexSessionExit(input: {
   sessions: Map<string, CodexSession>
@@ -40,6 +43,9 @@ export function handleCodexSessionExit(input: {
       ? agentSessionFailureFact('hostFault')
       : agentSessionFailureFact('providerExited', { detail: providerDiagnosticOf(input.error) }),
     cause: session.requestedClose ? 'requested-close' : 'unexpected-exit',
+    ...(session.requestedClose && session.closeStopCause
+      ? { stopCause: session.closeStopCause }
+      : {}),
     fence: session.fence,
     acquisitionGeneration: session.acquisitionGeneration,
     observedAt: session.exitObservedAt
@@ -74,6 +80,8 @@ export async function closeCodexPublishedSession(
   options?: {
     allowFailedSettlement?: boolean
     requestedClose?: boolean
+    /** Who asked for a requested close; the translator settles the open turn with it. */
+    stopCause?: StructuredAgentSessionStopCause
     expectedFence?: number
     expectedAcquisitionGeneration?: string
     unexpectedReason?: Error
@@ -93,6 +101,7 @@ export async function closeCodexPublishedSession(
   // Sink-failure recovery force-closes the child but must preserve the
   // observed-exit cause so host lease settlement runs as an unexpected death.
   session.requestedClose = options?.requestedClose ?? true
+  session.closeStopCause = options?.stopCause
   // Keep the session indexed until the child exit is observed. A timeout or
   // failed kill must leave the live connection available for a safe retry.
   const exited = await session.connection.close()
@@ -124,7 +133,8 @@ export async function closeCodexSession(
   sessionId: string,
   sessions: Map<string, CodexSession>,
   acquisitions: CodexAcquisitionRegistry,
-  onEvent?: (event: CodexStructuredSessionEvent) => void
+  onEvent?: (event: CodexStructuredSessionEvent) => void,
+  stopCause?: StructuredAgentSessionStopCause
 ): Promise<boolean> {
   const attempt = acquisitions.get(sessionId)
   if (!(await cancelCodexAcquisitionAttempt(attempt))) {
@@ -133,7 +143,7 @@ export async function closeCodexSession(
   if (attempt) {
     acquisitions.deleteIfCurrent(sessionId, attempt)
   }
-  return closeCodexPublishedSession(sessions, sessionId, onEvent)
+  return closeCodexPublishedSession(sessions, sessionId, onEvent, stopCause ? { stopCause } : {})
 }
 
 export async function closeAllCodexSessions(

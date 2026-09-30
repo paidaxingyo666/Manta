@@ -14427,6 +14427,7 @@
             "done": "Completado",
             "idle": "Inactivo",
             "unverifiable": "Sin actualizaciones recientes",
+            "unconfirmed": "No se pudo confirmar",
             "permission": "Requiere atención"
           },
           "filtersSection": "Filtros",
@@ -15078,7 +15079,9 @@
         "result": "Resultado"
       },
       "status": {
-        "responding": "El agente está respondiendo"
+        "responding": "El agente está respondiendo",
+        "interruptedAfter": "Interrumpido tras {{value0}}",
+        "failedAfter": "Falló tras {{value0}}"
       },
       "jumpToLatest": "Saltar a lo último",
       "toggle": {

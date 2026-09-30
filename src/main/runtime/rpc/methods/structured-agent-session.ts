@@ -125,7 +125,7 @@ export const STRUCTURED_AGENT_SESSION_METHODS = [
         if (replacement) {
           ctx.runtime.replaceStructuredAgentSessionTab(replacement)
         }
-        await host.close(params.envelope.sessionId)
+        await host.close(params.envelope.sessionId, 'user-close')
       }
       return result
     }
@@ -221,7 +221,8 @@ export const STRUCTURED_AGENT_SESSION_METHODS = [
       if (typeof host.setSessionTabVisibility === 'function') {
         await host.setSessionTabVisibility(params.sessionId, false)
       }
-      await host.close(params.sessionId)
+      // Clients call this only when the user closes this chat's tab or cancels its launch.
+      await host.close(params.sessionId, 'user-close')
       return { ok: true as const }
     }
   }),

@@ -1,3 +1,7 @@
+import {
+  childEndCauseOfEndedEvent,
+  turnVerdictForChildEnd
+} from '../native-chat/agent-session-wire/structured-agent-session-stale-turn-verdict'
 import { createCodexProviderActivityReader } from '../native-chat/agent-session-wire/provider-frame-activity'
 import { CODEX_TOKEN_USAGE_METHOD } from './codex-subagent-activity'
 import {
@@ -157,14 +161,18 @@ export function createCodexJournalTranslator(
           currentTurnIds: activeTurns.byThread,
           primaryThreadId: deps.primaryThreadId?.() ?? null,
           ordinals: items.ordinals,
-          // The host saw the child go, not what Codex made of the turn, so the row
-          // carries no outcome: the end is observed, the verdict is unknown.
+          // The host saw the child go, not what Codex made of the turn: the verdict is only what
+          // the host's own cause says, a user's stop of this chat or else news.
           settledTurnLifecycle: (threadId, turnId) =>
             turnBoundaries.ownsRecord(threadId, turnId)
-              ? turnBoundaries.settled(threadId, turnId, {
-                  state: 'interrupted',
-                  completedAt: event.observedAt ?? deps.now?.() ?? Date.now()
-                })
+              ? turnBoundaries.settled(
+                  threadId,
+                  turnId,
+                  turnVerdictForChildEnd(
+                    childEndCauseOfEndedEvent(event),
+                    event.observedAt ?? deps.now?.() ?? Date.now()
+                  )
+                )
               : null,
           attributionFor
         })

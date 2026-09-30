@@ -38,6 +38,11 @@ import type {
   ProviderDiagnostic,
   SubmissionRejectionFact
 } from '../../../shared/agent-session-failure'
+import type { StructuredAgentSessionStopCause } from './structured-agent-session-stop-cause'
+export type {
+  StructuredAgentSessionChildEndCause,
+  StructuredAgentSessionStopCause
+} from './structured-agent-session-stop-cause'
 import type { AgentJournalDispatchRejection } from '../../../shared/agent-session-failure-words'
 import type { AgentSessionPromptResponse } from '../../../shared/agent-session-question-answer'
 import type { ProviderHistoryWindow } from '../agent-session-journal/journal-submission-reconciler'
@@ -186,6 +191,8 @@ export type StructuredAgentSessionEndedEvent = {
    *  Manta fault. Absent reads as a provider exit with nothing to add. */
   failure?: SubmissionRejectionFact
   cause: 'unexpected-exit' | 'requested-close'
+  /** With `requested-close`: who asked for it. Absent when the host named no cause. */
+  stopCause?: StructuredAgentSessionStopCause
   fence: number
   acquisitionGeneration: string
   /** Host receipt of the child exit: the end time of a turn it interrupted. */
@@ -375,11 +382,11 @@ export type StructuredAgentSessionAdapter = {
   /** Gracefully stops the structured owner after its event stream is drained. */
   /** Returns true only after the provider child exit is proven. A root-exit or processless verdict
    *  is thrown only once the session is finalized; read it through `stopAgentSessionProviderRoot`. */
-  closeSession?(sessionId: string): Promise<boolean>
+  closeSession?(sessionId: string, cause?: StructuredAgentSessionStopCause): Promise<boolean>
   /** Stops a provider after a sink failure; the resulting exit is recovered as unexpected. */
   forceCloseSession?(sessionId: string): Promise<boolean>
   /** Stops a provider child for teardown without requiring a future-resume cursor. */
-  disposeSession?(sessionId: string): Promise<boolean>
+  disposeSession?(sessionId: string, cause?: StructuredAgentSessionStopCause): Promise<boolean>
   /** Host acknowledgement that the proven-dead child, lease and journal owner are released. */
   acknowledgeSessionRelease?(sessionId: string): void
 }

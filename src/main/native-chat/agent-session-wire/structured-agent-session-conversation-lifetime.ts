@@ -15,8 +15,10 @@ import {
   abandonQueuedStructuredAgentSessionMessages,
   closeStructuredAgentSessionConversationUnderSerialize,
   stopStructuredAgentSessionAgentUnderSerialize,
+  type StructuredAgentSessionCloseCause,
   type StructuredAgentSessionLifetimeContext
 } from './structured-agent-session-host-lifetime'
+import type { StructuredAgentSessionStopCause } from './structured-agent-session-adapter'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
 import { StructuredAgentSessionIdleSweep } from './structured-agent-session-idle-sweep'
 import { AGENT_SESSION_NOT_ATTACHED } from './structured-agent-session-mutation-admission'
@@ -46,9 +48,8 @@ export function createStructuredAgentSessionConversationLifetime(host: {
     session.journal.whenImported().catch((error: unknown) => {
       throw readRefusals.refusal(sessionId, error)
     })
-  // The sweep's stop puts an idle agent to rest: nothing is queued, so no loop reads its cause.
-  const stopAgent = (sessionId: string) =>
-    stopStructuredAgentSessionAgentUnderSerialize(host.context(), sessionId)
+  const stopAgent = (sessionId: string, cause: StructuredAgentSessionStopCause) =>
+    stopStructuredAgentSessionAgentUnderSerialize(host.context(), sessionId, { cause })
 
   const closeConversation = (sessionId: string): Promise<boolean> =>
     closeStructuredAgentSessionConversationUnderSerialize(
@@ -75,7 +76,8 @@ export function createStructuredAgentSessionConversationLifetime(host: {
       return record !== null && deps().hasOpenDispatch?.(record) === true
     },
     providerHoldsDispatch: (sessionId) => deps().adapter.holdsDispatch?.(sessionId) === true,
-    stopAgent,
+    // The host puts an idle agent to rest: a turn it cuts short is news, not the user's Stop.
+    stopAgent: (sessionId) => stopAgent(sessionId, 'evict'),
     // A host stop: the delivery loop waiting on this child writes the one error row and rejects
     // what is queued with it, both worded from the hostStopped fact.
     stopStartingAgent: (sessionId) =>
@@ -146,7 +148,7 @@ export function createStructuredAgentSessionConversationLifetime(host: {
     },
     /** Ends a chat's resources, not the chat: its record and journal stay on disk, and what is
      *  still queued will not be sent. */
-    close: (sessionId: string): Promise<void> =>
+    close: (sessionId: string, cause: StructuredAgentSessionCloseCause): Promise<void> =>
       serialize(sessionId, async () => {
         readRefusals.forget(sessionId)
         const session = sessions.get(sessionId)
@@ -154,9 +156,7 @@ export function createStructuredAgentSessionConversationLifetime(host: {
           // Abandoned before the stop, so no start delivers it.
           await abandonQueuedStructuredAgentSessionMessages(deps(), sessionId, session.journal)
         }
-        await stopStructuredAgentSessionAgentUnderSerialize(host.context(), sessionId, {
-          cause: 'evict'
-        })
+        await stopStructuredAgentSessionAgentUnderSerialize(host.context(), sessionId, { cause })
         await closeConversation(sessionId)
       })
   }
