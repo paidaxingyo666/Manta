@@ -5928,13 +5928,11 @@
           }
         },
         "LinearAgentSkillSetupPrompt": {
-          "missingCliAndSkill": "Manta CLI と Linear Agent スキルがありません。",
           "modalTitle": "Linear チケットアクセスを有効にする",
           "modalDescription": "ターミナルから Linear スキルをインストールします。",
           "modalPrompt": "Agent が添付された Linear チケットを読み書きできるようにします。",
           "dontShowAgain": "今後表示しない",
           "missingBoth": "Manta CLI と Linear Agent スキルがありません。",
-          "missingCli": "Manta CLI がありません。",
           "missingSkill": "Linear Agent スキルがありません。",
           "title": "Linear Agent スキルを設定",
           "remoteCopy": "これはホスト側の設定をインストールします。リモート Agent 環境では別途設定が必要な場合があります。",
@@ -5946,7 +5944,6 @@
           "panelDescription": "リンクされた Linear タスクの引き継ぎ用にホスト Agent スキルをインストールします。",
           "terminalTitle": "Linear Agent スキルをインストール",
           "terminalAria": "Linear Agent スキルのインストールターミナル",
-          "install": "CLI とスキルをインストール",
           "successTitle": "Linear チケットアクセスの準備ができました",
           "successDescription": "Agent はこのワークスペースからリンクされた Linear チケットを読み取り、更新できるようになりました。",
           "successDescriptionWsl": "WSL Agent はこのワークスペースからリンクされた Linear チケットを使用できるようになりました。",
@@ -5955,11 +5952,7 @@
           "done": "完了",
           "wslCopy": "リンクされた Linear 作業からの WSL Agent 引き継ぎ用にインストールします。",
           "wslLabel": "WSL のデフォルト",
-          "toastMissingCliAndSkill": "Manta CLI と Linear スキルがありません",
-          "toastMissingCli": "Manta CLI がありません",
           "toastMissingSkill": "Linear スキルがありません",
-          "toastInstallCliAndSkillDescription": "Manta CLI と Linear スキルをインストールして、Agent が Linear タスクを読み書きできるようにします。",
-          "toastInstallCliDescription": "Manta CLI をインストールして、Agent が Linear タスクを読み書きできるようにします。",
           "toastInstallSkillDescription": "Linear スキルをインストールして、Agent が Manta CLI を通じて Linear タスクを読み書きできるようにします。",
           "toastRemoteDescription": "{{value0}} リモート Agent 環境では独自の設定が必要な場合があります。",
           "toastWslDescription": "{{value0}} この設定は選択した WSL Agent ランタイムで実行されます。"
@@ -6360,7 +6353,6 @@
           "SetupGuideModal": {
             "3598a3ca0c": "Manta を並行 Agent 作業に活用するためのコアワークフローを完了します。",
             "48a9e5ef2d": "はじめる",
-            "28cf59fcb4": "これにより、サイドバーからチェックリストが非表示になります",
             "f3b5ffb2a6": "サイドバーからチェックリストを非表示にする"
           },
           "SetupGuideProgressRing": {
@@ -6834,24 +6826,15 @@
           "af8c83ed61": "Chrome、Edge、またはその他のブラウザから Cookie をインポートすると、Agent がログインを再利用できるようになります。",
           "68ea76eb71": "Browser Use スキルをインストールすると、Agent が Manta のブラウザを操作できるようになります。",
           "2d6ead9ab2": "ブラウザ使用スキルをインストールする",
-          "e9f3f3b488": "設置場所",
-          "9fca1f7f5d": "Manta CLI コマンドを登録して、Agent がシェルからブラウザを調整できるようにします。",
-          "c6065d205d": "Manta CLI を有効化",
-          "c79eff0213": "Agent がブラウザを操作できるように Manta CLI を登録します。",
-          "702488a5f7": "コーディング Agent がログイン情報を使用してこのブラウザを操作できるようにします。以下の 3 つの手順を完了します。",
           "b8a1f2d84d": "Agent ブラウザの使用",
           "96b91c6349": "コーディング Agent がログイン情報を使用してこのブラウザを操作できるようにします。",
           "2ea4617e3a": "{{value1}}{{value2}} から {{value0}} Cookie をインポートしました。",
-          "721aee31b4": "Manta CLI を PATH に登録しました。",
-          "180a9abf3a": "CLI ステータスの読み込みに失敗しました。",
           "2ccfc9cff8": "インポート",
           "0462565413": "再インポート",
           "de9b2f32f3": "有効化",
-          "ad8cb0ee22": "PATH を修正",
-          "0289434ed6": "有効",
-          "8b3054dac7": "登録中…",
           "8f2675c2f3": "ファイルから {{value0}} 個の Cookie をインポートしました。",
-          "5301857d88": "{{value0}} から"
+          "5301857d88": "{{value0}} から",
+          "finishSteps": "コーディング Agent がログイン状態のままこのブラウザを操作できるようにします。以下の手順を完了してください。"
         },
         "BrowserUseSkillStep": {
           "0871b6998d": "Agent が Manta のブラウザでページに移動して確認できるようにします。",
@@ -6872,7 +6855,6 @@
           "5dae812f50": "更新",
           "52e640f3a0": "CLI ステータスを更新する",
           "38edbb5721": "シェルコマンド",
-          "6930feda9e": "ターミナルから Manta を使用してアプリを開き、ワークツリーを管理し、Manta ターミナルと対話します。",
           "c5c0f2641d": "Manta CLI",
           "d77352f2df": "PATH から {{value0}} を削除できませんでした。",
           "af5540930c": "PATH から {{value0}} を削除しました。",
@@ -6896,7 +6878,8 @@
           "cbe55e4d48": "エクスプローラーで表示",
           "9fd4023db0": "ファイルマネージャーで表示",
           "installFailureUnknownReason": "Manta は CLI 登録を完了できず、理由を報告しませんでした。",
-          "installFailureConflictRemedy": "{{value0}} を削除して、不要になった場合は再度登録してください。"
+          "installFailureConflictRemedy": "{{value0}} を削除して、不要になった場合は再度登録してください。",
+          "outsideOrcaDescription": "Manta のターミナルでは `manta` がすでに使えます。Manta 以外のターミナルから `manta` を使うにはオンにしてください。"
         },
         "CliSkillRuntimeSetup": {
           "04325573f8": "WSL",
@@ -7519,15 +7502,9 @@
           "c7f3fe0a6e": "よく使うエミュレータコマンド",
           "d94ca6a623": "Agent がモバイルエミュレータ制御を含む Manta CLI コマンドを使用できるようにします。",
           "67e19ee03c": "Manta CLI スキル",
-          "aaf62a3dd2": "設置場所",
-          "2fef055608": "Manta CLI コマンドを登録して、Agent がシェルからアクティブなエミュレータを制御できるようにします。",
-          "4f2205f3b6": "Manta CLI を有効化",
           "ff4b7e65d6": "コーディング Agent が Manta CLI コマンドを使用してアクティブなモバイルエミュレータを制御できるようにします。",
           "2a674aa810": "Agent モバイルエミュレータ制御",
-          "cdeaed9e37": "Manta CLI を PATH に登録しました。",
-          "3d34423e88": "Manta CLI を登録しています",
-          "3be27641c9": "Agent のシェルからエミュレータコマンドを実行できるようにします。",
-          "3941719a56": "スキル設定を開く前に Manta CLI を確認しています。"
+          "cdeaed9e37": "Manta CLI を PATH に登録しました。"
         },
         "MobileEmulatorExamples": {
           "edf13dd03b": "コピー",
@@ -9354,16 +9331,7 @@
               "9d97446873": "Agent",
               "a2d489263e": "スキル",
               "a7e82445fa": "Browser Use スキルをインストールすると、Agent が Manta のブラウザを操作できるようになります。",
-              "a1414dcefb": "ブラウザ使用スキルをインストールする",
-              "e56c7b55c9": "セットアップ",
-              "034c5e8d7f": "有効化",
-              "7e0dcb257a": "シェル",
-              "3ffafc9b95": "コマンド",
-              "30c74aaa1f": "パス",
-              "ff05cbc344": "manta",
-              "85fab5e12c": "CLI",
-              "890ddf943d": "Agent がブラウザを操作できるように Manta CLI を登録します。",
-              "50f0860e18": "Manta CLI を有効化"
+              "a1414dcefb": "ブラウザ使用スキルをインストールする"
             }
           }
         },
@@ -13648,9 +13616,8 @@
           "1eee1c7bd8": "PATH 上に Agent が検出されませんでした。後でインストールするものを選択するか、空のターミナルを使用して続行します。",
           "hideAgents": "Agent を非表示にする",
           "showMoreAgents": "{{value0}} 件の Agent をさらに表示→",
-          "yoloPermissionsLabel": "Yolo / 危険: 権限チェックをスキップ",
-          "yoloPermissionsInfo": "Agent 権限情報",
-          "yoloPermissionsTooltip": "Agent の権限チェックをスキップして割り込みを減らす"
+          "yoloModeLabel": "Yolo モード",
+          "yoloPermissionsDescription": "Agent は確認なしでコマンドを実行しファイルを編集します。一部はサンドボックスも回避します。信頼できるプロジェクトでのみ使用してください。"
         },
         "FeatureSetupInlineTerminal": {
           "789b59936e": "Enter キーを押してコマンドを実行し、要求されたら npx を確認します。これは、後で [設定] で設定することもできます。",
@@ -13685,7 +13652,6 @@
         "NotificationStep": {
           "3bede04483": "テスト通知を送信する",
           "dc897423e1": "通知音を選択する",
-          "53aaffe49a": "通知音",
           "0fe570690c": "デスクトップ通知が配信された後に Manta が再生するアラートを選択します。",
           "0af746e41f": "サウンドを選択",
           "8124d085a6": "Macの設定を開く",
@@ -14209,7 +14175,8 @@
             "3a59452a67": "スキルコマンドをコピーし、確認用に以下へ挿入しました。",
             "c605f51f2b": "機能セットアップの準備完了",
             "1aa657d8f4": "一部の機能の設定には注意が必要です",
-            "c89534cbe9": "CLIとスキルのインストール"
+            "allInstalled": "すべてのスキルがインストール済み",
+            "installSkills": "スキルをインストール"
           },
           "AiCommitPrSettingsCard": {
             "8d4152701a": "例: ollama run llama3.1 {{value0}}",
@@ -14302,7 +14269,6 @@
             "1a6a7d6c80": "設定",
             "713cc529a5": "マイルストーン",
             "b1f1981c5e": "タスクを参照",
-            "0235b268b2": "まだ終わっていない",
             "13294d3405": "完了"
           },
           "FeatureWallSetupWorkflowActions": {
@@ -14413,13 +14379,13 @@
               "setup": {
                 "status": {
                   "8eccfcb314": "インストール済み",
-                  "21d4f79c93": "[CLI とスキルのインストール] をクリックして macOS アクセス設定を開きます",
                   "5c9293e51a": "アプリのアクセスを確認する",
-                  "aae94eeb52": "「CLI とスキルのインストール」をクリックします",
                   "aa8e143a2f": "インストールを確認できませんでした",
                   "9b33e7fb13": "インストールを確認しています",
-                  "4c8e1f92a7": "この Mac で Manta Desktop を開いてください",
-                  "6d2b0a84e1": "このビルドでは利用できません"
+                  "6d2b0a84e1": "このビルドでは利用できません",
+                  "needsMacAccess": "macOS のアクセス許可が必要",
+                  "notInstalled": "未インストール",
+                  "requiresOrcaDesktop": "Manta Desktop が必要"
                 }
               }
             }
@@ -14437,7 +14403,6 @@
                 "checklist": {
                   "localized": {
                     "copy": {
-                      "ec0a363633": "マルチタスク",
                       "62bac8f43c": "2 つの異なるワークツリーで同時に作業します。それぞれは (同じプロジェクト内であっても) 分離されています。 2 つの機能を同時に作業するのに最適です。",
                       "908898c3ee": "Manta のブラウザを使用する",
                       "43781563c3": "Manta を離れることなく Web アプリを閲覧できます。任意の要素を取得し、ワンクリックでその正確なソースとスタイルを Agent に送信します。",
@@ -14445,14 +14410,15 @@
                       "71bd9a8c95": "Agent が終了した瞬間、注意が必要な瞬間、またはブロックされた瞬間を把握します。",
                       "46db810da8": "デフォルトの Agent を選択してください",
                       "b8e5bae17f": "優先 Agent がすでに選択されているため、新規作業をより迅速に開始できます。",
-                      "fee5557b02": "Manta CLI を有効化",
-                      "7bcb4097fa": "Manta シェルコマンドを登録し、ブラウザ、コンピュータ、およびオーケストレーションワークフローの Agent スキルをインストールします。",
                       "ad342dd4c6": "接続連携",
                       "06fe30fdb0": "ワンクリックでタスクから Agent を開始し、PR ステータスを表示したままにします。",
                       "eddc532e58": "ワークスペースのセットアップを自動化する",
                       "56049b74c2": "インストールおよびセットアップのコマンドを自動的に実行することで、すべての新規ワークツリーが Agent に対応できるようになります。",
                       "2cf795433b": "複数のリポジトリで作業を開始する",
-                      "42525ba8a4": "キーリポジトリを Manta に取り込むと、フォルダーを探さずに Agent の作業を開始できます。"
+                      "42525ba8a4": "キーリポジトリを Manta に取り込むと、フォルダーを探さずに Agent の作業を開始できます。",
+                      "workOnTwoTasks": "2つのタスクを同時に進める",
+                      "agentSkillsName": "Agent に Manta スキルを追加",
+                      "agentSkillsDescription": "Agent が Manta のブラウザを操作し、コンピューターを制御し、複数ステップの作業を調整するためのスキルをインストールします。"
                     }
                   }
                 }
@@ -14565,8 +14531,7 @@
             "d6d15077df": "スキルコマンドをコピーし、確認用に以下へ挿入しました。",
             "78e65f19d9": "ブラウザのセットアップに失敗しました",
             "b7345c18db": "予期しないエラーが発生しました。",
-            "5f97caf76b": "インストール中…",
-            "c2df599513": "CLI とスキルをインストール"
+            "5f97caf76b": "インストール中…"
           },
           "ConnectIntegrationsList": {
             "3dddb2d565": "タスク用に接続済み",
@@ -14708,17 +14673,9 @@
                 "agent": {
                   "setup": {
                     "state": {
-                      "fdcca1ec75": "登録中…",
-                      "69fb2c2289": "有効",
-                      "c6705092ba": "PATH を修正",
-                      "7c1b6bdb1e": "有効化",
-                      "51074ccb05": "CLI ステータスの読み込みに失敗しました。",
                       "35dea1ae12": "Agent 制御の準備ができました。",
-                      "9dff3a6338": "スキルがインストールされています。Manta CLI を有効化してセットアップを完了してください。",
-                      "15986a1080": "Manta CLI の準備ができました。スキルをインストールしてセットアップを完了してください。",
-                      "4c26913def": "まだセットアップが完了していません。Agent 制御を有効にするには、両方のステップを完了してください。",
                       "c94ff11e91": "セットアップ状況を再確認できませんでした。",
-                      "2b519eed94": "Manta CLI を PATH に登録しました。"
+                      "skillNotInstalled": "Manta CLI スキルはまだインストールされていません。"
                     }
                   }
                 },
@@ -14736,23 +14693,18 @@
             "2fda9ff015": "Agent 制御をセットアップ",
             "0ac0fef514": "Agent 制御の準備ができました。",
             "2bdfff8763": "Agent 制御（オプション）。",
-            "72736b051f": "Agent にこのシミュレーターを操作させたい場合は、Manta CLI + スキルをセットアップしてください。",
             "d10ae98046": "完了",
             "3756cbeca7": "後で",
             "6d950431d2": "非表示",
             "ebceac65a4": "セットアップ",
-            "3f003507f4": "設定で完全なセットアップを開く"
+            "3f003507f4": "設定で完全なセットアップを開く",
+            "installSkillPrompt": "Agent にこのシミュレーターを操作させたいときは、Manta CLI スキルをインストールしてください。"
           },
           "MobileEmulatorAgentSetupGuideSteps": {
-            "9b49d892e3": "Manta CLI を有効化",
-            "3d8dc52c93": "Agent シェルでエミュレータ制御用の manta コマンドを登録します。",
             "21f5687c07": "Manta CLI スキル",
             "64fb057667": "このワークツリーの manta エミュレータコマンドを Agent に教えます。",
             "5c59ea96ca": "モバイルエミュレータ用 Manta CLI スキルのセットアップ",
-            "bff5341ac3": "モバイルエミュレータ用 Manta CLI スキルのインストール用ターミナル",
-            "3d34423e88": "Manta CLI を登録しています",
-            "3be27641c9": "Agent のシェルからエミュレータコマンドを実行できるようにします。",
-            "3941719a56": "スキル設定を開く前に Manta CLI を確認しています。"
+            "bff5341ac3": "モバイルエミュレータ用 Manta CLI スキルのインストール用ターミナル"
           },
           "MobileEmulatorTabIntroCallout": {
             "1924982130": "閉じる",
