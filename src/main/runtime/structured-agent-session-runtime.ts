@@ -317,6 +317,10 @@ async function installOnJournal(
       : {}),
     onEventSinkError: ({ sessionId, error }) =>
       deps.onError?.({ scope: `structured-agent-session-journal:${sessionId}`, error }),
+    onLeaseReconcileFailure: (error) =>
+      deps.onError
+        ? deps.onError({ scope: 'structured-agent-session-lease-reconcile', error })
+        : console.warn('[structured-agent-session] reconciling chat leases failed', error),
     ...(deps.onSessionStatusChanged ? { onSessionStatusChanged: deps.onSessionStatusChanged } : {}),
     ...(deps.statusSink ? { statusSink: deps.statusSink } : {}),
     ...(deps.hasOpenDispatch ? { hasOpenDispatch: deps.hasOpenDispatch } : {}),

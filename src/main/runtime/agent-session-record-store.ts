@@ -66,7 +66,7 @@ import {
   agentSessionStorePath,
   type AgentSessionStoreState
 } from './agent-session-record-store-file'
-import { setAgentSessionTabVisibility } from './agent-session-tab-table'
+import { setAgentSessionTabVisibility, showAgentSessionTabs } from './agent-session-tab-table'
 import { loadProtectedAgentSessionStore } from './agent-session-record-store-security'
 import {
   AgentSessionStoreTransactionQueue,
@@ -144,6 +144,12 @@ export class AgentSessionRecordStore {
    */
   setSessionTabVisibility(sessionId: string, visible: boolean, tabId?: string): Promise<void> {
     return this.transact(() => setAgentSessionTabVisibility(this.state, sessionId, visible, tabId))
+  }
+
+  /** Shows each session that still has a record, in one write: an index written part way would
+   *  read as complete at the next launch and drop the rest. */
+  showSessionTabs(sessionIds: readonly string[]): Promise<void> {
+    return this.transact(() => showAgentSessionTabs(this.state, sessionIds))
   }
 
   listByScope(location: AgentSessionExecutionLocation): AgentSessionRecord[] {

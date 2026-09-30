@@ -123,7 +123,7 @@ export const STRUCTURED_AGENT_SESSION_METHODS = [
           .conversationReplacements()
           .find((entry) => entry.sourceSessionId === params.envelope.sessionId)
         if (replacement) {
-          await ctx.runtime.replaceStructuredAgentSessionTab(replacement)
+          ctx.runtime.replaceStructuredAgentSessionTab(replacement)
         }
         await host.close(params.envelope.sessionId)
       }
