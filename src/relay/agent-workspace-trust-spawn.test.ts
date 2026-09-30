@@ -128,22 +128,7 @@ describe('applyRelayAgentWorkspaceTrust', () => {
     expect(workspaceTrustWritten(home, 'codex')).toBe(false)
   })
 
-  it("trusts a worktree's main checkout for Codex, as a local launch does", async () => {
-    const mainCheckout = join(root, 'repo')
-    const worktree = join(root, 'worktrees', 'feature')
-    linkGitWorktree(mainCheckout, worktree)
-    await applyRelayAgentWorkspaceTrust(
-      { workspacePath: worktree },
-      'codex',
-      { HOME: home },
-      HOST_SHELL
-    )
-    const written = readFileSync(join(home, '.codex', 'config.toml'), 'utf-8')
-    expect(written).toContain(`[projects."${mainCheckout}"]`)
-    expect(written).not.toContain(`[projects."${worktree}"]`)
-  })
-
-  it('trusts a Codex worktree whose main checkout is the relay home, as a local launch does', async () => {
+  it("stores a Codex worktree's own path, not the relay home it hangs off, as a local launch does", async () => {
     const worktree = join(root, 'worktrees', 'feature')
     linkGitWorktree(home, worktree)
     await applyRelayAgentWorkspaceTrust(
@@ -152,9 +137,9 @@ describe('applyRelayAgentWorkspaceTrust', () => {
       { HOME: home },
       HOST_SHELL
     )
-    expect(readFileSync(join(home, '.codex', 'config.toml'), 'utf-8')).toContain(
-      `[projects."${home}"]`
-    )
+    const written = readFileSync(join(home, '.codex', 'config.toml'), 'utf-8')
+    expect(written).toContain(`[projects."${worktree}"]`)
+    expect(written).not.toContain(`[projects."${home}"]`)
   })
 
   it.each([

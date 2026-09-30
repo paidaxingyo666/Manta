@@ -6,8 +6,7 @@ import {
   markAntigravityWorkspaceTrusted,
   markCodexProjectTrusted,
   markCopilotFolderTrusted,
-  markCursorWorkspaceTrusted,
-  resolveCodexProjectTrustRoot
+  markCursorWorkspaceTrusted
 } from './agent-trust-presets'
 import { awaitAgentTrustWriteWithinDeadline } from './agent-trust-write-deadline'
 import {
@@ -69,11 +68,6 @@ function withResolvedForm(path: string): string[] {
   }
 }
 
-/** The path the preset's writer stores: Codex trusts a linked worktree's main checkout. */
-function storedTrustPath(preset: AgentTrustPreset, workspacePath: string): string {
-  return preset === 'codex' ? resolveCodexProjectTrustRoot(workspacePath) : workspacePath
-}
-
 /**
  * Whether trust stored for `storedPath` would cover a home: it is a root, a home or a folder
  * above one. Both sides are compared given and resolved, since the writers store the realpath.
@@ -121,14 +115,13 @@ export async function applyWorkspaceTrustOnThisHost(
 ): Promise<void> {
   try {
     const host = describeHost()
-    const storedPath = storedTrustPath(preset, workspacePath)
     if (AGENT_TRUST_INHERITS_FROM_A_HOME[preset]) {
       const homes = host.homes.filter((home): home is string => Boolean(home))
-      if (homes.length === 0 || wouldTrustAHome(storedPath, homes)) {
+      if (homes.length === 0 || wouldTrustAHome(workspacePath, homes)) {
         return
       }
     }
-    await awaitAgentTrustWriteWithinDeadline(writePreset(preset, storedPath, host), {
+    await awaitAgentTrustWriteWithinDeadline(writePreset(preset, workspacePath, host), {
       preset,
       workspacePath,
       deadlineMs: host.deadlineMs

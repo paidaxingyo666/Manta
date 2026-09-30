@@ -24,7 +24,6 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('./agent-trust-presets', () => ({
-  resolveCodexProjectTrustRoot: (path: string) => path,
   markCodexProjectTrusted: mocks.codex,
   markCursorWorkspaceTrusted: mocks.cursor,
   markCopilotFolderTrusted: mocks.copilot,
