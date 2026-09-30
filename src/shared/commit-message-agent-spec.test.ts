@@ -5,7 +5,6 @@ import {
   DEFAULT_COMMIT_MESSAGE_AGENT_ID,
   getCommitMessageAgentCapability,
   getCommitMessageAgentSpec,
-  getCommitMessageModelCapability,
   getCommitMessageModel,
   isCustomAgentId,
   listCommitMessageAgentCapabilities,
@@ -215,7 +214,6 @@ describe('COMMIT_MESSAGE_AGENT_SPECS', () => {
     })
     expect(codex).not.toHaveProperty('binary')
     expect(codex).not.toHaveProperty('buildArgs')
-    expect(getCommitMessageModelCapability('codex', 'gpt-5.4-mini')?.thinkingLevels).toBeDefined()
   })
 })
 

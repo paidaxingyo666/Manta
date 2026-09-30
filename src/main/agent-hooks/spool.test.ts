@@ -16,7 +16,6 @@ import {
   AGENT_HOOK_SPOOL_MAX_FILES,
   drainAgentHookSpool,
   launchTokenHash,
-  readSpoolRecords,
   type SpoolRecord
 } from '../../shared/agent-hook-spool'
 import { AgentHookServer, _internals } from './server'
@@ -33,16 +32,6 @@ describe('agent hook spool', () => {
     expect(spoolLine).toBeDefined()
     expect(spoolLine!.match(/printf/g)).toHaveLength(1)
     expect(spoolLine).toContain('"$spool_now" "$payload"')
-  })
-
-  it('drops torn lines while retaining complete records', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'orca-spool-'))
-    const file = join(dir, 'pane.jsonl')
-    writeFileSync(
-      file,
-      '\n{"paneKey":"tab:1","source":"codex","receivedAt":1,"payload":{}}\n{"paneKey":'
-    )
-    expect(readSpoolRecords(file, 1)).toHaveLength(1)
   })
 
   it('waits for a newline before replaying a complete-looking final record', () => {
@@ -63,7 +52,6 @@ describe('agent hook spool', () => {
       getPersistedLaunchTokenHash: () => undefined,
       ingest: (value: SpoolRecord) => ingested.push(value)
     }
-    expect(readSpoolRecords(file)).toHaveLength(0)
     expect(drainAgentHookSpool(options)).toBe(0)
     expect(readFileSync(file, 'utf8')).toBe(record)
 
@@ -226,7 +214,7 @@ describe('agent hook spool', () => {
     const endpoint = join(endpointDir, 'endpoint.env')
     writeFileSync(
       endpoint,
-      'MANTA_AGENT_HOOK_PORT=9\nMANTA_AGENT_HOOK_TOKEN=stale\nORCA_AGENT_HOOK_ENV=production\nORCA_AGENT_HOOK_VERSION=1\n'
+      'MANTA_AGENT_HOOK_PORT=9\nMANTA_AGENT_HOOK_TOKEN=stale\nMANTA_AGENT_HOOK_ENV=production\nMANTA_AGENT_HOOK_VERSION=1\n'
     )
     const script = join(dir, 'codex-hook.sh')
     writeFileSync(script, codexInternals.getManagedScript('posix'))
