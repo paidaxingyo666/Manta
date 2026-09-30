@@ -17461,6 +17461,7 @@
         "pastedImageLabel": "Image collée",
         "imagePasteFailed": "Échec du collage de l'image.",
         "worktreeNotReady": "Worktree pas encore prêt — réessayez dans un instant.",
+        "pasteUnavailable": "Impossible de coller — ce chat n'accepte pas de saisie pour le moment.",
         "uploadingAttachments": "Envoi de {{value0}} fichier(s) vers le distant…",
         "model": "Modèle",
         "effort": "Effort",

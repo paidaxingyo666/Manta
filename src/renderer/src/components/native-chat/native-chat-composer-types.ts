@@ -92,4 +92,6 @@ export type NativeChatComposerHandle = {
   }) => void
   /** Pastes clipboard content when no DOM paste event is available. */
   pasteFromClipboard: () => void
+  /** Whether a node is inside the composer's own input, not merely the chat pane. */
+  contains: (node: Node | null) => boolean
 }

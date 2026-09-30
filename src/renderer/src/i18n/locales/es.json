@@ -14972,6 +14972,7 @@
         "pastedImageLabel": "Imagen pegada",
         "imagePasteFailed": "Error al pegar imagen.",
         "worktreeNotReady": "Worktree no está listo — intenta de nuevo en un momento.",
+        "pasteUnavailable": "No se puede pegar — este chat no acepta entradas en este momento.",
         "uploadingAttachments": "Subiendo {{value0}} archivo(s) al remoto…",
         "model": "Modelo",
         "effort": "Esfuerzo",

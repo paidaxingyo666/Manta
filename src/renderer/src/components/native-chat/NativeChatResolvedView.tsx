@@ -39,11 +39,8 @@ import {
   deriveNativeChatStreamingText,
   nativeChatStreamingMessage
 } from '../../../../shared/native-chat-streaming'
-import {
-  shouldFocusNativeChatComposerFromEditingKey,
-  shouldFocusNativeChatPaneFromPointerTarget,
-  shouldRedirectNativeChatTyping
-} from './native-chat-typing-redirect'
+import { shouldFocusNativeChatPaneFromPointerTarget } from './native-chat-typing-redirect'
+import { routeNativeChatRootKeyToInput } from './native-chat-root-key-routing'
 import {
   emptyNativeChatContextMenuActions,
   useNativeChatContextMenu
@@ -376,20 +373,7 @@ export function NativeChatResolvedView({
           }
           return
         }
-        // Backspace/Delete outside an input focuses the composer (like typing)
-        // but inserts nothing — let the now-focused field handle the keystroke.
-        if (shouldFocusNativeChatComposerFromEditingKey(event)) {
-          composerRef.current?.focus()
-          return
-        }
-        if (!shouldRedirectNativeChatTyping(event)) {
-          return
-        }
-        if (!composerRef.current?.insertTypedText(event.key)) {
-          return
-        }
-        event.preventDefault()
-        event.stopPropagation()
+        routeNativeChatRootKeyToInput(event, composerRef.current, questionAnswerInputRef.current)
       }}
       onMouseUpCapture={contextMenu.onSelectionCapture}
       onKeyUpCapture={contextMenu.onSelectionCapture}

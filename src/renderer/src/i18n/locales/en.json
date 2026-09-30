@@ -17575,6 +17575,7 @@
         "imagePasteFailed": "Image paste failed.",
         "imageSaving": "Saving pasted image…",
         "worktreeNotReady": "Worktree not ready — try again in a moment.",
+        "pasteUnavailable": "Can't paste — this chat isn't accepting input right now.",
         "uploadingAttachments": "Uploading {{value0}} file(s) to remote…",
         "model": "Model",
         "effort": "Effort",
