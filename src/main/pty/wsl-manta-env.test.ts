@@ -62,8 +62,9 @@ describe('addMantaWslInteropEnv', () => {
       MANTA_TERMINAL_HANDLE: 'term_wsl',
       MANTA_USER_DATA_PATH: 'C:\\Users\\jin\\AppData\\Roaming\\Manta',
       MANTA_CLI_COMMAND: 'manta-ide',
-      ORCA_WSL_CLI_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Manta\\wsl-managed-cli\\hash',
+      MANTA_WSL_CLI_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Manta\\wsl-managed-cli\\hash',
       MANTA_CODEX_LAUNCH_PREFLIGHT: 'C:\\Program Files\\Manta\\resources\\bin\\manta.exe',
+      ORCA_CODEX_ISOLATE: '0',
       ORCA_OMP_FRESH_CONFIG: 'C:\\Manta\\fresh-session.yml',
       MANTA_OMP_STATUS_EXTENSION: 'C:\\Users\\jin\\.omp\\agent\\extensions\\manta-agent-status.ts',
       MANTA_PRIME_AGENT_STATUS_EXTENSION: 'C:\\stale\\manta-agent-status.ts',
@@ -71,7 +72,7 @@ describe('addMantaWslInteropEnv', () => {
       MANTA_TAB_ID: 'tab-1',
       MANTA_WORKTREE_ID: 'repo::\\\\wsl.localhost\\Ubuntu\\home\\jin\\repo',
       MANTA_AGENT_LAUNCH_TOKEN: 'launch-secret',
-      ORCA_OPENCODE_AGENT: 'opencode2',
+      MANTA_OPENCODE_AGENT: 'opencode2',
       MANTA_AGENT_HOOK_PORT: '4567',
       MANTA_AGENT_HOOK_TOKEN: 'token',
       MANTA_AGENT_HOOK_ENV: 'dev',
@@ -90,8 +91,9 @@ describe('addMantaWslInteropEnv', () => {
     expect(env.WSLENV).toContain('MANTA_CLI_COMMAND/u')
     expect(env.WSLENV).toContain('MANTA_WSL_CLI_DIR/p')
     expect(env.WSLENV).toContain('MANTA_CODEX_LAUNCH_PREFLIGHT/p')
+    expect(env.WSLENV).toContain('ORCA_CODEX_ISOLATE/u')
     expect(env.WSLENV).toContain('MANTA_OMP_STATUS_EXTENSION/p')
-    expect(env.WSLENV).toContain('MANTA_OMP_FRESH_CONFIG/p')
+    expect(env.WSLENV).toContain('ORCA_OMP_FRESH_CONFIG/p')
     expect(env.WSLENV).not.toContain('MANTA_PRIME_AGENT_STATUS_EXTENSION')
     expect(env.WSLENV).toContain('MANTA_PANE_KEY/u')
     expect(env.WSLENV).toContain('MANTA_TAB_ID/u')
@@ -215,7 +217,7 @@ describe('addMantaWslInteropEnv', () => {
   it('crosses the inline-image protocol hint into the guest untranslated (/u)', () => {
     const env: Record<string, string> = { ORCA_IMAGE_PROTOCOL: 'kitty' }
     addMantaWslInteropEnv(env)
-    expect(env.WSLENV).toContain('MANTA_IMAGE_PROTOCOL/u')
+    expect(env.WSLENV).toContain('ORCA_IMAGE_PROTOCOL/u')
   })
 
   it('marks the WSL hook relay version for import on relay spawn envs', () => {
