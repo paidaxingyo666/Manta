@@ -58,8 +58,6 @@ import {
   type NativeChatTurnDiff
 } from './native-chat-turn-diffs'
 
-export { ProviderFrameRow } from './NativeChatTranscriptChrome'
-
 const MAX_EXPANDED_TURNS = 128
 
 /** The turn is blocked on the reader. `shown`: the pane draws the prompt itself, as a card;
