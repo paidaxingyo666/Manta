@@ -392,7 +392,7 @@ describe('a create that reserves its tab', () => {
 describe('a chat tab over records a newer Manta wrote', () => {
   it('opens a closed chat from history for reading', async () => {
     await createChat(HOST_TEST_SESSION)
-    await host.close(HOST_TEST_SESSION)
+    await host.close(HOST_TEST_SESSION, 'user-close')
     await host.setSessionTabVisibility(HOST_TEST_SESSION, false)
     await host.flushAllStreamedEvents()
     await seedTestAgentSessionStoreFromNewerBuild(directory)

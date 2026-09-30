@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
-import { AgentSessionRecordStore } from '../runtime/agent-session-record-store'
+import { openTestAgentSessionRecordStore } from '../runtime/agent-session-record-store-test-harness'
 import type { StructuredAgentSessionAdapter } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 import type { StructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import { StructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-host'
@@ -51,10 +51,7 @@ beforeEach(async () => {
   sink = null
   clock = NOW
   closeSession = vi.fn(async () => true)
-  const store = await AgentSessionRecordStore.open({
-    directory: join(root, 'store'),
-    hostId: 'local'
-  })
+  const store = await openTestAgentSessionRecordStore(root)
   const adapter: StructuredAgentSessionAdapter = {
     acquire: async ({ fence, spawnToken, events }) => {
       sink = events ?? null
@@ -135,7 +132,7 @@ describe('a Codex reconnecting a dropped stream', () => {
     // Once the frames stop, the same clock does let the sweep close it.
     clock += STRUCTURED_AGENT_SESSION_IDLE_MS
     await vi.waitFor(() => {
-      expect(closeSession).toHaveBeenCalledWith(SESSION)
+      expect(closeSession).toHaveBeenCalledWith(SESSION, 'evict')
       expect(host.hasSession(SESSION)).toBe(false)
     })
   })

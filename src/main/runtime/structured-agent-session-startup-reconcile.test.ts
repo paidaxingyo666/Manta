@@ -146,10 +146,12 @@ it('closes a chat tab over records a newer Manta wrote, reporting the index it c
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the runtime's own protected close path, reached with the one field it reads.
   const internal = runtime as unknown as {
-    closeStructuredAgentSessionTab(tab: { sessionId: string }): Promise<void>
+    closeStructuredAgentSessionTab(tab: { sessionId: string }, cause: 'user-close'): Promise<void>
   }
 
-  await expect(internal.closeStructuredAgentSessionTab({ sessionId })).resolves.toBeUndefined()
+  await expect(
+    internal.closeStructuredAgentSessionTab({ sessionId }, 'user-close')
+  ).resolves.toBeUndefined()
 
   expect(warn).toHaveBeenCalledWith(
     '[structured-agent-session] recording a closed chat tab failed',
@@ -157,5 +159,5 @@ it('closes a chat tab over records a newer Manta wrote, reporting the index it c
       refusal: expect.objectContaining({ details: { reason: 'journalWrittenByNewerOrca' } })
     })
   )
-  expect(close).toHaveBeenCalledWith(sessionId)
+  expect(close).toHaveBeenCalledWith(sessionId, 'user-close')
 })
