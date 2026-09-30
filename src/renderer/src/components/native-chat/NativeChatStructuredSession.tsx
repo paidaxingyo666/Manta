@@ -270,7 +270,9 @@ export function NativeChatStructuredSession(
           <NativeChatEmptyState
             kind="error"
             retrying={!readFailure?.final}
-            {...(readFailure?.named ? { headline: readFailure.text } : {})}
+            {...(readFailure?.named
+              ? { headline: readFailure.text, headlineSaysUnread: readFailure.saysUnread }
+              : {})}
           />
         ) : viewState.kind === 'empty' ? (
           <NativeChatEmptyState kind="empty" agent={props.agent} />

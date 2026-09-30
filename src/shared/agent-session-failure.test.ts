@@ -3,9 +3,13 @@ import {
   MAX_PROVIDER_DIAGNOSTIC_CHARS,
   providerDiagnostic,
   providerDiagnosticOf,
+  agentSessionFailureFact,
   readAgentSessionFailureFact,
+  readProviderRetry,
+  readWholeAgentSessionFailureFact,
   withProviderDiagnostic
 } from './agent-session-failure'
+import { AGENT_SESSION_REFUSAL_REASONS } from './agent-session-refusal-details'
 
 describe('provider diagnostics', () => {
   it('bounds the text and records nothing for an empty one', () => {
@@ -89,5 +93,49 @@ describe('reading a failure fact', () => {
         detail: { text: 'x', audience: 'future' }
       })
     ).toEqual({ kind: 'restartFailed', refusal: { code: 'agent_session_conflict' } })
+  })
+})
+
+describe('reading all of a failure fact', () => {
+  it('reads every part of a fact the host built, as it arrives off the wire', () => {
+    for (const fact of [
+      agentSessionFailureFact('startFailed', {
+        refusal: { code: 'agent_session_conflict', details: { reason: 'claimConflicted' } }
+      }),
+      agentSessionFailureFact('providerRejected', {
+        detail: providerDiagnostic('Image type .bmp', 'person')
+      }),
+      agentSessionFailureFact('attachmentInvalid', {
+        attachment: { reason: 'tooLarge', limit: 5 * 1024 * 1024 }
+      }),
+      agentSessionFailureFact('providerRetrying', {
+        retry: readProviderRetry({ error: 'rate_limit', status: 429 })
+      })
+    ]) {
+      expect(readWholeAgentSessionFailureFact(JSON.parse(JSON.stringify(fact)))).toEqual(fact)
+    }
+    // Every reason a refusal can name, on the code that names it.
+    for (const [code, reasons] of Object.entries(AGENT_SESSION_REFUSAL_REASONS)) {
+      for (const reason of reasons) {
+        const fact = { kind: 'startFailed', refusal: { code, details: { reason } } }
+        expect(readWholeAgentSessionFailureFact(fact)).toEqual(fact)
+      }
+    }
+  })
+
+  it('reads nothing when this build would drop any part, however deep', () => {
+    for (const value of [
+      { kind: 'futureKind' },
+      { kind: 'startFailed', refusal: { code: 'agent_session_future_code' } },
+      {
+        kind: 'startFailed',
+        refusal: { code: 'agent_session_conflict', details: { reason: 'futureReason' } }
+      },
+      { kind: 'attachmentInvalid', attachment: { reason: 'futureReason' } },
+      { kind: 'providerRejected', detail: { text: 'x', audience: 'future' } },
+      { kind: 'startFailed', futurePart: {} }
+    ]) {
+      expect(readWholeAgentSessionFailureFact(value)).toBeUndefined()
+    }
   })
 })

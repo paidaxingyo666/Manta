@@ -6,6 +6,7 @@
 // value the provider wrote — never recovered from a string afterwards, since by then nothing can
 // tell a provider's sentence from Manta's.
 
+import { structuralValuesEqualIgnoringUndefined } from './structural-value-equality'
 import {
   readAgentSessionRefusalReference,
   type AgentSessionRefusalReference
@@ -231,6 +232,16 @@ export function readAgentSessionFailureFact(value: unknown): AgentSessionFailure
     ...(attachment ? { attachment } : {}),
     ...(retry ? { retry } : {})
   })
+}
+
+/** The fact only when this build read all of it. Anything it dropped, such as a newer refusal code
+ *  or reason, may change the advice, so a surface that would re-word the fact shows the host's
+ *  sentence instead. */
+export function readWholeAgentSessionFailureFact(
+  value: unknown
+): AgentSessionFailureFact | undefined {
+  const fact = readAgentSessionFailureFact(value)
+  return fact && structuralValuesEqualIgnoringUndefined(fact, value) ? fact : undefined
 }
 
 /** The provider-authored diagnostic an error carries, set only where it was composed. Follows the
