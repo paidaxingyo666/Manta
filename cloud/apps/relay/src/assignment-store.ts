@@ -350,6 +350,8 @@ const ACTIVITY_REQUEST_UNITS: Record<AssignmentActivityKind, number> = {
 }
 
 const ASSIGNMENT_LOCK_RETRY_DEADLINE_MS = 15_000
+// About one release round trip from Asia, with margin; see assignStickyOnce.
+const STICKY_ASSIGNMENT_ROW_WAIT_MS = 1_000
 
 // THE ROW LOCK ORDER. Every transaction that takes more than one of these
 // takes them in this order, whichever role it runs on:
@@ -466,6 +468,16 @@ export type RelayHomeCellUnavailableCause =
   | 'booting'
   | 'unheard'
   | 'not_ready'
+
+// The host's own row is held, almost always by that host's release on its old
+// cell, which sits queued on that cell's busy row. Waiting here would hold the
+// director's single sticky slot for the length of that queue, so the dial is
+// refused at once and the host redials after the release has settled.
+export class RelayAssignmentRowBusyError extends Error {
+  constructor() {
+    super('relay_assignment_row_busy')
+  }
+}
 
 export class RelayHomeCellUnavailableError extends Error {
   constructor(
@@ -763,24 +775,41 @@ export class RelayAssignmentStore {
       // order placement uses. It only ever needs the one cell this host is
       // pinned to, so read the pin unlocked and lock that row alone; taking all
       // 23 queued every sticky refresh in the fleet behind every other one.
-      const pinnedCellId = inventoryFirst
-        ? await this.pinnedCellId(transaction, identity)
-        : undefined
+      const pinnedCellId = await this.pinnedCellId(transaction, identity)
       const lockedCells =
-        pinnedCellId === undefined
+        !inventoryFirst || pinnedCellId === undefined
           ? undefined
           : await this.lockCellRows(transaction, [pinnedCellId], lockMode)
-      const existing = await this.assignmentRow(transaction, identity, inventoryFirst)
+      // One read serves the wait policy, the stranded rule and the roll-isolation
+      // check below; issuing it twice inside one sticky transaction is waste.
+      const unlockedAdmission =
+        pinnedCellId === undefined
+          ? undefined
+          : await this.pinnedCellAdmission(transaction, pinnedCellId)
+      // Why wait at all: a calm host redialling after its own clean close meets
+      // its own release, and a refusal costs it the client's 5 s assign gate. On
+      // a live general cell that release is short, so a bounded wait is cheap.
+      // A roll, drain or dead cell keeps its release queued, so refuse at once.
+      // Never while holding the cell row: that reverses the lock order against
+      // this host's own release, which holds its row and wants the cell's.
+      const pinIsLiveGeneral =
+        lockedCells === undefined &&
+        pinnedCellId !== undefined &&
+        unlockedAdmission?.state === 'general' &&
+        (await this.cellIsLive(transaction, pinnedCellId, now))
+      const existing = await this.assignmentRowOrBusy(
+        transaction,
+        identity,
+        pinIsLiveGeneral ? STICKY_ASSIGNMENT_ROW_WAIT_MS : undefined
+      )
       if (!existing) return null
       const activityLeases = await this.lockAssignmentActivities(transaction, identity, true)
       await this.recordRegionPreference(transaction, identity, preferredRegion, now)
       if (mayNormallyReassign(activity(existing), now)) return null
-      // One read serves the stranded rule and the roll-isolation check below;
-      // issuing it twice inside one sticky transaction is pure waste.
-      const pinnedAdmission = await this.pinnedCellAdmission(
-        transaction,
-        text(existing, 'cell_id')
-      )
+      const pinnedAdmission =
+        text(existing, 'cell_id') === pinnedCellId
+          ? unlockedAdmission
+          : await this.pinnedCellAdmission(transaction, text(existing, 'cell_id'))
       // Why: a stranded host must fall through to placement — re-granting the
       // pinned cell here is what refreshes its own activity and sustains the
       // loop (issue #225).
@@ -796,10 +825,29 @@ export class RelayAssignmentStore {
         return null
       }
 
+      // Why: a null here means "fall through to placement", which is exactly
+      // what an isolated incumbent needs — and the only way out, because
+      // re-granting the pin refreshes the host's own activity and sustains the
+      // loop. The placement lane re-places it on a cell that will take it.
+      // Decided before the pinned cell row is touched: during a drain that row
+      // is the one the cell's releases keep busy.
+      if (
+        await this.incumbentCellIsolatedForRoll(
+          transaction,
+          identity,
+          existing,
+          now,
+          undefined,
+          pinnedAdmission
+        )
+      ) {
+        return null
+      }
+
       const currentCellId = text(existing, 'cell_id')
       // The pin moved between the unlocked read and the assignment lock, so the
       // row held is the wrong one. Same recovery as losing the lock: retry.
-      if (pinnedCellId !== undefined && pinnedCellId !== currentCellId) {
+      if (lockedCells && pinnedCellId !== currentCellId) {
         throw new Error('database_lock_unavailable')
       }
       const hadControl = holdsControlLease(
@@ -829,23 +877,6 @@ export class RelayAssignmentStore {
       ) {
         return null
       }
-      // Why: a null here means "fall through to placement", which is exactly
-      // what an isolated incumbent needs — and the only way out, because
-      // re-granting the pin refreshes the host's own activity and sustains the
-      // loop. The placement lane re-places it on a cell that will take it.
-      if (
-        await this.incumbentCellIsolatedForRoll(
-          transaction,
-          identity,
-          existing,
-          now,
-          undefined,
-          pinnedAdmission
-        )
-      ) {
-        return null
-      }
-
       if (
         !hadControl &&
         !(await this.cellHasConnectionHeadroom(transaction, currentCellId))
@@ -944,8 +975,10 @@ export class RelayAssignmentStore {
     placementRegion: RelayRegion = preferredRegion ?? RELAY_DEFAULT_REGION
   ): Promise<RelayAssignment> {
     const now = this.now()
+    // An isolated retry takes its tier's rows before anything reassigns this,
+    // so a lock timeout there must retry the same tier, not fall to 'all'.
     let retryScope: RetriedAssignmentInventoryScope =
-      inventoryScope === 'all' ? 'all' : 'general'
+      inventoryScope === 'none' ? 'general' : inventoryScope
     // Why the events ride back out rather than being written where they are
     // decided: everything below runs in one transaction, and a reservation or
     // lease write that fails after the decision rolls the placement back. A
@@ -977,15 +1010,11 @@ export class RelayAssignmentStore {
                   lockMode
                 )
               : undefined
-      const existing = await this.assignmentRow(
-        transaction,
-        identity,
-        inventoryScope !== 'none'
-      )
+      const existing = await this.assignmentRowOrBusy(transaction, identity)
       // A dormant host holds no units, so its placement never writes its old
       // cell and needs only the rows it could land on.
       const dormant = !existing || mayNormallyReassign(activity(existing), now)
-      retryScope = dormant ? 'general' : 'all'
+      retryScope = dormant ? 'general' : isolatedScope ? inventoryScope : 'all'
       if (
         (inventoryScope === 'general' && !dormant) ||
         (isolatedScope &&
@@ -2952,9 +2981,11 @@ export class RelayAssignmentStore {
         )
         if (assignment.cellId !== text(row, 'cell_id')) moved++
       } catch (error) {
-        // One unplaceable host must not end the sweep for the rest.
+        // One unplaceable or busy host must not end the sweep for the rest; a
+        // busy host is mid-release and the next tick takes it.
         if (
           !(error instanceof RelayHomeCellUnavailableError) &&
+          !(error instanceof RelayAssignmentRowBusyError) &&
           !(error instanceof Error && error.message === 'relay_capacity_exhausted')
         ) {
           throw error
@@ -8175,6 +8206,29 @@ export class RelayAssignmentStore {
         { failIfUnavailable }
       )
     )[0]
+  }
+
+  // NOWAIT unless the caller grants a bounded wait; either way a held row
+  // surfaces as RelayAssignmentRowBusyError, never as a retried lock timeout.
+  private async assignmentRowOrBusy(
+    database: RelayDatabase,
+    identity: AssignmentIdentity,
+    waitMs?: number
+  ): Promise<SqlRow | undefined> {
+    try {
+      return (
+        await database.queryLocked(
+          `SELECT * FROM relay_assignments WHERE user_id = ? AND relay_host_id = ?`,
+          [identity.userId, identity.relayHostId],
+          waitMs === undefined ? { failIfUnavailable: true } : { lockTimeoutMs: waitMs }
+        )
+      )[0]
+    } catch (error) {
+      if (isDatabaseLockUnavailable(error) || (waitMs !== undefined && isDatabaseLockTimeout(error))) {
+        throw new RelayAssignmentRowBusyError()
+      }
+      throw error
+    }
   }
 
   private async lockAssignmentActivities(

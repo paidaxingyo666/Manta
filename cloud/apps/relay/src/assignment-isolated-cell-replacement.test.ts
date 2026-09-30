@@ -54,6 +54,9 @@ class QueryCountingDatabase implements RelayDatabase {
   // Fails the first statement containing this fragment, so a test can roll a
   // transaction back at a chosen point.
   failOnce: string | undefined
+  // Locked statements that report the row busy, in order: each fragment fires
+  // once, on the first locked statement containing it after the one before.
+  lockUnavailableSequence: string[] = []
 
   constructor(private readonly delegate: RelayDatabase) {}
 
@@ -83,8 +86,17 @@ class QueryCountingDatabase implements RelayDatabase {
     params?: unknown[],
     options?: RelayLockOptions
   ): Promise<SqlRow[]> {
-    this.record(sql)
+    this.recordLocked(sql)
     return await this.delegate.queryLocked(sql, params, options)
+  }
+
+  recordLocked(sql: string): void {
+    this.record(sql)
+    const next = this.lockUnavailableSequence[0]
+    if (next !== undefined && sql.includes(next)) {
+      this.lockUnavailableSequence.shift()
+      throw new Error('database_lock_unavailable')
+    }
   }
 
   async transaction<T>(
@@ -111,7 +123,7 @@ class QueryCountingDatabase implements RelayDatabase {
         return await inner.query(sql, params)
       },
       queryLocked: async (sql, params, options) => {
-        this.record(sql)
+        this.recordLocked(sql)
         return await inner.queryLocked(sql, params, options)
       },
       transaction: async (operation, options) => await inner.transaction(operation, options),
@@ -733,5 +745,22 @@ describe('re-placing a host off a cell isolated for a roll', () => {
       expect(await reserved(database, 'us-c2')).toBe(3)
       await expectAccounting(database)
     })
+  })
+  it('retries a busy isolated attempt in its own tier, never under the all-rows lock', async () => {
+    const { store, counter, isolateForRoll } = await setup()
+    const first = await store.assign(IDENTITY, 'us-central1')
+    await isolateForRoll(first.cellId)
+    counter.sql.length = 0
+    // The first attempt finds a target row busy, then its retry finds the host's
+    // lease rows busy after it has already taken the tier's rows.
+    counter.lockUnavailableSequence = [
+      'SELECT * FROM relay_cells WHERE cell_id IN (',
+      'FROM relay_assignment_activity_leases'
+    ]
+
+    const moved = await store.assign(IDENTITY, 'us-central1')
+    expect(counter.lockUnavailableSequence).toEqual([])
+    expect(moved).toMatchObject({ region: 'us-central1', assignmentEpoch: first.assignmentEpoch + 1 })
+    expect(counter.count('SELECT * FROM relay_cells ORDER BY cell_id ASC')).toBe(0)
   })
 })
