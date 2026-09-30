@@ -2,6 +2,7 @@
 // queued, and interrupts a handed-over message even before the provider has opened its turn —
 // the gap no client can name a turn for. Against the real host, store and journal.
 
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -12,6 +13,7 @@ import { DISPATCH_REJECTED_CANCELLED } from '../../../shared/structured-agent-se
 import { CancelParams } from '../../../shared/rpc-contract/structured-agent-session-params'
 import { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
+import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
 import {
   HOST_TEST_NOW as NOW,
@@ -33,6 +35,7 @@ let host: StructuredAgentSessionHost
 let dispatch: Mock<StructuredAgentSessionAdapter['dispatch']>
 let cancelTurn: Mock<StructuredAgentSessionAdapter['cancelTurn']>
 let awaitStarted: Mock<NonNullable<StructuredAgentSessionAdapter['awaitStarted']>>
+let events: StructuredAgentSessionEventSink | undefined
 
 function eventually(assertion: () => void | Promise<void>): Promise<void> {
   return vi.waitFor(assertion, { timeout: 10_000 })
@@ -49,17 +52,25 @@ beforeEach(async () => {
   host = new StructuredAgentSessionHost({
     store,
     adapter: {
-      acquire: async ({ fence, spawnToken }) => ({
-        process: { hostId: 'local', pid: 4242, processStartTimeMs: 1_700_000_000_000, spawnToken },
-        acquisitionGeneration: 'generation-1',
-        link: {
-          linkId: `link-${fence}`,
-          handle: { provider: 'codex' as const, threadId: THREAD },
-          origin: 'created' as const,
-          mintedAtFence: fence,
-          observedAt: NOW
+      acquire: async ({ fence, spawnToken, events: sink }) => {
+        events = sink
+        return {
+          process: {
+            hostId: 'local',
+            pid: 4242,
+            processStartTimeMs: 1_700_000_000_000,
+            spawnToken
+          },
+          acquisitionGeneration: 'generation-1',
+          link: {
+            linkId: `link-${fence}`,
+            handle: { provider: 'codex' as const, threadId: THREAD },
+            origin: 'created' as const,
+            mintedAtFence: fence,
+            observedAt: NOW
+          }
         }
-      }),
+      },
       dispatch,
       awaitStarted,
       closeSession: vi.fn(async () => true),
@@ -258,6 +269,47 @@ describe('a Stop that names no turn', () => {
     expect(cancelTurn).toHaveBeenCalledOnce()
   })
 
+  // Claude's echo accepts the send one sink write before the row of the turn it opens.
+  async function acceptedWithTurnRowUnlanded(): Promise<void> {
+    dispatch.mockResolvedValueOnce({
+      state: 'accepted',
+      providerIdentity: { provider: 'codex', threadId: THREAD, turnId: 'turn-2', ordinal: 1 }
+    })
+    const { id, result } = send('hello')
+    await result
+    await eventually(async () => expect((await submission(id))?.dispatchState).toBe('accepted'))
+  }
+
+  it('interrupts a turn whose accepted send is in the journal before its row lands', async () => {
+    await acceptedWithTurnRowUnlanded()
+    const drain = host.flushStreamedEvents
+    vi.spyOn(host, 'flushStreamedEvents').mockImplementation((sessionId) => {
+      events!.appendItem(
+        { provider: 'legacy', agent: 'codex', sessionId, recordId: 'turn-lifecycle:turn-2' },
+        {
+          kind: 'status',
+          text: 'Agent is working…',
+          turnLifecycle: { turnId: 'turn-2', state: 'running' }
+        },
+        { turnScope: AGENT_JOURNAL_THREAD_SCOPE }
+      )
+      return drain(sessionId)
+    })
+
+    expect(await stop()).toMatchObject({ ok: true, value: { cancelled: true } })
+    expect(cancelTurn).toHaveBeenCalledOnce()
+    expect(await statusRows()).toContain('Cancellation requested.')
+  })
+
+  it('still interrupts when draining the streamed rows fails', async () => {
+    await acceptedWithTurnRowUnlanded()
+    vi.spyOn(host, 'flushStreamedEvents').mockRejectedValueOnce(new Error('sink barrier failed'))
+
+    expect(await stop()).toMatchObject({ ok: true, value: { cancelled: true } })
+    expect(cancelTurn).toHaveBeenCalledOnce()
+    expect(await statusRows()).toEqual(['Cancellation requested.'])
+  })
+
   it('is a quiet no-op with nothing in flight', async () => {
     expect(await stop()).toMatchObject({ ok: true, value: { cancelled: false } })
     expect(cancelTurn).not.toHaveBeenCalled()
@@ -275,5 +327,40 @@ describe('a Stop that names its turn, as an older client sends it', () => {
     })
     expect(cancelTurn).toHaveBeenCalledWith(expect.objectContaining({ turnId: 'turn-1' }))
     expect(await statusRows()).toEqual([ALREADY_FINISHED])
+  })
+
+  async function queueOnHost(): Promise<{ id: string; release: () => void }> {
+    const started = Promise.withResolvers<undefined>()
+    awaitStarted.mockImplementationOnce(() => started.promise)
+    const { id, result } = send('hello')
+    await result
+    await eventually(() => expect(awaitStarted).toHaveBeenCalled())
+    return { id, release: () => started.resolve(undefined) }
+  }
+
+  it('reports success with no row when it withdrew a queued message and the turn had ended', async () => {
+    const queued = await queueOnHost()
+    cancelTurn.mockResolvedValueOnce({ cancelled: false })
+
+    expect(await stop('turn-1')).toMatchObject({ ok: true, value: { cancelled: true } })
+    queued.release()
+
+    expect(await submission(queued.id)).toMatchObject({ dispatchState: 'rejected' })
+    expect(await statusRows()).toEqual([])
+  })
+
+  // Codex refuses an interrupt for a turn that has ended.
+  it('reports success with no row when the provider refused a turn that had ended', async () => {
+    const queued = await queueOnHost()
+    cancelTurn.mockResolvedValueOnce({
+      cancelled: false,
+      refusal: { detail: { text: 'no such turn', audience: 'person' } }
+    })
+
+    expect(await stop('turn-1')).toMatchObject({ ok: true, value: { cancelled: true } })
+    queued.release()
+
+    expect(await submission(queued.id)).toMatchObject({ dispatchState: 'rejected' })
+    expect(await statusRows()).toEqual([])
   })
 })
