@@ -1,4 +1,8 @@
-import { unhandledProviderFrameJournalItem } from '../native-chat/agent-session-wire/unhandled-provider-frame'
+import {
+  unhandledProviderFrameJournalItem,
+  type UnhandledProviderFrameJournalItemOptions
+} from '../native-chat/agent-session-wire/unhandled-provider-frame'
+import { DEFAULT_JOURNAL_PAYLOAD_LIMITS } from '../native-chat/agent-session-journal/journal-payload-bounds'
 import type { StructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import type {
   CodexJournalTranslationAdmission,
@@ -71,9 +75,16 @@ export class CodexJournalGenericFrames {
   appendUnhandled(
     kind: string,
     payload: unknown,
-    threadId: string
+    threadId: string,
+    options?: UnhandledProviderFrameJournalItemOptions
   ): CodexJournalTranslationAdmission {
-    const translated = unhandledProviderFrameJournalItem('codex', kind, payload)
+    const translated = unhandledProviderFrameJournalItem(
+      'codex',
+      kind,
+      payload,
+      DEFAULT_JOURNAL_PAYLOAD_LIMITS,
+      options
+    )
     // A frame the classifier declines is deliberately not journaled, which is success.
     // Failing admission here force-closes the provider through the retry queue.
     if (!translated) {
