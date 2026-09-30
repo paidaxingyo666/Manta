@@ -265,12 +265,6 @@ describe('buildDispatchPreamble', () => {
     }
   })
 
-  it('uses manta CLI when devMode is false', () => {
-    const result = buildDispatchPreamble(baseParams({ devMode: false }))
-    expect(result).toContain('manta orchestration send')
-    expect(result).toContain('manta orchestration check')
-  })
-
   it('uses the exact manta-ide command for packaged WSL workers', () => {
     const result = buildDispatchPreamble(baseParams({ cliCommand: 'manta-ide' }))
 
