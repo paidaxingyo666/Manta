@@ -121,7 +121,11 @@ function Harness({
     enabled: true,
     connected: true,
     agent: 'codex',
-    hostSupport: { promptCancel: promptCancelSupported, questionAnswers: questionAnswersSupported },
+    hostSupport: {
+      promptCancel: promptCancelSupported,
+      questionAnswers: questionAnswersSupported,
+      queuedMessages: false
+    },
     onSendError: vi.fn()
   })
   return null
