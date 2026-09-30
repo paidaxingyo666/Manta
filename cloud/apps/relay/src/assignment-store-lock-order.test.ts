@@ -480,7 +480,7 @@ describe('RelayAssignmentStore activity lock order', () => {
       'cell-b',
       'assignment',
       'cell-inventory',
-      'cell-b',
+      // No 'cell-b' write: the host holds no units, so there is nothing to release.
       'cell-a'
     ])
   })

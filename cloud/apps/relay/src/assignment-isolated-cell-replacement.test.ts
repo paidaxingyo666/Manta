@@ -463,14 +463,38 @@ describe('re-placing a host off a cell isolated for a roll', () => {
     })
   })
 
-  it('never re-places across a region boundary, and says so', async () => {
-    // Both US cells parked and only Asia general: ordinary placement would spill
-    // to asia-east2 through `preferred[0] ?? candidates[0]`. This path refuses.
+  it('crosses a region boundary only when its own region has no room', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { store, isolateForRoll, park } = await setup()
     const first = await store.assign(IDENTITY, 'us-central1')
     const other = CELLS.find((cell) => cell.region === 'us-central1' && cell.id !== first.cellId)!
     await park(other.id, 'migration-only')
+    await isolateForRoll(first.cellId)
+
+    warn.mockClear()
+    expect(await store.assign(IDENTITY, 'us-central1')).toMatchObject({
+      cellId: 'asia-c1',
+      assignmentEpoch: first.assignmentEpoch + 1
+    })
+    expect(jsonEvents(warn, 'orca_relay_sticky_replaced_off_isolated_cell')).toEqual([
+      {
+        event: 'orca_relay_sticky_replaced_off_isolated_cell',
+        fromCellId: first.cellId,
+        fromRegion: 'us-central1',
+        admissionState: 'migration-only',
+        toCellId: 'asia-c1',
+        region: 'asia-east2'
+      }
+    ])
+  })
+
+  it('keeps the pin, and says so, when no region has a general cell with room', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { store, isolateForRoll, park } = await setup()
+    const first = await store.assign(IDENTITY, 'us-central1')
+    for (const cell of CELLS) {
+      if (cell.id !== first.cellId) await park(cell.id, 'migration-only')
+    }
     await isolateForRoll(first.cellId)
 
     warn.mockClear()
@@ -489,17 +513,25 @@ describe('re-placing a host off a cell isolated for a roll', () => {
     expect(jsonEvents(warn, 'orca_relay_sticky_replaced_off_isolated_cell')).toEqual([])
   })
 
-  it('keeps a re-placed host in its own region', async () => {
+  it('prefers its own region over a less loaded cell elsewhere', async () => {
+    const { store, isolateForRoll } = await setup()
+    const first = await store.assign(IDENTITY, 'us-central1')
+    await isolateForRoll(first.cellId)
+    const moved = await store.assign(IDENTITY, 'us-central1')
+    expect(moved.region).toBe('us-central1')
+    expect(moved.cellId).not.toBe(first.cellId)
+  })
+
+  it('moves the only cell of a region to another region', async () => {
     const { store, isolateForRoll } = await setup()
     const first = await store.assign(IDENTITY, 'asia-east2')
     expect(first.region).toBe('asia-east2')
     await isolateForRoll(first.cellId)
 
     // asia-c1 is the only Asia cell, so the only in-region candidate is gone.
-    expect(await store.assign(IDENTITY, 'asia-east2')).toMatchObject({
-      cellId: first.cellId,
-      assignmentEpoch: first.assignmentEpoch
-    })
+    const moved = await store.assign(IDENTITY, 'asia-east2')
+    expect(moved.region).toBe('us-central1')
+    expect(moved.assignmentEpoch).toBe(first.assignmentEpoch + 1)
   })
 
   it('takes the dead-cell path when a stamped cell stops heartbeating', async () => {
@@ -605,5 +637,101 @@ describe('re-placing a host off a cell isolated for a roll', () => {
         region: moved.region
       }
     ])
+  })
+  describe('a host whose leases span two cells after the move', () => {
+    const NEIGHBOUR = { userId: 'user-b', relayHostId: 'host000000000002' }
+
+    async function reserved(database: RelayDatabase, cellId: string): Promise<number> {
+      const rows = await database.query(
+        `SELECT reserved_requests FROM relay_cells WHERE cell_id = ?`,
+        [cellId]
+      )
+      return Number(rows[0]!['reserved_requests'])
+    }
+
+    async function expectAccounting(database: RelayDatabase): Promise<void> {
+      for (const cell of CELLS) {
+        const leased = await database.query(
+          `SELECT COALESCE(SUM(request_units), 0) AS units
+           FROM relay_assignment_activity_leases WHERE cell_id = ?`,
+          [cell.id]
+        )
+        expect({ cell: cell.id, reserved: await reserved(database, cell.id) }).toEqual({
+          cell: cell.id,
+          reserved: Number(leased[0]!['units'])
+        })
+      }
+    }
+
+    async function counters(database: RelayDatabase): Promise<number[]> {
+      const rows = await database.query(
+        `SELECT reserved_controls, reserved_splices FROM relay_assignments
+         WHERE user_id = ? AND relay_host_id = ?`,
+        [IDENTITY.userId, IDENTITY.relayHostId]
+      )
+      return [Number(rows[0]!['reserved_controls']), Number(rows[0]!['reserved_splices'])]
+    }
+
+    // us-c1 is isolated with the host's control and splice on it; the host
+    // moves to us-c2, where a neighbour's splice outlives every other lease.
+    async function movedHost(): Promise<Harness> {
+      const harness = await setup()
+      const { store, isolateForRoll } = harness
+      const first = await store.assign(IDENTITY, 'us-central1')
+      expect(first.cellId).toBe('us-c1')
+      await store.activateControl(IDENTITY, {
+        cellId: 'us-c1',
+        assignmentEpoch: first.assignmentEpoch,
+        generation: 1
+      })
+      await store.acquireActivity(IDENTITY, {
+        activityId: 'splice:keep-1',
+        kind: 'splice',
+        cellId: 'us-c1'
+      })
+      await isolateForRoll('us-c1')
+      expect((await store.assign(NEIGHBOUR, 'us-central1')).cellId).toBe('us-c2')
+      await store.acquireActivity(NEIGHBOUR, {
+        activityId: 'splice:neighbour',
+        kind: 'splice',
+        cellId: 'us-c2',
+        expiresAt: START_MS + 10 * 60 * 60_000
+      })
+      expect((await store.assign(IDENTITY, 'us-central1')).cellId).toBe('us-c2')
+      expect(await counters(harness.database)).toEqual([2, 1])
+      await expectAccounting(harness.database)
+      return harness
+    }
+
+    it('is left to the lease sweep by aggregate expiry', async () => {
+      const { store, database, setNow } = await movedHost()
+      setNow(START_MS + 60 * 60_000)
+      await store.releaseExpiredActivity()
+      expect(await counters(database)).toEqual([2, 1])
+      await expectAccounting(database)
+      await store.releaseExpiredActivityLeases()
+      await store.releaseExpiredActivity()
+      expect(await counters(database)).toEqual([0, 0])
+      expect(await reserved(database, 'us-c1')).toBe(0)
+      expect(await reserved(database, 'us-c2')).toBe(2)
+      await expectAccounting(database)
+    })
+
+    it('frees the source leases on their own cell when the target dies', async () => {
+      const { store, database, setNow, heartbeat, restore } = await movedHost()
+      await restore('us-c1')
+      // Uncapped, so the dead-cell path needs no fence to move off it.
+      await database.query(`DELETE FROM relay_cell_connection_limits WHERE cell_id = 'us-c2'`)
+      setNow(START_MS + HEARTBEAT_TTL_MS + 5_000)
+      await heartbeat(CELLS[0]!)
+      await heartbeat(CELLS[2]!)
+
+      expect((await store.assign(IDENTITY, 'us-central1')).cellId).toBe('us-c1')
+      expect(await counters(database)).toEqual([1, 0])
+      expect(await store.releaseActivity(IDENTITY, 'control:us-c1:1')).toBe(false)
+      expect(await reserved(database, 'us-c1')).toBe(1)
+      expect(await reserved(database, 'us-c2')).toBe(3)
+      await expectAccounting(database)
+    })
   })
 })
