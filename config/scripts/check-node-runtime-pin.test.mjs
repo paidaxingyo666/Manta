@@ -122,6 +122,28 @@ describe('findNodeRuntimePinProblems', () => {
       'NODE_RUNTIME_PIN.windowsImportLibs.win32-x64.sha256 is not a 64-character hex SHA-256'
     ])
   })
+  it('checks the compat table against its own target list', () => {
+    const input = validInput()
+    input.compatTargets = ['linux-x64-glibc217']
+    input.compatAssets = {
+      'linux-x64-glibc217': {
+        source: 'unofficial',
+        archive: 'node-v24.21.0-linux-x64.tar.gz',
+        archiveSha256: HASH,
+        executableSha256: HASH,
+        executableSize: 1
+      },
+      'linux-x64-glibc': input.assets['linux-x64-glibc']
+    }
+    expect(findNodeRuntimePinProblems(input)).toEqual([
+      'linux-x64-glibc217: archive node-v24.21.0-linux-x64.tar.gz is not node-v24.21.0-linux-x64-glibc-217.tar.gz',
+      'NODE_RUNTIME_COMPAT_ASSETS has linux-x64-glibc, which is not in COMPAT_SERVER_TARGETS'
+    ])
+    delete input.compatAssets['linux-x64-glibc217']
+    expect(findNodeRuntimePinProblems(input)).toContain(
+      'NODE_RUNTIME_COMPAT_ASSETS has no entry for linux-x64-glibc217'
+    )
+  })
   it("rejects another target's archive", () => {
     const input = validInput()
     input.assets['win32-x64'].archive = 'node-v24.21.0-win-arm64.zip'

@@ -25,27 +25,66 @@ export const SLOT_NAPI_VERSION = 8
 const NODE_API_EXPORTS = new Set(['node_api_module_get_api_version_v1'])
 
 /**
+ * Opt-in slots outside the default matrix, each beside its own pinned Node (design D6 rung B).
+ * A glibc 2.17 host has no libstdc++ new enough for anything but GCC 4.8, so the compat slot
+ * links it statically.
+ */
+export const COMPAT_SLOTS = Object.freeze({
+  'linux-x64-glibc217': Object.freeze({ platform: 'linux', arch: 'x64', libc: 'glibc' })
+})
+
+export function isCompatSlot(slot) {
+  return Object.hasOwn(COMPAT_SLOTS, slot)
+}
+
+/** The symbol-floor profile a glibc slot is gated at; the desktop keeps its own 2.31 floor. */
+export function slotGlibcFloor(slot) {
+  const floors = require('./verify-linux-glibc-floor.cjs')
+  return isCompatSlot(slot) ? floors.COMPAT_SLOT_GLIBC_FLOOR : floors.SERVER_SLOT_GLIBC_FLOOR
+}
+
+/** Refuses a compat slot label on a host that cannot produce it, e.g. arm64 or musl. */
+export function assertCompatSlotHost(slot, { platform, arch, libc }) {
+  const expected = COMPAT_SLOTS[slot]
+  if (
+    expected &&
+    (expected.platform !== platform || expected.arch !== arch || expected.libc !== libc)
+  ) {
+    throw new Error(
+      `[mantad-prebuilds] ${slot} must be built on ${expected.platform}-${expected.arch}-${expected.libc}, ` +
+        `not ${platform}-${arch}-${libc}`
+    )
+  }
+}
+
+const SHARED_CXX_RUNTIME = /^(?:libstdc\+\+\.so|libgcc_s\.so)/
+
+/** DT_NEEDED entries that break a statically linked C++ runtime, e.g. libstdc++.so.6. */
+export function findSharedCxxRuntimeNeeds(neededLibraries) {
+  return [...neededLibraries].filter((name) => SHARED_CXX_RUNTIME.test(name)).sort()
+}
+
+/**
  * gyp include for every target node-gyp compiles: pins NAPI_VERSION, and on macOS the C++
  * standard, because the official headers' config.gypi says `clang: 0`, which skips
  * common.gypi's gnu++20 and leaves older Apple clang at its C++98 default.
  */
-export function prebuildCompileGypi(napi = SLOT_NAPI_VERSION) {
-  const gypi = {
-    target_defaults: {
-      defines: [`NAPI_VERSION=${napi}`],
-      conditions: [
-        [
-          'OS=="mac"',
-          {
-            xcode_settings: {
-              CLANG_CXX_LANGUAGE_STANDARD: 'gnu++20',
-              CLANG_CXX_LIBRARY: 'libc++'
-            }
-          }
-        ]
-      ]
-    }
+export function prebuildCompileGypi({ napi = SLOT_NAPI_VERSION, staticCxxRuntime = false } = {}) {
+  const conditions = [
+    [
+      'OS=="mac"',
+      {
+        xcode_settings: {
+          CLANG_CXX_LANGUAGE_STANDARD: 'gnu++20',
+          CLANG_CXX_LIBRARY: 'libc++'
+        }
+      }
+    ]
+  ]
+  if (staticCxxRuntime) {
+    conditions.push(['OS=="linux"', { ldflags: ['-static-libstdc++', '-static-libgcc'] }])
   }
+  const gypi = { target_defaults: { defines: [`NAPI_VERSION=${napi}`], conditions } }
   return `${JSON.stringify(gypi, null, 2)}\n`
 }
 

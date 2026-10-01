@@ -18,6 +18,13 @@ export const SERVER_TARGETS = [
 
 export type ServerTarget = (typeof SERVER_TARGETS)[number]
 
+// Opt-in runtimes outside the default set: the unofficial glibc 2.17 x64 build (design D6 rung B).
+export const COMPAT_SERVER_TARGETS = ['linux-x64-glibc217'] as const
+
+export type CompatServerTarget = (typeof COMPAT_SERVER_TARGETS)[number]
+
+export type NodeRuntimeTarget = ServerTarget | CompatServerTarget
+
 // Managed SSH deployment supports POSIX hosts; Windows uses standalone builds.
 export const ORCAD_TEMPLATE_TARGETS = SERVER_TARGETS.filter(
   (target) => !target.startsWith('win32-')
@@ -126,7 +133,30 @@ export const NODE_RUNTIME_ASSETS: Record<ServerTarget, NodeRuntimeAsset> = {
     executableSize: 93580104
   }
 }
+
+export const NODE_RUNTIME_COMPAT_ASSETS: Record<CompatServerTarget, NodeRuntimeAsset> = {
+  'linux-x64-glibc217': {
+    source: 'unofficial',
+    archive: 'node-v24.21.0-linux-x64-glibc-217.tar.gz',
+    archiveSha256: 'b1d164136d4b218d663e664f40ba5e260ebc07f90e2bd784c63a57d8c0e6aa8a',
+    executableSha256: '1e75c95b1af4ec41e83d75816856b205f00c9427fd7d2dadd81472b38ff53d2c',
+    executableSize: 139511096
+  }
+}
 // @generated-end
+
+export function isCompatServerTarget(target: string): target is CompatServerTarget {
+  return COMPAT_SERVER_TARGETS.some((known) => known === target)
+}
+
+/** The pinned asset for a default or compat target; undefined for anything else. */
+export function nodeRuntimeAsset(target: string): NodeRuntimeAsset | undefined {
+  if (isCompatServerTarget(target)) {
+    return NODE_RUNTIME_COMPAT_ASSETS[target]
+  }
+  const server = SERVER_TARGETS.find((known) => known === target)
+  return server ? NODE_RUNTIME_ASSETS[server] : undefined
+}
 
 const NODE_RUNTIME_BASE_URLS: Record<NodeRuntimeAssetSource, string> = {
   official: 'https://nodejs.org/dist',
@@ -150,7 +180,7 @@ export function isWindowsServerTarget(target: string): target is WindowsServerTa
 }
 
 /** Archive-relative path of the executable, e.g. node-v24.21.0-linux-x64/bin/node. */
-export function nodeRuntimeExecutablePath(target: ServerTarget, archive: string): string {
+export function nodeRuntimeExecutablePath(target: NodeRuntimeTarget, archive: string): string {
   const topLevel = archive.replace(/\.(?:tar\.gz|tar\.xz|zip)$/, '')
   return target.startsWith('win32-') ? `${topLevel}/node.exe` : `${topLevel}/bin/node`
 }

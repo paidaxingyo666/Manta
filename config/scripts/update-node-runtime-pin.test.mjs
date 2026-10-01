@@ -2,9 +2,12 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  COMPAT_SERVER_TARGETS,
   NODE_RUNTIME_ASSETS,
+  NODE_RUNTIME_COMPAT_ASSETS,
   NODE_RUNTIME_PIN,
   SERVER_TARGETS,
+  nodeRuntimeAsset,
   nodeRuntimeExecutablePath
 } from '../../src/shared/node-runtime-pin.ts'
 import { nodeDistArchiveName } from './node-dist-archive-name.mjs'
@@ -45,8 +48,14 @@ describe('nodeDistArchiveName', () => {
     expect(nodeDistArchiveName('24.21.0', 'win32-arm64')).toBe('node-v24.21.0-win-arm64.zip')
   })
 
-  it('covers every server target', () => {
-    for (const target of SERVER_TARGETS) {
+  it('names the unofficial glibc 2.17 build for the compat target', () => {
+    expect(nodeDistArchiveName('24.21.0', 'linux-x64-glibc217')).toBe(
+      'node-v24.21.0-linux-x64-glibc-217.tar.gz'
+    )
+  })
+
+  it('covers every server and compat target', () => {
+    for (const target of [...SERVER_TARGETS, ...COMPAT_SERVER_TARGETS]) {
       expect(nodeDistArchiveName('24.21.0', target)).not.toContain('undefined')
     }
   })
@@ -97,12 +106,38 @@ describe('parseNodeApiVersion', () => {
   })
 })
 
+describe('compat runtime targets', () => {
+  it('stay out of the default target list', () => {
+    for (const target of COMPAT_SERVER_TARGETS) {
+      expect(SERVER_TARGETS).not.toContain(target)
+      expect(NODE_RUNTIME_ASSETS).not.toHaveProperty(target)
+    }
+  })
+
+  it('resolve through nodeRuntimeAsset beside the default targets', () => {
+    expect(nodeRuntimeAsset('linux-x64-glibc217')).toBe(
+      NODE_RUNTIME_COMPAT_ASSETS['linux-x64-glibc217']
+    )
+    expect(nodeRuntimeAsset('linux-x64-glibc')).toBe(NODE_RUNTIME_ASSETS['linux-x64-glibc'])
+    expect(nodeRuntimeAsset('linux-riscv64-glibc')).toBeUndefined()
+    expect(nodeRuntimeAsset('toString')).toBeUndefined()
+  })
+
+  it('pin the unofficial build at its extracted bin/node', () => {
+    const asset = NODE_RUNTIME_COMPAT_ASSETS['linux-x64-glibc217']
+    expect(asset.source).toBe('unofficial')
+    expect(nodeRuntimeExecutablePath('linux-x64-glibc217', asset.archive)).toBe(
+      `node-v${NODE_RUNTIME_PIN.version}-linux-x64-glibc-217/bin/node`
+    )
+  })
+})
+
 describe('generated block', () => {
   it('reproduces the committed table byte for byte', () => {
     const source = readFileSync(pinFile, 'utf8')
     const regenerated = replaceGeneratedBlock(
       source,
-      renderGeneratedBlock(NODE_RUNTIME_PIN, NODE_RUNTIME_ASSETS)
+      renderGeneratedBlock(NODE_RUNTIME_PIN, NODE_RUNTIME_ASSETS, NODE_RUNTIME_COMPAT_ASSETS)
     )
     expect(regenerated).toBe(source)
   })

@@ -160,6 +160,38 @@ it('keeps all ten platform jobs and runs them when detection is skipped or fails
   }
 })
 
+it('builds server glibc slots on glibc 2.28 and the compat slot on glibc 2.17 (design D6)', () => {
+  const workflow = parse(
+    readFileSync(new URL('../../.github/workflows/node-server-tests.yml', import.meta.url), 'utf8')
+  )
+  const floor = workflow.jobs.linux_glibc_floor
+  expect(floor.container).toBe('${{ matrix.image }}')
+  expect(floor.strategy.matrix.include).toEqual([
+    {
+      os: 'ubuntu-22.04',
+      image: expect.stringMatching(/^quay\.io\/pypa\/manylinux_2_28_x86_64@sha256:[0-9a-f]{64}$/)
+    },
+    {
+      os: 'ubuntu-24.04-arm',
+      image: expect.stringMatching(/^quay\.io\/pypa\/manylinux_2_28_aarch64@sha256:[0-9a-f]{64}$/)
+    }
+  ])
+  expect(floor.env).toMatchObject({ CC: 'gcc', CXX: 'g++' })
+
+  const compat = workflow.jobs.linux_glibc217_compat
+  expect(compat.needs).toEqual(['changes', 'persistence'])
+  expect(compat.if).toBe(floor.if)
+  expect(compat['runs-on']).toBe('ubuntu-22.04')
+  const run = compat.steps.map((step) => step.run ?? '').join('\n')
+  expect(run).toMatch(/quay\.io\/pypa\/manylinux2014_x86_64@sha256:[0-9a-f]{64} /)
+  expect(run).toContain('--slot=linux-x64-glibc217 --print-runtime')
+  expect(run).toContain('build-mantad-prebuilds.mjs --slot=linux-x64-glibc217\n')
+  expect(run).toContain('--require-slots linux-x64-glibc217')
+  expect(run).toContain(
+    'env -u LD_LIBRARY_PATH node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217 --smoke'
+  )
+})
+
 it('runs the Bun and Node cross-runtime tests on Linux against pinned inputs', () => {
   const workflow = parse(
     readFileSync(new URL('../../.github/workflows/node-server-tests.yml', import.meta.url), 'utf8')

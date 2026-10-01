@@ -9,7 +9,8 @@ export const NODE_DIST_PLATFORMS = {
   'linux-arm64-musl': 'linux-arm64-musl',
   'linux-x64-musl': 'linux-x64-musl',
   'win32-arm64': 'win-arm64',
-  'win32-x64': 'win-x64'
+  'win32-x64': 'win-x64',
+  'linux-x64-glibc217': 'linux-x64-glibc-217'
 }
 
 export function nodeDistArchiveName(version, target) {

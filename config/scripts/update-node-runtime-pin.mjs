@@ -19,6 +19,7 @@ import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { pathToFileURL } from 'node:url'
 import {
+  COMPAT_SERVER_TARGETS,
   SERVER_TARGETS,
   nodeRuntimeExecutablePath,
   nodeRuntimeReleaseUrl
@@ -81,7 +82,25 @@ export function parseNodeApiVersion(nodeVersionHeader) {
   return Number(match[1])
 }
 
-export function renderGeneratedBlock(pin, assets) {
+function renderAssetTable(name, type, targets, assets) {
+  const lines = [`export const ${name}: Record<${type}, NodeRuntimeAsset> = {`]
+  targets.forEach((target, index) => {
+    const asset = assets[target]
+    lines.push(
+      `  '${target}': {`,
+      `    source: '${asset.source}',`,
+      `    archive: '${asset.archive}',`,
+      `    archiveSha256: '${asset.archiveSha256}',`,
+      `    executableSha256: '${asset.executableSha256}',`,
+      `    executableSize: ${asset.executableSize}`,
+      index === targets.length - 1 ? '  }' : '  },'
+    )
+  })
+  lines.push('}')
+  return lines
+}
+
+export function renderGeneratedBlock(pin, assets, compatAssets) {
   const lines = [
     GENERATED_BEGIN,
     'export const NODE_RUNTIME_PIN: NodeRuntimePin = {',
@@ -102,21 +121,16 @@ export function renderGeneratedBlock(pin, assets) {
     '  }',
     '}',
     '',
-    'export const NODE_RUNTIME_ASSETS: Record<ServerTarget, NodeRuntimeAsset> = {'
+    ...renderAssetTable('NODE_RUNTIME_ASSETS', 'ServerTarget', SERVER_TARGETS, assets),
+    '',
+    ...renderAssetTable(
+      'NODE_RUNTIME_COMPAT_ASSETS',
+      'CompatServerTarget',
+      COMPAT_SERVER_TARGETS,
+      compatAssets
+    ),
+    GENERATED_END
   ]
-  SERVER_TARGETS.forEach((target, index) => {
-    const asset = assets[target]
-    lines.push(
-      `  '${target}': {`,
-      `    source: '${asset.source}',`,
-      `    archive: '${asset.archive}',`,
-      `    archiveSha256: '${asset.archiveSha256}',`,
-      `    executableSha256: '${asset.executableSha256}',`,
-      `    executableSize: ${asset.executableSize}`,
-      index === SERVER_TARGETS.length - 1 ? '  }' : '  },'
-    )
-  })
-  lines.push('}', GENERATED_END)
   return lines.join('\n')
 }
 
@@ -333,6 +347,18 @@ async function main() {
         unofficialHashes
       })
     }
+    // Why unofficial only: nodejs.org publishes no glibc 2.17 build; selectAssetSource finds it.
+    const compatAssets = {}
+    for (const target of COMPAT_SERVER_TARGETS) {
+      compatAssets[target] = await pinTarget({
+        version,
+        napi,
+        target,
+        workDir,
+        officialHashes,
+        unofficialHashes
+      })
+    }
     const pin = {
       version,
       electron: pinnedElectronVersion(),
@@ -341,7 +367,10 @@ async function main() {
       windowsImportLibs: pinWindowsImportLibs(officialHashes)
     }
     const source = readFileSync(PIN_FILE, 'utf8')
-    writeFileSync(PIN_FILE, replaceGeneratedBlock(source, renderGeneratedBlock(pin, assets)))
+    writeFileSync(
+      PIN_FILE,
+      replaceGeneratedBlock(source, renderGeneratedBlock(pin, assets, compatAssets))
+    )
     console.log(`Wrote ${PIN_FILE}. Run check-node-runtime-pin.mjs before committing.`)
   } finally {
     rmSync(workDir, { recursive: true, force: true })

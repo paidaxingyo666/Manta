@@ -2,9 +2,9 @@
 import { chmodSync, copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import {
-  NODE_RUNTIME_ASSETS,
   NODE_RUNTIME_PIN,
   isWindowsServerTarget,
+  nodeRuntimeAsset,
   nodeRuntimeExecutablePath,
   nodeRuntimeHeadersUrl,
   nodeRuntimeReleaseUrl
@@ -65,9 +65,9 @@ export async function preparePinnedNodeDir({ target, workDir, cacheDir = pinnedN
   return nodeDir
 }
 
-/** The pinned `node` for `target`, verified against both the archive and executable hashes. */
+/** The pinned `node` for a default or compat `target`, verified against both hashes. */
 export async function ensurePinnedNodeExecutable({ target, cacheDir = pinnedNodeCacheDir() }) {
-  const asset = NODE_RUNTIME_ASSETS[target]
+  const asset = nodeRuntimeAsset(target)
   if (!asset) {
     throw new Error(`The Node runtime pin has no asset for ${target}`)
   }

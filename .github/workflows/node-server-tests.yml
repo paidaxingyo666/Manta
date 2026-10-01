@@ -148,14 +148,26 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04-arm]
+        # Design D6: server glibc slots are built and gated on glibc 2.28, where the pinned Node's
+        # own floor is; the desktop keeps its Ubuntu 20.04 gate. gcc-toolset-14 supplies C++20 and
+        # links newer libstdc++ symbols statically, so the slot needs only RHEL 8's GLIBCXX_3.4.25.
+        include:
+          - os: ubuntu-22.04
+            image: quay.io/pypa/manylinux_2_28_x86_64@sha256:407f771c51a2c3e83ebe5a7970b4289ead3a6db21d9b9c089168775cad11d328
+          - os: ubuntu-24.04-arm
+            image: quay.io/pypa/manylinux_2_28_aarch64@sha256:c22ffd129ac99a8a42d1f2c2f4e88a9089288dd9ee987a7092da1c7dc48f27a9
     runs-on: ${{ matrix.os }}
-    container: ubuntu:20.04
-    timeout-minutes: 20
+    container: ${{ matrix.image }}
+    timeout-minutes: 25
     env:
       MANTA_BACKGROUND_LAUNCH: '1'
+      # The image puts /opt/clang first on PATH; the slot is built with its gcc-toolset.
+      CC: gcc
+      CXX: g++
+      PYTHON: /opt/python/cp312-cp312/bin/python3
     steps:
-      - name: Install Ubuntu 20.04 prerequisites
-        run: apt-get update && apt-get install -y build-essential ca-certificates git python3 unzip
+      - name: Install glibc 2.28 prerequisites
+        run: dnf install -y git procps-ng unzip which xz
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
@@ -169,6 +181,48 @@ jobs:
           pnpm build:mantad-prebuilds --smoke
       - run: pnpm build:mantad
       - run: pnpm test:node-server --artifact
+
+  linux_glibc217_compat:
+    needs: [changes, persistence]
+    # A failed smoke already blocks qualification; missing scope still selects every platform.
+    if: >-
+      ${{ !cancelled() && needs.persistence.result == 'success' &&
+      needs.changes.outputs.should_run != 'false' &&
+      needs.changes.outputs.qualification != 'false' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    env:
+      MANTA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+      # Design D6 rung B: the opt-in linux-x64-glibc217 slot beside the unofficial glibc-217 Node.
+      # Why docker run and not container: the runner's own Node for JS actions needs glibc 2.28,
+      # so the host installs and fetches the pinned Node, and the glibc 2.17 image only builds and
+      # smokes with that Node. devtoolset-10 supplies C++20; the slot links libstdc++ statically.
+      - name: Build and smoke the glibc 2.17 compat slot under the glibc-217 Node
+        run: |
+          compat_node="$(node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217 --print-runtime)"
+          case "$compat_node" in
+            "$GITHUB_WORKSPACE"/*) ;;
+            *) echo "glibc-217 Node cached outside the workspace: $compat_node" >&2; exit 1 ;;
+          esac
+          docker run --rm --init -i \
+            -e MANTA_BACKGROUND_LAUNCH=1 \
+            -e COMPAT_NODE="/work/${compat_node#"$GITHUB_WORKSPACE"/}" \
+            -e CC=gcc -e CXX=g++ \
+            -e PYTHON=/opt/python/cp312-cp312/bin/python3 \
+            -v "$GITHUB_WORKSPACE:/work" -w /work \
+            quay.io/pypa/manylinux2014_x86_64@sha256:6f74cabeac2432570aa4bfdb29f7c1f30313d4d6654d764c44e574b6ffdd4ed5 bash -s <<'GLIBC217_COMPAT_SLOT'
+          set -eu
+          export PATH="$(dirname "$COMPAT_NODE"):$PATH"
+          node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217
+          node config/scripts/build-mantad-prebuilds.mjs --require-slots linux-x64-glibc217
+          # The image's devtoolset LD_LIBRARY_PATH must not stand in for a host C++ runtime.
+          env -u LD_LIBRARY_PATH node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217 --smoke
+          GLIBC217_COMPAT_SLOT
 
   linux_musl:
     needs: [changes, persistence]

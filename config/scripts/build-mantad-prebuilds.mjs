@@ -17,12 +17,15 @@
  * CI runs this once per slot, each on the runner or container that owns that libc/arch, and
  * merges the resulting `out/mantad-prebuilds` trees. `--slot=<name>` forces the label so
  * the glibc/musl distinction is recorded from the container rather than detected.
+ * glibc slots are built on glibc 2.28 and gated there, not at the desktop's 2.31 (design D6);
+ * the opt-in `linux-x64-glibc217` compat slot (COMPAT_SLOTS) is built on glibc 2.17.
  *
  * Usage:
  *   node config/scripts/build-mantad-prebuilds.mjs [--slot=linux-x64-musl]
  *   node config/scripts/build-mantad-prebuilds.mjs --require-slots [slot,slot]  # release gate
- *   node config/scripts/build-mantad-prebuilds.mjs --smoke    # load + spawn under the pinned Node
+ *   node config/scripts/build-mantad-prebuilds.mjs [--slot=...] --smoke  # load + spawn under the pinned Node
  *   node config/scripts/build-mantad-prebuilds.mjs --print-slot
+ *   node config/scripts/build-mantad-prebuilds.mjs [--slot=...] --print-runtime  # fetch + print the slot's pinned Node
  */
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -30,17 +33,21 @@ import { dirname, join } from 'node:path'
 import process from 'node:process'
 import { NODE_RUNTIME_PIN } from '../../src/shared/node-runtime-pin.ts'
 import {
+  assertCompatSlotHost,
   findPostBaselineNodeApiNames,
+  findSharedCxxRuntimeNeeds,
   findSlotProblems,
   highestGlibcNeed,
+  isCompatSlot,
   mergeManifest,
   prebuildCompileGypi,
   readManifest,
   sha256Of,
+  slotGlibcFloor,
   slotSourceFiles,
   SLOT_NAPI_VERSION
 } from './orcad-prebuild-slot-contents.mjs'
-import { preparePinnedNodeDir } from './pinned-node-downloads.mjs'
+import { ensurePinnedNodeExecutable, preparePinnedNodeDir } from './pinned-node-downloads.mjs'
 
 export { readManifest }
 
@@ -209,7 +216,7 @@ async function compileNodePty(sourceDir, slot) {
     })
   }
   const compileGypi = join(workDir, 'prebuild-compile.gypi')
-  writeFileSync(compileGypi, prebuildCompileGypi())
+  writeFileSync(compileGypi, prebuildCompileGypi({ staticCxxRuntime: isCompatSlot(slot) }))
   const nodeDir = await preparePinnedNodeDir({ target: slot, workDir: join(workDir, 'nodedir') })
 
   console.log(
@@ -258,10 +265,10 @@ function requireSlots(slots) {
 }
 
 /**
- * Linux-only gates: architecture always; the Ubuntu 20.04 glibc/libstdc++ floor and the
- * recorded glibc need only for glibc slots, since a musl slot never meets Ubuntu's libraries.
+ * Linux-only gates: architecture always; the slot's glibc/libstdc++ floor and the recorded
+ * glibc need only for glibc slots, since a musl slot never meets glibc's libraries.
  */
-function linuxSlotRecord(slotDir, libc) {
+function linuxSlotRecord(slot, slotDir, libc) {
   const floor = require('./verify-linux-glibc-floor.cjs')
   if (libc !== 'glibc') {
     for (const binary of floor.collectNativeBinaries(slotDir)) {
@@ -274,9 +281,24 @@ function linuxSlotRecord(slotDir, libc) {
     }
     return { glibc: null }
   }
-  floor.verifyLinuxGlibcFloor(slotDir, { targetArch: process.arch })
+  floor.verifyLinuxGlibcFloor(slotDir, {
+    targetArch: process.arch,
+    glibcFloor: slotGlibcFloor(slot)
+  })
   const objdump = process.env.OBJDUMP || 'objdump'
   const binaries = floor.collectNativeBinaries(slotDir)
+  if (isCompatSlot(slot)) {
+    for (const binary of binaries) {
+      const shared = findSharedCxxRuntimeNeeds(
+        floor.readDynamicInfo(binary, objdump).neededLibraries
+      )
+      if (shared.length > 0) {
+        throw new Error(
+          `[mantad-prebuilds] ${binary} needs ${shared.join(', ')}; the ${slot} slot must link its C++ runtime statically`
+        )
+      }
+    }
+  }
   return {
     glibc: highestGlibcNeed(binaries, (path) => floor.readDynamicInfo(path, objdump).versionNeeds)
   }
@@ -286,6 +308,7 @@ async function build() {
   const sourceDir = nodePtyDir()
   assertNodePtyPatchApplied(sourceDir)
   const slot = slotName()
+  assertCompatSlotHost(slot, { platform: process.platform, arch: process.arch, libc: detectLibc() })
   const slotDir = join(PREBUILDS_DIR, slot)
   const buildDir = await compileNodePty(sourceDir, slot)
 
@@ -316,7 +339,8 @@ async function build() {
   }
 
   const libc = detectLibc()
-  const { glibc } = process.platform === 'linux' ? linuxSlotRecord(slotDir, libc) : { glibc: null }
+  const { glibc } =
+    process.platform === 'linux' ? linuxSlotRecord(slot, slotDir, libc) : { glibc: null }
   const manifest = mergeManifest(readManifest(PREBUILDS_DIR), {
     slot,
     version: require('node-pty/package.json').version,
@@ -341,6 +365,10 @@ async function build() {
 async function main() {
   if (process.argv.includes('--print-slot')) {
     console.log(slotName())
+    return
+  }
+  if (process.argv.includes('--print-runtime')) {
+    console.log(await ensurePinnedNodeExecutable({ target: slotName() }))
     return
   }
   const slots = requestedSlots()
