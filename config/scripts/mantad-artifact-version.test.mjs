@@ -3,9 +3,10 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
-  ORCAD_BUILD_TARGET_FILENAME,
-  ORCAD_RIPGREP_ARTIFACTS,
-  mantadArtifactFilenames
+  ORCAD_NODE_RUNTIME_MARKER_FILENAME,
+  ORCAD_SERVER_TARGET_FILENAME,
+  mantadArtifactFilenames,
+  orcadRipgrepArtifact
 } from '../../src/shared/mantad-artifacts.ts'
 import { SERVER_TARGETS } from '../../src/shared/node-runtime-pin.ts'
 import { mantadAgentBrowserNativeName } from '../../src/shared/mantad-agent-browser-name.ts'
@@ -19,7 +20,7 @@ afterEach(() => {
   }
 })
 
-function createArtifactDirectory(target = '') {
+function createArtifactDirectory(target = 'linux-x64-glibc') {
   const directory = mkdtempSync(join(tmpdir(), 'mantad-version-'))
   directories.push(directory)
   for (const filename of mantadArtifactFilenames(target)) {
@@ -27,19 +28,29 @@ function createArtifactDirectory(target = '') {
     mkdirSync(dirname(path), { recursive: true })
     writeFileSync(path, filename)
   }
-  writeFileSync(join(directory, ORCAD_BUILD_TARGET_FILENAME), `${target}\n`)
+  writeFileSync(join(directory, ORCAD_SERVER_TARGET_FILENAME), `${target}\n`)
   return directory
 }
 
 describe('standalone runtime version', () => {
   it('changes when a shipped search binary changes and rejects a missing binary', () => {
-    const dir = createArtifactDirectory()
-    const before = computeOrcadFullVersion(dir)
-    const binary = join(dir, ORCAD_RIPGREP_ARTIFACTS[0])
+    const target = 'linux-x64-glibc'
+    const dir = createArtifactDirectory(target)
+    const before = computeOrcadFullVersion(dir, { target })
+    const binary = join(dir, orcadRipgrepArtifact(target))
     writeFileSync(binary, 'updated binary')
-    expect(computeOrcadFullVersion(dir)).not.toBe(before)
+    expect(computeOrcadFullVersion(dir, { target })).not.toBe(before)
     rmSync(binary)
-    expect(() => computeOrcadFullVersion(dir)).toThrow(ORCAD_RIPGREP_ARTIFACTS[0])
+    expect(() => computeOrcadFullVersion(dir, { target })).toThrow(orcadRipgrepArtifact(target))
+  })
+
+  it('keys the version on the referenced runtime digest rather than its bytes', () => {
+    const target = 'darwin-arm64'
+    const dir = createArtifactDirectory(target)
+    writeFileSync(join(dir, ORCAD_NODE_RUNTIME_MARKER_FILENAME), `${'a'.repeat(64)}\n`)
+    const before = computeOrcadFullVersion(dir, { target })
+    writeFileSync(join(dir, ORCAD_NODE_RUNTIME_MARKER_FILENAME), `${'b'.repeat(64)}\n`)
+    expect(computeOrcadFullVersion(dir, { target })).not.toBe(before)
   })
 
   it.each(SERVER_TARGETS)(

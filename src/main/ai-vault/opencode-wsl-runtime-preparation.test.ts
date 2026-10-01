@@ -24,7 +24,7 @@ vi.mock('../wsl/wsl-runner', () => ({ runWslProcess: mocks.run }))
 vi.mock('../wsl-running-path-filter', () => ({
   filterPathsToRunningWslDistrosAsync: mocks.running
 }))
-vi.mock('../ssh/mantad-bun-runtime-materializer', () => ({
+vi.mock('../ssh/pinned-runtime-materializer', () => ({
   materializeCachedOrcadBunRuntime: mocks.download
 }))
 vi.mock('../ssh/relay-bundle-paths', () => ({ relayBundleCandidates: mocks.bundles }))

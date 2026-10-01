@@ -25,14 +25,14 @@ vi.mock('./ssh-relay-install-transfers', () => ({
   uploadRelayDirectory: mocks.upload,
   writeRelayFile: mocks.write
 }))
-vi.mock('./orcad-bun-runtime-materializer', () => ({
+vi.mock('./pinned-runtime-materializer', () => ({
   materializeCachedOrcadBunRuntime: mocks.materialize
 }))
-vi.mock('./orcad-deployment-target', () => ({ resolveOrcadDeploymentTarget: mocks.target }))
+vi.mock('./mantad-deployment-target', () => ({ resolveOrcadDeploymentTarget: mocks.target }))
 
 import type { SshConnection } from './ssh-connection'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
-import { ORCAD_BUN_RELEASE_ASSETS } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_RELEASE_ASSETS } from '../../shared/mantad-bun-runtime'
 import { ensureRemoteOpenCodeRuntime } from './ssh-relay-opencode-runtime'
 import { OPENCODE_RUNTIME_RESULT } from './ssh-relay-opencode-runtime-commands'
 

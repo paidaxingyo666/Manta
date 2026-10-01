@@ -5,8 +5,7 @@ import { join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import * as processRunner from '../../shared/child-process/run-process'
 import { runProcess, spawnProcess } from '../../shared/child-process/run-process'
-import { ORCAD_BUN_VERSION } from '../../shared/orcad-bun-runtime'
-import { orcadBunRuntimeFilename } from '../../shared/mantad-artifacts'
+import { ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
 import SyncDatabase from '../sqlite/sync-database'
 import { appendTurns, writeOpenCodeSqliteDatabase } from './session-scanner-opencode-sqlite-fixture'
 import { createOpenCodeSqliteProcessClient } from './session-scanner-opencode-sqlite-process-client'
@@ -16,8 +15,8 @@ import {
 } from './session-scanner-opencode-sqlite-process-framing'
 import type { AiVaultScanIssue } from '../../shared/ai-vault-types'
 
-const bun =
-  process.env.BUN_EXECUTABLE ?? resolve('out/mantad', orcadBunRuntimeFilename(process.platform))
+// mantad no longer ships Bun; the vault reader's Bun path is exercised only with an explicit one.
+const bun = process.env.BUN_EXECUTABLE ? resolve(process.env.BUN_EXECUTABLE) : ''
 const directory = mkdtempSync(join(tmpdir(), 'orca-opencode-process-'))
 const entry = join(directory, 'reader.cjs')
 const dbPath = join(directory, 'opencode.db')

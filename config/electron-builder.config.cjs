@@ -189,8 +189,12 @@ module.exports = {
     // extraResources. Shipping them in app.asar bloats the desktop bundle.
     '!src{,/**/*}',
     '!out/mantad{,/**/*}',
-    '!out/mantad-template{,/**/*}',
+    // Template, node-pty prebuilds and their work dirs: headless build outputs, not desktop code.
+    '!out/mantad-*{,/**/*}',
     '!out/.mantad-*{,/**/*}',
+    // Why: the pinned Node a local mantad build references (~120 MB) and its download cache.
+    '!out/runtimes{,/**/*}',
+    '!out/node-runtime-cache{,/**/*}',
     '!config{,/**/*}',
     '!docs{,/**/*}',
     '!mobile{,/**/*}',

@@ -11,6 +11,7 @@ import { nodeDistArchiveName } from './node-dist-archive-name.mjs'
 import {
   parseNodeApiVersion,
   parseShasums,
+  pinWindowsImportLibs,
   renderGeneratedBlock,
   replaceGeneratedBlock,
   selectAssetSource
@@ -19,6 +20,21 @@ import {
 const pinFile = path.resolve(import.meta.dirname, '../../src/shared/node-runtime-pin.ts')
 const HASH_A = 'a'.repeat(64)
 const HASH_B = 'b'.repeat(64)
+
+describe('pinWindowsImportLibs', () => {
+  it('reads each Windows node.lib hash from SHASUMS and refuses a missing one', () => {
+    const hashes = new Map([
+      ['win-x64/node.lib', HASH_A],
+      ['win-arm64/node.lib', HASH_B]
+    ])
+    expect(pinWindowsImportLibs(hashes)).toEqual({
+      'win32-arm64': { file: 'win-arm64/node.lib', sha256: HASH_B },
+      'win32-x64': { file: 'win-x64/node.lib', sha256: HASH_A }
+    })
+    hashes.delete('win-arm64/node.lib')
+    expect(() => pinWindowsImportLibs(hashes)).toThrow('SHASUMS256.txt lists no win-arm64/node.lib')
+  })
+})
 
 describe('nodeDistArchiveName', () => {
   it('uses nodejs.org platform names and zip only on Windows', () => {

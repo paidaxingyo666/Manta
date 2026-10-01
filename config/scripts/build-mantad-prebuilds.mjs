@@ -10,28 +10,46 @@
  * #9902. So the matrix is compiled from patched sources here, and this script refuses to
  * run if the patch is not in the tree it is about to compile.
  *
- * mantad pins its own Node runtime, so the ABI dimension is fixed and the matrix varies
- * only platform/arch/libc:
- *   linux-x64-glibc, linux-arm64-glibc, linux-x64-musl, linux-arm64-musl,
- *   darwin-x64, darwin-arm64
+ * Compiled against the pinned Node's hash-verified headers (src/shared/node-runtime-pin.ts)
+ * at N-API 8, so the matrix varies only platform/arch/libc (design D2):
+ *   linux-{x64,arm64}-{glibc,musl}, darwin-{x64,arm64}, win32-{x64,arm64}
  *
- * CI runs this once per slot, each inside the container that owns that libc/arch, and
- * merges the resulting `out/mantad/prebuilds` trees. `--slot=<name>` forces the label so
+ * CI runs this once per slot, each on the runner or container that owns that libc/arch, and
+ * merges the resulting `out/mantad-prebuilds` trees. `--slot=<name>` forces the label so
  * the glibc/musl distinction is recorded from the container rather than detected.
  *
  * Usage:
  *   node config/scripts/build-mantad-prebuilds.mjs [--slot=linux-x64-musl]
- *   node config/scripts/build-mantad-prebuilds.mjs --require-slots   # release gate
+ *   node config/scripts/build-mantad-prebuilds.mjs --require-slots [slot,slot]  # release gate
+ *   node config/scripts/build-mantad-prebuilds.mjs --smoke    # load + spawn under the pinned Node
+ *   node config/scripts/build-mantad-prebuilds.mjs --print-slot
  */
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import process from 'node:process'
-import { spawnSync } from 'node:child_process'
+import { NODE_RUNTIME_PIN } from '../../src/shared/node-runtime-pin.ts'
+import {
+  findPostBaselineNodeApiNames,
+  findSlotProblems,
+  highestGlibcNeed,
+  mergeManifest,
+  prebuildCompileGypi,
+  readManifest,
+  sha256Of,
+  slotSourceFiles,
+  SLOT_NAPI_VERSION
+} from './orcad-prebuild-slot-contents.mjs'
+import { preparePinnedNodeDir } from './pinned-node-downloads.mjs'
+
+export { readManifest }
 
 const require = createRequire(import.meta.url)
 const ROOT = join(import.meta.dirname, '..', '..')
-const PREBUILDS_DIR = join(ROOT, 'out', 'mantad', 'prebuilds')
+// Why outside out/mantad: build:mantad wipes that directory and copies its target's slot from here.
+export const ORCAD_PREBUILDS_DIR = join(ROOT, 'out', 'mantad-prebuilds')
+const PREBUILDS_DIR = ORCAD_PREBUILDS_DIR
+const WORK_DIR = join(ROOT, 'out', 'orcad-prebuild-work')
 
 /** Every slot a shipped matrix must fill. The single source of truth for the matrix. */
 export const MATRIX_SLOTS = [
@@ -40,7 +58,9 @@ export const MATRIX_SLOTS = [
   'linux-x64-musl',
   'linux-arm64-musl',
   'darwin-x64',
-  'darwin-arm64'
+  'darwin-arm64',
+  'win32-x64',
+  'win32-arm64'
 ]
 
 /**
@@ -71,6 +91,21 @@ export function slotName(argv = process.argv, platform = process.platform, arch 
   return libc === 'none' ? `${platform}-${arch}` : `${platform}-${arch}-${libc}`
 }
 
+/** `--require-slots` alone means the whole matrix; `--require-slots a,b` or `=a,b` names slots. */
+export function requestedSlots(argv = process.argv) {
+  const index = argv.findIndex(
+    (arg) => arg === '--require-slots' || arg.startsWith('--require-slots=')
+  )
+  if (index === -1) {
+    return null
+  }
+  const inline = argv[index].slice('--require-slots='.length)
+  const next = argv[index + 1]
+  const list = argv[index].includes('=') ? inline : next && !next.startsWith('--') ? next : ''
+  const slots = list.split(',').filter(Boolean)
+  return slots.length > 0 ? slots : MATRIX_SLOTS
+}
+
 /**
  * The patch is what holds the Ubuntu 20.04 floor. Compiling without it produces a binary
  * that loads fine on the build host and dies on the target — the exact failure the matrix
@@ -98,120 +133,229 @@ export function assertNodePtyPatchApplied(nodePtyDir) {
   }
 }
 
-export function readManifest(prebuildsDir) {
-  try {
-    return JSON.parse(readFileSync(join(prebuildsDir, 'manifest.json'), 'utf8'))
-  } catch {
-    return null
-  }
-}
+const GLIBC_DT_NEEDED_LDFLAG = "'-Wl,--no-as-needed,-l:libutil.so.1,-l:libpthread.so.0,--as-needed'"
 
 /**
- * Why merge rather than overwrite: CI builds one slot per container and merges the trees.
- * A manifest that records only the last slot would erase every other container's record,
- * and `--require-slots` would then reject a complete matrix.
+ * musl has no libutil.so.1 (openpty/forkpty live in libc and libutil is an empty static stub),
+ * so the patch's glibc DT_NEEDED ldflag cannot link there.
  */
-export function mergeManifest(existing, next) {
-  const slots = new Set([...(existing?.slots ?? []), next.slot])
-  return {
-    module: 'node-pty',
-    version: next.version,
-    nodeAbi: next.nodeAbi,
-    slots: [...slots].sort()
+export function bindingGypForLibc(bindingGyp, libc) {
+  if (libc !== 'musl') {
+    return bindingGyp
   }
+  if (!bindingGyp.includes(GLIBC_DT_NEEDED_LDFLAG)) {
+    throw new Error(
+      '[mantad-prebuilds] binding.gyp no longer carries the glibc ldflag this build strips on musl'
+    )
+  }
+  return bindingGyp.replace(GLIBC_DT_NEEDED_LDFLAG, '')
+}
+
+const GLIBC_SYMVER_GUARD =
+  '#if defined(__linux__)\n#  if defined(__x86_64__)\n#    define MANTA_GLIBC_COMPAT_VERSION'
+
+/**
+ * The patch's `.symver` pins bind openpty/forkpty/pthread_sigmask to `@GLIBC_*` versions, which
+ * musl's unversioned libc cannot satisfy at link time; musl never defines __GLIBC__.
+ */
+export function ptySourceForLibc(ptySource, libc) {
+  if (libc !== 'musl') {
+    return ptySource
+  }
+  if (!ptySource.includes(GLIBC_SYMVER_GUARD)) {
+    throw new Error(
+      '[mantad-prebuilds] pty.cc no longer carries the glibc .symver guard this build scopes on musl'
+    )
+  }
+  return ptySource.replace(
+    GLIBC_SYMVER_GUARD,
+    GLIBC_SYMVER_GUARD.replace('defined(__linux__)', 'defined(__linux__) && defined(__GLIBC__)')
+  )
 }
 
 function nodePtyDir() {
   return dirname(require.resolve('node-pty/package.json'))
 }
 
-function compileNodePty(dir) {
-  const built = join(dir, 'build', 'Release', 'pty.node')
-  if (existsSync(built)) {
-    console.log(`[mantad-prebuilds] reusing existing build at ${built}`)
-    return built
+/**
+ * Compile in a scratch copy, never in node_modules/node-pty: that tree holds the Electron
+ * build the desktop loads, and a Node-headers rebuild there would break the app.
+ */
+async function compileNodePty(sourceDir, slot) {
+  const workDir = join(WORK_DIR, slot)
+  const stagedDir = join(workDir, 'node-pty')
+  rmSync(workDir, { recursive: true, force: true })
+  mkdirSync(stagedDir, { recursive: true })
+  for (const entry of ['package.json', 'src']) {
+    cpSync(join(sourceDir, entry), join(stagedDir, entry), { recursive: true })
   }
-  console.log('[mantad-prebuilds] compiling node-pty from patched source ...')
-  const result = spawnSync(
-    process.platform === 'win32' ? 'npx.cmd' : 'npx',
-    ['node-gyp', 'rebuild'],
-    {
-      cwd: dir,
-      stdio: 'inherit',
-      env: process.env,
-      windowsHide: true
-    }
+  const libc = detectLibc()
+  writeFileSync(
+    join(stagedDir, 'binding.gyp'),
+    bindingGypForLibc(readFileSync(join(sourceDir, 'binding.gyp'), 'utf8'), libc)
   )
-  if (result.status !== 0) {
-    throw new Error(`[mantad-prebuilds] node-gyp rebuild failed (status ${result.status})`)
+  const ptySourcePath = join(stagedDir, 'src', 'unix', 'pty.cc')
+  writeFileSync(ptySourcePath, ptySourceForLibc(readFileSync(ptySourcePath, 'utf8'), libc))
+  const addonApiDir = dirname(
+    require.resolve('node-addon-api/package.json', { paths: [sourceDir] })
+  )
+  cpSync(addonApiDir, join(stagedDir, 'node_modules', 'node-addon-api'), {
+    recursive: true,
+    dereference: true
+  })
+  if (process.platform === 'win32') {
+    require('./node-pty-job-ownership.cjs').assertNodePtySourceDeniesMsysBreakaway({
+      nodePtyDir: stagedDir
+    })
   }
-  if (!existsSync(built)) {
-    throw new Error(`[mantad-prebuilds] node-gyp succeeded but ${built} is missing`)
+  const compileGypi = join(workDir, 'prebuild-compile.gypi')
+  writeFileSync(compileGypi, prebuildCompileGypi())
+  const nodeDir = await preparePinnedNodeDir({ target: slot, workDir: join(workDir, 'nodedir') })
+
+  console.log(
+    `[mantad-prebuilds] compiling patched node-pty for ${slot} against Node ${NODE_RUNTIME_PIN.version} headers, N-API ${SLOT_NAPI_VERSION} ...`
+  )
+  const { runProcessSync } = await import('./script-child-process.mjs')
+  const result = runProcessSync({
+    program: process.execPath,
+    args: [
+      join(ROOT, 'node_modules', 'node-gyp', 'bin', 'node-gyp.js'),
+      'rebuild',
+      `--nodedir=${nodeDir}`,
+      '--',
+      '-I',
+      compileGypi
+    ],
+    cwd: stagedDir,
+    stdio: 'inherit',
+    timeoutMs: null
+  })
+  if (result.code !== 0) {
+    throw new Error(`[mantad-prebuilds] node-gyp rebuild failed (status ${result.code})`)
   }
-  return built
+  const buildDir = join(stagedDir, 'build', 'Release')
+  if (process.platform === 'win32') {
+    require('./node-pty-job-ownership.cjs').assertRebuiltConptyDeniesMsysBreakaway({
+      nodePtyDir: stagedDir,
+      rebuildArch: process.arch,
+      crossHost: false
+    })
+  }
+  return buildDir
 }
 
-function requireSlots() {
-  const manifest = readManifest(PREBUILDS_DIR)
-  const have = new Set(manifest?.slots ?? [])
-  const missing = MATRIX_SLOTS.filter((slot) => !have.has(slot))
-  if (missing.length > 0) {
+function requireSlots(slots) {
+  const problems = findSlotProblems(readManifest(PREBUILDS_DIR), PREBUILDS_DIR, slots)
+  if (problems.length > 0) {
     console.error(
-      `[mantad-prebuilds] matrix incomplete — missing ${missing.join(', ')}. ` +
+      `[mantad-prebuilds] matrix incomplete:\n${problems.map((p) => `  - ${p}`).join('\n')}\n` +
         'Hosts on those slots fall back to a source build and need a C/C++ toolchain.'
     )
     process.exitCode = 1
     return
   }
-  console.log(`[mantad-prebuilds] matrix complete — ${MATRIX_SLOTS.length} slots`)
+  console.log(`[mantad-prebuilds] verified ${slots.length} slot(s): ${slots.join(', ')}`)
 }
 
-function build() {
-  const dir = nodePtyDir()
-  assertNodePtyPatchApplied(dir)
+/**
+ * Linux-only gates: architecture always; the Ubuntu 20.04 glibc/libstdc++ floor and the
+ * recorded glibc need only for glibc slots, since a musl slot never meets Ubuntu's libraries.
+ */
+function linuxSlotRecord(slotDir, libc) {
+  const floor = require('./verify-linux-glibc-floor.cjs')
+  if (libc !== 'glibc') {
+    for (const binary of floor.collectNativeBinaries(slotDir)) {
+      const violation = floor.findArchViolation(binary, process.arch, slotDir)
+      if (violation) {
+        throw new Error(
+          `[mantad-prebuilds] ${binary} is ${violation.actual}, expected ${process.arch}`
+        )
+      }
+    }
+    return { glibc: null }
+  }
+  floor.verifyLinuxGlibcFloor(slotDir, { targetArch: process.arch })
+  const objdump = process.env.OBJDUMP || 'objdump'
+  const binaries = floor.collectNativeBinaries(slotDir)
+  return {
+    glibc: highestGlibcNeed(binaries, (path) => floor.readDynamicInfo(path, objdump).versionNeeds)
+  }
+}
+
+async function build() {
+  const sourceDir = nodePtyDir()
+  assertNodePtyPatchApplied(sourceDir)
   const slot = slotName()
   const slotDir = join(PREBUILDS_DIR, slot)
-  mkdirSync(slotDir, { recursive: true })
+  const buildDir = await compileNodePty(sourceDir, slot)
 
-  const builtBinary = compileNodePty(dir)
-  copyFileSync(builtBinary, join(slotDir, 'pty.node'))
-  console.log(`[mantad-prebuilds] stored ${slot}/pty.node`)
-
-  // Why spawn-helper ships too: on macOS node-pty posix_spawns build/Release/spawn-helper,
-  // so a slot without it installs cleanly and then fails ENOENT the first time a user
-  // opens a terminal. binding.gyp builds the helper only under OS=="mac"; every other
-  // platform forks directly, so demanding one there fails a healthy Linux slot build.
-  if (process.platform === 'darwin') {
-    const helperSource = join(dirname(builtBinary), 'spawn-helper')
-    if (!existsSync(helperSource)) {
-      throw new Error(`[mantad-prebuilds] spawn-helper missing at ${helperSource}`)
+  rmSync(slotDir, { recursive: true, force: true })
+  const files = {}
+  for (const [relative, source] of slotSourceFiles({
+    platform: process.platform,
+    arch: process.arch,
+    buildDir,
+    nodePtyDir: sourceDir
+  })) {
+    if (!existsSync(source)) {
+      throw new Error(`[mantad-prebuilds] ${slot} needs ${relative}, but ${source} is missing`)
     }
-    copyFileSync(helperSource, join(slotDir, 'spawn-helper'))
-    console.log(`[mantad-prebuilds] stored ${slot}/spawn-helper`)
+    const destination = join(slotDir, ...relative.split('/'))
+    mkdirSync(dirname(destination), { recursive: true })
+    cpSync(source, destination)
+    files[relative] = sha256Of(destination)
+    if (relative.endsWith('.node')) {
+      const newer = findPostBaselineNodeApiNames(readFileSync(destination))
+      if (newer.length > 0) {
+        throw new Error(
+          `[mantad-prebuilds] ${slot}/${relative} imports ${newer.join(', ')}, above N-API ${SLOT_NAPI_VERSION}; host Node 18 could not load it`
+        )
+      }
+    }
+    console.log(`[mantad-prebuilds] stored ${slot}/${relative}`)
   }
 
-  // The static floor gate, applied to the artifact we are about to ship rather than only
-  // to the packaged desktop app. objdump is Linux-only, which is where the floor lives.
-  if (process.platform === 'linux') {
-    const { verifyLinuxGlibcFloor } = require('./verify-linux-glibc-floor.cjs')
-    verifyLinuxGlibcFloor(slotDir)
-  }
-
+  const libc = detectLibc()
+  const { glibc } = process.platform === 'linux' ? linuxSlotRecord(slotDir, libc) : { glibc: null }
   const manifest = mergeManifest(readManifest(PREBUILDS_DIR), {
     slot,
     version: require('node-pty/package.json').version,
-    nodeAbi: process.versions.modules
+    napi: SLOT_NAPI_VERSION,
+    nodeHeaders: NODE_RUNTIME_PIN.version,
+    entry: {
+      platform: process.platform,
+      arch: process.arch,
+      libc,
+      glibc,
+      napi: SLOT_NAPI_VERSION,
+      files
+    }
   })
   writeFileSync(join(PREBUILDS_DIR, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`)
   console.log(
-    `[mantad-prebuilds] manifest: node-pty ${manifest.version}, ABI ${manifest.nodeAbi}, slots ${manifest.slots.join(', ')}`
+    `[mantad-prebuilds] manifest: node-pty ${manifest.version}, N-API ${manifest.napi}, ` +
+      `slots ${Object.keys(manifest.slots).join(', ')}`
   )
 }
 
-if (process.argv[1] && process.argv[1].endsWith('build-mantad-prebuilds.mjs')) {
-  if (process.argv.includes('--require-slots')) {
-    requireSlots()
-  } else {
-    build()
+async function main() {
+  if (process.argv.includes('--print-slot')) {
+    console.log(slotName())
+    return
   }
+  const slots = requestedSlots()
+  if (slots) {
+    requireSlots(slots)
+    return
+  }
+  if (process.argv.includes('--smoke')) {
+    const { runOrcadPrebuildSmoke } = await import('./orcad-prebuild-smoke.mjs')
+    await runOrcadPrebuildSmoke({ slot: slotName(), prebuildsDir: PREBUILDS_DIR })
+    return
+  }
+  await build()
+}
+
+if (process.argv[1] && process.argv[1].endsWith('build-mantad-prebuilds.mjs')) {
+  await main()
 }

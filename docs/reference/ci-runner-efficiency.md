@@ -1,7 +1,7 @@
 # CI efficiency and runner capacity
 
 The [September 28 demand rollout](ci-demand-rollout.md) documents staged checks,
-unit-selection evidence, Bun qualification, review cancellation and daily occupancy reports.
+unit-selection evidence, headless runtime qualification, review cancellation and daily occupancy reports.
 
 ## September 27 follow-up
 
@@ -27,7 +27,6 @@ minutes saved across 14 consumers, before artifact transfer overhead. Runner
 variation is substantial; this is not a measured workflow wall-time reduction.
 Test coverage and deadlines stay intact.
 
-
 [PR #23368](https://github.com/stablyai/orca/pull/23368) overlaps shell installation
 with dependency setup, starts localization extraction before the mantad smoke,
 and prepares mobile route snapshots while WebKit and the bundle are being built.
@@ -35,14 +34,14 @@ Its 27 checks passed without retries; seven existing conditional checks skipped.
 
 Same-runner comparisons in both orders measured:
 
-| Work | Before | After | Evidence |
-| --- | --- | --- | --- |
-| Static block | 63.5 / 74.7s | 38.9 / 55.6s | [Full comparisons](https://github.com/stablyai/orca/actions/runs/36302208990) |
-| Shell job, downloads warmed equally | 76.8 / 70.3s | 64.4 / 64.0s | [Controlled shell runs](https://github.com/stablyai/orca/actions/runs/36302612626) |
-| Mobile preparation | 19.8–21.6s | 18.0–18.5s | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36302877583) |
-| Web projection and mobile build | 17.2–17.3s | 11.7–12.1s | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36302974324) |
-| Mobile verifier fixture suite | 25.47 / 25.35s | 20.04 / 19.92s | [Four full-suite runs](https://github.com/stablyai/orca/actions/runs/36302692823) |
-| E2E build outputs | 28.6–30.4s | 25.8–27.8s | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36304001325) |
+| Work                                | Before         | After          | Evidence                                                                           |
+| ----------------------------------- | -------------- | -------------- | ---------------------------------------------------------------------------------- |
+| Static block                        | 63.5 / 74.7s   | 38.9 / 55.6s   | [Full comparisons](https://github.com/stablyai/orca/actions/runs/36302208990)      |
+| Shell job, downloads warmed equally | 76.8 / 70.3s   | 64.4 / 64.0s   | [Controlled shell runs](https://github.com/stablyai/orca/actions/runs/36302612626) |
+| Mobile preparation                  | 19.8–21.6s     | 18.0–18.5s     | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36302877583)    |
+| Web projection and mobile build     | 17.2–17.3s     | 11.7–12.1s     | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36302974324)    |
+| Mobile verifier fixture suite       | 25.47 / 25.35s | 20.04 / 19.92s | [Four full-suite runs](https://github.com/stablyai/orca/actions/runs/36302692823)  |
+| E2E build outputs                   | 28.6–30.4s     | 25.8–27.8s     | [Eight measurements](https://github.com/stablyai/orca/actions/runs/36304001325)    |
 
 Full mobile-job timings were dominated by first-run apt installation and browser
 test variation; the controlled preparation measurement is the scheduling evidence.
@@ -109,7 +108,7 @@ before the composites start; the workflow contract now preserves that ordering.
   or still-running check falls back to the full checks. Advisory tests retain
   their normal readiness routing. The mobile and line-count workflows have no
   draft-dependent work, so they no longer run again when a draft becomes ready.
-- Route the Bun matrix using the actual headless build and selected tests'
+- Route the headless-runtime matrix using the actual headless build and selected tests'
   transitive imports, with conservative inclusion for dynamic workers, native
   inputs, fixtures, and toolchain changes. A graph failure runs the full matrix;
   manual dispatch still runs all ten platform jobs. The shared test selectors

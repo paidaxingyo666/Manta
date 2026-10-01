@@ -14,11 +14,13 @@ export const RUNTIME_LAUNCHER_PATHS = [
   'src/main/mantad/mantad-bundled-runtime.ts',
   'src/shared/mantad-bun-runtime.ts',
   'src/shared/node-runtime-pin.ts',
-  'src/main/ssh/mantad-bun-runtime-materializer.ts',
+  'src/main/ssh/pinned-runtime-materializer.ts',
+  'src/main/ssh/runtime-archive-download.ts',
+  'src/main/ssh/mantad-remote-node-runtime.ts',
   // mantad slot layout: which runtime file a packaged slot carries.
   'src/shared/mantad-artifacts.ts',
   'config/scripts/build-mantad.mjs',
-  'config/scripts/build-mantad-bun.mjs',
+  'config/scripts/build-orcad-node.mjs',
   'config/scripts/build-mantad-template.mjs',
   // Remote slot runtime selection.
   'src/main/ssh/mantad-remote-runtime.ts',

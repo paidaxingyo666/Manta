@@ -6,7 +6,7 @@ import { createRequire } from 'node:module'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseAllDocuments } from 'yaml'
-import { nodeDistArchiveName } from './node-dist-archive-name.mjs'
+import { nodeDistArchiveName, windowsImportLibFile } from './node-dist-archive-name.mjs'
 
 // Why require: an ESM import of a .ts file under a typeless package.json prints MODULE_TYPELESS_PACKAGE_JSON.
 const { NODE_RUNTIME_ASSETS, NODE_RUNTIME_PIN, SERVER_TARGETS } = createRequire(import.meta.url)(
@@ -72,6 +72,19 @@ export function findNodeRuntimePinProblems({ pin, assets, targets, packageJson, 
   }
   if (pin.headers?.file !== `node-v${pin.version}-headers.tar.gz`) {
     problems.push(`NODE_RUNTIME_PIN.headers.file ${pin.headers?.file} is not for ${pin.version}`)
+  }
+  for (const target of targets.filter((name) => name.startsWith('win32-'))) {
+    const lib = pin.windowsImportLibs?.[target]
+    if (lib?.file !== windowsImportLibFile(target)) {
+      problems.push(
+        `NODE_RUNTIME_PIN.windowsImportLibs.${target}.file is not ${windowsImportLibFile(target)}`
+      )
+    }
+    if (!SHA256.test(lib?.sha256 ?? '')) {
+      problems.push(
+        `NODE_RUNTIME_PIN.windowsImportLibs.${target}.sha256 is not a 64-character hex SHA-256`
+      )
+    }
   }
 
   const expected = new Set(targets)

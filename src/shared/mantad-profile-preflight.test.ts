@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { ORCAD_BUN_RUNTIME_IDENTITY } from './mantad-bun-runtime'
+import { ORCAD_NODE_RUNTIME_IDENTITY } from './orcad-node-runtime-identity'
 import {
   parseOrcadProfilePreflight,
   type OrcadPreflightRuntimeIdentity
@@ -51,11 +51,12 @@ describe('candidate profile readiness', () => {
     expect(() => parse(response, expected)).toThrow('expected candidate runtime')
   })
 
-  it('shipped callers still require the pinned Bun runtime', () => {
-    expect(ORCAD_BUN_RUNTIME_IDENTITY.runtime).toBe('bun')
+  it('shipped callers require the pinned Node, not a Bun slot or a host Node', () => {
+    expect(ORCAD_NODE_RUNTIME_IDENTITY.runtime).toBe('node')
+    expect(() => parse(response, ORCAD_NODE_RUNTIME_IDENTITY)).toThrow()
     expect(() =>
-      parse({ ...response, runtime: 'node' }, { ...ORCAD_BUN_RUNTIME_IDENTITY })
-    ).toThrow()
+      parse({ ...response, runtime: 'node', runtimeVersion: '18.0.0' }, ORCAD_NODE_RUNTIME_IDENTITY)
+    ).toThrow('expected candidate runtime')
   })
 
   it('does not choose a successful line out of contradictory output', () => {

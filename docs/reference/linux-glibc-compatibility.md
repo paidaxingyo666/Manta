@@ -105,16 +105,24 @@ finds is published in `status.get`'s `degradations[]` under `terminal_unavailabl
 
 **4. Ship the binary, built from patched sources.**
 [`config/scripts/build-mantad-prebuilds.mjs`](../../config/scripts/build-mantad-prebuilds.mjs)
-(`pnpm run build:mantad-prebuilds`, after `build:mantad`) compiles node-pty for the current
-host and files it under `out/mantad/prebuilds/<slot>/`, where a slot is
-`linux-{x64,arm64}-{glibc,musl}` or `darwin-{x64,arm64}`. libc is part of the slot name
+(`pnpm run build:mantad-prebuilds`, before `build:mantad`, which copies its target's slot into
+the package's `node_modules/node-pty/build/Release`) compiles node-pty for the current
+host against the pinned Node's hash-verified headers at N-API 8, and files it under
+`out/mantad-prebuilds/<slot>/`, where a slot is `linux-{x64,arm64}-{glibc,musl}`,
+`darwin-{x64,arm64}` or `win32-{x64,arm64}`. Its `manifest.json` records each file's
+sha256, the N-API level and, for glibc slots, the highest `GLIBC_` version the binary
+needs; the loader checks N-API, libc, arch and that glibc version before it installs a
+slot. glibc slots must pass the Ubuntu 20.04 floor gate above; musl slots skip it, since
+they never meet Ubuntu's libraries. libc is part of the slot name
 because node-pty's own loader falls back to `prebuilds/<platform>-<arch>` and cannot tell
 glibc from musl — a glibc binary parked there is loaded on Alpine and dies at `dlopen`.
 The script refuses to compile a tree where `config/patches/node-pty@1.1.0.patch` is not
 applied: without the patch the prebuilt is a #9902 crash shipped as an artifact rather
 than a first-connect error. CI runs it once per slot inside the matching container
 (`--slot=` forces the label), merges the trees, and `--require-slots` fails a release with
-a hole in the matrix.
+a hole in the matrix; `--require-slots <slot>` checks one slot's files against their
+hashes and `--smoke` loads it under the pinned Node and spawns a PTY
+(`.github/workflows/node-server-tests.yml` runs both on every slot's runner).
 
 ## Adding or upgrading a native dependency
 

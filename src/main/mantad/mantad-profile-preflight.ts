@@ -11,24 +11,27 @@ import {
   type OrcadProfilePreflightResponse
 } from '../../shared/mantad-profile-preflight'
 import { readOrcadArtifactIdentity } from './mantad-artifact-identity'
-import { resolveMantadInstallRoot } from './mantad-app-paths'
-import { MANTAD_VERSION_FILENAME, orcadBunRuntimeFilename } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_RUNTIME_IDENTITY } from '../../shared/mantad-bun-runtime'
+import { MANTAD_VERSION_FILENAME } from '../../shared/mantad-artifacts'
+import { ORCAD_NODE_RUNTIME_IDENTITY } from '../../shared/orcad-node-runtime-identity'
 import { runProcess } from '../../shared/child-process/run-process'
 import { preflightOrcadNativeRuntime } from './orcad-runtime-native-preflight'
-import { OrcadBundledRuntimeError } from './mantad-bundled-runtime'
+import {
+  isRunningAsBundledOrcadRuntime,
+  OrcadBundledRuntimeError,
+  resolveBundledOrcadSlot
+} from './mantad-bundled-runtime'
 
 /** Check every packaged start before a profile index, data-root lock or import is touched. */
 export async function preflightBundledOrcadStartup(): Promise<void> {
-  if (!process.versions.bun) {
+  const directory = resolveBundledOrcadSlot()
+  if (!isRunningAsBundledOrcadRuntime(directory)) {
     return
   }
-  const directory = resolveMantadInstallRoot()
   const identity = await readInstalledVersion(directory)
   const nonce = randomUUID()
   // Keep disposable SQLite ownership and native state out of the serving process.
   const result = await runProcess({
-    program: join(directory, orcadBunRuntimeFilename(process.platform)),
+    program: process.execPath,
     args: [join(directory, 'mantad.js'), ORCAD_STARTUP_PREFLIGHT_FLAG, nonce],
     env: { ...process.env, MANTA_BACKGROUND_LAUNCH: '1' },
     timeoutMs: ORCAD_PROFILE_PREFLIGHT_TIMEOUT_MS,
@@ -40,7 +43,7 @@ export async function preflightBundledOrcadStartup(): Promise<void> {
     throw new Failure(`The bundled Manta runtime failed readiness: ${result.stderr}`)
   }
   try {
-    parseOrcadProfilePreflight(result.stdout, nonce, ORCAD_BUN_RUNTIME_IDENTITY, identity)
+    parseOrcadProfilePreflight(result.stdout, nonce, ORCAD_NODE_RUNTIME_IDENTITY, identity)
   } catch (cause) {
     throw new OrcadBundledRuntimeError('The bundled runtime returned invalid readiness identity', {
       cause
@@ -54,23 +57,25 @@ export async function runOrcadProfilePreflight(
   options: { nativeFeatures?: boolean } = {}
 ): Promise<void> {
   const checkedNonce = z.string().uuid().parse(nonce)
+  const directory = resolveBundledOrcadSlot()
   let artifactVersion: string
   try {
-    artifactVersion = await readOrcadArtifactIdentity(resolveMantadInstallRoot())
+    artifactVersion = await readOrcadArtifactIdentity(directory)
   } catch (cause) {
     throw new OrcadBundledRuntimeError('The bundled Manta artifacts are incomplete or altered', {
       cause
     })
   }
   const result = await preflightProfileStateRuntime()
-  if (process.versions.bun) {
+  // Why only inside the pinned runtime: a host Node rollback launcher never serves this slot.
+  if (isRunningAsBundledOrcadRuntime(directory)) {
     await preflightOrcadNativeRuntime(options)
   }
   const response: OrcadProfilePreflightResponse = {
     type: 'manta_profile_state_ready',
     nonce: checkedNonce,
-    runtime: process.versions.bun ? 'bun' : 'node',
-    runtimeVersion: process.versions.bun ?? process.versions.node,
+    runtime: 'node',
+    runtimeVersion: process.versions.node,
     artifactVersion,
     ...result
   }

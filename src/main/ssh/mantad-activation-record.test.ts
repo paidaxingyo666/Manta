@@ -92,6 +92,14 @@ describe('mantad activation record', () => {
     expect(pinned).toEqual(['mantad-0.3.0+cc01', 'mantad-0.2.0+bb01', 'mantad-0.1.0+aa01'])
   })
 
+  // Design D7.1 R4; the real two-slot swap is orcad-cross-runtime-daemon-adoption.integration.test.ts.
+  it('pins a Bun-era slot whose live daemon a Node mantad adopted, rollback target or not', () => {
+    const bunSlotVersion = '0.1.0+ea9eae1d1d6a'
+    const nodeRecord = { ...emptyOrcadActivationRecord(), active: '0.1.0+a97ad77bf77c' }
+    expect(orcadGcPinnedDirNames(nodeRecord, bunSlotVersion)).toContain(`mantad-${bunSlotVersion}`)
+    expect(orcadGcPinnedDirNames(nodeRecord)).not.toContain(`mantad-${bunSlotVersion}`)
+  })
+
   it('deduplicates pins when the live daemon came from the active bundle', () => {
     const pinned = orcadGcPinnedDirNames(
       { ...emptyOrcadActivationRecord(), active: '0.3.0+cc01', previous: null },

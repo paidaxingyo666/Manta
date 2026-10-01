@@ -1,3 +1,4 @@
+// Bun remains only for the OpenCode vault reader until design Phase 2.
 // Targets come from SERVER_TARGETS. Type-only: a value import needs a .ts suffix tsc rejects.
 import type { ServerTarget } from './node-runtime-pin.ts'
 

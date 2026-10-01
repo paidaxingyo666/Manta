@@ -12,22 +12,24 @@ import {
 } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import {
-  ORCAD_BUILD_TARGET_FILENAME,
   ORCAD_TEMPLATE_MANIFEST_FILENAME,
   ORCAD_TEMPLATE_TARGETS_DIR,
-  ORCAD_RIPGREP_ARTIFACTS,
-  orcadTemplateCommonFilenames
+  orcadTemplateCommonFilenames,
+  orcadTemplateTargetFilenames
 } from '../../src/shared/mantad-artifacts.ts'
 import { mantadAgentBrowserNativeName } from '../../src/shared/mantad-agent-browser-name.ts'
 import { ORCAD_TEMPLATE_TARGETS } from '../../src/shared/node-runtime-pin.ts'
 import { runProcessSync } from './script-child-process.mjs'
-import { materializeWatcherPackage } from './mantad-watcher-package.mjs'
 import { verifyPackagedOrcadTemplate } from './verify-packaged-mantad-template.cjs'
 
 const root = resolve(import.meta.dirname, '../..')
 const outputDir = join(root, 'out', 'mantad-template')
 const buildDir = join(root, 'out', '.mantad-template-build')
 const commonArtifacts = orcadTemplateCommonFilenames()
+
+function isExecutable(filename) {
+  return /(?:^|\/)(?:rg|spawn-helper)$/.test(filename)
+}
 
 function copy(source, destination, executable = false) {
   mkdirSync(dirname(destination), { recursive: true })
@@ -41,78 +43,81 @@ function sha256(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex')
 }
 
-function targetPlatform(target) {
-  return target.split('-')[0]
-}
-
-function targetArch(target) {
-  return target.split('-')[1]
-}
-
-function buildCommonArtifacts() {
-  rmSync(buildDir, { recursive: true, force: true })
+/** One full package per target; each needs that target's node-pty slot in out/mantad-prebuilds. */
+function buildTargetPackage(target) {
+  const packageDir = join(buildDir, target, 'mantad')
   const result = runProcessSync({
     program: process.execPath,
-    args: [join(root, 'config/scripts/build-mantad-bun.mjs'), '--out-dir', buildDir],
+    args: [
+      join(root, 'config/scripts/build-orcad-node.mjs'),
+      '--target',
+      target,
+      '--out-dir',
+      packageDir
+    ],
     cwd: root,
     stdio: 'inherit',
     timeoutMs: null
   })
   if (result.code !== 0) {
-    throw new Error(`Common mantad artifact build failed with exit ${result.code ?? 'unknown'}`)
+    throw new Error(`mantad ${target} package build failed with exit ${result.code ?? 'unknown'}`)
   }
+  return packageDir
 }
 
-async function stageTarget(target) {
+function stageTarget(target, packageDir) {
   const destination = join(outputDir, ORCAD_TEMPLATE_TARGETS_DIR, target)
-  const targetIdentity = join(destination, ORCAD_BUILD_TARGET_FILENAME)
-  mkdirSync(destination, { recursive: true })
-  writeFileSync(targetIdentity, `${target}\n`)
-  const watcherSource = await materializeWatcherPackage(target)
-  const watcherDestination = join(destination, 'watcher.node')
-  copy(watcherSource, watcherDestination)
-
+  const files = {}
+  for (const filename of orcadTemplateTargetFilenames(target)) {
+    const staged = join(destination, ...filename.split('/'))
+    copy(join(packageDir, ...filename.split('/')), staged, isExecutable(filename))
+    files[filename] = sha256(staged)
+  }
   const browserName = mantadAgentBrowserNativeName(
-    targetPlatform(target),
-    targetArch(target),
+    target.split('-')[0],
+    target.split('-')[1],
     target.endsWith('-musl') ? 'musl' : 'glibc'
   )
-  const browserSource = join(root, 'node_modules', 'agent-browser', 'bin', browserName)
+  const browserSource = join(packageDir, browserName)
+  if (!existsSync(browserSource)) {
+    return { files }
+  }
   const browserDestination = join(destination, browserName)
-  if (existsSync(browserSource)) {
-    copy(browserSource, browserDestination, true)
-  }
-  return {
-    targetSha256: sha256(targetIdentity),
-    watcherSha256: sha256(watcherDestination),
-    ...(existsSync(browserDestination)
-      ? { browserName, browserSha256: sha256(browserDestination) }
-      : {})
-  }
+  copy(browserSource, browserDestination, true)
+  return { files, browserName, browserSha256: sha256(browserDestination) }
+}
+
+function sameBytes(left, right) {
+  return sha256(left) === sha256(right)
 }
 
 async function main() {
-  buildCommonArtifacts()
+  rmSync(buildDir, { recursive: true, force: true })
+  const packages = Object.fromEntries(
+    ORCAD_TEMPLATE_TARGETS.map((target) => [target, buildTargetPackage(target)])
+  )
   rmSync(outputDir, { recursive: true, force: true })
   mkdirSync(outputDir, { recursive: true })
+  const [firstTarget] = ORCAD_TEMPLATE_TARGETS
   for (const filename of commonArtifacts) {
-    copy(
-      join(buildDir, filename),
-      join(outputDir, filename),
-      ORCAD_RIPGREP_ARTIFACTS.some((artifact) => artifact === filename && artifact.endsWith('/rg'))
-    )
+    const source = join(packages[firstTarget], ...filename.split('/'))
+    // Why check every target: the template keeps one copy, so a per-target difference would ship wrong bytes.
+    for (const target of ORCAD_TEMPLATE_TARGETS) {
+      if (!sameBytes(source, join(packages[target], ...filename.split('/')))) {
+        throw new Error(`${filename} differs between ${firstTarget} and ${target} packages`)
+      }
+    }
+    copy(source, join(outputDir, ...filename.split('/')), isExecutable(filename))
   }
   const targets = Object.fromEntries(
-    await Promise.all(
-      ORCAD_TEMPLATE_TARGETS.map(async (target) => [target, await stageTarget(target)])
-    )
+    ORCAD_TEMPLATE_TARGETS.map((target) => [target, stageTarget(target, packages[target])])
   )
   const commonSha256 = Object.fromEntries(
     commonArtifacts.map((filename) => [filename, sha256(join(outputDir, filename))])
   )
   writeFileSync(
     join(outputDir, ORCAD_TEMPLATE_MANIFEST_FILENAME),
-    `${JSON.stringify({ schemaVersion: 2, commonSha256, targets }, null, 2)}\n`
+    `${JSON.stringify({ schemaVersion: 3, commonSha256, targets }, null, 2)}\n`
   )
   verifyPackagedOrcadTemplate(join(root, 'out'))
   rmSync(buildDir, { recursive: true, force: true })

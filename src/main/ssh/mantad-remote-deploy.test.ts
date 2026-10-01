@@ -17,6 +17,9 @@ vi.mock('./ssh-relay-install-transfers', () => ({
   uploadRelayDirectory: vi.fn().mockResolvedValue(undefined),
   writeRelayFile: vi.fn().mockResolvedValue(undefined)
 }))
+vi.mock('./mantad-remote-node-runtime', () => ({
+  ensureRemoteOrcadNodeRuntime: vi.fn().mockResolvedValue(undefined)
+}))
 vi.mock('./mantad-local-build-hash', () => ({
   computeLocalOrcadBuildHash: () => 'abc123def4567890'
 }))
@@ -26,6 +29,7 @@ import { acquireInstallLock } from './ssh-relay-install-lock'
 import { uploadRelayDirectory, writeRelayFile } from './ssh-relay-install-transfers'
 import { deployOrcad, type OrcadDeployOptions } from './mantad-remote-deploy'
 import { installOrcadBundle } from './mantad-remote-install'
+import { ensureRemoteOrcadNodeRuntime } from './mantad-remote-node-runtime'
 import {
   abandonInstall,
   finalizeInstall,
@@ -34,6 +38,7 @@ import {
 import { emptyOrcadActivationRecord, withActivatedVersion } from './mantad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
+import { NODE_RUNTIME_PIN } from '../../shared/node-runtime-pin'
 
 const mockExec = vi.mocked(execCommand)
 const NEW_VERSION = '0.2.0+bb0100000000'
@@ -111,15 +116,15 @@ function scriptHost(script: HostScript): void {
       const version = Object.keys(script.readiness).find((v) => text.includes(v))
       return version ? script.readiness[version] : ''
     }
-    if (text.includes('--orcad-profile-state-preflight')) {
+    if (text.includes('--mantad-profile-state-preflight')) {
       script.log.push('preflight')
       return (
         script.preflightResult ??
         JSON.stringify({
           type: 'manta_profile_state_ready',
           nonce: text.match(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/)?.[0],
-          runtime: 'bun',
-          runtimeVersion: '1.4.2',
+          runtime: 'node',
+          runtimeVersion: NODE_RUNTIME_PIN.version,
           sqliteVersion: '3.51.0',
           artifactVersion: NEW_VERSION,
           revision: 1
@@ -152,6 +157,7 @@ function options(overrides: Partial<OrcadDeployOptions> = {}): OrcadDeployOption
     host: getRemoteHostPlatform('linux-x64'),
     remoteHome: '/home/u',
     localOrcadDir: '/local/out/mantad',
+    target: 'linux-x64-glibc',
     nodePath: '/usr/bin/node',
     userDataDir: '/home/u/.manta',
     bindHost: '127.0.0.1',
@@ -172,7 +178,12 @@ describe('mantad install lock ownership', () => {
   const remoteDir = `/home/u/.manta-remote/mantad-${NEW_VERSION}`
   const install = (signal?: AbortSignal) =>
     installOrcadBundle(
-      { ...options({ signal }), localOrcadDir: '/local/out/mantad' },
+      {
+        ...options({ signal }),
+        localOrcadDir: '/local/out/mantad',
+        target: 'linux-x64-glibc',
+        nodeRuntimeArchive: async () => '/cache/node.tar.gz'
+      },
       NEW_VERSION,
       remoteDir
     )
@@ -285,13 +296,17 @@ describe('deployOrcad', () => {
     expect(vi.mocked(uploadRelayDirectory).mock.calls[0][2]).toContain(`mantad-${NEW_VERSION}`)
   })
 
-  it.each(['linux-arm64', 'darwin-x64'] as const)(
+  it.each([
+    ['linux-arm64', 'linux-arm64-glibc'],
+    ['darwin-x64', 'darwin-x64']
+  ] as const)(
     'marks the %s search binary executable before completing the install',
-    async (platform) => {
+    async (platform, target) => {
       scriptHost({ activationRecord: '', readiness: {}, log: [] })
       await deployOrcad(
         options({
           host: getRemoteHostPlatform(platform),
+          target,
           census: { liveSessions: 1, startedSinceActivation: 0 }
         })
       )
@@ -300,7 +315,13 @@ describe('deployOrcad', () => {
       )
       expect(chmod).toBeGreaterThanOrEqual(0)
       expect(mockExec.mock.calls[chmod]?.[1]).toContain(`/ripgrep/${platform}/rg'`)
-      expect(mockExec.mock.calls[chmod]?.[1]).toContain("/bun-runtime'")
+      expect(mockExec.mock.calls[chmod]?.[1]).not.toContain('bun-runtime')
+      expect(String(mockExec.mock.calls[chmod]?.[1]).includes('/spawn-helper')).toBe(
+        platform === 'darwin-x64'
+      )
+      expect(ensureRemoteOrcadNodeRuntime).toHaveBeenCalledWith(
+        expect.objectContaining({ target, slotDir: `/home/u/.manta-remote/mantad-${NEW_VERSION}` })
+      )
       expect(vi.mocked(uploadRelayDirectory).mock.invocationCallOrder[0]).toBeLessThan(
         mockExec.mock.invocationCallOrder[chmod]
       )
@@ -316,7 +337,9 @@ describe('deployOrcad', () => {
       {
         conn: options().conn,
         host: getRemoteHostPlatform('win32-x64'),
-        localOrcadDir: '/local/out/mantad'
+        localOrcadDir: '/local/out/mantad',
+        target: 'win32-x64',
+        nodeRuntimeArchive: async () => '/cache/node.zip'
       },
       NEW_VERSION,
       `C:/Users/u/.manta-remote/mantad-${NEW_VERSION}`
@@ -343,7 +366,7 @@ describe('deployOrcad', () => {
     'restores uploaded executable modes with optional browser %s',
     async (browserTarget) => {
       const directory = mkdtempSync(join(tmpdir(), 'orcad-install-modes-'))
-      const binaries = ['bun-runtime', 'ripgrep/linux-x64/rg']
+      const binaries = ['ripgrep/linux-x64/rg']
       if (browserTarget) {
         binaries.push(`agent-browser-${browserTarget}`)
       }
@@ -365,7 +388,9 @@ describe('deployOrcad', () => {
           {
             conn: options().conn,
             host: getRemoteHostPlatform('linux-x64'),
-            localOrcadDir: directory
+            localOrcadDir: directory,
+            target: 'linux-x64-musl',
+            nodeRuntimeArchive: async () => '/cache/node.tar.gz'
           },
           NEW_VERSION,
           directory

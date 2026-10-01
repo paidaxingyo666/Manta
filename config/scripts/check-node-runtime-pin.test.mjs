@@ -21,7 +21,8 @@ function validInput() {
     version: '24.21.0',
     electron: '43.7.5',
     napi: 10,
-    headers: { file: 'node-v24.21.0-headers.tar.gz', sha256: HASH }
+    headers: { file: 'node-v24.21.0-headers.tar.gz', sha256: HASH },
+    windowsImportLibs: { 'win32-x64': { file: 'win-x64/node.lib', sha256: HASH } }
   }
   const targets = ['linux-x64-glibc', 'win32-x64']
   const assets = {
@@ -111,6 +112,14 @@ describe('findNodeRuntimePinProblems', () => {
       'linux-x64-glibc: archiveSha256 is not a 64-character hex SHA-256',
       'linux-x64-glibc: executableSha256 is not a 64-character hex SHA-256',
       'linux-x64-glibc: executableSize must be a positive integer'
+    ])
+  })
+  it('rejects a missing or mistargeted Windows node.lib', () => {
+    const input = validInput()
+    input.pin.windowsImportLibs['win32-x64'] = { file: 'win-arm64/node.lib', sha256: 'x' }
+    expect(findNodeRuntimePinProblems(input)).toEqual([
+      'NODE_RUNTIME_PIN.windowsImportLibs.win32-x64.file is not win-x64/node.lib',
+      'NODE_RUNTIME_PIN.windowsImportLibs.win32-x64.sha256 is not a 64-character hex SHA-256'
     ])
   })
   it("rejects another target's archive", () => {

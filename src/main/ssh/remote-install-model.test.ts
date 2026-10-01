@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { ORCAD_RIPGREP_ARTIFACTS } from '../../shared/mantad-artifacts'
+import { orcadRipgrepArtifact } from '../../shared/mantad-artifacts'
 import { probeRemoteInstallCompleteCommand } from './ssh-remote-commands'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
@@ -21,12 +21,17 @@ import {
 const RELAY_DIRS = ['relay-0.1.0+abcdef123456', 'relay-v0.1.0', 'relay-1.2.3']
 const MANTAD_DIRS = ['mantad-0.1.0+abcdef123456', 'mantad-v0.1.0', 'mantad-1.2.3']
 
-it.each([false, true])(
-  'requires the executable and both profile workers on Windows=%s',
-  (isWindows) => {
-    const artifacts = MANTAD_INSTALL_MODEL.requiredArtifacts(isWindows)
-    expect(artifacts).toContain(isWindows ? 'bun-runtime.exe' : 'bun-runtime')
-    expect(artifacts).not.toContain(isWindows ? 'bun-runtime' : 'bun-runtime.exe')
+it.each(['linux-x64', 'darwin-arm64', 'win32-x64'] as const)(
+  'requires the runtime reference, node-pty and both profile workers on %s',
+  (platform) => {
+    const isWindows = platform.startsWith('win32')
+    const artifacts = MANTAD_INSTALL_MODEL.requiredArtifacts(getRemoteHostPlatform(platform))
+    expect(artifacts).toContain('.runtime-node')
+    expect(artifacts).not.toContain('bun-runtime')
+    expect(artifacts).not.toContain('bun-runtime.exe')
+    expect(artifacts).toContain(
+      `node_modules/node-pty/build/Release/${isWindows ? 'conpty.node' : 'pty.node'}`
+    )
     expect(artifacts).toContain('profile-state-writer-worker-entry.js')
     expect(artifacts).toContain('profile-state-backup-worker-entry.js')
     expect(artifacts.includes('windows-process-tree.node')).toBe(isWindows)
@@ -39,30 +44,29 @@ describe('remote install namespace', () => {
     expect(remoteInstallDirName(MANTAD_INSTALL_MODEL, '0.1.0+aa')).toBe('mantad-0.1.0+aa')
   })
 
-  it('requires every shipped search binary in a completed standalone runtime install', () => {
-    const required = MANTAD_INSTALL_MODEL.requiredArtifacts(false)
-    expect(required).toEqual(expect.arrayContaining([...ORCAD_RIPGREP_ARTIFACTS]))
-    expect(MANTAD_INSTALL_MODEL.requiredArtifacts(true)).toEqual(
-      expect.arrayContaining([...ORCAD_RIPGREP_ARTIFACTS])
-    )
+  it("requires the host's own search binary in a completed standalone runtime install", () => {
+    for (const platform of ['linux-arm64', 'darwin-x64', 'win32-arm64'] as const) {
+      expect(
+        MANTAD_INSTALL_MODEL.requiredArtifacts(getRemoteHostPlatform(platform)).filter(
+          (file) => file.startsWith('ripgrep/') && !file.startsWith('ripgrep/licenses/')
+        )
+      ).toEqual([orcadRipgrepArtifact(platform)])
+    }
   })
 
   it.skipIf(process.platform === 'win32')('rejects an install missing its search binary', () => {
     const dir = mkdtempSync(join(tmpdir(), 'orcad-remote-probe-'))
     try {
-      const required = [...MANTAD_INSTALL_MODEL.requiredArtifacts(false), '.install-complete']
+      const host = getRemoteHostPlatform('linux-x64')
+      const required = [...MANTAD_INSTALL_MODEL.requiredArtifacts(host), '.install-complete']
       for (const filename of required) {
         const path = join(dir, filename)
         mkdirSync(dirname(path), { recursive: true })
         writeFileSync(path, '')
       }
-      const command = probeRemoteInstallCompleteCommand(
-        getRemoteHostPlatform('linux-x64'),
-        dir,
-        required
-      )
+      const command = probeRemoteInstallCompleteCommand(host, dir, required)
       expect(execFileSync('sh', ['-c', command], { encoding: 'utf8' }).trim()).toBe('OK')
-      rmSync(join(dir, ORCAD_RIPGREP_ARTIFACTS[0]))
+      rmSync(join(dir, orcadRipgrepArtifact('linux-x64')))
       expect(execFileSync('sh', ['-c', command], { encoding: 'utf8' }).trim()).toBe('MISSING')
     } finally {
       rmSync(dir, { recursive: true, force: true })

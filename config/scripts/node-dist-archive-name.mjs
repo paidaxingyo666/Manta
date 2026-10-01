@@ -17,3 +17,7 @@ export function nodeDistArchiveName(version, target) {
   const extension = target.startsWith('win32-') ? 'zip' : 'tar.gz'
   return `node-v${version}-${NODE_DIST_PLATFORMS[target]}.${extension}`
 }
+
+export function windowsImportLibFile(target) {
+  return `${NODE_DIST_PLATFORMS[target]}/node.lib`
+}

@@ -30,7 +30,11 @@ export type NodeRuntimePin = {
   /** Highest N-API version the runtime supports (NODE_API_SUPPORTED_VERSION_MAX). */
   napi: number
   headers: { file: string; sha256: string }
+  /** node.lib per Windows target: node-gyp --nodedir links against it, and the headers tarball omits it. */
+  windowsImportLibs: Record<WindowsServerTarget, { file: string; sha256: string }>
 }
+
+export type WindowsServerTarget = Extract<ServerTarget, `win32-${string}`>
 
 /** unofficial-builds.nodejs.org publishes no SHASUMS signature, so its hash is trusted at pin time. */
 export type NodeRuntimeAssetSource = 'official' | 'unofficial'
@@ -51,6 +55,16 @@ export const NODE_RUNTIME_PIN: NodeRuntimePin = {
   headers: {
     file: 'node-v24.21.0-headers.tar.gz',
     sha256: '57c6bee2e30bbbee5bd51d6cc343eb992e174b56a2a1d0eab7a7510771c20ea2'
+  },
+  windowsImportLibs: {
+    'win32-arm64': {
+      file: 'win-arm64/node.lib',
+      sha256: '2c0c3215d59c09d7c136da4949696dae121a299e9bdfc64cd9130a58610af63d'
+    },
+    'win32-x64': {
+      file: 'win-x64/node.lib',
+      sha256: 'a0a84aa03917b578d286010b7521837e9ff1136ffb2e4a406c14316c33fd06f7'
+    }
   }
 }
 
@@ -125,6 +139,14 @@ export function nodeRuntimeReleaseUrl(
   version: string = NODE_RUNTIME_PIN.version
 ): string {
   return `${NODE_RUNTIME_BASE_URLS[source]}/v${version}/${file}`
+}
+
+export function nodeRuntimeHeadersUrl(pin: NodeRuntimePin = NODE_RUNTIME_PIN): string {
+  return nodeRuntimeReleaseUrl('official', pin.headers.file, pin.version)
+}
+
+export function isWindowsServerTarget(target: string): target is WindowsServerTarget {
+  return target === 'win32-x64' || target === 'win32-arm64'
 }
 
 /** Archive-relative path of the executable, e.g. node-v24.21.0-linux-x64/bin/node. */

@@ -1,4 +1,7 @@
-import type { OrcadBunTarget } from '../../shared/orcad-bun-runtime'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { SERVER_TARGETS, type ServerTarget } from '../../shared/node-runtime-pin'
+import { ORCAD_SERVER_TARGET_FILENAME } from '../../shared/mantad-artifacts'
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import type { RemoteHostPlatform } from './ssh-remote-platform'
@@ -18,7 +21,7 @@ export async function resolveOrcadDeploymentTarget(options: {
   host: RemoteHostPlatform
   signal?: AbortSignal
   exec?: (command: string) => Promise<string>
-}): Promise<OrcadBunTarget> {
+}): Promise<ServerTarget> {
   const { host } = options
   if (host.os !== 'linux') {
     return `${host.os}-${host.arch}`
@@ -36,4 +39,14 @@ export async function resolveOrcadDeploymentTarget(options: {
     )
   }
   return `linux-${host.arch}-${parseOrcadLinuxLibc(output)}`
+}
+
+/** The server target an assembled bundle was built for. */
+export function readOrcadBundleTarget(localOrcadDir: string): ServerTarget {
+  const recorded = readFileSync(join(localOrcadDir, ORCAD_SERVER_TARGET_FILENAME), 'utf8').trim()
+  const target = SERVER_TARGETS.find((candidate) => candidate === recorded)
+  if (!target) {
+    throw new Error(`The mantad bundle names no known server target: ${recorded}`)
+  }
+  return target
 }
