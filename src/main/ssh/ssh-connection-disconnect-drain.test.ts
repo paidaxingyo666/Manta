@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { SshConnection } from './ssh-connection'
+import { SshConnectionManager } from './ssh-connection-manager'
+import { assertManagerTargetTransportsClosed } from './ssh-connection-manager-test-probes'
 import { createCallbacks, createResolvedConfig, createTarget } from './ssh-connection-test-fixtures'
 import { clientInstances, resetSshConnectionMocks, ssh2Mock } from './ssh-connection-test-harness'
 import { resolveWithSshG } from './ssh-config-parser'
@@ -231,6 +233,30 @@ it('never schedules reconnect when a drain closes its client', async () => {
 it('refuses a disconnected connection without claiming drain proof', async () => {
   const conn = new SshConnection(createTarget(), createCallbacks())
   await expect(conn.disconnectAndDrain(new AbortController().signal)).rejects.toThrow()
+})
+
+it('retains ordinary manager transport debt after pool removal until physical close', async () => {
+  const manager = new SshConnectionManager(createCallbacks())
+  const target = createTarget()
+  const conn = await manager.connect(target)
+  const client = conn.getClient()!
+  await manager.disconnect(target.id)
+  expect(manager.getConnection(target.id)).toBeUndefined()
+  expect(() => assertManagerTargetTransportsClosed(manager, target.id)).toThrow('closure_unproven')
+  client.emit('close')
+  expect(() => assertManagerTargetTransportsClosed(manager, target.id)).not.toThrow()
+})
+
+it('cleans failed ordinary startup without mistaking destroy for physical close', async () => {
+  const manager = new SshConnectionManager(createCallbacks())
+  const target = createTarget()
+  ssh2Mock.connectSequence = [new Error('startup refused')]
+  ssh2Mock.destroyErrorMessage = 'socket still closing'
+  await expect(manager.connect(target)).rejects.toThrow('startup refused')
+  expect(manager.getConnection(target.id)).toBeUndefined()
+  expect(() => assertManagerTargetTransportsClosed(manager, target.id)).toThrow('closure_unproven')
+  clientInstances[0]!.emit('close')
+  expect(() => assertManagerTargetTransportsClosed(manager, target.id)).not.toThrow()
 })
 
 it('closes owned system SSH but refuses unproven drain', async () => {
