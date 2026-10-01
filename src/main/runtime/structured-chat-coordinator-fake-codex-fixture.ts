@@ -6,6 +6,7 @@ import type {
   CodexAppServerConnectionHandlers,
   openCodexAppServerConnection
 } from '../codex/codex-app-server-connection'
+import { refuseUnroutedSteer } from '../codex/codex-structured-dispatch-test-support'
 import { computeAgentSessionPayloadFingerprint } from '../../shared/agent-session-mutation-envelope'
 import { attachFingerprintFields } from '../native-chat/agent-session-wire/structured-agent-session-attach'
 import { isRecord } from './rpc/orchestration-session-caller-test-fixture'
@@ -107,6 +108,9 @@ export function fakeCodex() {
             ],
             nextCursor: null
           }
+        }
+        if (method === 'turn/steer') {
+          return refuseUnroutedSteer(undefined)
         }
         return {}
       },

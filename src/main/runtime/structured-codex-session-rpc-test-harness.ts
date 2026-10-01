@@ -12,6 +12,7 @@ import type {
   CodexAppServerConnectionHandlers,
   openCodexAppServerConnection
 } from '../codex/codex-app-server-connection'
+import { refuseUnroutedSteer } from '../codex/codex-structured-dispatch-test-support'
 import { computeAgentSessionPayloadFingerprint } from '../../shared/agent-session-mutation-envelope'
 import {
   AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY,
@@ -98,6 +99,9 @@ function fakeCodex(): FakeCodex {
             ],
             nextCursor: null
           }
+        }
+        if (method === 'turn/steer') {
+          return refuseUnroutedSteer(undefined)
         }
         return {}
       },
