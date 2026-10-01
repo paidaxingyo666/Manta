@@ -15955,6 +15955,7 @@
             "4300f38145": "Downloading from {{value0}}{{value1}}",
             "31375046b7": "Download from {{value0}}",
             "acbe79fd01": "Grab page element ({{value0}})",
+            "cc4a071d3a": "Annotate page element ({{value0}})",
             "572046436a": "Remote browser",
             "b313a7275b": "Opening remote browser",
             "5f66313863": "annotation",

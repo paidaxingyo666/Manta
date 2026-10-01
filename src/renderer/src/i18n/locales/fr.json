@@ -15871,6 +15871,7 @@
             "4300f38145": "Téléchargement depuis {{value0}}{{value1}}",
             "31375046b7": "Télécharger depuis {{value0}}",
             "acbe79fd01": "Capturer un élément de la page ({{value0}})",
+            "cc4a071d3a": "Annoter un élément de la page ({{value0}})",
             "572046436a": "Navigateur distant",
             "b313a7275b": "Ouverture du navigateur distant",
             "5f66313863": "annotation",
