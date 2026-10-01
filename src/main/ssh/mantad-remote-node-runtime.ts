@@ -82,7 +82,6 @@ export function parseRemoteRuntimeExitReport(text: string): {
   }
 }
 
-
 /**
  * The runtime directory beside a version dir (an mantad slot or a relay install); the slot
  * selector computes the same path, and the vault reader shares the store.
@@ -212,9 +211,14 @@ export type RemoteRuntimeStep = <T>(operation: () => Promise<T>) => Promise<T>
 
 const runDirectly: RemoteRuntimeStep = (operation) => operation()
 
+export type EnsuredRemoteNodeRuntime = {
+  executable: string
+  transfer: 'cached' | 'uploaded'
+}
+
 /**
  * Ensures the runtime beside `slotDir` exists on the host, uploading the pinned archive only
- * when needed, and returns its executable.
+ * when needed, and returns its executable and whether this call uploaded it.
  */
 export async function ensureRemoteOrcadNodeRuntime(options: {
   conn: SshConnection
@@ -226,7 +230,7 @@ export async function ensureRemoteOrcadNodeRuntime(options: {
   signal?: AbortSignal
   /** Wraps each host round trip, so a caller can tell an unconfirmed channel from a local failure. */
   remoteStep?: RemoteRuntimeStep
-}): Promise<string> {
+}): Promise<EnsuredRemoteNodeRuntime> {
   const { conn, host, target, signal } = options
   const remoteStep = options.remoteStep ?? runDirectly
   const exec = (command: string, commandSignal?: AbortSignal): Promise<string> =>
@@ -235,7 +239,7 @@ export async function ensureRemoteOrcadNodeRuntime(options: {
   const executable = posixNodeRuntimeExecutable(host, runtimeDir)
   const probe = await exec(probeRemoteNodeRuntimeCommand(host, runtimeDir, target), signal)
   if (probe.trim() === REMOTE_NODE_RUNTIME_READY) {
-    return executable
+    return { executable, transfer: 'cached' }
   }
   const archivePath = await options.archivePath()
   const token = randomBytes(8).toString('hex')
@@ -261,7 +265,7 @@ export async function ensureRemoteOrcadNodeRuntime(options: {
     if (promoted.trim().split('\n').at(-1) !== REMOTE_NODE_RUNTIME_READY) {
       throw new Error(`The host did not verify the pinned Node runtime: ${promoted.trim()}`)
     }
-    return executable
+    return { executable, transfer: 'uploaded' }
   } catch (error) {
     stageUnconfirmed = isUnconfirmedSshCommandTermination(error)
     throw error

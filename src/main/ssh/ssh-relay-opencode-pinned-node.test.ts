@@ -59,7 +59,7 @@ describe('pinned Node for the SSH vault reader', () => {
     mocks.ensure.mockImplementation(async (options) => {
       expect(options).toMatchObject({ slotDir: '/home/ada/.manta-remote/relay-build' })
       await options.archivePath()
-      return '/home/ada/.manta-remote/runtimes/node-x/bin/node'
+      return { executable: '/home/ada/.manta-remote/runtimes/node-x/bin/node', transfer: 'cached' }
     })
     mocks.archive.mockResolvedValue('/cache/node.tar.gz')
 

@@ -102,13 +102,23 @@ vi.mock('./ssh-connection-utils', () => ({
 
 vi.mock('./ssh-relay-pinned-node', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
-  planPinnedNodeRelay: vi.fn()
+  planPinnedNodeRelay: vi.fn(),
+  resolvePinnedRelayTargetFacts: vi.fn()
 }))
 
-vi.mock('./ssh-relay-pinned-node-install', () => ({
+vi.mock('./ssh-relay-pinned-node-install', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
   ensurePinnedRelayRuntime: vi.fn().mockResolvedValue(undefined),
   verifyPinnedRelayInstall: vi.fn().mockResolvedValue(undefined)
 }))
+
+vi.mock('./ssh-relay-host-node-addons', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  planHostNodeAddonRelay: vi.fn()
+}))
+
+vi.mock('./ssh-target-registry', () => ({ getSshTargetRegistryStore: vi.fn(() => null) }))
+vi.mock('../telemetry/client', () => ({ track: vi.fn() }))
 
 import { deployAndLaunchRelay } from './ssh-relay-deploy'
 import { execCommand } from './ssh-relay-deploy-helpers'
@@ -117,12 +127,20 @@ import { finalizeInstall, isRelayAlreadyInstalled } from './ssh-relay-versioned-
 import {
   PinnedRelayFallbackError,
   planPinnedNodeRelay,
+  resolvePinnedRelayTargetFacts,
   type PinnedRelayPlan
 } from './ssh-relay-pinned-node'
 import { ensurePinnedRelayRuntime, verifyPinnedRelayInstall } from './ssh-relay-pinned-node-install'
+import { planHostNodeAddonRelay, type HostNodeAddonRelayPlan } from './ssh-relay-host-node-addons'
+import { RemoteRuntimeUnavailableError } from './ssh-relay-runtime-resolution'
+import { resetSshRemoteRuntimeTelemetryForTests } from './ssh-remote-runtime-telemetry'
+import { getSshTargetRegistryStore } from './ssh-target-registry'
+import { track } from '../telemetry/client'
 import type { SshConnection } from './ssh-connection'
+import type { SshConnectionStore } from './ssh-connection-store'
 import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
-import type { SshRemoteRuntime } from '../../shared/ssh-types'
+import type { SshRemoteRuntime, SshTarget } from '../../shared/ssh-types'
+import { terminalUnavailableCauseFromError } from '../../shared/terminal-unavailable-cause'
 
 const PINNED_VERSION = '0.1.0+feedfacecafe'
 const RUNTIME_SHA = NODE_RUNTIME_ASSETS['linux-x64-glibc'].executableSha256
@@ -136,6 +154,20 @@ function pinnedPlan(): PinnedRelayPlan {
     fullVersion: PINNED_VERSION,
     addons: { dir: '/tmp/addons', digest: 'd', dispose: vi.fn().mockResolvedValue(undefined) },
     runtimeArchive: vi.fn()
+  }
+}
+
+const HOST_NODE_VERSION = '0.1.0+0123456789ab'
+
+function hostNodePlan(): HostNodeAddonRelayPlan {
+  return {
+    kind: 'host-node-addons',
+    target: 'linux-x64-glibc',
+    glibc: { major: 2, minor: 31 },
+    fullVersion: HOST_NODE_VERSION,
+    addons: { dir: '/tmp/host-addons', digest: 'd', dispose: vi.fn().mockResolvedValue(undefined) },
+    nodePath: '/opt/node18/bin/node',
+    hostNode: { version: { major: 18, minor: 20 }, napi: 9 }
   }
 }
 
@@ -170,9 +202,12 @@ function queueInstalledPinnedLaunch(): void {
     .mockResolvedValueOnce('READY')
 }
 
-function queueInstalledLegacyLaunch(): void {
+function queueInstalledLegacyLaunch(options: { platformProbed?: boolean } = {}): void {
+  // A later ladder step reuses the platform the first step detected.
+  if (!options.platformProbed) {
+    vi.mocked(execCommand).mockResolvedValueOnce('__MANTA_REMOTE_PLATFORM__ Linux x86_64')
+  }
   vi.mocked(execCommand)
-    .mockResolvedValueOnce('__MANTA_REMOTE_PLATFORM__ Linux x86_64')
     .mockResolvedValueOnce('/home/user')
     .mockResolvedValueOnce('MANTA-NATIVE-DEPS-OK')
     .mockResolvedValueOnce('') // launch namespace marker
@@ -188,6 +223,14 @@ describe('deployAndLaunchRelay on the pinned Node runtime', () => {
     vi.mocked(isRelayAlreadyInstalled).mockReset().mockResolvedValue(true)
     vi.mocked(planPinnedNodeRelay).mockReset().mockResolvedValue(pinnedPlan())
     vi.mocked(ensurePinnedRelayRuntime).mockReset().mockResolvedValue(undefined)
+    vi.mocked(resolvePinnedRelayTargetFacts)
+      .mockReset()
+      .mockResolvedValue({ target: 'linux-x64-glibc', glibc: { major: 2, minor: 31 } })
+    vi.mocked(planHostNodeAddonRelay)
+      .mockReset()
+      .mockRejectedValue(new PinnedRelayFallbackError('libc_floor', 'addons refused'))
+    vi.mocked(getSshTargetRegistryStore).mockReset().mockReturnValue(null)
+    resetSshRemoteRuntimeTelemetryForTests()
   })
 
   it('keeps the legacy host-Node path when the host has no runtime setting', async () => {
@@ -217,23 +260,25 @@ describe('deployAndLaunchRelay on the pinned Node runtime', () => {
     ).toBe(false)
   })
 
-  it('falls back to the host-Node relay on a classified refusal', async () => {
+  it('steps down the ladder to the host-npm relay on classified refusals', async () => {
     const conn = makeConnection('pinned-node')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     vi.mocked(ensurePinnedRelayRuntime).mockRejectedValueOnce(
-      new PinnedRelayFallbackError('noexec', 'exit 126: Permission denied')
+      new PinnedRelayFallbackError('missing_lib', 'libstdc++.so.6: cannot open')
     )
     vi.mocked(execCommand)
       .mockResolvedValueOnce('__MANTA_REMOTE_PLATFORM__ Linux x86_64')
       .mockResolvedValueOnce('/home/user')
-    queueInstalledLegacyLaunch()
+    queueInstalledLegacyLaunch({ platformProbed: true })
 
     const result = await deployAndLaunchRelay(conn, undefined, undefined, 'target-1')
 
     expect(result.nodePath).toBe('/usr/bin/node')
     expect(result.serverBuildId).toBe('0.1.0+abcdef012345')
     expect(detachedLaunchCommand(conn)).toContain("'/usr/bin/node' relay.js --detached")
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('(noexec)'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('rung A unavailable (missing_lib)'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('rung B unavailable'))
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('rung C unavailable (libc_floor)'))
     warn.mockRestore()
   })
 
@@ -305,5 +350,103 @@ describe('deployAndLaunchRelay on the pinned Node runtime', () => {
       vi.mocked(execCommand).mock.calls.some(([, cmd]) => /npm (?:install|ci)/.test(String(cmd)))
     ).toBe(false)
     expect(detachedLaunchCommand(conn)).toContain(`'${PINNED_NODE}' relay.js --detached`)
+  })
+
+  it('runs rung C on the host Node with the prebuilt addons and no npm', async () => {
+    const conn = makeConnection('pinned-node')
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(planPinnedNodeRelay).mockResolvedValueOnce({
+      kind: 'host-node',
+      fallbackReason: 'artifacts_unavailable'
+    })
+    const plan = hostNodePlan()
+    vi.mocked(planHostNodeAddonRelay).mockReset().mockResolvedValueOnce(plan)
+    queueInstalledPinnedLaunch()
+
+    const result = await deployAndLaunchRelay(conn, undefined, undefined, 'target-1')
+
+    expect(resolveRemoteNodePath).not.toHaveBeenCalled()
+    expect(ensurePinnedRelayRuntime).not.toHaveBeenCalled()
+    expect(result.serverBuildId).toBe(HOST_NODE_VERSION)
+    expect(result.nodePath).toBe('/opt/node18/bin/node')
+    expect(detachedLaunchCommand(conn)).toContain("'/opt/node18/bin/node' relay.js --detached")
+    expect(plan.addons.dispose).toHaveBeenCalledOnce()
+    expect(track).toHaveBeenCalledWith(
+      'ssh_remote_runtime_resolved',
+      expect.objectContaining({
+        rung: 'c',
+        first_refusal: 'artifacts_unavailable',
+        host_node_major: '18',
+        host_libc: 'glibc',
+        glibc_minor: '31'
+      })
+    )
+  })
+
+  it('goes straight to rung D on noexec, with the classified reason and no launch', async () => {
+    const conn = makeConnection('pinned-node')
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(ensurePinnedRelayRuntime).mockRejectedValueOnce(
+      new PinnedRelayFallbackError('noexec', 'exit 126: Permission denied')
+    )
+    vi.mocked(execCommand)
+      .mockResolvedValueOnce('__MANTA_REMOTE_PLATFORM__ Linux x86_64')
+      .mockResolvedValueOnce('/home/user')
+
+    const failure = await deployAndLaunchRelay(conn, undefined, undefined, 'target-1').catch(
+      (error: unknown) => error
+    )
+
+    expect(failure).toBeInstanceOf(RemoteRuntimeUnavailableError)
+    expect(String(failure)).toContain('mounted noexec')
+    expect(terminalUnavailableCauseFromError(failure)).toMatchObject({
+      status: 'blocked',
+      reason: 'home_noexec',
+      repairable: false
+    })
+    expect(planHostNodeAddonRelay).not.toHaveBeenCalled()
+    expect(resolveRemoteNodePath).not.toHaveBeenCalled()
+    expect(detachedLaunchCommand(conn)).toBeUndefined()
+    expect(track).toHaveBeenCalledWith(
+      'ssh_remote_runtime_resolved',
+      expect.objectContaining({ rung: 'd', first_refusal: 'noexec' })
+    )
+  })
+
+  it('persists the rung A refusal under the host key and skips A on the next connect', async () => {
+    const stored: Partial<SshTarget> = {}
+    const registry = {
+      getTarget: vi.fn(() => ({ id: 'target-1', ...stored })),
+      updateTarget: vi.fn((_id: string, updates: Partial<SshTarget>) => {
+        Object.assign(stored, updates)
+        return null
+      })
+    }
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the ladder reads and writes only these two registry members.
+    vi.mocked(getSshTargetRegistryStore).mockReturnValue(registry as unknown as SshConnectionStore)
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.mocked(ensurePinnedRelayRuntime).mockRejectedValueOnce(
+      new PinnedRelayFallbackError('illegal_instruction', 'SIGILL')
+    )
+    vi.mocked(execCommand)
+      .mockResolvedValueOnce('__MANTA_REMOTE_PLATFORM__ Linux x86_64')
+      .mockResolvedValueOnce('/home/user')
+    queueInstalledLegacyLaunch({ platformProbed: true })
+
+    await deployAndLaunchRelay(makeConnection('pinned-node'), undefined, undefined, 'target-1')
+
+    expect(stored.remoteRuntimeResolution).toMatchObject({
+      rung: 'legacy',
+      pinnedRefusal: 'illegal_instruction',
+      glibc: '2.31',
+      runtimeSha256: RUNTIME_SHA
+    })
+    const persisted = vi.mocked(planPinnedNodeRelay).mock.calls[0]![0].persistedRefusal
+    expect(persisted?.({ target: 'linux-x64-glibc', glibc: { major: 2, minor: 31 } })).toBe(
+      'illegal_instruction'
+    )
+    // A different glibc is a different key: the cached refusal no longer applies.
+    expect(persisted?.({ target: 'linux-x64-glibc', glibc: { major: 2, minor: 35 } })).toBeNull()
+    expect(track).toHaveBeenCalledOnce()
   })
 })

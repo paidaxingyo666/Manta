@@ -47,7 +47,7 @@ export async function preparePinnedNodeForVault(options: {
   const cacheRoot =
     options.cacheRoot ?? join(getAppEnvironment().getPath('userData'), 'mantad-artifacts')
   if (!isWindowsRemoteHost(host)) {
-    const executable = await ensureRemoteOrcadNodeRuntime({
+    const { executable } = await ensureRemoteOrcadNodeRuntime({
       conn,
       host,
       slotDir: options.relayDir,

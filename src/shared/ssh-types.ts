@@ -17,6 +17,23 @@ export const SSH_REMOTE_RUNTIMES = ['legacy', 'pinned-node'] as const
 export type SshRemoteRuntime = (typeof SSH_REMOTE_RUNTIMES)[number]
 export const DEFAULT_SSH_REMOTE_RUNTIME: SshRemoteRuntime = 'legacy'
 
+/** Where the design D6 fallback ladder landed; `legacy` is the host-npm path outside it. */
+export const SSH_REMOTE_RUNTIME_RUNGS = ['A', 'B', 'C', 'D', 'legacy'] as const
+export type SshRemoteRuntimeRung = (typeof SSH_REMOTE_RUNTIME_RUNGS)[number]
+
+/**
+ * Main-owned record of the last ladder decision for a host. Valid only while its key
+ * (glibc, pinned runtime hash, Manta major) still matches, so an upgrade re-evaluates.
+ */
+export type SshRemoteRuntimeResolution = {
+  rung: SshRemoteRuntimeRung
+  /** The classified refusal that stepped off Manta's pinned Node, when one did. */
+  pinnedRefusal?: string
+  glibc: string | null
+  runtimeSha256: string
+  orcaMajor: number
+}
+
 export type SshTarget = {
   id: string
   label: string
@@ -65,6 +82,8 @@ export type SshTarget = {
   systemSshConnectionReuse?: boolean
   /** Relay runtime for this host; undefined means DEFAULT_SSH_REMOTE_RUNTIME. */
   remoteRuntime?: SshRemoteRuntime
+  /** Main-owned ladder cache; renderer updates never set it. */
+  remoteRuntimeResolution?: SshRemoteRuntimeResolution
   /** Durable registration incarnation. Advances on create / re-create / explicit
    *  re-adopt only, so automations fenced on an old registration cannot run on a
    *  later target that happens to reuse the id. Never advanced by connect state. */

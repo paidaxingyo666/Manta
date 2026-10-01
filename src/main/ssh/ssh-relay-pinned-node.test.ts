@@ -222,7 +222,7 @@ describe('planPinnedNodeRelay', () => {
         targetId: 't',
         materializeOrcad
       })
-    ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'noexec' })
+    ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'noexec', remembered: true })
     expect(materializeOrcad).not.toHaveBeenCalled()
   })
 

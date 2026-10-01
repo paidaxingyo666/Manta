@@ -267,7 +267,7 @@ describe('Store', () => {
     expect(updatedTarget).not.toHaveProperty('systemSshConnectionReuse')
   })
 
-  it('persists only the pinned-node relay runtime opt-in', async () => {
+  it('persists known relay runtime choices and drops unknown ones', async () => {
     const store = await createStore()
     store.addSshTarget({
       id: 'ssh-runtime-pinned',
@@ -276,6 +276,14 @@ describe('Store', () => {
       port: 22,
       username: 'dev',
       remoteRuntime: 'pinned-node'
+    })
+    store.addSshTarget({
+      id: 'ssh-runtime-host-node',
+      label: 'Host Node runtime',
+      host: 'host-node.example.com',
+      port: 22,
+      username: 'dev',
+      remoteRuntime: 'legacy'
     })
     store.addSshTarget({
       id: 'ssh-runtime-unknown',
@@ -289,12 +297,46 @@ describe('Store', () => {
 
     store.flush()
     const persisted = readDataFile() as { sshTargets?: Record<string, unknown>[] }
-    expect(persisted.sshTargets?.find((t) => t.id === 'ssh-runtime-pinned')?.remoteRuntime).toBe(
-      'pinned-node'
-    )
-    expect(persisted.sshTargets?.find((t) => t.id === 'ssh-runtime-unknown')).not.toHaveProperty(
-      'remoteRuntime'
-    )
+    const byId = (id: string) => persisted.sshTargets?.find((t) => t.id === id)
+    expect(byId('ssh-runtime-pinned')?.remoteRuntime).toBe('pinned-node')
+    // An explicit Host Node choice must outlive a later default flip.
+    expect(byId('ssh-runtime-host-node')?.remoteRuntime).toBe('legacy')
+    expect(byId('ssh-runtime-unknown')).not.toHaveProperty('remoteRuntime')
+  })
+
+  it('keeps a well-formed runtime ladder decision and drops a malformed one', async () => {
+    const store = await createStore()
+    const resolution = {
+      rung: 'C',
+      pinnedRefusal: 'illegal_instruction',
+      glibc: '2.28',
+      runtimeSha256: 'a'.repeat(64),
+      orcaMajor: 1
+    }
+    store.addSshTarget({
+      id: 'ssh-ladder-ok',
+      label: 'Ladder ok',
+      host: 'ok.example.com',
+      port: 22,
+      username: 'dev',
+      ...JSON.parse(JSON.stringify({ remoteRuntimeResolution: resolution }))
+    })
+    store.addSshTarget({
+      id: 'ssh-ladder-bad',
+      label: 'Ladder bad',
+      host: 'bad.example.com',
+      port: 22,
+      username: 'dev',
+      ...JSON.parse(
+        JSON.stringify({ remoteRuntimeResolution: { ...resolution, runtimeSha256: '../x' } })
+      )
+    })
+
+    store.flush()
+    const persisted = readDataFile() as { sshTargets?: Record<string, unknown>[] }
+    const byId = (id: string) => persisted.sshTargets?.find((t) => t.id === id)
+    expect(byId('ssh-ladder-ok')?.remoteRuntimeResolution).toEqual(resolution)
+    expect(byId('ssh-ladder-bad')).not.toHaveProperty('remoteRuntimeResolution')
   })
 
   it('drops retired per-target SSH terminal source-credit selections', async () => {

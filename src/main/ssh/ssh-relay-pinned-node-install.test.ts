@@ -15,6 +15,8 @@ import {
   type PinnedRelayPlan
 } from './ssh-relay-pinned-node'
 import { runPinnedRuntimeSelfTest } from './ssh-relay-runtime-self-test'
+import type { HostNodeAddonRelayPlan } from './ssh-relay-host-node-addons'
+import { RelayRuntimeLadderRun } from './ssh-relay-runtime-resolution'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 vi.mock('./ssh-relay-deploy-helpers', () => ({ execCommand: vi.fn() }))
@@ -48,9 +50,10 @@ const context = {
 
 beforeEach(() => {
   vi.mocked(execCommand).mockReset()
-  vi.mocked(ensureRemoteOrcadNodeRuntime)
-    .mockReset()
-    .mockResolvedValue('/home/u/.manta-remote/runtimes/node-test/bin/node')
+  vi.mocked(ensureRemoteOrcadNodeRuntime).mockReset().mockResolvedValue({
+    executable: '/home/u/.manta-remote/runtimes/node-test/bin/node',
+    transfer: 'uploaded'
+  })
   vi.mocked(runPinnedRuntimeSelfTest).mockReset()
   resetPinnedRuntimeRefusalsForTests()
   vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -83,7 +86,7 @@ describe('ensurePinnedRelayRuntime', () => {
     vi.mocked(execCommand).mockResolvedValueOnce('ldd (GNU libc) 2.31')
     await expect(
       planPinnedNodeRelay({ conn, host, baseVersion: '0.1.0+abc', targetId: 'target-1' })
-    ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'noexec' })
+    ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'noexec', remembered: true })
   })
 
   it('keeps an unclassified runtime failure as an error, not a step down', async () => {
@@ -112,8 +115,51 @@ describe('verifyPinnedRelayInstall', () => {
       conn,
       context.remoteRelayDir,
       expect.stringMatching(/\/\.manta-remote\/runtimes\/node-[0-9a-f]{64}\/bin\/node$/),
-      undefined
+      undefined,
+      2,
+      { expectPinnedVersion: true }
     )
+  })
+
+  it('self-tests rung C on the host Node without the pinned version check or a cached refusal', async () => {
+    vi.mocked(execCommand).mockResolvedValue('')
+    const run = new RelayRuntimeLadderRun('target-1', null)
+    const hostPlan: HostNodeAddonRelayPlan = {
+      kind: 'host-node-addons',
+      target: 'linux-x64-glibc',
+      glibc: { major: 2, minor: 31 },
+      fullVersion: '0.1.0+0123456789ab',
+      addons: { dir: '/tmp/a', digest: 'd', dispose: async () => {} },
+      nodePath: '/opt/node18/bin/node',
+      hostNode: { version: { major: 18, minor: 20 }, napi: 9 }
+    }
+    vi.mocked(runPinnedRuntimeSelfTest).mockResolvedValueOnce({
+      verdict: 'refused',
+      refusal: 'libc_floor',
+      detail: "GLIBC_2.33' not found"
+    })
+    await expect(
+      verifyPinnedRelayInstall({ ...context, plan: hostPlan, run })
+    ).rejects.toMatchObject({ reason: 'libc_floor' })
+    expect(runPinnedRuntimeSelfTest).toHaveBeenCalledWith(
+      conn,
+      context.remoteRelayDir,
+      '/opt/node18/bin/node',
+      undefined,
+      2,
+      { expectPinnedVersion: false }
+    )
+    expect(run.selfTest).toBe('refused')
+    // A host Node refusal says nothing about Manta's pinned Node on this host.
+    vi.mocked(execCommand).mockResolvedValueOnce('ldd (GNU libc) 2.31')
+    const next = await planPinnedNodeRelay({
+      conn,
+      host,
+      baseVersion: '0.1.0+abcdef012345',
+      targetId: 'target-1',
+      materializeOrcad: () => Promise.reject(new Error('stop here'))
+    })
+    expect(next).toMatchObject({ fallbackReason: 'artifacts_unavailable' })
   })
 
   it('falls back on a refusal', async () => {

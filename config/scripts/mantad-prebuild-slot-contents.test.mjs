@@ -19,6 +19,7 @@ import {
   SLOT_NAPI_VERSION,
   windowsConptyRuntimeDir
 } from './orcad-prebuild-slot-contents.mjs'
+import { ORCAD_ADDON_NAPI_VERSION } from '../../src/shared/mantad-artifacts.ts'
 
 const floors = createRequire(import.meta.url)('./verify-linux-glibc-floor.cjs')
 const dirs = []
@@ -53,6 +54,8 @@ const next = (slot, overrides = {}) => ({
 describe('N-API pinning', () => {
   it('pins N-API 8 so a host Node 18 (rung C) can load every slot', () => {
     expect(SLOT_NAPI_VERSION).toBe(8)
+    // The client's rung C host-Node gate must ask for exactly what the slots are built against.
+    expect(ORCAD_ADDON_NAPI_VERSION).toBe(SLOT_NAPI_VERSION)
     expect(JSON.parse(prebuildCompileGypi()).target_defaults.defines).toEqual(['NAPI_VERSION=8'])
   })
 

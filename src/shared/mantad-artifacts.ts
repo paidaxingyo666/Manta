@@ -55,6 +55,9 @@ export function orcadNodeRuntimeRelativePath(target: string, executableSha256: s
   ]
 }
 
+/** N-API level the slot addons are built for; equals SLOT_NAPI_VERSION in the prebuild script. */
+export const ORCAD_ADDON_NAPI_VERSION = 8
+
 export const ORCAD_NODE_PTY_DIR = 'node_modules/node-pty'
 // Test files and sources stay out; these are every module the runtime path requires.
 export const ORCAD_NODE_PTY_JS_ARTIFACTS = [

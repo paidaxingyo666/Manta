@@ -2,15 +2,25 @@
 import { existsSync } from 'node:fs'
 import { app } from 'electron'
 import { relayBundleCandidates } from './relay-bundle-paths'
+import { PinnedRelayFallbackError, resolveSshRemoteRuntime } from './ssh-relay-pinned-node'
 import {
-  logPinnedRelayFallback,
-  PinnedRelayFallbackError,
-  pinnedRelayNodePath,
-  planPinnedNodeRelay,
-  resolveSshRemoteRuntime,
-  type PinnedRelayPlan
-} from './ssh-relay-pinned-node'
-import { ensurePinnedRelayRuntime, verifyPinnedRelayInstall } from './ssh-relay-pinned-node-install'
+  ensurePinnedRelayRuntime,
+  prebuiltRelayNodePath,
+  verifyPinnedRelayInstall
+} from './ssh-relay-pinned-node-install'
+import type { PrebuiltRelayPlan } from './ssh-relay-host-node-addons'
+import {
+  nextRelayRuntimeStep,
+  relayRuntimeLadder,
+  type RelayRuntimeStep
+} from './ssh-relay-runtime-ladder'
+import {
+  RelayRuntimeLadderRun,
+  remoteRuntimeUnavailableError,
+  sshTargetRelayRuntimeDecisionStore
+} from './ssh-relay-runtime-resolution'
+import { planRelayRuntimeStep } from './ssh-relay-runtime-step-plan'
+import { getSshTargetRegistryStore } from './ssh-target-registry'
 import type { SshConnection } from './ssh-connection'
 import { RELAY_REMOTE_DIR, type RelayPlatform } from './relay-protocol'
 import type { MultiplexerTransport } from './ssh-channel-multiplexer'
@@ -132,8 +142,7 @@ import {
 import {
   DEFAULT_SSH_RELAY_GRACE_PERIOD_SECONDS,
   MAX_SSH_RELAY_GRACE_PERIOD_SECONDS,
-  MIN_SSH_RELAY_GRACE_PERIOD_SECONDS,
-  type SshRemoteRuntime
+  MIN_SSH_RELAY_GRACE_PERIOD_SECONDS
 } from '../../shared/ssh-types'
 
 export type RelayDeployResult = {
@@ -371,18 +380,22 @@ async function resolveRelayBootstrapState(
   }
 }
 
-/** The pinned path never consults the host's Node, so only home and install state are probed. */
-async function resolvePinnedRelayBootstrapState(
+/** A prebuilt plan already knows its Node, so only home and install state are probed. */
+async function resolvePrebuiltRelayBootstrapState(
   conn: SshConnection,
   hostPlatform: RemoteHostPlatform,
   fullVersion: string,
-  pinned: PinnedRelayPlan,
+  plan: PrebuiltRelayPlan,
   signal?: AbortSignal
 ): Promise<RelayBootstrapState> {
   const installState = await resolveRemoteInstallState(conn, hostPlatform, fullVersion, { signal })
   return {
     ...installState,
-    nodePath: pinnedRelayNodePath(hostPlatform, installState.remoteRelayDir, pinned.target)
+    nodePath: prebuiltRelayNodePath({
+      host: hostPlatform,
+      remoteRelayDir: installState.remoteRelayDir,
+      plan
+    })
   }
 }
 
@@ -402,22 +415,41 @@ async function deployAndLaunchRelayInner(
   deploySignal?: AbortSignal
 ): Promise<RelayDeployResult> {
   const target = typeof conn.getTarget === 'function' ? conn.getTarget() : undefined
-  let runtime = resolveSshRemoteRuntime(target)
+  const ladder = relayRuntimeLadder(resolveSshRemoteRuntime(target))
+  const registry = getSshTargetRegistryStore()
+  const run = new RelayRuntimeLadderRun(
+    target?.id ?? relayInstanceId ?? '',
+    target && registry ? sshTargetRelayRuntimeDecisionStore(registry) : null
+  )
+  let step = ladder[0] ?? 'legacy'
   while (true) {
     deploySignal?.throwIfAborted()
     try {
-      return await deployAndLaunchRelayAttempt(
+      if (step === 'D') {
+        run.settle('D')
+        throw remoteRuntimeUnavailableError(run)
+      }
+      const result = await deployAndLaunchRelayAttempt(
         conn,
         onProgress,
         graceTimeSeconds,
         relayInstanceId,
         deploySignal,
-        { runtime, targetId: target?.id ?? relayInstanceId ?? '' }
+        { step, run }
       )
+      // Why only a laddered pass: a plain host-npm connect has no rung decision to record.
+      if (ladder.length > 1) {
+        run.settle(step)
+      }
+      return result
     } catch (err) {
-      if (err instanceof PinnedRelayFallbackError) {
-        logPinnedRelayFallback(err.reason, err.detail)
-        runtime = 'legacy'
+      if (err instanceof PinnedRelayFallbackError && step !== 'legacy' && step !== 'D') {
+        console.warn(
+          `[ssh-relay] Relay runtime rung ${step} unavailable (${err.reason}): ${err.detail}`
+        )
+        run.refused(step, err.reason)
+        step = nextRelayRuntimeStep(ladder, step, err.reason, err.remembered)
+        run.enter(step)
         continue
       }
       if (!(err instanceof RelayDirectoryGcConflictError)) {
@@ -429,7 +461,7 @@ async function deployAndLaunchRelayInner(
   }
 }
 
-type RelayRuntimeRequest = { runtime: SshRemoteRuntime; targetId: string }
+type RelayRuntimeRequest = { step: RelayRuntimeStep; run: RelayRuntimeLadderRun }
 
 async function deployAndLaunchRelayAttempt(
   conn: SshConnection,
@@ -437,11 +469,16 @@ async function deployAndLaunchRelayAttempt(
   graceTimeSeconds?: number,
   relayInstanceId?: string,
   deploySignal?: AbortSignal,
-  runtimeRequest: RelayRuntimeRequest = { runtime: 'legacy', targetId: relayInstanceId ?? '' }
+  runtimeRequest: RelayRuntimeRequest = {
+    step: 'legacy',
+    run: new RelayRuntimeLadderRun(relayInstanceId ?? '', null)
+  }
 ): Promise<RelayDeployResult> {
   onProgress?.('Detecting remote platform...')
   console.log('[ssh-relay] Detecting remote platform...')
-  const hostPlatform = await detectRemoteHostPlatform(conn, { signal: deploySignal })
+  // Why reuse: each ladder step would otherwise re-probe a platform that cannot have changed.
+  const hostPlatform =
+    runtimeRequest.run.host ?? (await detectRemoteHostPlatform(conn, { signal: deploySignal }))
   if (!hostPlatform) {
     throw new Error(
       'Unsupported remote platform. Manta relay supports: linux-x64, linux-arm64, darwin-x64, darwin-arm64, win32-x64, win32-arm64.'
@@ -459,17 +496,14 @@ async function deployAndLaunchRelayAttempt(
   }
   // Why: content-hashed version doubles as remote dir name and wire-handshake version; throws on missing rather than falling back (see docs/ssh-relay-versioned-install-dirs.md).
   const baseVersion = readLocalFullVersion(localRelayDir)
-  const plan =
-    runtimeRequest.runtime === 'pinned-node'
-      ? await planPinnedNodeRelay({
-          conn,
-          host: hostPlatform,
-          baseVersion,
-          targetId: runtimeRequest.targetId,
-          signal: deploySignal
-        })
-      : undefined
-  const pinned = plan?.kind === 'pinned-node' ? plan : undefined
+  const prebuilt = await planRelayRuntimeStep({
+    conn,
+    host: hostPlatform,
+    baseVersion,
+    step: runtimeRequest.step,
+    run: runtimeRequest.run,
+    signal: deploySignal
+  })
   try {
     return await deployAndLaunchRelayOnRuntime({
       conn,
@@ -480,12 +514,12 @@ async function deployAndLaunchRelayAttempt(
       hostPlatform,
       platform,
       localRelayDir,
-      fullVersion: pinned?.fullVersion ?? baseVersion,
-      pinned,
-      targetId: runtimeRequest.targetId
+      fullVersion: prebuilt?.fullVersion ?? baseVersion,
+      prebuilt,
+      run: runtimeRequest.run
     })
   } finally {
-    await pinned?.addons.dispose().catch(() => {})
+    await prebuilt?.addons.dispose().catch(() => {})
   }
 }
 
@@ -499,8 +533,8 @@ async function deployAndLaunchRelayOnRuntime({
   platform,
   localRelayDir,
   fullVersion,
-  pinned,
-  targetId
+  prebuilt,
+  run
 }: {
   conn: SshConnection
   onProgress?: (status: string) => void
@@ -510,24 +544,38 @@ async function deployAndLaunchRelayOnRuntime({
   hostPlatform: RemoteHostPlatform
   platform: RelayPlatform
   localRelayDir: string
-  /** Already folded with the runtime digest when `pinned` is set (design D8.1). */
+  /** Already folded with the runtime digest when `prebuilt` is set (design D8.1). */
   fullVersion: string
-  pinned?: PinnedRelayPlan
-  targetId: string
+  prebuilt?: PrebuiltRelayPlan
+  run: RelayRuntimeLadderRun
 }): Promise<RelayDeployResult> {
   onProgress?.('Checking existing relay...')
   // Why: install-check and node resolution are independent; run concurrently to save a round trip, with sequential fallback for restrictive SSH servers.
-  const { remoteHome, remoteRelayDir, alreadyInstalled, nodePath } = pinned
-    ? await resolvePinnedRelayBootstrapState(conn, hostPlatform, fullVersion, pinned, deploySignal)
+  const { remoteHome, remoteRelayDir, alreadyInstalled, nodePath } = prebuilt
+    ? await resolvePrebuiltRelayBootstrapState(
+        conn,
+        hostPlatform,
+        fullVersion,
+        prebuilt,
+        deploySignal
+      )
     : await resolveRelayBootstrapState(conn, hostPlatform, fullVersion, deploySignal)
   console.log(`[ssh-relay] Remote dir: ${remoteRelayDir}`)
   console.log(`[ssh-relay] Already installed at ${fullVersion}: ${alreadyInstalled}`)
-  const pinnedContext = pinned
-    ? { conn, host: hostPlatform, remoteRelayDir, plan: pinned, targetId, signal: deploySignal }
+  const pinnedContext = prebuilt
+    ? {
+        conn,
+        host: hostPlatform,
+        remoteRelayDir,
+        plan: prebuilt,
+        targetId: run.targetId,
+        signal: deploySignal,
+        run
+      }
     : undefined
-  if (pinnedContext) {
+  if (pinnedContext?.plan.kind === 'pinned-node') {
     onProgress?.('Checking Manta Node runtime...')
-    await ensurePinnedRelayRuntime(pinnedContext, alreadyInstalled)
+    await ensurePinnedRelayRuntime({ ...pinnedContext, plan: pinnedContext.plan }, alreadyInstalled)
   }
 
   // Why: derive the home-relative suffix once — recomputing it by stripping the shell home breaks on a split namespace.
@@ -544,7 +592,7 @@ async function deployAndLaunchRelayOnRuntime({
   let launchGcClaimToken: string | undefined
   let launchNamespace: RelayInstallNamespace | undefined
   if (alreadyInstalled) {
-    const launchFence = pinned
+    const launchFence = prebuilt
       ? await fenceInstalledPinnedRelay(
           conn,
           remoteRelayDir,
@@ -607,7 +655,7 @@ async function deployAndLaunchRelayOnRuntime({
         hostPlatform,
         deploySignal,
         { rootDir: uploadStage.slotDir, namespace: uploadStageSftpNamespace },
-        pinned?.addons.dir
+        prebuilt?.addons.dir
       )
 
       await acquireInstallLock(conn, remoteRelayDir, hostPlatform, { signal: deploySignal })
@@ -643,7 +691,7 @@ async function deployAndLaunchRelayOnRuntime({
           console.log('[ssh-relay] Upload complete')
 
           if (pinnedContext) {
-            onProgress?.('Verifying Manta Node runtime...')
+            onProgress?.('Verifying relay runtime...')
             await verifyPinnedRelayInstall(pinnedContext)
           } else {
             onProgress?.('Installing native dependencies...')

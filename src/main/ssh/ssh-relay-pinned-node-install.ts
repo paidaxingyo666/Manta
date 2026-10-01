@@ -18,6 +18,8 @@ import {
   recordPinnedRuntimeRefusal,
   type PinnedRelayPlan
 } from './ssh-relay-pinned-node'
+import type { PrebuiltRelayPlan } from './ssh-relay-host-node-addons'
+import type { RelayRuntimeLadderRun } from './ssh-relay-runtime-resolution'
 import {
   classifyPinnedRuntimeFailure,
   runPinnedRuntimeSelfTest
@@ -28,16 +30,28 @@ type PinnedInstallContext = {
   conn: SshConnection
   host: RemoteHostPlatform
   remoteRelayDir: string
-  plan: PinnedRelayPlan
+  plan: PrebuiltRelayPlan
   targetId: string
   signal?: AbortSignal
+  run?: RelayRuntimeLadderRun
 }
 
 function refuse(context: PinnedInstallContext, error: PinnedRelayFallbackError): never {
-  if (isPinnedRuntimeRefusal(error.reason)) {
+  // Only Manta's pinned Node is cached as refused; a host Node refusal names nothing reusable.
+  if (context.plan.kind === 'pinned-node' && isPinnedRuntimeRefusal(error.reason)) {
     recordPinnedRuntimeRefusal(context.targetId, context.plan.target, error.reason)
   }
   throw error
+}
+
+export function prebuiltRelayNodePath(context: {
+  host: RemoteHostPlatform
+  remoteRelayDir: string
+  plan: PrebuiltRelayPlan
+}): string {
+  return context.plan.kind === 'pinned-node'
+    ? pinnedRelayNodePath(context.host, context.remoteRelayDir, context.plan.target)
+    : context.plan.nodePath
 }
 
 /**
@@ -45,21 +59,24 @@ function refuse(context: PinnedInstallContext, error: PinnedRelayFallbackError):
  * spend the warm-reconnect budget (design D10 G2.6). A cold install verifies in full.
  */
 export async function ensurePinnedRelayRuntime(
-  context: PinnedInstallContext,
+  context: PinnedInstallContext & { plan: PinnedRelayPlan },
   relayAlreadyInstalled: boolean
 ): Promise<void> {
-  const { conn, host, remoteRelayDir, plan, signal } = context
+  const { conn, host, remoteRelayDir, plan, signal, run } = context
   if (relayAlreadyInstalled) {
     const runtimeDir = remoteNodeRuntimeDir(host, remoteRelayDir, plan.target)
     const present = await execCommand(conn, remoteNodeRuntimePresentCommand(host, runtimeDir), {
       signal
     })
     if (present.trim() === REMOTE_NODE_RUNTIME_READY) {
+      if (run && run.runtimeTransfer === 'none') {
+        run.runtimeTransfer = 'cached'
+      }
       return
     }
   }
   try {
-    await ensureRemoteOrcadNodeRuntime({
+    const { transfer } = await ensureRemoteOrcadNodeRuntime({
       conn,
       host,
       slotDir: remoteRelayDir,
@@ -67,6 +84,9 @@ export async function ensurePinnedRelayRuntime(
       archivePath: plan.runtimeArchive,
       signal
     })
+    if (run && run.runtimeTransfer !== 'uploaded') {
+      run.runtimeTransfer = transfer
+    }
   } catch (error) {
     if (error instanceof PinnedRelayFallbackError) {
       refuse(context, error)
@@ -99,12 +119,17 @@ export async function verifyPinnedRelayInstall(context: PinnedInstallContext): P
       { signal }
     )
   }
-  const nodePath = pinnedRelayNodePath(host, remoteRelayDir, plan.target)
-  const verdict = await runPinnedRuntimeSelfTest(conn, remoteRelayDir, nodePath, signal)
+  const nodePath = prebuiltRelayNodePath(context)
+  const verdict = await runPinnedRuntimeSelfTest(conn, remoteRelayDir, nodePath, signal, 2, {
+    expectPinnedVersion: plan.kind === 'pinned-node'
+  })
+  if (context.run && verdict.verdict !== 'unverifiable') {
+    context.run.selfTest = verdict.verdict
+  }
   switch (verdict.verdict) {
     case 'passed':
       console.log(
-        `[ssh-relay] Pinned Node self-test passed at ${remoteRelayDir} (${verdict.report.node}, glibc ${verdict.report.glibcVersionRuntime ?? 'n/a'})`
+        `[ssh-relay] ${plan.kind === 'pinned-node' ? 'Pinned' : 'Host'} Node self-test passed at ${remoteRelayDir} (${verdict.report.node}, glibc ${verdict.report.glibcVersionRuntime ?? 'n/a'})`
       )
       return
     case 'refused':
@@ -116,9 +141,9 @@ export async function verifyPinnedRelayInstall(context: PinnedInstallContext): P
         throw verdict.cause
       }
       throw new Error(
-        `The pinned Node self-test at ${remoteRelayDir} is unverifiable; retrying on the next connect: ${verdict.detail}`
+        `The relay runtime self-test at ${remoteRelayDir} is unverifiable; retrying on the next connect: ${verdict.detail}`
       )
     case 'failed':
-      throw new Error(`The pinned Node self-test at ${remoteRelayDir} failed: ${verdict.detail}`)
+      throw new Error(`The relay runtime self-test at ${remoteRelayDir} failed: ${verdict.detail}`)
   }
 }

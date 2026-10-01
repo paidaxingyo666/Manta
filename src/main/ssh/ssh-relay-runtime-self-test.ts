@@ -161,22 +161,30 @@ export function evaluateRelayRuntimeSelfTest(
   return refusedOrFailed(selfTest.exitStatus, evidence, 'relay self-test')
 }
 
+export type RelayRuntimeSelfTestOptions = {
+  /** False on rung C: the host's own Node has no pinned version to match. */
+  expectPinnedVersion: boolean
+}
+
 async function runSelfTestOnce(
   conn: SshConnection,
   relayDir: string,
   nodePath: string,
-  signal?: AbortSignal
+  signal: AbortSignal | undefined,
+  options: RelayRuntimeSelfTestOptions
 ): Promise<PinnedRuntimeSelfTestVerdict> {
   const deadline = Date.now() + RELAY_RUNTIME_SELF_TEST_BUDGET_MS
   const remaining = (): number => Math.max(1_000, deadline - Date.now())
   const nonce = randomBytes(12).toString('hex')
   try {
-    const versionVerdict = evaluatePinnedRuntimeVersion(
-      await execCommand(conn, pinnedRuntimeVersionCommand(nodePath), {
-        timeoutMs: remaining(),
-        signal
-      })
-    )
+    const versionVerdict = options.expectPinnedVersion
+      ? evaluatePinnedRuntimeVersion(
+          await execCommand(conn, pinnedRuntimeVersionCommand(nodePath), {
+            timeoutMs: remaining(),
+            signal
+          })
+        )
+      : null
     if (versionVerdict) {
       return versionVerdict
     }
@@ -204,14 +212,15 @@ export async function runPinnedRuntimeSelfTest(
   relayDir: string,
   nodePath: string,
   signal?: AbortSignal,
-  attempts = 2
+  attempts = 2,
+  options: RelayRuntimeSelfTestOptions = { expectPinnedVersion: true }
 ): Promise<PinnedRuntimeSelfTestVerdict> {
   let verdict: PinnedRuntimeSelfTestVerdict = {
     verdict: 'unverifiable',
     detail: 'the self-test never ran'
   }
   for (let attempt = 0; attempt < attempts; attempt++) {
-    verdict = await runSelfTestOnce(conn, relayDir, nodePath, signal)
+    verdict = await runSelfTestOnce(conn, relayDir, nodePath, signal, options)
     if (verdict.verdict !== 'unverifiable') {
       return verdict
     }
