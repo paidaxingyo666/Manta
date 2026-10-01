@@ -5,7 +5,7 @@
  *   B  a compat pinned Node + compat addons (chosen only when a compat runtime exists)
  *   C  the host's Node >= 18 + Manta's N-API prebuilds, no npm
  *   legacy  the host's Node + npm install (kept until the default flips)
- *   D  nothing runs: fail the connect with the classified reason
+ *   D  nothing runs: plain SSH terminals and SFTP, recording the classified reason
  *
  * The ladder steps down only on a classified refusal (a `PinnedRelayFallbackError`); an
  * unverifiable probe or self-test throws and the next connect retries the same rung.
