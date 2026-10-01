@@ -693,6 +693,7 @@ async function deployAndLaunchRelayAttempt(
           gcOldRelayVersions(conn, remoteHome, remoteRelayDir, hostPlatform, {
             windowsNodePath: launched.nodePath,
             windowsSockNames: [relaySocketNameForInstanceId(relayInstanceId)],
+            nodePath: launched.nodePath,
             // Why pin rather than rely on the symlink alone: a deploy that fell back to a
             // per-directory install has no reference to show, and its key must still survive.
             nativeDepsCacheKeys: [

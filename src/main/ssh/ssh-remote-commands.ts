@@ -201,7 +201,7 @@ export function probeFileExistsCommand(host: RemoteHostPlatform, remotePath: str
   )
 }
 
-type WindowsRelayLivenessOptions = {
+export type WindowsRelayLivenessOptions = {
   nodePath: string
   pipePaths: string[]
 }

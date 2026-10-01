@@ -201,4 +201,24 @@ describe('mantad GC', () => {
 
     expect(removed).toEqual(['mantad-0.0.9+dead'])
   })
+
+  it('collects the runtime store only when the caller names its runtime pins', async () => {
+    const removed: string[] = []
+    scriptHost({ listing: [], removed })
+    const options = {
+      conn,
+      host,
+      remoteHome: '/home/u',
+      currentDirAbsPath: '/home/u/.manta-remote/mantad-0.2.0+bb',
+      record: emptyOrcadActivationRecord()
+    }
+    const inventories = (): number =>
+      mockExec.mock.calls.filter(([, command]) => String(command).includes('RUNTIME_STORE')).length
+
+    await gcOldOrcadVersions(options)
+    expect(inventories()).toBe(0)
+
+    await gcOldOrcadVersions({ ...options, nodeRuntimePins: ['a'.repeat(64)] })
+    expect(inventories()).toBe(1)
+  })
 })

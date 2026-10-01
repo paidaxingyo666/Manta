@@ -4,7 +4,10 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { orcadRipgrepArtifact } from '../../shared/mantad-artifacts'
-import { probeRemoteInstallCompleteCommand } from './ssh-remote-commands'
+import {
+  listRemoteInstallBaseDirsCommand,
+  probeRemoteInstallCompleteCommand
+} from './ssh-remote-commands'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 
 import {
@@ -120,4 +123,35 @@ describe('GC ownership — each model collects only its own namespace', () => {
     expect(inventory.mantad).toEqual(MANTAD_DIRS)
     expect(inventory.unknown).toEqual(['something-else'])
   })
+
+  it('gives the shared runtime store its own owner that no version-dir GC may take', () => {
+    expect(remoteInstallDirOwner('runtimes')).toBe('runtimes')
+    expect(remoteInstallGcPermits(RELAY_INSTALL_MODEL, 'runtimes')).toBe(false)
+    expect(remoteInstallGcPermits(MANTAD_INSTALL_MODEL, 'runtimes')).toBe(false)
+    expect(inventoryRemoteInstallDirs(['runtimes', ...RELAY_DIRS]).runtimes).toEqual(['runtimes'])
+  })
+
+  it.skipIf(process.platform === 'win32')(
+    'keeps runtimes/ out of every model listing, including older clients’ prefix scans',
+    () => {
+      const base = mkdtempSync(join(tmpdir(), 'install-listing-'))
+      try {
+        for (const name of ['runtimes', 'relay-0.1.0+aa', 'mantad-0.1.0+aa']) {
+          mkdirSync(join(base, name))
+        }
+        mkdirSync(join(base, 'runtimes', `node-${'a'.repeat(64)}`))
+        const host = getRemoteHostPlatform('linux-x64')
+        for (const model of [RELAY_INSTALL_MODEL, MANTAD_INSTALL_MODEL]) {
+          const listed = execFileSync(
+            '/bin/sh',
+            ['-c', listRemoteInstallBaseDirsCommand(host, base, model)],
+            { encoding: 'utf8' }
+          )
+          expect(listed.trim().split('\n')).toEqual([`${model.dirPrefix}-0.1.0+aa`])
+        }
+      } finally {
+        rmSync(base, { recursive: true, force: true })
+      }
+    }
+  )
 })
