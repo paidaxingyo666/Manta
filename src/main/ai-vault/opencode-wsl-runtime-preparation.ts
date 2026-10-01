@@ -2,12 +2,13 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { waitForPromiseWithSignal } from '../../shared/abort-signal-reason'
-import { ORCAD_BUN_RELEASE_ASSETS, type OrcadBunTarget } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_RELEASE_ASSETS, type OrcadBunTarget } from '../../shared/mantad-bun-runtime'
 import { RELAY_OPENCODE_SQLITE_READER_FILENAME } from '../../shared/relay-artifacts'
 import { parseWslUncPath, toWindowsWslUncPath } from '../../shared/wsl-paths'
+import { NODE_SQLITE_READER_API_SOURCE } from '../sqlite/node-sqlite-reader-api'
 import { relayBundleCandidates } from '../ssh/relay-bundle-paths'
-import { materializeCachedOrcadBunRuntime } from '../ssh/orcad-bun-runtime-materializer'
-import { parseOrcadLinuxLibc } from '../ssh/orcad-deployment-target'
+import { materializeCachedOrcadBunRuntime } from '../ssh/mantad-bun-runtime-materializer'
+import { parseOrcadLinuxLibc } from '../ssh/mantad-deployment-target'
 import { runWslProcess, type WslSpec } from '../wsl/wsl-runner'
 import { filterPathsToRunningWslDistrosAsync } from '../wsl-running-path-filter'
 import type { OpenCodeWslRuntime } from './session-scanner-opencode-wsl-runtime'
@@ -15,7 +16,7 @@ import type { OpenCodeWslRuntime } from './session-scanner-opencode-wsl-runtime'
 const preparation = new Map<string, { value: OpenCodeWslRuntime; expires: number }>()
 const downloads = new Map<OrcadBunTarget, Promise<string>>()
 const PREPARATION_TIMEOUT_MS = 180_000
-const SQLITE_PROBE = `const db=new (require('node:sqlite').DatabaseSync)(':memory:');db.prepare('SELECT 1').get();db.close();process.stdout.write(process.execPath)`
+const SQLITE_PROBE = `const sqlite=require('node:sqlite');if(!(${NODE_SQLITE_READER_API_SOURCE})(sqlite))throw Error('SQLite reader API missing');const db=new sqlite.DatabaseSync(':memory:');db.prepare('SELECT 1').get();db.close();process.stdout.write(process.execPath)`
 
 /** Only running distro roots enter here; a slow first install must not hold up local history. */
 export async function prepareOpenCodeWslReaders(

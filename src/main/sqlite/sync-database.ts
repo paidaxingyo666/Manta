@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import type { backup, BackupOptions, DatabaseSync, SQLInputValue } from 'node:sqlite'
 import { BunSqliteDatabase, loadBunSqlite } from './bun-sqlite-database'
+import { hasNodeSqliteReaderApi } from './node-sqlite-reader-api'
 import { NodeSqliteStatement } from './node-sqlite-statement'
 import type { SqliteStatement } from './sqlite-statement'
 
@@ -66,7 +67,7 @@ export function isSqliteAvailable(): boolean {
       return loadBunSqlite() !== undefined
     }
     const sqlite: unknown = process.getBuiltinModule?.('node:sqlite')
-    return hasDatabaseSync(sqlite) && hasBackup(sqlite)
+    return hasNodeSqliteReaderApi(sqlite)
   } catch {
     return false
   }

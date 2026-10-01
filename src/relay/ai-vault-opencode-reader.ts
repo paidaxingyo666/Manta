@@ -8,7 +8,7 @@ import { parseOpenCodeSessionFile } from '../main/ai-vault/session-scanner-openc
 import { createOpenCodeSqliteProcessClient } from '../main/ai-vault/session-scanner-opencode-sqlite-process-client'
 import { buildRelayAiVaultServiceEnv } from '../main/ai-vault/session-scanner-service-env'
 import { resolveOpenCodeDataDirectory } from '../main/opencode/opencode-data-directory'
-import SyncDatabase from '../main/sqlite/sync-database'
+import SyncDatabase, { isSqliteAvailable } from '../main/sqlite/sync-database'
 
 type Reader = Pick<RemoteOpenCodeSessionReader, 'list' | 'parse'> & { dispose(): void }
 
@@ -147,6 +147,10 @@ async function readRuntimeExecutable(path: string): Promise<string | undefined> 
 }
 
 function canCurrentRuntimeReadSqlite(): boolean {
+  // Why: same admission as the host probes, so Node 22.13–22.15 waits for the pinned runtime.
+  if (!isSqliteAvailable()) {
+    return false
+  }
   let db: SyncDatabase | undefined
   try {
     db = new SyncDatabase(':memory:')

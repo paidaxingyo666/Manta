@@ -68,6 +68,41 @@ describe.skipIf(process.platform === 'win32')('host-owned SQLite setup commands'
     })
   })
 
+  it('sends a host Node without the SyncDatabase surface to the pinned runtime', async () => {
+    const home = await directory()
+    const data = join(home, '.local', 'share', 'opencode')
+    await mkdir(data, { recursive: true })
+    await writeFile(join(data, 'opencode.db'), '')
+    // Node 22.13-22.15: DatabaseSync ships, the backup export does not.
+    const preload = join(home, 'node-22-13-sqlite.cjs')
+    await writeFile(preload, "delete require('node:sqlite').backup")
+    const result = await command(probeOpenCodeNodeSqliteCommand(host, nodePath, home), {
+      NODE_OPTIONS: `--require ${JSON.stringify(preload)}`
+    })
+    expect(result.code, result.stderr).toBe(0)
+    expect(parseOpenCodeRuntimeResult(result.stdout)).toEqual({ status: 'unsupported' })
+  })
+
+  it('ignores the experimental SQLite warning older Node prints to stderr', async () => {
+    const home = await directory()
+    const data = join(home, '.local', 'share', 'opencode')
+    await mkdir(data, { recursive: true })
+    await writeFile(join(data, 'opencode.db'), '')
+    const preload = join(home, 'experimental-warning.cjs')
+    await writeFile(
+      preload,
+      "process.emitWarning('SQLite is an experimental feature and might change at any time','ExperimentalWarning')"
+    )
+    const result = await command(probeOpenCodeNodeSqliteCommand(host, nodePath, home), {
+      NODE_OPTIONS: `--require ${JSON.stringify(preload)}`
+    })
+    expect(result.stderr).toContain('ExperimentalWarning')
+    expect(parseOpenCodeRuntimeResult(result.stdout)).toEqual({
+      status: 'ready',
+      executable: nodePath
+    })
+  })
+
   it('stages, verifies by bytes, promotes and atomically publishes under quoted paths', async () => {
     const root = await directory()
     const stage = await reserveStage(root)
