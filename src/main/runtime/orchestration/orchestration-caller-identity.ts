@@ -1,13 +1,13 @@
 import type { RunRow } from './types'
 import { isEquivalentPaneKey } from './db/pane-key-match'
-import { currentRunCoordinatorOrcaSessionId } from './db/runs/run-coordinator-orca-session'
+import { currentRunCoordinatorOrcaSessionId } from './db/runs/run-coordinator-manta-session'
 import { formatOrcaSessionAddress, type OrcaSessionId } from '../../../shared/manta-session-address'
 
 /**
  * Who an orchestration caller is, as Run binding and mail routing match it.
  *
  * A PTY agent is its terminal: a handle and a pane key, no Manta session id. An agent that is a
- * structured session is its Manta session id, addressed as `session:<id>`; a structured worker also
+ * structured session is its Manta session id, addressed as `orca_session_id:<id>`; a structured worker also
  * has the handle and pane key it was minted, and an ordinary chat has neither. Methods pass this
  * through whole and never branch on which fields are set; the lookups below own that.
  */
@@ -16,7 +16,7 @@ export type OrchestrationCallerIdentity = Readonly<{
   address: string
   terminalHandle: string | null
   paneKey: string | null
-  /** The bare Manta session id the caller is addressed by; mail spells it `session:<id>`. */
+  /** The bare Manta session id the caller is addressed by; mail spells it `orca_session_id:<id>`. */
   orcaSessionId: OrcaSessionId | null
 }>
 

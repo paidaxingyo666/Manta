@@ -5,11 +5,12 @@ import { backfillFederatedStubHomeRuns } from './federation/federated-stub-home-
 import type { OrchestrationDbMethods } from './orchestration-db-methods'
 import {
   createCoordinatorMailRoutingTrigger,
+  createRunCoordinatorAddressTriggers,
   rememberCurrentRunCoordinatorHandles
 } from './runs/run-coordinator-mail-routing'
 import { createTables } from './schema/create-tables'
 import { migrate } from './schema/migrate'
-import { backfillStructuredWorkerOrcaSessionIds } from './schema/structured-worker-orca-session-backfill'
+import { backfillStructuredWorkerOrcaSessionIds } from './schema/structured-worker-manta-session-backfill'
 
 class OrchestrationDbCore {
   db: Database.Database
@@ -30,6 +31,7 @@ class OrchestrationDbCore {
     this.db.pragma('busy_timeout = 5000')
     createTables.call(this as unknown as OrchestrationDb)
     migrate.call(this as unknown as OrchestrationDb)
+    createRunCoordinatorAddressTriggers(this.db)
     backfillFederatedStubHomeRuns(this.db)
     backfillStructuredWorkerOrcaSessionIds(this.db)
     createCoordinatorMailRoutingTrigger.call(this as unknown as OrchestrationDb)
