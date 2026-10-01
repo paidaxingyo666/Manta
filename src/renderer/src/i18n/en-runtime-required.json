@@ -2615,6 +2615,10 @@
         "dropPartiallyAttached_one": "{{failureCount}} of {{count}} item could not be attached.",
         "dropPartiallyAttached_other": "{{failureCount}} of {{count}} items could not be attached."
       },
+      "useGlobalFileDrop": {
+        "nativeDropTempCopyFailed_one": "Manta couldn't copy {{count}} dropped file.",
+        "nativeDropTempCopyFailed_other": "Manta couldn't copy {{count}} dropped files."
+      },
       "useIpcEvents": {
         "60428567b4": "Local terminal reveal is unavailable while a remote runtime is active",
         "f6300deb8b": "New Browser Tab"

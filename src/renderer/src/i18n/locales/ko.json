@@ -900,6 +900,17 @@
         "symlink": "심볼릭 링크는 첨부할 수 없습니다.",
         "permissionDenied": "액세스가 거부되었습니다.",
         "unsupported": "지원되지 않는 파일 형식입니다."
+      },
+      "dropTempCopyFailure": {
+        "changed": "Manta가 복사하는 동안 파일이 변경되었습니다. 다시 드롭해 보세요.",
+        "outOfSpace": "드롭한 파일을 복사할 디스크 공간이 부족합니다.",
+        "storageUnavailable": "Manta가 드롭한 파일을 위한 저장 공간을 만들지 못했습니다.",
+        "storageNotPrivate": "드롭한 파일을 위한 Manta 저장 공간을 다른 사용자가 읽을 수 있어 아무것도 복사하지 않았습니다.",
+        "timedOut": "복사하는 데 너무 오래 걸렸습니다. 다시 드롭해 보세요.",
+        "busy": "아직 복사 중인 드롭이 너무 많습니다. 잠시 후 다시 시도하세요.",
+        "tooLarge": "너무 커서 복사할 수 없어 Manta가 에이전트에 전달하지 못했습니다.",
+        "storageFull": "드롭한 파일을 위한 Manta 저장 공간이 가득 차서 Manta가 에이전트에 전달하지 못했습니다.",
+        "generic": "다시 드롭해 보세요."
       }
     },
     "hooks": {
@@ -934,7 +945,10 @@
         "nativeDropPathsTooLarge": "드롭 경로 목록이 너무 큽니다.",
         "ownerChanged": "Couldn't verify which host owns this workspace. Try again after it reconnects.",
         "nativeDropUnresolvedPathsDescription": "먼저 디스크에 저장한 다음 저장된 파일을 삭제하세요.",
-        "nativeDropUnresolvedPaths": "Manta가 삭제된 파일의 경로를 읽을 수 없습니다."
+        "nativeDropUnresolvedPaths": "Manta가 삭제된 파일의 경로를 읽을 수 없습니다.",
+        "nativeDropTempCopyFailed": "Manta가 드롭한 파일 {{count}}개를 복사하지 못했습니다.",
+        "nativeDropTempCopyFailed_one": "Manta가 드롭한 파일 {{count}}개를 복사하지 못했습니다.",
+        "nativeDropTempCopyFailed_other": "Manta가 드롭한 파일 {{count}}개를 복사하지 못했습니다."
       },
       "useIpcEvents": {
         "0e3cf53060": "브라우저 탭 {{value0}}을(를) 찾을 수 없습니다",

@@ -900,6 +900,17 @@
         "symlink": "シンボリックリンクは接続できません。",
         "permissionDenied": "アクセスが拒否されました。",
         "unsupported": "サポートされていないファイル形式です。"
+      },
+      "dropTempCopyFailure": {
+        "changed": "コピー中にファイルが変更されました。もう一度ドロップしてください。",
+        "outOfSpace": "ドロップされたファイルをコピーするためのディスク容量が足りません。",
+        "storageUnavailable": "ドロップされたファイル用の保存先を Manta で作成できませんでした。",
+        "storageNotPrivate": "ドロップされたファイル用の Manta の保存先が他のユーザーから読み取れる状態のため、何もコピーしませんでした。",
+        "timedOut": "コピーに時間がかかりすぎました。もう一度ドロップしてください。",
+        "busy": "コピー中のドロップが多すぎます。しばらく待ってから、もう一度お試しください。",
+        "tooLarge": "サイズが大きすぎてコピーできないため、Manta は Agent に渡せませんでした。",
+        "storageFull": "ドロップされたファイル用の Manta の保存先がいっぱいのため、Manta は Agent に渡せませんでした。",
+        "generic": "もう一度ドロップしてください。"
       }
     },
     "hooks": {
@@ -934,7 +945,10 @@
         "nativeDropPathsTooLarge": "ドロップされたパス一覧が大きすぎます。",
         "ownerChanged": "このワークスペースを所有するホストを確認できませんでした。再接続してから、もう一度お試しください。",
         "nativeDropUnresolvedPathsDescription": "まずそれらをディスクに保存してから、保存したファイルをドロップします。",
-        "nativeDropUnresolvedPaths": "Manta はドロップされたファイルのパスを読み取ることができませんでした。"
+        "nativeDropUnresolvedPaths": "Manta はドロップされたファイルのパスを読み取ることができませんでした。",
+        "nativeDropTempCopyFailed": "ドロップされた {{count}} 個のファイルを Manta でコピーできませんでした。",
+        "nativeDropTempCopyFailed_one": "ドロップされた {{count}} 個のファイルを Manta でコピーできませんでした。",
+        "nativeDropTempCopyFailed_other": "ドロップされた {{count}} 個のファイルを Manta でコピーできませんでした。"
       },
       "useIpcEvents": {
         "0e3cf53060": "ブラウザタブ {{value0}} が見つかりません",

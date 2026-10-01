@@ -1026,6 +1026,17 @@
         "symlink": "Symbolic links cannot be attached.",
         "permissionDenied": "Permission denied.",
         "unsupported": "Unsupported file type."
+      },
+      "dropTempCopyFailure": {
+        "changed": "The file changed while Manta was copying it. Try the drop again.",
+        "outOfSpace": "Not enough disk space to copy the dropped files.",
+        "storageUnavailable": "Manta couldn't create storage for dropped files.",
+        "storageNotPrivate": "Manta's storage for dropped files can be read by other users, so nothing was copied.",
+        "timedOut": "Copying took too long. Try the drop again.",
+        "busy": "Too many drops are still being copied. Wait a moment, then try again.",
+        "tooLarge": "Too large to copy, so Manta couldn't hand it to the agent.",
+        "storageFull": "Manta's storage for dropped files is full, so Manta couldn't hand it to the agent.",
+        "generic": "Try the drop again."
       }
     },
     "hooks": {
@@ -1060,7 +1071,10 @@
         "nativeDropPathsTooLarge": "Drop path list is too large.",
         "ownerChanged": "Couldn't verify which host owns this workspace. Try again after it reconnects.",
         "nativeDropUnresolvedPathsDescription": "Save them to disk first, then drop the saved files.",
-        "nativeDropUnresolvedPaths": "Manta couldn't read a path for the dropped files."
+        "nativeDropUnresolvedPaths": "Manta couldn't read a path for the dropped files.",
+        "nativeDropTempCopyFailed": "Manta couldn't copy {{count}} dropped files.",
+        "nativeDropTempCopyFailed_one": "Manta couldn't copy {{count}} dropped file.",
+        "nativeDropTempCopyFailed_other": "Manta couldn't copy {{count}} dropped files."
       },
       "useIpcEvents": {
         "0e3cf53060": "Browser tab {{value0}} not found",

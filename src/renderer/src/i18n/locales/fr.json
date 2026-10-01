@@ -999,6 +999,17 @@
         "symlink": "Les liens symboliques ne peuvent pas être attachés.",
         "permissionDenied": "Autorisation refusée.",
         "unsupported": "Type de fichier non pris en charge."
+      },
+      "dropTempCopyFailure": {
+        "changed": "Le fichier a changé pendant qu'Manta le copiait. Réessayez de le déposer.",
+        "outOfSpace": "Espace disque insuffisant pour copier les fichiers déposés.",
+        "storageUnavailable": "Manta n'a pas pu créer l'espace de stockage des fichiers déposés.",
+        "storageNotPrivate": "L'espace de stockage d'Manta pour les fichiers déposés est lisible par d'autres utilisateurs ; rien n'a été copié.",
+        "timedOut": "La copie a pris trop de temps. Réessayez de déposer les fichiers.",
+        "busy": "Trop de dépôts sont encore en cours de copie. Patientez un instant, puis réessayez.",
+        "tooLarge": "Trop volumineux pour être copié : Manta n'a pas pu le transmettre à l'agent.",
+        "storageFull": "L'espace de stockage d'Manta pour les fichiers déposés est plein : Manta n'a pas pu le transmettre à l'agent.",
+        "generic": "Réessayez de déposer les fichiers."
       }
     },
     "hooks": {
@@ -1033,7 +1044,10 @@
         "nativeDropPathsTooLarge": "La liste de chemins du dépôt est trop grande.",
         "ownerChanged": "Impossible de vérifier quel hôte possède cet espace de travail. Réessayez après sa reconnexion.",
         "nativeDropUnresolvedPathsDescription": "Enregistrez-les d'abord sur le disque, puis déposez les fichiers enregistrés.",
-        "nativeDropUnresolvedPaths": "Manta n'a pas pu lire le chemin des fichiers supprimés."
+        "nativeDropUnresolvedPaths": "Manta n'a pas pu lire le chemin des fichiers supprimés.",
+        "nativeDropTempCopyFailed": "Manta n'a pas pu copier {{count}} fichiers déposés.",
+        "nativeDropTempCopyFailed_one": "Manta n'a pas pu copier {{count}} fichier déposé.",
+        "nativeDropTempCopyFailed_other": "Manta n'a pas pu copier {{count}} fichiers déposés."
       },
       "useIpcEvents": {
         "0e3cf53060": "Onglet de navigateur {{value0}} introuvable",
