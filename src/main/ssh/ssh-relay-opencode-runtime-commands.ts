@@ -25,6 +25,7 @@ const HASH = `const fs=require('node:fs');const fsp=fs.promises;const path=requi
 async function hash(file){try{const digest=require('node:crypto').createHash('sha256');for await(const chunk of fs.createReadStream(file))digest.update(chunk);return digest.digest('hex')}catch(error){if(error.code==='ENOENT')return null;throw error}}
 `
 
+/** Host Node needs backup() too: 22.13-22.15 have DatabaseSync without it (design D4). */
 export function probeOpenCodeNodeSqliteCommand(
   host: RemoteHostPlatform,
   nodePath: string,

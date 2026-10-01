@@ -79,15 +79,6 @@ describe('classifyJournalOpenFailure', () => {
     expect(classifyJournalOpenFailure(nodeSqliteError(errcode))).toBe('journalCorrupt')
   })
 
-  it("reads the Bun driver's corrupt code as corrupt", () => {
-    const error = Object.assign(new Error('file is not a database'), {
-      name: 'SQLiteError',
-      code: 'SQLITE_NOTADB',
-      errno: 26
-    })
-    expect(classifyJournalOpenFailure(error)).toBe('journalCorrupt')
-  })
-
   it('finds corruption a wrapper names as its cause', () => {
     const wrapped = new Error('opening the conversation failed', {
       cause: new Error('the journal would not open', { cause: nodeSqliteError(11) })

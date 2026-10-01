@@ -230,8 +230,7 @@ describe('profile state backup worker', () => {
     rmSync(directory, { recursive: true })
   })
 
-  // The Bun profile suite runs this file too; there the worker is mandatory by design.
-  describe.skipIf(!!(process.versions.electron || process.versions.bun))('under plain Node', () => {
+  describe.skipIf(!!process.versions.electron)('under plain Node', () => {
     it('uses the bundled worker whenever its entry exists', async () => {
       const { directory, job } = fixture()
       const marker = script(

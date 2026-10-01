@@ -26,8 +26,8 @@ export function runProfileStateBackup(
   signal?: AbortSignal,
   workerPath = resolveProfileStateBackupWorkerPath()
 ): Promise<void> {
-  // Electron and Bun always ship the entry, so a missing one there must fail, not block the thread.
-  return process.versions.electron || process.versions.bun || existsSync(workerPath)
+  // Electron always ships the entry, so a missing one there must fail, not block the thread.
+  return process.versions.electron || existsSync(workerPath)
     ? runProfileStateBackupWorker(job, { workerPath, signal })
     : writeProfileStateBackup(job)
 }

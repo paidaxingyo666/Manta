@@ -4206,7 +4206,6 @@
       "src/main/speech/stt-service.test.ts": 86,
       "src/main/speech/stt-worker-model-config.test.ts": 48,
       "src/main/speech/stt-worker.test.ts": 38,
-      "src/main/sqlite/bun-readonly-wal.test.ts": 137,
       "src/main/sqlite/sqlite-read-failure.test.ts": 60,
       "src/main/sqlite/sync-database-concurrent-backup.test.ts": 815,
       "src/main/sqlite/sync-database-portability.test.ts": 108,

@@ -1,23 +1,15 @@
-/**
- * Download, hash-verify and cache a pinned runtime (the Node server runtime, or the Bun the
- * OpenCode vault reader still uses until design Phase 2), driven only by its pinned asset.
- */
+/** Download, hash-verify and cache the pinned Node runtime, driven only by its pinned asset. */
 import { createHash, randomUUID } from 'node:crypto'
-import { createReadStream, readdirSync } from 'node:fs'
+import { createReadStream } from 'node:fs'
 import { chmod, link, mkdir, rm } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { getMainHttpClient, type MainHttpClient } from '../network/http-client'
 import { downloadVerifiedArchive, extractRuntimeArchive } from './runtime-archive-download'
 import { findOrcadCachePath } from './mantad-cache-path'
-import { orcadBunRuntimeFilename } from '../../shared/mantad-artifacts'
-import {
-  ORCAD_BUN_RELEASE_ASSETS,
-  ORCAD_BUN_VERSION,
-  orcadBunReleaseUrl,
-  type OrcadBunTarget
-} from '../../shared/mantad-bun-runtime'
+import { orcadNodeRuntimeExecutable } from '../../shared/mantad-artifacts'
 import {
   NODE_RUNTIME_ASSETS,
+  nodeRuntimeExecutablePath,
   nodeRuntimeReleaseUrl,
   type ServerTarget
 } from '../../shared/node-runtime-pin'
@@ -28,7 +20,7 @@ export type PinnedRuntimeMaterializeOptions = {
 }
 
 export type PinnedRuntimeArchive = {
-  /** Shown in errors, e.g. "Node" or "Bun". */
+  /** Shown in errors, e.g. "Node". */
   label: string
   url: string
   archiveSha256: string
@@ -36,7 +28,7 @@ export type PinnedRuntimeArchive = {
 
 export type PinnedRuntimeExecutable = PinnedRuntimeArchive & {
   executableSha256: string
-  /** Archive-relative path of the executable, or its bare name to search for. */
+  /** Archive-relative path of the executable. */
   member: string
   isWindows: boolean
   /** Where the verified executable is published; `attempt` > 0 names a repair beside it. */
@@ -124,7 +116,7 @@ export async function materializeCachedRuntimeExecutable(
         `${runtime.label} archive extraction failed: ${result.stderr || result.stdout}`
       )
     }
-    const executable = findExtractedExecutable(runtime, extractedDir)
+    const executable = join(extractedDir, ...runtime.member.split('/'))
     await verifyFileSha256(executable, runtime.executableSha256, `${runtime.label} executable`)
     if (!runtime.isWindows) {
       await chmod(executable, 0o755)
@@ -161,28 +153,6 @@ async function publishVerified(
   await verifyFileSha256(destination, sha256, label)
 }
 
-export function materializeCachedOrcadBunRuntime(
-  target: OrcadBunTarget,
-  cacheRoot: string,
-  options: PinnedRuntimeMaterializeOptions
-): Promise<string> {
-  const asset = ORCAD_BUN_RELEASE_ASSETS[target]
-  const runtimeDir = join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, target)
-  return materializeCachedRuntimeExecutable(
-    {
-      label: 'Bun',
-      url: orcadBunReleaseUrl(asset),
-      archiveSha256: asset.sha256,
-      executableSha256: asset.executableSha256,
-      member: target.startsWith('win32-') ? 'bun.exe' : 'bun',
-      isWindows: target.startsWith('win32-'),
-      cachePath: (attempt) =>
-        join(runtimeDir, `${attempt ? `repair-${attempt}-` : ''}${orcadBunRuntimeFilename(target)}`)
-    },
-    options
-  )
-}
-
 function nodeRuntimeArchive(target: ServerTarget): PinnedRuntimeArchive {
   const asset = NODE_RUNTIME_ASSETS[target]
   return {
@@ -205,17 +175,33 @@ export function materializeNodeRuntimeArchive(
   )
 }
 
-function findExtractedExecutable(runtime: PinnedRuntimeExecutable, root: string): string {
-  if (runtime.member.includes('/')) {
-    return join(root, ...runtime.member.split('/'))
-  }
-  const entry = readdirSync(root, { recursive: true, withFileTypes: true }).find(
-    (candidate) => candidate.isFile() && candidate.name === runtime.member
+/**
+ * Client cache keyed by content (design D2): `node/<executableSha256>/node[.exe]`. Only hosts
+ * that cannot extract the archive themselves get the bare executable (Windows SSH vault reads).
+ */
+export function materializeCachedNodeRuntime(
+  target: ServerTarget,
+  cacheRoot: string,
+  options: PinnedRuntimeMaterializeOptions
+): Promise<string> {
+  const asset = NODE_RUNTIME_ASSETS[target]
+  const executableName = basename(orcadNodeRuntimeExecutable(target))
+  return materializeCachedRuntimeExecutable(
+    {
+      ...nodeRuntimeArchive(target),
+      executableSha256: asset.executableSha256,
+      member: nodeRuntimeExecutablePath(target, asset.archive),
+      isWindows: target.startsWith('win32-'),
+      cachePath: (attempt) =>
+        join(
+          cacheRoot,
+          'node',
+          asset.executableSha256,
+          `${attempt ? `repair-${attempt}-` : ''}${executableName}`
+        )
+    },
+    options
   )
-  if (!entry) {
-    throw new Error(`Downloaded ${runtime.label} archive contained no ${runtime.member}`)
-  }
-  return join(entry.parentPath, entry.name)
 }
 
 export async function verifyFileSha256(

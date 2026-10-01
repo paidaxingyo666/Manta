@@ -1,4 +1,12 @@
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -6,6 +14,8 @@ import { runProcessSync } from '../../shared/child-process/run-process'
 import { NODE_RUNTIME_ASSETS, type ServerTarget } from '../../shared/node-runtime-pin'
 import { ORCAD_NODE_RUNTIME_MARKER_FILENAME } from '../../shared/mantad-artifacts'
 import {
+  installNodeRuntimeFromHostArchiveCommand,
+  nodeRuntimeStoreDir,
   probeRemoteNodeRuntimeCommand,
   promoteRemoteNodeRuntimeCommand,
   remoteNodeRuntimeDir,
@@ -22,8 +32,12 @@ afterEach(() => {
   }
 })
 
-function sh(command: string): string {
-  const result = runProcessSync({ program: '/bin/sh', args: ['-c', command], timeoutMs: 60_000 })
+function sh(command: string, ...args: string[]): string {
+  const result = runProcessSync({
+    program: '/bin/sh',
+    args: ['-c', command, '--', ...args],
+    timeoutMs: 60_000
+  })
   if (result.code !== 0) {
     throw new Error(`exit ${result.code}: ${result.stdout}${result.stderr}`)
   }
@@ -104,6 +118,47 @@ describe.skipIf(process.platform === 'win32')('remote pinned-Node runtime store'
       // A second installer of the same pin republishes identical bytes without a torn window.
       expect(sh(promote).split('\n').at(-1)).toBe(REMOTE_NODE_RUNTIME_READY)
       expect(sh(probe)).toBe(REMOTE_NODE_RUNTIME_READY)
+    },
+    60_000
+  )
+
+  it('removes its stage and publishes nothing when a host-readable archive fails verification', () => {
+    const root = mkdtempSync(join(tmpdir(), 'orcad-runtime-store-'))
+    directories.push(root)
+    const host = getRemoteHostPlatform('linux-x64')
+    const runtimeDir = nodeRuntimeStoreDir(host, root, 'linux-x64-glibc')
+    const source = join(root, 'not-node.tar.gz')
+    writeFileSync(source, 'not an archive')
+    const install = installNodeRuntimeFromHostArchiveCommand(host, {
+      runtimeDir,
+      archive: 'node.tar.gz',
+      target: 'linux-x64-glibc',
+      token: 'test'
+    })
+    expect(() => sh(install, source)).toThrow('ORCA_NODE_RUNTIME_EXTRACT_FAILED')
+    expect(readdirSync(join(root, 'runtimes'))).toEqual([])
+  })
+
+  it.skipIf(!archive)(
+    'installs from a host-readable archive into the store the probe accepts',
+    () => {
+      const root = mkdtempSync(join(tmpdir(), 'orcad-runtime-store-'))
+      directories.push(root)
+      const host = getRemoteHostPlatform(target === 'darwin-arm64' ? 'darwin-arm64' : 'darwin-x64')
+      const runtimeDir = nodeRuntimeStoreDir(host, root, target!)
+      const install = installNodeRuntimeFromHostArchiveCommand(host, {
+        runtimeDir,
+        archive: NODE_RUNTIME_ASSETS[target!].archive,
+        target: target!,
+        token: 'test'
+      })
+      expect(sh(install, archive!).split('\n').at(-1)).toBe(REMOTE_NODE_RUNTIME_READY)
+      expect(sh(probeRemoteNodeRuntimeCommand(host, runtimeDir, target!))).toBe(
+        REMOTE_NODE_RUNTIME_READY
+      )
+      expect(readdirSync(join(root, 'runtimes'))).toEqual([
+        `node-${NODE_RUNTIME_ASSETS[target!].executableSha256}`
+      ])
     },
     60_000
   )

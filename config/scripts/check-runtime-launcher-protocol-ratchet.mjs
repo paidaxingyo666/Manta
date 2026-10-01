@@ -12,7 +12,6 @@ import { DAEMON_PROTOCOL_SOURCE_PATH, parseDaemonProtocolFacts } from './daemon-
 export const RUNTIME_LAUNCHER_PATHS = [
   // mantad handoff to its bundled runtime, and the pinned runtimes it can hand off to.
   'src/main/mantad/mantad-bundled-runtime.ts',
-  'src/shared/mantad-bun-runtime.ts',
   'src/shared/node-runtime-pin.ts',
   'src/main/ssh/pinned-runtime-materializer.ts',
   'src/main/ssh/runtime-archive-download.ts',

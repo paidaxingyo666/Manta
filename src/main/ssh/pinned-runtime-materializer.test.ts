@@ -3,29 +3,47 @@ import { access, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from '
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ORCAD_BUN_RUNTIME_FILENAME } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_RELEASE_ASSETS, ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
+import {
+  NODE_RUNTIME_ASSETS,
+  NODE_RUNTIME_PIN,
+  nodeRuntimeExecutablePath,
+  SERVER_TARGETS,
+  type ServerTarget
+} from '../../shared/node-runtime-pin'
 import { setMainHttpClient } from '../network/http-client'
 import { runProcess } from '../../shared/child-process/run-process'
-import { materializeCachedOrcadBunRuntime } from './pinned-runtime-materializer'
+import { materializeCachedNodeRuntime } from './pinned-runtime-materializer'
 
-const extraction = vi.hoisted(() => ({ executable: new Uint8Array(), executableName: 'bun' }))
+const extraction = vi.hoisted(() => ({ executable: new Uint8Array(), member: '' }))
 
 vi.mock('../../shared/child-process/run-process', () => ({
   runProcess: vi.fn(async (spec: { args: string[] }) => {
-    const extracted = join(spec.args.at(-1)!, 'bun-linux-x64')
-    await mkdir(extracted, { recursive: true })
-    await writeFile(join(extracted, extraction.executableName), extraction.executable)
+    const flag = spec.args.includes('-C') ? '-C' : '-d'
+    const extracted = join(spec.args[spec.args.indexOf(flag) + 1]!, ...extraction.member.split('/'))
+    await mkdir(join(extracted, '..'), { recursive: true })
+    await writeFile(extracted, extraction.executable)
     return { code: 0, stdout: '', stderr: '' }
   })
 }))
 
 const TARGET = 'linux-x64-glibc' as const
-const originalAsset = { ...ORCAD_BUN_RELEASE_ASSETS[TARGET] }
+const originalAssets = structuredClone(NODE_RUNTIME_ASSETS)
 let cacheRoot = ''
 
 function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex')
+}
+
+function runtimeDirFor(target: ServerTarget = TARGET): string {
+  return join(cacheRoot, 'node', NODE_RUNTIME_ASSETS[target].executableSha256)
+}
+
+function pin(target: ServerTarget, archive: Uint8Array, executable?: Uint8Array): void {
+  NODE_RUNTIME_ASSETS[target].archiveSha256 = sha256(archive)
+  if (executable) {
+    NODE_RUNTIME_ASSETS[target].executableSha256 = sha256(executable)
+  }
+  extraction.member = nodeRuntimeExecutablePath(target, NODE_RUNTIME_ASSETS[target].archive)
 }
 
 function responseFetcher(body: Uint8Array, declaredLength = body.byteLength): typeof fetch {
@@ -39,56 +57,44 @@ function responseFetcher(body: Uint8Array, declaredLength = body.byteLength): ty
 }
 
 beforeEach(async () => {
-  extraction.executableName = 'bun'
-  cacheRoot = await mkdtemp(join(tmpdir(), 'orca-bun-runtime-materializer-'))
-  Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], originalAsset)
+  extraction.member = nodeRuntimeExecutablePath(TARGET, NODE_RUNTIME_ASSETS[TARGET].archive)
+  cacheRoot = await mkdtemp(join(tmpdir(), 'orca-node-runtime-executable-'))
 })
 
 afterEach(async () => {
   vi.useRealTimers()
   vi.unstubAllEnvs()
   setMainHttpClient(null)
-  Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], originalAsset)
+  for (const target of SERVER_TARGETS) {
+    Object.assign(NODE_RUNTIME_ASSETS[target], originalAssets[target])
+  }
   await rm(cacheRoot, { recursive: true, force: true })
 })
 
-describe('materializeCachedOrcadBunRuntime', () => {
-  it('caches Windows PE files as .exe without renaming a legacy cache entry', async () => {
+describe('materializeCachedNodeRuntime', () => {
+  it('caches a Windows executable under its upstream name, keyed by its digest', async () => {
     const target = 'win32-x64' as const
-    const savedAsset = { ...ORCAD_BUN_RELEASE_ASSETS[target] }
     const archive = new TextEncoder().encode('windows archive')
     const executable = new TextEncoder().encode('windows executable')
     extraction.executable = executable
-    extraction.executableName = 'bun.exe'
-    Object.assign(ORCAD_BUN_RELEASE_ASSETS[target], {
-      sha256: sha256(archive),
-      executableSha256: sha256(executable)
+    pin(target, archive, executable)
+    const runtimePath = await materializeCachedNodeRuntime(target, cacheRoot, {
+      fetcher: responseFetcher(archive)
     })
-    const runtimeDir = join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, target)
-    await mkdir(runtimeDir, { recursive: true })
-    await writeFile(join(runtimeDir, 'bun-runtime'), 'legacy')
-    try {
-      const runtimePath = await materializeCachedOrcadBunRuntime(target, cacheRoot, {
-        fetcher: responseFetcher(archive)
-      })
-      expect(runtimePath).toBe(join(runtimeDir, 'bun-runtime.exe'))
-      expect(await readFile(runtimePath)).toEqual(Buffer.from(executable))
-      expect(await readFile(join(runtimeDir, 'bun-runtime'), 'utf8')).toBe('legacy')
-    } finally {
-      Object.assign(ORCAD_BUN_RELEASE_ASSETS[target], savedAsset)
-    }
+    expect(runtimePath).toBe(join(runtimeDirFor(target), 'node.exe'))
+    expect(await readFile(runtimePath)).toEqual(Buffer.from(executable))
   })
 
   it('reuses a checksum-valid cached runtime without fetching', async () => {
-    const runtime = new TextEncoder().encode('cached bun')
-    ORCAD_BUN_RELEASE_ASSETS[TARGET].executableSha256 = sha256(runtime)
-    const runtimeDir = join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET)
-    const runtimePath = join(runtimeDir, ORCAD_BUN_RUNTIME_FILENAME)
+    const runtime = new TextEncoder().encode('cached node')
+    NODE_RUNTIME_ASSETS[TARGET].executableSha256 = sha256(runtime)
+    const runtimeDir = runtimeDirFor()
+    const runtimePath = join(runtimeDir, 'node')
     await mkdir(runtimeDir, { recursive: true })
     await writeFile(runtimePath, runtime)
     const fetcher = vi.fn<typeof fetch>()
 
-    await expect(materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })).resolves.toBe(
+    await expect(materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })).resolves.toBe(
       runtimePath
     )
     expect(fetcher).not.toHaveBeenCalled()
@@ -97,59 +103,52 @@ describe('materializeCachedOrcadBunRuntime', () => {
 
   it('downloads, verifies, extracts, and atomically caches the runtime', async () => {
     const archive = new TextEncoder().encode('pinned archive')
-    const executable = new TextEncoder().encode('pinned bun executable')
+    const executable = new TextEncoder().encode('pinned node executable')
     extraction.executable = executable
-    Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], {
-      sha256: sha256(archive),
-      executableSha256: sha256(executable)
-    })
+    pin(TARGET, archive, executable)
     const fetcher = responseFetcher(archive)
 
-    const runtimePath = await materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })
+    const runtimePath = await materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })
 
     expect(await readFile(runtimePath)).toEqual(Buffer.from(executable))
     if (process.platform !== 'win32') {
       expect((await stat(runtimePath)).mode & 0o111).toBe(0o111)
     }
     expect(fetcher).toHaveBeenCalledWith(
-      expect.stringContaining(`/bun-v${ORCAD_BUN_VERSION}/bun-linux-x64.zip`),
+      expect.stringContaining(`/v${NODE_RUNTIME_PIN.version}/${originalAssets[TARGET].archive}`),
       expect.objectContaining({ redirect: 'follow' })
     )
-    expect((await readdir(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET))).sort()).toEqual(
-      [ORCAD_BUN_RUNTIME_FILENAME]
-    )
+    expect(await readdir(runtimeDirFor())).toEqual(['node'])
   })
 
   it('refuses an oversized declared archive before reading its body', async () => {
     const fetcher = responseFetcher(new Uint8Array([1]), 200 * 1024 * 1024 + 1)
 
-    await expect(materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })).rejects.toThrow(
-      'Bun download exceeded the archive size limit'
+    await expect(materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })).rejects.toThrow(
+      'Node download exceeded the archive size limit'
     )
-    await expect(
-      access(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET, ORCAD_BUN_RUNTIME_FILENAME))
-    ).rejects.toThrow()
-    expect(await readdir(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET))).toEqual([])
+    await expect(access(join(runtimeDirFor(), 'node'))).rejects.toThrow()
+    expect(await readdir(runtimeDirFor())).toEqual([])
   })
 
   it('removes temporary data after an archive checksum mismatch', async () => {
     const archive = new TextEncoder().encode('tampered archive')
     const fetcher = responseFetcher(archive)
 
-    await expect(materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })).rejects.toThrow(
-      'Bun archive checksum mismatch'
+    await expect(materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })).rejects.toThrow(
+      'Node archive checksum mismatch'
     )
-    expect(await readdir(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET))).toEqual([])
+    expect(await readdir(runtimeDirFor())).toEqual([])
   })
 
   it('refuses an executable mismatch even when the archive matches its pin', async () => {
     const archive = new TextEncoder().encode('pinned archive')
     extraction.executable = new TextEncoder().encode('incorrect executable')
-    ORCAD_BUN_RELEASE_ASSETS[TARGET].sha256 = sha256(archive)
+    pin(TARGET, archive)
     await expect(
-      materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher: responseFetcher(archive) })
-    ).rejects.toThrow('Bun executable checksum mismatch')
-    expect(await readdir(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET))).toEqual([])
+      materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher: responseFetcher(archive) })
+    ).rejects.toThrow('Node executable checksum mismatch')
+    expect(await readdir(runtimeDirFor())).toEqual([])
   })
 
   // Both cases spawn for real, so the assertion is against the errno Node actually reports:
@@ -159,8 +158,9 @@ describe('materializeCachedOrcadBunRuntime', () => {
     ['absent', (): string => join(cacheRoot, 'absent-extractor')],
     ['unreachable through a file', (): string => join(cacheRoot, 'plain-file', 'unzip')]
   ])('names the %s extractor and the override when it cannot be launched', async (_label, path) => {
+    const target = 'win32-x64' as const
     const archive = new TextEncoder().encode('unextractable archive')
-    ORCAD_BUN_RELEASE_ASSETS[TARGET].sha256 = sha256(archive)
+    pin(target, archive)
     await writeFile(join(cacheRoot, 'plain-file'), 'not a directory')
     const { runProcess: spawnForReal } = await vi.importActual<{
       runProcess: typeof runProcess
@@ -169,31 +169,28 @@ describe('materializeCachedOrcadBunRuntime', () => {
     vi.stubEnv('MANTA_UNZIP_BIN', path())
 
     await expect(
-      materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher: responseFetcher(archive) })
+      materializeCachedNodeRuntime(target, cacheRoot, { fetcher: responseFetcher(archive) })
     ).rejects.toThrow(/install unzip, or set MANTA_UNZIP_BIN/)
-    expect(await readdir(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET))).toEqual([])
+    expect(await readdir(runtimeDirFor(target))).toEqual([])
   })
 
   it('cleans an aborted download before publishing any executable', async () => {
     const controller = new AbortController()
     controller.abort(new Error('deployment cancelled'))
     await expect(
-      materializeCachedOrcadBunRuntime(TARGET, cacheRoot, {
+      materializeCachedNodeRuntime(TARGET, cacheRoot, {
         fetcher: responseFetcher(new Uint8Array([1])),
         signal: controller.signal
       })
     ).rejects.toThrow('deployment cancelled')
-    await expect(access(join(cacheRoot, 'bun'))).rejects.toThrow()
+    await expect(access(join(cacheRoot, 'node'))).rejects.toThrow()
   })
 })
 
 it('publishes concurrent runtime downloads without removing or replacing the winning executable', async () => {
   const archive = new TextEncoder().encode('pinned archive')
   extraction.executable = new TextEncoder().encode('pinned runtime')
-  Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], {
-    sha256: sha256(archive),
-    executableSha256: sha256(extraction.executable)
-  })
+  pin(TARGET, archive, extraction.executable)
   let finishSecond: (response: Response) => void = () => {}
   const secondFetcher = vi.fn<typeof fetch>(
     () =>
@@ -201,9 +198,9 @@ it('publishes concurrent runtime downloads without removing or replacing the win
         finishSecond = resolve
       })
   )
-  const second = materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher: secondFetcher })
+  const second = materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher: secondFetcher })
   await vi.waitFor(() => expect(secondFetcher).toHaveBeenCalledOnce())
-  const firstPath = await materializeCachedOrcadBunRuntime(TARGET, cacheRoot, {
+  const firstPath = await materializeCachedNodeRuntime(TARGET, cacheRoot, {
     fetcher: responseFetcher(archive)
   })
   const firstIdentity = await stat(firstPath)
@@ -216,19 +213,16 @@ it('publishes concurrent runtime downloads without removing or replacing the win
 it('repairs a corrupt published runtime beside the old inode and reuses the repair', async () => {
   const archive = new TextEncoder().encode('pinned archive')
   extraction.executable = new TextEncoder().encode('pinned runtime')
-  Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], {
-    sha256: sha256(archive),
-    executableSha256: sha256(extraction.executable)
-  })
-  const runtimeDir = join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET)
-  const runtimePath = join(runtimeDir, ORCAD_BUN_RUNTIME_FILENAME)
+  pin(TARGET, archive, extraction.executable)
+  const runtimeDir = runtimeDirFor()
+  const runtimePath = join(runtimeDir, 'node')
   await mkdir(runtimeDir, { recursive: true })
   await writeFile(runtimePath, 'corrupt')
   const fetcher = responseFetcher(archive)
-  const repaired = await materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })
+  const repaired = await materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })
   expect(repaired).not.toBe(runtimePath)
   expect(await readFile(repaired)).toEqual(Buffer.from(extraction.executable))
-  expect(await materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })).toBe(repaired)
+  expect(await materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })).toBe(repaired)
   expect(fetcher).toHaveBeenCalledOnce()
   expect(await readFile(runtimePath, 'utf8')).toBe('corrupt')
 })
@@ -236,13 +230,10 @@ it('repairs a corrupt published runtime beside the old inode and reuses the repa
 it('uses the configured HTTP client for deployment downloads', async () => {
   const archive = new TextEncoder().encode('proxy archive')
   extraction.executable = new TextEncoder().encode('proxy runtime')
-  Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], {
-    sha256: sha256(archive),
-    executableSha256: sha256(extraction.executable)
-  })
+  pin(TARGET, archive, extraction.executable)
   const fetcher = responseFetcher(archive)
   setMainHttpClient({ fetch: fetcher, proxySession: () => null })
-  await materializeCachedOrcadBunRuntime(TARGET, cacheRoot, {})
+  await materializeCachedNodeRuntime(TARGET, cacheRoot, {})
   expect(fetcher).toHaveBeenCalledOnce()
 })
 
@@ -251,10 +242,7 @@ it('allows a progressing download to exceed two minutes', async () => {
   const first = new TextEncoder().encode('first')
   const second = new TextEncoder().encode('second')
   extraction.executable = new TextEncoder().encode('slow runtime')
-  Object.assign(ORCAD_BUN_RELEASE_ASSETS[TARGET], {
-    sha256: sha256(Buffer.concat([first, second])),
-    executableSha256: sha256(extraction.executable)
-  })
+  pin(TARGET, Buffer.concat([first, second]), extraction.executable)
   let stream: ReadableStreamDefaultController<Uint8Array> | undefined
   let signal: AbortSignal | null | undefined
   const fetcher = vi.fn<typeof fetch>(async (_url, options) => {
@@ -267,15 +255,15 @@ it('allows a progressing download to exceed two minutes', async () => {
       })
     )
   })
-  const pending = materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })
+  const pending = materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })
   await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
   await vi.advanceTimersByTimeAsync(90_000)
   stream!.enqueue(first)
   await vi.waitFor(async () => {
-    const runtimeDir = join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET)
+    const runtimeDir = runtimeDirFor()
     const temporary = (await readdir(runtimeDir)).find((entry) => entry.startsWith('.download-'))!
     expect(
-      (await stat(join(runtimeDir, temporary, ORCAD_BUN_RELEASE_ASSETS[TARGET].filename))).size
+      (await stat(join(runtimeDir, temporary, NODE_RUNTIME_ASSETS[TARGET].archive))).size
     ).toBe(first.length)
   })
   await vi.advanceTimersByTimeAsync(90_000)
@@ -289,11 +277,11 @@ it('aborts a stalled body and removes the unfinished download', async () => {
   vi.useFakeTimers()
   const cancel = vi.fn()
   const fetcher = vi.fn<typeof fetch>(async () => new Response(new ReadableStream({ cancel })))
-  const pending = materializeCachedOrcadBunRuntime(TARGET, cacheRoot, { fetcher })
-  const rejected = expect(pending).rejects.toThrow('Bun download stalled')
+  const pending = materializeCachedNodeRuntime(TARGET, cacheRoot, { fetcher })
+  const rejected = expect(pending).rejects.toThrow('Node download stalled')
   await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
   await vi.advanceTimersByTimeAsync(120_000)
   await rejected
   expect(cancel).toHaveBeenCalledOnce()
-  expect(await readdir(join(cacheRoot, 'bun', `v${ORCAD_BUN_VERSION}`, TARGET))).toEqual([])
+  expect(await readdir(runtimeDirFor())).toEqual([])
 })

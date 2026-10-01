@@ -173,7 +173,7 @@ async function buildRelayBundles(outDir) {
     target: 'node18',
     format: 'cjs',
     outfile: join(outDir, RELAY_OPENCODE_SQLITE_READER_FILENAME),
-    external: ['electron', 'bun:sqlite'],
+    external: ['electron'],
     sourcemap: false,
     minify: true,
     define: { 'process.env.NODE_ENV': '"production"' }

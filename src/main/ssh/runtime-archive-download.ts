@@ -31,13 +31,7 @@ export async function extractRuntimeArchive(
     ? getZipExtractorCommand(archivePath, extractDir)
     : {
         file: 'tar',
-        args: [
-          '-xzf',
-          archivePath,
-          '-C',
-          extractDir,
-          ...(runtime.member.includes('/') ? [runtime.member] : [])
-        ],
+        args: ['-xzf', archivePath, '-C', extractDir, runtime.member],
         label: 'tar'
       }
   try {

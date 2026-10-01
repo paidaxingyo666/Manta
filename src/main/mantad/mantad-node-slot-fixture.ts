@@ -13,7 +13,6 @@ import {
   ORCAD_SERVER_TARGET_FILENAME,
   orcadNodeRuntimeRelativePath
 } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_VERSION } from '../../shared/mantad-bun-runtime'
 import { detectNativeHostAbi, nativeSlotName } from './native-host-abi'
 
 export function hostServerTarget(): ServerTarget {
@@ -42,12 +41,15 @@ export function locatePinnedNodeForTests(): string | null {
   )
 }
 
+/** The Bun the last Bun mantad shipped on; only the design D7 cross-runtime gates still run it. */
+export const LAST_BUN_ORCAD_VERSION = '1.4.2'
+
 /** Bun 1.4.2 (BUN_EXECUTABLE, else `bun` on PATH), the last runtime mantad shipped on, if any. */
 export function locateBunForTests(): string | null {
   const candidate = process.env.BUN_EXECUTABLE ?? 'bun'
   try {
     const result = runProcessSync({ program: candidate, args: ['--version'], timeoutMs: 10_000 })
-    return result.code === 0 && result.stdout.trim() === ORCAD_BUN_VERSION ? candidate : null
+    return result.code === 0 && result.stdout.trim() === LAST_BUN_ORCAD_VERSION ? candidate : null
   } catch {
     return null
   }

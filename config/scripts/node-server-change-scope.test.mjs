@@ -11,7 +11,6 @@ import {
 import { nodeServerTestPaths } from './node-server-test-paths.mjs'
 import { ORCAD_CHILD_ENTRY_POINTS } from './mantad-entry-build.mjs'
 import { NODE_RUNTIME_PIN } from '../../src/shared/node-runtime-pin.ts'
-import { ORCAD_BUN_VERSION } from '../../src/shared/mantad-bun-runtime.ts'
 
 const temporaryDirs = []
 afterEach(() => {
@@ -168,7 +167,8 @@ it('runs the Bun and Node cross-runtime tests on Linux against pinned inputs', (
   const steps = workflow.jobs.persistence.steps
   const setupBun = steps.find((step) => String(step.uses).startsWith('oven-sh/setup-bun@'))
   expect(setupBun.uses).toMatch(/^oven-sh\/setup-bun@[0-9a-f]{40}$/)
-  expect(setupBun.with['bun-version']).toBe(ORCAD_BUN_VERSION)
+  // Mirrors LAST_BUN_ORCAD_VERSION in src/main/mantad/mantad-node-slot-fixture.ts.
+  expect(setupBun.with['bun-version']).toBe('1.4.2')
   const build = steps.find((step) => String(step.run).includes('build-mantad-bun.mjs'))
   expect(build.env.BUN_ORCAD_COMMIT).toMatch(/^[0-9a-f]{40}$/)
   expect(build.run).toContain('ORCA_BUN_ORCAD_SLOT=')
