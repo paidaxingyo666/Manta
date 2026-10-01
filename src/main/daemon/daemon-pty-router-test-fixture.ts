@@ -58,6 +58,7 @@ export function createAdapter(
     ),
     listSessions: vi.fn(async () => sessions.map((sessionId) => ({ sessionId, isAlive: true }))),
     requestIdleRetirement: vi.fn(async () => ({ state: 'retiring' as const })),
+    releaseIdleRetirementFence: vi.fn(),
     hasPty: vi.fn((id: string) => sessions.includes(id)),
     probePtyLiveness: vi.fn(async (id: string) => sessions.includes(id)),
     write: vi.fn((id: string, data: string) => {

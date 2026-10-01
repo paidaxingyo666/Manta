@@ -47,3 +47,18 @@ it('keeps the fence through a lost native reply and failed retry inventory', asy
   await expect(retirement.requestIdleRetirement()).resolves.toEqual({ state: 'unverifiable' })
   expect(retirement.admissionClosed).toBe(true)
 })
+
+it('releases a fence left by an incomplete retirement, but never one that retired', async () => {
+  const current = createAdapter('current', [], undefined, PROTOCOL_VERSION)
+  vi.mocked(current.requestIdleRetirement).mockResolvedValueOnce({ state: 'busy', liveSessions: 0 })
+  const retirement = new DaemonRouterRetirement(() => [current])
+  await expect(retirement.requestIdleRetirement()).resolves.toEqual({ state: 'unverifiable' })
+  expect(retirement.admissionClosed).toBe(true)
+  retirement.releaseFence()
+  expect(retirement.admissionClosed).toBe(false)
+  expect(current.releaseIdleRetirementFence).toHaveBeenCalledOnce()
+
+  await expect(retirement.requestIdleRetirement()).resolves.toEqual({ state: 'retiring' })
+  retirement.releaseFence()
+  expect(retirement.admissionClosed).toBe(true)
+})

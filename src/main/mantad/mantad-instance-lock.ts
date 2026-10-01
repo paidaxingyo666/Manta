@@ -15,8 +15,8 @@
 import { randomUUID } from 'node:crypto'
 import {
   chmodSync,
+  linkSync,
   mkdirSync,
-  readFileSync,
   renameSync,
   statSync,
   unlinkSync,
@@ -25,9 +25,12 @@ import {
 import { userInfo } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
+import { z } from 'zod'
 import { getProcessStartedAtMs, startTimeMatches } from '../daemon/daemon-process-start-time'
+import { readNodeFileSyncWithinLimit } from '../../shared/node-bounded-file-reader'
 
-export const MANTAD_LOCK_FILE_NAME = 'orcad.lock'
+export const MANTAD_LOCK_FILE_NAME = 'mantad.lock'
+const MAX_ORCAD_LOCK_BYTES = 64 * 1024
 
 export type MantadInstanceLockCode =
   | 'orcad_data_root_unusable'
@@ -35,6 +38,7 @@ export type MantadInstanceLockCode =
   | 'orcad_data_root_shared'
   | 'orcad_instance_lock_held'
   | 'orcad_instance_lock_foreign_identity'
+  | 'orcad_instance_lock_unreadable'
 
 export class MantadInstanceLockError extends Error {
   constructor(
@@ -46,16 +50,23 @@ export class MantadInstanceLockError extends Error {
   }
 }
 
-export type OrcadLockRecord = {
-  pid: number
+const OrcadLockRecordSchema = z.object({
+  pid: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   /** Null where the platform cannot read it; PID alone is then the (weaker) fence. */
-  startedAtMs: number | null
+  startedAtMs: z.number().finite().nonnegative().nullable(),
   /** POSIX uid, or the Windows username. Compared as an opaque string. */
-  identity: string
-  version: string
-  acquiredAt: string
+  identity: z.string().min(1).max(1_024),
+  version: z.string().min(1).max(255),
+  acquiredAt: z.iso.datetime({ offset: true }),
   /** Distinguishes our record from a replacement written after we lost the race. */
-  nonce: string
+  nonce: z.string().min(1).max(255)
+})
+
+export type OrcadLockRecord = z.infer<typeof OrcadLockRecordSchema>
+
+/** `null` when absent, unreadable, oversized or malformed; callers must not read that as free. */
+export function readOrcadInstanceLockRecord(path: string): OrcadLockRecord | null {
+  return parseLockRecord(readBoundedLockFile(path) ?? '')
 }
 
 export type MantadInstanceLock = {
@@ -97,22 +108,8 @@ function isErrorCode(error: unknown, code: string): boolean {
 
 function parseLockRecord(content: string): OrcadLockRecord | null {
   try {
-    const parsed: unknown = JSON.parse(content)
-    if (!parsed || typeof parsed !== 'object') {
-      return null
-    }
-    const record = parsed as Partial<OrcadLockRecord>
-    if (typeof record.pid !== 'number' || typeof record.identity !== 'string') {
-      return null
-    }
-    return {
-      pid: record.pid,
-      startedAtMs: typeof record.startedAtMs === 'number' ? record.startedAtMs : null,
-      identity: record.identity,
-      version: typeof record.version === 'string' ? record.version : 'unknown',
-      acquiredAt: typeof record.acquiredAt === 'string' ? record.acquiredAt : '',
-      nonce: typeof record.nonce === 'string' ? record.nonce : ''
-    }
+    const result = OrcadLockRecordSchema.safeParse(JSON.parse(content))
+    return result.success ? result.data : null
   } catch {
     return null
   }
@@ -232,8 +229,17 @@ export function acquireMantadInstanceLock(
     return makeLock(lockPath, record)
   }
 
-  const existing = parseLockRecord(safeRead(lockPath) ?? '')
-  if (existing && existing.identity !== identity) {
+  const existing = parseLockRecord(readBoundedLockFile(lockPath) ?? '')
+  if (!existing) {
+    // Why fail closed: an unreadable record proves nothing about its holder having exited.
+    throw new MantadInstanceLockError(
+      'orcad_instance_lock_unreadable',
+      `The mantad instance lock at ${lockPath} is unreadable, malformed, or larger than ` +
+        `${MAX_ORCAD_LOCK_BYTES} bytes. Refusing to reclaim it without proof that its holder ` +
+        'has exited. Stop mantad and remove the stale lock manually.'
+    )
+  }
+  if (existing.identity !== identity) {
     throw new MantadInstanceLockError(
       'orcad_instance_lock_foreign_identity',
       `The mantad data root ${dataRoot} is locked by identity ${existing.identity} (pid ` +
@@ -241,7 +247,7 @@ export function acquireMantadInstanceLock(
         'root corrupts it. Give each its own MANTA_USER_DATA.'
     )
   }
-  if (existing && isAlive(existing.pid) && matchesStartTime(existing.pid, existing.startedAtMs)) {
+  if (isAlive(existing.pid) && matchesStartTime(existing.pid, existing.startedAtMs)) {
     throw new MantadInstanceLockError(
       'orcad_instance_lock_held',
       `Another mantad (pid ${existing.pid}, started ${existing.acquiredAt || 'unknown'}) already ` +
@@ -249,13 +255,6 @@ export function acquireMantadInstanceLock(
         'MANTA_USER_DATA.'
     )
   }
-  if (!existing) {
-    console.warn(
-      `[mantad] The instance lock at ${lockPath} is unreadable; reclaiming it. If another mantad ` +
-        'is running on this data root, stop it now.'
-    )
-  }
-
   // Why rename-and-then-publish rather than unlink-and-write: rename claims one exact
   // directory entry, so a replacement written between our read and our write stays at the
   // canonical path and wins — we never delete a record we did not inspect.
@@ -267,6 +266,15 @@ export function acquireMantadInstanceLock(
       'orcad_instance_lock_held',
       `Could not reclaim the stale mantad instance lock at ${lockPath}; another process is ` +
         'holding it. Retry, or stop the other mantad.'
+    )
+  }
+  // A contender may have replaced the entry after the liveness check; never displace its record.
+  const claimedContents = readBoundedLockFile(claimPath)
+  if (parseLockRecord(claimedContents ?? '')?.nonce !== existing.nonce) {
+    restoreDisplacedLock(claimPath, lockPath, claimedContents)
+    throw new MantadInstanceLockError(
+      'orcad_instance_lock_held',
+      `The mantad instance lock at ${lockPath} changed while reclaiming a stale record.`
     )
   }
   if (!publish()) {
@@ -289,9 +297,32 @@ export function acquireMantadInstanceLock(
   return makeLock(lockPath, record)
 }
 
-function safeRead(path: string): string | null {
+/** No-clobber restore: a third contender's newer record at the canonical path stays authoritative. */
+function restoreDisplacedLock(
+  claimPath: string,
+  lockPath: string,
+  claimedContents: string | null
+): void {
   try {
-    return readFileSync(path, 'utf8')
+    linkSync(claimPath, lockPath)
+    unlinkSync(claimPath)
+  } catch {
+    if (claimedContents === null) {
+      return
+    }
+    try {
+      writeFileSync(lockPath, claimedContents, { flag: 'wx', mode: 0o600 })
+      unlinkSync(claimPath)
+    } catch {
+      // A newer contender won, or restoration is unavailable; fail closed.
+    }
+  }
+}
+
+function readBoundedLockFile(path: string): string | null {
+  try {
+    const { buffer, stats } = readNodeFileSyncWithinLimit(path, MAX_ORCAD_LOCK_BYTES)
+    return stats.isFile() ? buffer.toString('utf8') : null
   } catch {
     return null
   }
@@ -310,7 +341,7 @@ function makeLock(lockPath: string, record: OrcadLockRecord): MantadInstanceLock
       // Why re-read before unlinking: a reclaim by a later mantad (after, say, a SIGKILL that
       // this process somehow survived enough to run handlers) leaves a record that is not
       // ours. Deleting it would unlock a live runtime.
-      const current = parseLockRecord(safeRead(lockPath) ?? '')
+      const current = parseLockRecord(readBoundedLockFile(lockPath) ?? '')
       if (!current || current.nonce !== record.nonce) {
         return
       }

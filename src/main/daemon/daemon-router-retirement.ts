@@ -6,9 +6,21 @@ export class DaemonRouterRetirement {
   admissionClosed = false
   spawnInFlight = 0
   private retirementAttempted = false
+  private retired = false
   private idleRetirementPromise: Promise<DaemonIdleRetirementResult> | null = null
 
   constructor(private readonly allAdapters: () => DaemonPtyAdapter[]) {}
+
+  /** Reopens a fence left by an attempt that did not retire every generation. */
+  releaseFence(): void {
+    if (this.idleRetirementPromise || this.retired) {
+      return
+    }
+    this.admissionClosed = false
+    for (const adapter of this.allAdapters()) {
+      adapter.releaseIdleRetirementFence()
+    }
+  }
 
   async requestIdleRetirement(): Promise<DaemonIdleRetirementResult> {
     if (this.idleRetirementPromise) {
@@ -60,6 +72,7 @@ export class DaemonRouterRetirement {
     this.retirementAttempted = true
     const results = await Promise.all(adapters.map((adapter) => adapter.requestIdleRetirement()))
     if (results.every((result) => result.state === 'retiring')) {
+      this.retired = true
       return { state: 'retiring' }
     }
     const refusedLiveSessions = results.reduce(

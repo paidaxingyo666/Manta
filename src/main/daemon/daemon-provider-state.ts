@@ -178,3 +178,10 @@ export async function requestIdleDaemonRetirement(): Promise<DaemonIdleRetiremen
   }
   return adapter.requestIdleRetirement()
 }
+
+/** Reopens terminal admission when an idle-retirement attempt did not retire the daemon. */
+export function releaseDaemonRetirementFence(): void {
+  if (adapter && !(adapter instanceof DegradedDaemonPtyProvider)) {
+    adapter.releaseIdleRetirementFence()
+  }
+}

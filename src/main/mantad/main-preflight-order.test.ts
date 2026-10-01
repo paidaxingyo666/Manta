@@ -3,6 +3,7 @@ import {
   ORCAD_PROFILE_PREFLIGHT_FLAG,
   ORCAD_STARTUP_PREFLIGHT_FLAG
 } from '../../shared/mantad-profile-preflight'
+import { ORCAD_COMPLETE_MANAGED_STOP_FLAG } from '../../shared/orcad-stop-request'
 
 /**
  * The precondition is only worth anything if it runs first. A loader failure is not
@@ -38,6 +39,12 @@ vi.mock('./mantad-native-preflight', () => ({
   }
 }))
 
+vi.mock('./orcad-managed-stop-command', () => ({
+  runOrcadManagedStopCommandAndExit: async (argv: string[]) => {
+    order.push(`managed-stop:${argv.join(' ')}`)
+  }
+}))
+
 vi.mock('./mantad-entry', () => ({
   main: async () => {
     order.push('main')
@@ -66,5 +73,18 @@ describe('mantad entry', () => {
     await vi.waitFor(() => expect(order).toContain('main'))
 
     expect(order).toEqual(['profile-admission', 'preflight', 'main'])
+  })
+
+  it('completes a managed stop without preflights, the bundled handoff, or a runtime', async () => {
+    vi.spyOn(process, 'argv', 'get').mockReturnValue([
+      'runtime',
+      'mantad.js',
+      ORCAD_COMPLETE_MANAGED_STOP_FLAG,
+      '{}'
+    ])
+    await import('./main')
+    await vi.waitFor(() => expect(order).toHaveLength(1))
+
+    expect(order).toEqual([`managed-stop:${ORCAD_COMPLETE_MANAGED_STOP_FLAG} {}`])
   })
 })

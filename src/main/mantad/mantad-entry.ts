@@ -22,6 +22,10 @@ import {
   startOrcadWithHost
 } from './mantad-lifecycle'
 import { parseArgs } from './mantad-command-arguments'
+import type { OrcadRuntimeCleanup } from './orcad-runtime-lifetime'
+import { installOrcadStopRequestListeners } from './orcad-stop-request-listener'
+import { prepareOrcadManagedStop } from './orcad-managed-stop-admission'
+import type { OrcadManagedStopContext } from '../../shared/orcad-stop-request'
 import {
   changedAiVaultSearchSettings,
   type AiVaultSearchSettings
@@ -37,12 +41,17 @@ function createNodeAppEnvironment(): AppEnvironment {
   // The main signal handler awaits runtime and browser teardown before process.exit.
   // Keep will-quit callbacks synchronous, but never let them pre-empt that async barrier.
   runMantadQuitHandlers = (): void => {
+    const errors: unknown[] = []
     for (const handler of quitHandlers.splice(0)) {
       try {
         handler()
       } catch (error) {
-        console.error('[mantad] shutdown handler failed:', error)
+        errors.push(error)
       }
+    }
+    // Why throw: a quit handler that failed may leave a writer running, which keeps the lock.
+    if (errors.length > 0) {
+      throw new AggregateError(errors, 'orcad_quit_handlers_failed')
     }
   }
   return {
@@ -97,6 +106,8 @@ export type MantadOptions = {
 
 export type MantadHandle = {
   readiness: ServeReadiness
+  /** What an instance-bound stop request must name to stop this process. */
+  managedStop: OrcadManagedStopContext
   stop(): Promise<void>
 }
 
@@ -107,7 +118,7 @@ export type MantadHandle = {
  */
 export async function startMantad(options: MantadOptions = {}): Promise<MantadHandle> {
   installMantadHostAdapters()
-  return startOrcadWithHost(
+  const { readiness, instance, stop } = await startOrcadWithHost(
     resolveUserDataPath(),
     (registerCleanup) => startMantadRuntime(options, registerCleanup),
     () => {
@@ -117,11 +128,13 @@ export async function startMantad(options: MantadOptions = {}): Promise<MantadHa
       closeOrcadObservability = () => {}
     }
   )
+  const version = process.env.MANTA_VERSION ?? '0.0.0-mantad'
+  return { readiness, managedStop: { version, runtimeId: readiness.runtimeId, instance }, stop }
 }
 
 async function startMantadRuntime(
   options: MantadOptions,
-  registerCleanup: (cleanup: () => Promise<void>) => void
+  registerCleanup: (cleanup: OrcadRuntimeCleanup) => void
 ): Promise<Pick<MantadHandle, 'readiness'>> {
   const { MantaRuntimeService } = await import('../runtime/manta-runtime')
   const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
@@ -145,35 +158,28 @@ async function startMantadRuntime(
   const { AgentStatusObservedPaneIdentities, AgentStatusObservedPaneIdentityCapture } =
     await import('../runtime/agent-status-observed-pane-identity')
 
-  let rpc: InstanceType<typeof MantaRuntimeRpcServer> | null = null
+  const { disposeWatcherProcessAndWait } = await import('../ipc/parcel-watcher-process')
+
   let profileStoreForShutdown:
     | { flushFinalOrThrowAsync(): Promise<void>; freezeWritesAsync(): Promise<void> }
     | undefined
   let uninstallHookStatusRepublish = (): void => {}
   let uninstallObservedStatusIdentity = (): void => {}
+  // Cleanups run in reverse: RPC, then recovery and watchers, then the final flush, then daemon.
+  registerCleanup(() => agentHookServer.stop())
+  registerCleanup(() => uninstallHookStatusRepublish())
+  registerCleanup(() => uninstallObservedStatusIdentity())
+  // Why disconnect and not shut down: the daemon must outlive this process, or an mantad
+  // restart goes back to killing every running terminal.
+  registerCleanup(() => stopMantadDaemon())
   registerCleanup(async () => {
-    try {
-      await rpc?.stop()
-    } finally {
-      try {
-        // Stop accepting RPC writes before the final persistence barrier. A SQLite-backed
-        // mantad has no JSON mirror to absorb a debounced write after SIGTERM.
-        if (profileStoreForShutdown) {
-          await flushOrcadProfileStoreForShutdown(profileStoreForShutdown)
-        }
-      } finally {
-        try {
-          // Why disconnect and not shut down: the daemon must outlive this process, or an
-          // mantad restart goes back to killing every running terminal.
-          await stopMantadDaemon()
-        } finally {
-          uninstallObservedStatusIdentity()
-          uninstallHookStatusRepublish()
-          agentHookServer.stop()
-        }
-      }
+    // A SQLite-backed mantad has no JSON mirror to absorb a debounced write after SIGTERM.
+    if (profileStoreForShutdown) {
+      await flushOrcadProfileStoreForShutdown(profileStoreForShutdown)
     }
   })
+  // Watcher children outlive a disposal that does not wait for them.
+  registerCleanup(() => disposeWatcherProcessAndWait())
   const { DesktopPushService } = await import('../runtime/push/desktop-push-service')
   const { resolvePushGatewayOrigin } = await import('../runtime/push/push-gateway-origin')
 
@@ -296,11 +302,14 @@ async function startMantadRuntime(
   await runtime.refreshRestoredOrchestrationAuthority()
   await runtime.reconcileLegacyWorkerTerminals()
 
+  // A retry armed during recovery would otherwise write after the final profile flush.
+  registerCleanup(() => runtime.stopLegacyWorkerTerminalRecovery())
+
   // Recovery binds terminal and dispatch identities; only now can startup observations be fenced.
   observedStatusCapture.attach(runtime)
 
   const bindHost = resolveMantadBindHost(options.bind)
-  rpc = new MantaRuntimeRpcServer({
+  const rpc = new MantaRuntimeRpcServer({
     runtime,
     userDataPath: runtimeUserDataPath,
     enableWebSocket: true,
@@ -311,6 +320,8 @@ async function startMantadRuntime(
     pinnedBindHost: bindHost,
     ...(options.port !== undefined ? { wsPort: options.port, preferPinnedWsPort: true } : {})
   })
+  // Stops first: no RPC may write while the rest of the runtime is torn down.
+  registerCleanup(() => rpc.stop())
   await rpc.start()
   const pushService = DesktopPushService.create({
     runtime,
@@ -388,6 +399,12 @@ export { MANTAD_SHUTDOWN_DEADLINE_MS } from './mantad-lifecycle'
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
   const startup = startMantad(parseArgs(argv))
-  installOrcadShutdownSignals(async () => (await startup).stop())
-  await startup
+  const requestShutdown = installOrcadShutdownSignals(async () => (await startup).stop())
+  const handle = await startup
+  // Why after startup: a managed request must name the runtime and instance this run became.
+  installOrcadStopRequestListeners(() => requestShutdown('stop request'), {
+    installRoot: resolveMantadInstallRoot(),
+    managedStop: handle.managedStop,
+    beforeManagedStop: prepareOrcadManagedStop
+  })
 }

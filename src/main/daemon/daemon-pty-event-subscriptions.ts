@@ -146,6 +146,13 @@ export abstract class DaemonPtyEventSubscriptions extends DaemonPtySessionInvent
     }
   }
 
+  /** Reopens admission an idle-retirement attempt fenced without retiring the daemon. */
+  releaseIdleRetirementFence(): void {
+    if (this.idleRetirementState !== 'retiring' && !this.idleRetirementPromise) {
+      this.reopenAfterRefusedIdleRetirement()
+    }
+  }
+
   private reopenAfterRefusedIdleRetirement(): void {
     this.idleRetirementState = 'open'
     this.idleRetirementAdmissionClosed = false
