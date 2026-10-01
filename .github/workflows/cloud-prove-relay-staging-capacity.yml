@@ -66,11 +66,14 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
       GCP_REGION: ${{ vars.STAGING_GCP_REGION }}
-      DIRECTOR_SERVICE_NAME: manta-cloud-relay-staging
-      DIRECTOR_ORIGIN: https://relay-staging.manta.sh.cn
-      CELL_ORIGIN: https://c3.relay-staging.manta.sh.cn
+      DIRECTOR_SERVICE_NAME: orca-cloud-relay-staging
+      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
+      CELL_ORIGIN: https://c3.relay-staging.onorca.dev
+      # These drains are unpaced, but restart-safe still needs a quiet runtime for the production
+      # pace window, the same one the same-cap drain uses.
+      RESTART_SAFE_PACE_WINDOW_MS: '300000'
       TARGET_CELL_ID: staging-gce-c3
-      FALLBACK_CELL_ORIGIN: https://c2.relay-staging.manta.sh.cn
+      FALLBACK_CELL_ORIGIN: https://c2.relay-staging.onorca.dev
       FALLBACK_CELL_ID: staging-gce-c2
       CAPACITY_SERVICE_ACCOUNT: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
       EXPECTED_HARD_CAP: ${{ inputs.expected-hard-cap }}
@@ -84,7 +87,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -135,7 +138,7 @@ jobs:
           [[ "${DESIRED_IMAGE}" =~ @sha256:[0-9a-f]{64}$ ]]
           [[ "${TARGET_ZONE}" =~ ^[a-z0-9-]+$ ]]
           [[ "${MIG_NAME}" =~ ^[a-z0-9-]+$ ]]
-          test "${CELL_ORIGIN}" = "https://c3.relay-staging.manta.sh.cn"
+          test "${CELL_ORIGIN}" = "https://c3.relay-staging.onorca.dev"
           jq -e \
             --arg cell "${TARGET_CELL_ID}" \
             --arg fallback "${FALLBACK_CELL_ID}" \
@@ -268,7 +271,8 @@ jobs:
                 --heartbeat either \
                 --admission migration-only \
                 --draining required \
-                --activity restart-safe
+                --activity restart-safe \
+                --pace-window-ms "${RESTART_SAFE_PACE_WINDOW_MS}" --timeout-ms 480000
               TRANSITION_PHASE=director-ready
             fi
           else
@@ -377,7 +381,8 @@ jobs:
             --heartbeat either \
             --admission migration-only \
             --draining required \
-            --activity restart-safe
+            --activity restart-safe \
+            --pace-window-ms "${RESTART_SAFE_PACE_WINDOW_MS}" --timeout-ms 480000
 
       - name: Verify current capacity
         if: ${{ inputs.mode == 'verify' }}
@@ -451,7 +456,8 @@ jobs:
             --heartbeat "${HEARTBEAT_EXPECTATION}" \
             --admission migration-only \
             --draining required \
-            --activity restart-safe
+            --activity restart-safe \
+            --pace-window-ms "${RESTART_SAFE_PACE_WINDOW_MS}" --timeout-ms 480000
 
       - name: Plan and apply only the exact empty cell
         if: ${{ inputs.mode == 'apply' }}
@@ -599,8 +605,8 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
       GCP_REGION: ${{ vars.STAGING_GCP_REGION }}
-      DIRECTOR_ORIGIN: https://relay-staging.manta.sh.cn
-      CELL_ORIGIN: https://c4.relay-staging.manta.sh.cn
+      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
+      CELL_ORIGIN: https://c4.relay-staging.onorca.dev
       TARGET_CELL_ID: staging-gce-c4
       EXPECTED_SELECTOR_GENERATION: ${{ inputs.expected-selector-generation }}
       PREDECESSOR_IMAGE_DIGEST: ${{ inputs.predecessor-image-digest }}
@@ -628,7 +634,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -669,16 +675,16 @@ jobs:
           test "$(jq -r '.initially_enabled' <<< "${shape}")" = false
           desired_image="$(jq -r '.image' <<< "${shape}")"
           test "${desired_image}" = \
-            "us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/manta-cloud/relay@${TARGET_IMAGE_DIGEST}"
+            "us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/orca-cloud/relay@${TARGET_IMAGE_DIGEST}"
           served_digest="$(gcloud artifacts docker images describe "${desired_image}" \
             --project "${GCP_PROJECT_ID}" --format='value(image_summary.digest)')"
           test "${served_digest}" = "${TARGET_IMAGE_DIGEST}"
           mig_name="$(terraform -chdir=infra/terraform output -json relay_gce_cell_deployments \
             | jq -r --arg cell "${TARGET_CELL_ID}" '.[$cell].mig_name')"
-          test "${mig_name}" = manta-cloud-staging-relay-gce-c4
+          test "${mig_name}" = orca-cloud-staging-relay-gce-c4
           {
             echo "DESIRED_IMAGE=${desired_image}"
-            echo "ROLLBACK_IMAGE=us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/manta-cloud/relay@${PREDECESSOR_IMAGE_DIGEST}"
+            echo "ROLLBACK_IMAGE=us-central1-docker.pkg.dev/${GCP_PROJECT_ID}/orca-cloud/relay@${PREDECESSOR_IMAGE_DIGEST}"
             echo "TARGET_ZONE=asia-east2-a"
             echo "MIG_NAME=${mig_name}"
           } >> "${GITHUB_ENV}"
@@ -716,7 +722,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Verify the exact selector and current C4 state
@@ -790,7 +796,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Fence C4 and prove it stayed empty before replacement
@@ -853,7 +859,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.manta.sh.cn/v1/admin/drain
+          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
           id_token_include_email: true
 
       - name: Verify new C4 incarnation, image, and unchanged isolation
