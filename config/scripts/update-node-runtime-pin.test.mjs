@@ -7,8 +7,8 @@ import {
   SERVER_TARGETS,
   nodeRuntimeExecutablePath
 } from '../../src/shared/node-runtime-pin.ts'
+import { nodeDistArchiveName } from './node-dist-archive-name.mjs'
 import {
-  nodeDistArchiveName,
   parseNodeApiVersion,
   parseShasums,
   renderGeneratedBlock,

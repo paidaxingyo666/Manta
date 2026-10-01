@@ -2,15 +2,16 @@
 // Static, offline consistency gate for src/shared/node-runtime-pin.ts; update-node-runtime-pin.mjs owns the network.
 
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseAllDocuments } from 'yaml'
-import {
-  NODE_RUNTIME_ASSETS,
-  NODE_RUNTIME_PIN,
-  SERVER_TARGETS
-} from '../../src/shared/node-runtime-pin.ts'
-import { nodeDistArchiveName } from './update-node-runtime-pin.mjs'
+import { nodeDistArchiveName } from './node-dist-archive-name.mjs'
+
+// Why require: an ESM import of a .ts file under a typeless package.json prints MODULE_TYPELESS_PACKAGE_JSON.
+const { NODE_RUNTIME_ASSETS, NODE_RUNTIME_PIN, SERVER_TARGETS } = createRequire(import.meta.url)(
+  '../../src/shared/node-runtime-pin.ts'
+)
 
 const SHA256 = /^[0-9a-f]{64}$/
 const ASSET_SOURCES = new Set(['official', 'unofficial'])

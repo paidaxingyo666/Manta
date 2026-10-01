@@ -40,6 +40,7 @@
     "check:runtime-electron-ratchet": "node config/scripts/check-runtime-electron-ratchet.mjs",
     "check:readme-local-links": "node config/scripts/check-readme-local-links.mjs",
     "check:daemon-protocol-crossing": "node config/scripts/check-daemon-protocol-crossing.mjs",
+    "check:runtime-launcher-protocol-ratchet": "node config/scripts/check-runtime-launcher-protocol-ratchet.mjs",
     "check:node-runtime-pin": "node config/scripts/check-node-runtime-pin.mjs",
     "build:mantad": "node config/scripts/build-mantad-bun.mjs",
     "build:mantad-template": "node config/scripts/build-mantad-template.mjs",

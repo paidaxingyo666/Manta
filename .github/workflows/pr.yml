@@ -856,6 +856,16 @@ jobs:
       - name: Daemon protocol crossing against newest release
         run: pnpm run check:daemon-protocol-crossing
 
+      # R3: a runtime launcher swap must not also bump the daemon protocol (D7.1).
+      # The label is read from the event payload, so push again after applying it.
+      - name: Runtime launcher change does not bump daemon protocol
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          ORCA_ALLOW_RUNTIME_LAUNCHER_PROTOCOL_BUMP: ${{ contains(github.event.pull_request.labels.*.name, 'allow-runtime-launcher-protocol-bump') }}
+        run: |
+          DIFF_BASE="$(node config/scripts/git-pull-request-diff-base.mjs "$BASE_SHA")"
+          pnpm run check:runtime-launcher-protocol-ratchet -- --base "$DIFF_BASE"
+
       # A path filter that matches nothing exits 1 ("No test files found"), so this
       # lane cannot report success while running zero tests.
       - name: Old/new client and server compatibility journeys
