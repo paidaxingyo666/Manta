@@ -228,6 +228,12 @@ export function resolveEnvironmentFromStore<T extends PersistedRuntimeEnvironmen
 }
 
 function assertNoIndependentSshAccess(environment: KnownRuntimeEnvironment): void {
+  if (environment.orcadDeployment) {
+    throw new RuntimeEnvironmentStoreError(
+      'invalid_argument',
+      'This server is managed by Manta over SSH; its pairing cannot be replaced or removed here.'
+    )
+  }
   if (environment.sshAccess || environment.pendingSshAccessOperation) {
     throw new RuntimeEnvironmentStoreError(
       'invalid_argument',

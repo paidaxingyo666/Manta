@@ -30,6 +30,8 @@ export type OrcadMigrationDependencyKind = (typeof ORCAD_MIGRATION_DEPENDENCY_KI
 export type OrcadMigrationDependency = {
   kind: OrcadMigrationDependencyKind
   count: number
+  /** A bounded sample of what holds the reference, so the user can find and clear it. */
+  names?: string[]
 }
 
 export type OrcadMigrationRepository = Pick<Repo, 'id' | 'path' | 'displayName' | 'kind'>
@@ -73,6 +75,11 @@ export type OrcadMigrationBlocker =
       code: 'orcad_migration_dependent_state'
       category: 'client-owned-state'
       dependencies: OrcadMigrationDependency[]
+    }
+  | {
+      code: 'orcad_migration_dependency_unverifiable'
+      category: 'live-or-unverifiable'
+      sources: OrcadMigrationDependencyKind[]
     }
 
 export type OrcadMigrationPreflight = {

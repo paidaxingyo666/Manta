@@ -23,6 +23,7 @@ import {
 } from './runtime-environment-capability-evidence'
 import { isRuntimeEnvironmentManuallyDisconnected } from './runtime-environment-manual-disconnect'
 import { runtimeEnvironmentChangedFailure } from './runtime-environment-revision-guard'
+import { resolveManagedRuntimeEnvironment } from './runtime-environment-managed-tunnel'
 
 export function createRuntimeEnvironmentStatusOwner(
   userDataPath: string,
@@ -43,6 +44,13 @@ export function createRuntimeEnvironmentStatusOwner(
       const incarnation = getRuntimeEnvironmentCapabilityIncarnation(environment.id)
       const isCurrent = (): boolean =>
         getRuntimeEnvironmentCapabilityIncarnation(environment.id) === incarnation
+      if (environment.connectionDependency === 'ssh-tunnel') {
+        await resolveManagedRuntimeEnvironment(userDataPath, environment.id)
+        if (!isCurrent()) {
+          return runtimeEnvironmentChangedFailure(environment, 'status.get')
+        }
+        signal.throwIfAborted()
+      }
       evidence = captureRuntimeEnvironmentCapabilityEvidence(environment.id, pairing)
       const response = await (transport.isReady() &&
       getAcceptedRuntimeEnvironmentCapabilityOutcome(environment.id, pairing, null)?.kind ===

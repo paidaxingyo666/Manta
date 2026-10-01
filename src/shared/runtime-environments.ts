@@ -31,6 +31,10 @@ export const RuntimeSshTunnelLinkSchema = z.object({
 
 export type RuntimeSshTunnelLink = z.infer<typeof RuntimeSshTunnelLinkSchema>
 
+/** A server Manta deployed and owns over SSH; unlike sshAccess, it grants lifecycle ownership. */
+export const OrcadDeploymentLinkSchema = RuntimeSshTunnelLinkSchema
+export type OrcadDeploymentLink = RuntimeSshTunnelLink
+
 export const RuntimeSshAccessLinkSchema = RuntimeSshTunnelLinkSchema.extend({
   requestId: z.string().min(1).optional(),
   targetFingerprint: z.string().min(1).optional(),
@@ -77,11 +81,12 @@ export type PersistedRuntimeEnvironment = z.infer<typeof PersistedRuntimeEnviron
 export const KnownRuntimeEnvironmentSchema = PersistedRuntimeEnvironmentSchema.extend({
   sshAccess: RuntimeSshAccessLinkSchema.optional(),
   pendingSshAccessOperation: RuntimeSshAccessOperationSchema.optional(),
+  orcadDeployment: OrcadDeploymentLinkSchema.optional(),
   reconciliation: RuntimeEnvironmentReconciliationRecordSchema.optional()
 })
   .refine(
-    ({ pendingSshAccessOperation, sshAccess, connectionDependency }) =>
-      !pendingSshAccessOperation || (!sshAccess && !connectionDependency),
+    ({ pendingSshAccessOperation, sshAccess, orcadDeployment, connectionDependency }) =>
+      !pendingSshAccessOperation || (!sshAccess && !orcadDeployment && !connectionDependency),
     {
       message: 'Pending SSH access operations cannot coexist with active SSH access.',
       path: ['pendingSshAccessOperation']
@@ -105,6 +110,22 @@ export const KnownRuntimeEnvironmentSchema = PersistedRuntimeEnvironmentSchema.e
       message:
         'Runtime SSH access must preserve its previous endpoint and prefer its loopback endpoint.',
       path: ['sshAccess']
+    }
+  )
+  .refine(
+    (environment) => {
+      const deployment = environment.orcadDeployment
+      return (
+        !deployment ||
+        (!environment.sshAccess &&
+          environment.connectionDependency === 'ssh-tunnel' &&
+          getPreferredLoopbackRuntimePort(environment) === deployment.localPort)
+      )
+    },
+    {
+      message:
+        'A managed deployment must prefer its own tunnel and exclude independent SSH access.',
+      path: ['orcadDeployment']
     }
   )
 
@@ -197,11 +218,11 @@ export function getPreferredPairingOffer(environment: KnownRuntimeEnvironment): 
   }
 }
 
-/** SSH is an access path for a paired server; managed lifecycle ownership is T6's deployment link. */
+/** The tunnel a server is reached through; only orcadDeployment also grants lifecycle ownership. */
 export function getRuntimeSshAccess(
-  environment: Pick<KnownRuntimeEnvironment, 'sshAccess'>
+  environment: Pick<KnownRuntimeEnvironment, 'orcadDeployment' | 'sshAccess'>
 ): RuntimeSshTunnelLink | undefined {
-  return environment.sshAccess
+  return environment.orcadDeployment ?? environment.sshAccess
 }
 
 export function getPreferredLoopbackRuntimePort(environment: {

@@ -2,6 +2,7 @@ import { getRuntimeEnvironmentStatus } from './runtime-environment-status-probe'
 import { getPreferredPairingOffer } from '../../shared/runtime-environments'
 import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/protocol-version'
 import { resolveEnvironment, markEnvironmentUsed } from '../../shared/runtime-environment-store'
+import { resolveManagedRuntimeEnvironment } from './runtime-environment-managed-tunnel'
 import { recordRuntimeEnvironmentUsage } from './runtime-environment-usage-record'
 import type {
   RuntimeOrchestrationEnvelope,
@@ -64,7 +65,10 @@ export async function callRuntimeEnvironment(
       environment.id,
       method,
       async () => {
-        const currentEnvironment = resolveEnvironment(userDataPath, environment.id)
+        const currentEnvironment = await resolveManagedRuntimeEnvironment(
+          userDataPath,
+          environment.id
+        )
         const revisionFailure = runtimeEnvironmentRevisionFailure(
           currentEnvironment,
           expectedEnvironmentPairingRevision,
@@ -157,7 +161,7 @@ export async function subscribeRuntimeEnvironment(
   },
   isCurrent: () => boolean = () => true
 ): Promise<RemoteRuntimeSubscription> {
-  const environment = resolveEnvironment(userDataPath, selector)
+  const environment = await resolveManagedRuntimeEnvironment(userDataPath, selector)
   const pairing = getPreferredPairingOffer(environment)
   const effectiveTimeoutMs = timeoutMs ?? DEFAULT_REMOTE_RUNTIME_TIMEOUT_MS
   let markedUsed = false

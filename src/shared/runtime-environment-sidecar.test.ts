@@ -2,7 +2,6 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { z } from 'zod'
 import { encodePairingOffer } from './pairing'
 import {
   addEnvironmentFromPairingCode,
@@ -20,6 +19,7 @@ import {
   prepareRuntimeEnvironmentSshAccessLink
 } from './runtime-environment-ssh-access-store'
 import { readPersistedEnvironmentStore } from './runtime-environment-store-file'
+import { shippedBuildRewrite } from './runtime-environment-shipped-store-fixture'
 
 const pairing = {
   v: 2 as const,
@@ -29,27 +29,6 @@ const pairing = {
   pairedDeviceId: 'paired-client'
 }
 const tunnel = { sshTargetId: 'target', sshTargetGeneration: 3, localPort: 41000, remotePort: 6768 }
-
-// The environment schema v1.4.217 and v1.4.218 shipped: a plain z.object, so unknown keys are
-// stripped, and every write (lastUsedAt included) rewrites the whole file.
-const ShippedEnvironmentSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  createdAt: z.number().finite(),
-  updatedAt: z.number().finite(),
-  pairingRevision: z.number().finite().optional(),
-  pairedDeviceId: z.string().min(1).optional(),
-  lastUsedAt: z.number().finite().nullable(),
-  runtimeId: z.string().min(1).nullable(),
-  source: z.enum(['manual', 'ephemeral-vm']).optional(),
-  connectionDependency: z.literal('ssh-tunnel').optional(),
-  endpoints: z.array(z.object({}).passthrough()).min(1),
-  preferredEndpointId: z.string().min(1)
-})
-const ShippedStoreSchema = z.object({
-  version: z.literal(1),
-  environments: z.array(ShippedEnvironmentSchema)
-})
 
 describe('runtime environment sidecar across a downgrade', () => {
   let userDataPath: string
@@ -82,18 +61,9 @@ describe('runtime environment sidecar across a downgrade', () => {
     })
   }
 
-  function shippedBuildRewrite(
-    edit: (environments: z.infer<typeof ShippedEnvironmentSchema>[]) => void
-  ) {
-    const path = getEnvironmentStorePath(userDataPath)
-    const store = ShippedStoreSchema.parse(JSON.parse(readFileSync(path, 'utf8')))
-    edit(store.environments)
-    writeFileSync(path, JSON.stringify(store))
-  }
-
   it('keeps SSH access after a shipped build rewrites manta-environments.json', () => {
     const access = linked()
-    shippedBuildRewrite((environments) => {
+    shippedBuildRewrite(userDataPath, (environments) => {
       environments[0]!.lastUsedAt = 500
       environments[0]!.runtimeId = 'host-runtime'
     })
@@ -105,7 +75,7 @@ describe('runtime environment sidecar across a downgrade', () => {
 
   it('reads a link as stale once a shipped build re-pairs the server, and prunes it on the next write', () => {
     const access = linked()
-    shippedBuildRewrite((environments) => {
+    shippedBuildRewrite(userDataPath, (environments) => {
       environments[0]!.pairingRevision = 200
     })
     const [restored] = listEnvironments(userDataPath)
@@ -122,7 +92,7 @@ describe('runtime environment sidecar across a downgrade', () => {
 
   it('ignores a dangling entry for a server a shipped build removed', () => {
     linked()
-    shippedBuildRewrite((environments) => {
+    shippedBuildRewrite(userDataPath, (environments) => {
       environments.splice(0, 1)
     })
     expect(listEnvironments(userDataPath)).toEqual([])
