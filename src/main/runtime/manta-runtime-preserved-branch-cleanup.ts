@@ -90,6 +90,10 @@ export class MantaRuntimeWithPreservedBranchCleanup extends MantaRuntimeWithTerm
 
   protected readonly retireAgentHookCompatibilityAuthorityFn: ((paneKey: string) => void) | null
 
+  protected readonly checkHookAgentPresenceFn:
+    | ((paneKey: string) => Promise<'live' | 'unverifiable' | 'exited' | null>)
+    | null
+
   protected readonly reconcileAgentStatusForEndedProcessFn:
     | ((paneKeys: Iterable<string>) => void)
     | null

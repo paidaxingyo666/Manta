@@ -124,7 +124,7 @@ async function startMantadRuntime(
   const { getAppEnvironment } = await import('../../shared/app-environment')
   const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
-  const { createOrcadProfileStateStartup } = await import('./orcad-profile-state-startup')
+  const { createOrcadProfileStateStartup } = await import('./mantad-profile-state-startup')
   const { startMantadDaemon, stopMantadDaemon } = await import('./mantad-daemon-supervision')
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
   const { collectMantadHealth } = await import('./mantad-health')
@@ -235,6 +235,7 @@ async function startMantadRuntime(
       publishChildWork: (subject, evidence, provider) =>
         agentHookServer.ingestStructuredChildWork(subject, evidence, provider)
     },
+    checkHookAgentPresence: (paneKey) => agentHookServer.checkAgentPresence(paneKey),
     reconcileAgentStatusForEndedProcess: (paneKeys) =>
       agentHookServer.reconcileEndedProcessForPaneKeys(paneKeys),
     buildAgentHookPtyEnv: () =>
@@ -371,7 +372,7 @@ export {
   MANTAD_EXIT_FAILED,
   MANTAD_EXIT_CONFIGURATION,
   resolveMantadExitCode
-} from './orcad-exit-code'
+} from './mantad-exit-code'
 
 /** Bounded so a wedged transport cannot hold a supervisor's stop past its own deadline. */
 export { MANTAD_SHUTDOWN_DEADLINE_MS } from './mantad-lifecycle'

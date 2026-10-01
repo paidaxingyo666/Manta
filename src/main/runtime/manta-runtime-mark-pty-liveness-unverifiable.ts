@@ -28,6 +28,9 @@ export class MantaRuntimeWithMarkPtyLivenessUnverifiable extends MantaRuntimeWit
     if (observedNoLaterThan !== undefined && tracked && tracked.observedAt > observedNoLaterThan) {
       return
     }
+    if (tracked?.verdict.status === 'unverifiable') {
+      void this.recheckHookAgentPresenceForPty(ptyId)
+    }
     this.rememberPtyLivenessVerdict(ptyId, { status: 'live', ptyIds: [ptyId] })
   }
 

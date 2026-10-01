@@ -66,6 +66,9 @@ export class RelayAgentHookRuntime {
   }
 
   private registerPtyEnvironment(): void {
+    this.ptyHandler.setAgentPresenceTrigger((paneKey) => {
+      void this.hookServer.checkAgentPresence(paneKey)
+    })
     this.ptyHandler.addEnvAugmenter(() => this.hookServer.buildPtyEnv())
     this.ptyHandler.addEnvAugmenter((context) => this.buildPluginEnvironment(context))
     this.ptyHandler.setExitListener(({ paneKey, id }) => {

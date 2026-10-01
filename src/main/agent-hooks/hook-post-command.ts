@@ -18,6 +18,7 @@ export function buildPosixAgentHookPostCommand(
     `  ${indent}-H "X-Manta-Agent-Hook-Token: \${MANTA_AGENT_HOOK_TOKEN}" \\`,
     `  ${indent}-H "X-Manta-Agent-Hook-Meta-Encoding: base64" \\`,
     `  ${indent}-H "X-Manta-Agent-Hook-Meta: \${manta_hook_metadata}" \\`,
+    `  ${indent}-H "X-Manta-Agent-Process: \${manta_agent_process:-}" \\`,
     `  ${indent}--data-binary @-`,
     'else',
     `  printf '%s' "$payload" | ${curlCommand} -sS -X POST "http://127.0.0.1:\${MANTA_AGENT_HOOK_PORT}/hook/${source}" \\`,
@@ -31,6 +32,7 @@ export function buildPosixAgentHookPostCommand(
     `  ${indent}--data-urlencode "worktreeId=\${MANTA_WORKTREE_ID}" \\`,
     `  ${indent}--data-urlencode "env=\${MANTA_AGENT_HOOK_ENV}" \\`,
     `  ${indent}--data-urlencode "version=\${MANTA_AGENT_HOOK_VERSION}" \\`,
+    `  ${indent}--data-urlencode "agentProcess=\${manta_agent_process:-}" \\`,
     `  ${indent}--data-urlencode "payload@-"`,
     'fi'
   ]

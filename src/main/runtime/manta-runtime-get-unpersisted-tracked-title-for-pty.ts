@@ -1,6 +1,6 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
 import { MantaRuntimeWithEmitDaemonPtyTransientFact } from './manta-runtime-emit-daemon-pty-transient-fact'
-import { getDecorativeAgentTitleSignature } from '../../shared/agent-decorative-title-signature'
+import { getDecorativeTitleGateKey } from '../../shared/agent-decorative-title-signature'
 import { shouldEmitTitleFactForFrame } from './decorative-title-fact-emission'
 import type { RuntimePtyTitleTrackerEntry } from './runtime-terminal-state-records'
 import { createTerminalTitleTracker } from '../../shared/terminal-output-side-effects'
@@ -37,11 +37,7 @@ export class MantaRuntimeWithGetUnpersistedTrackedTitleForPty extends MantaRunti
 
   /** Decorative comparison key: only recognized agent titles fold leading spinner frames. */
   protected makeDecorativeTitleGateKey(rawTitle: string, normalizedTitle: string): string {
-    // Stable Pi/Gemini/Grok display normalization also defines their semantic gate.
-    const normalizedSignature =
-      rawTitle === normalizedTitle ? null : getDecorativeAgentTitleSignature(normalizedTitle)
-    const signature = normalizedSignature ?? getDecorativeAgentTitleSignature(rawTitle)
-    return signature === null ? `literal\u0000${normalizedTitle}` : `agent\u0000${signature}`
+    return getDecorativeTitleGateKey(rawTitle, normalizedTitle)
   }
 
   protected getOrCreatePtyTitleTrackerEntry(ptyId: string): RuntimePtyTitleTrackerEntry {
@@ -68,6 +64,9 @@ export class MantaRuntimeWithGetUnpersistedTrackedTitleForPty extends MantaRunti
           const live = this.ptyTitleTrackersByPtyId.get(ptyId)
           const gateKey = this.makeDecorativeTitleGateKey(rawTitle, normalizedTitle)
           const decorativeOnly = live?.lastMobileTitleGateKey === gateKey
+          if (!decorativeOnly && !meta?.staleWorkingTitleClear) {
+            void this.recheckHookAgentPresenceForPty(ptyId)
+          }
           if (live) {
             live.lastMobileTitleGateKey = gateKey
           }
@@ -147,6 +146,7 @@ export class MantaRuntimeWithGetUnpersistedTrackedTitleForPty extends MantaRunti
           this.openCodeRunLifetime.onCommandStarted(ptyId)
         },
         onCommandFinished: (exitCode: number | null) => {
+          void this.recheckHookAgentPresenceForPty(ptyId)
           this.retirePtyAgentLaunchAuthority(ptyId)
           this.recordTerminalSideEffectFact(ptyId, { kind: 'command-finished', exitCode })
           this.openCodeRunLifetime.onCommandFinished(ptyId, exitCode)
