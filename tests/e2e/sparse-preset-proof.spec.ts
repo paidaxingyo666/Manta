@@ -5,6 +5,8 @@ import { test, expect } from './helpers/manta-app'
 import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 test('sparse preset editor visual proof', async ({ mantaPage }, testInfo) => {
+  // Why: ~60 UI steps at 2-4 s each on CI runners overrun the 120 s default.
+  test.setTimeout(240_000)
   await waitForSessionReady(mantaPage)
   await waitForActiveWorktree(mantaPage)
   await mantaPage.setViewportSize({ width: 1200, height: 800 })
