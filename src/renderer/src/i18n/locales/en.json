@@ -7301,9 +7301,9 @@
           "80c454e8a6": "Match this to your provider's cache TTL."
         },
         "GeneralEditorSettingsSection": {
-          "f80603d293": "Show local markdown note controls in rich editor mode and agent handoff actions.",
+          "f80603d293": "Show markdown note controls in every markdown view and include markdown notes in agent handoff actions.",
           "4edc104f0f": "Markdown Review Notes",
-          "5f02e6fb21": "Show local markdown review note controls in rich editor mode.",
+          "5f02e6fb21": "Show local markdown review note controls in markdown files.",
           "51161d1647": "Show the minimap overview when editing a file.",
           "6690b1ffb9": "Minimap",
           "5a1ea6eaa2": "Hidden",

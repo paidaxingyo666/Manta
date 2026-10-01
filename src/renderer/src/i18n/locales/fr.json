@@ -7234,9 +7234,9 @@
           "80c454e8a6": "Alignez cette durée sur le TTL de cache de votre fournisseur."
         },
         "GeneralEditorSettingsSection": {
-          "f80603d293": "Afficher les contrôles des notes markdown locales en mode éditeur enrichi et dans les actions de passation aux agents.",
+          "f80603d293": "Afficher les contrôles des notes markdown dans toutes les vues markdown et inclure ces notes dans les actions de passation aux agents.",
           "4edc104f0f": "Notes de revue Markdown",
-          "5f02e6fb21": "Afficher les contrôles des notes de revue markdown locales en mode éditeur enrichi.",
+          "5f02e6fb21": "Afficher les contrôles des notes de revue markdown locales dans les fichiers markdown.",
           "51161d1647": "Afficher la minimap lors de l'édition d'un fichier.",
           "6690b1ffb9": "Minimap",
           "5a1ea6eaa2": "Masquée",

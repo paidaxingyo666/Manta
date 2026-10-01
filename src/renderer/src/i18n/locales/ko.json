@@ -7116,9 +7116,9 @@
           "80c454e8a6": "이를 공급자의 캐시 TTL과 일치시킵니다."
         },
         "GeneralEditorSettingsSection": {
-          "f80603d293": "리치 에디터 모드 및 agent 전달 작업에서 로컬 markdown 메모 컨트롤을 표시합니다.",
+          "f80603d293": "모든 markdown 보기에서 markdown 메모 컨트롤을 표시하고 agent 전달 작업에 해당 메모를 포함합니다.",
           "4edc104f0f": "Markdown 리뷰 노트",
-          "5f02e6fb21": "리치 에디터 모드에서 로컬 markdown 리뷰 노트 컨트롤을 표시합니다.",
+          "5f02e6fb21": "markdown 파일에서 로컬 markdown 리뷰 노트 컨트롤을 표시합니다.",
           "51161d1647": "파일을 편집할 때 미니맵 개요를 표시합니다.",
           "6690b1ffb9": "미니맵",
           "5a1ea6eaa2": "숨겨진",
