@@ -8,6 +8,7 @@ import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-rec
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
 import {
   adapter,
   attach,
@@ -101,6 +102,7 @@ describe('a Stop pressed again', () => {
     await store.renewLeases([])
     const relaunchedStore = await openTestAgentSessionRecordStore(root)
     const relaunched = new StructuredAgentSessionHost({
+      logger: createStructuredAgentSessionLogger(),
       store: relaunchedStore,
       adapter: adapter(),
       journalDatabase: openTestJournalHostDatabase(root),

@@ -26,7 +26,7 @@ import {
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
-import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
+import { recordingStructuredAgentSessionLogger } from './structured-agent-session-logger-test-support'
 
 const CALLER = { callerKey: 'client-1' }
 
@@ -42,7 +42,7 @@ let acknowledgeSessionRelease: Mock<
 >
 /** Codex's answer by default: its Stop keeps the child. */
 let stopEndsSession: boolean
-let onEventSinkError: Mock<(failure: { sessionId: string; error: unknown }) => void>
+let log: ReturnType<typeof recordingStructuredAgentSessionLogger>
 let events: StructuredAgentSessionEventSink | undefined
 
 function eventually(assertion: () => void | Promise<void>): Promise<void> {
@@ -59,10 +59,10 @@ beforeEach(async () => {
   closeSession = vi.fn(async () => true)
   acknowledgeSessionRelease = vi.fn()
   stopEndsSession = false
-  onEventSinkError = vi.fn()
+  log = recordingStructuredAgentSessionLogger()
   store = await openTestAgentSessionRecordStore(root)
   host = new StructuredAgentSessionHost({
-    logger: createStructuredAgentSessionLogger(),
+    logger: log.logger,
     store,
     adapter: {
       acquire: async ({ fence, spawnToken, events: sink }) => {
@@ -97,7 +97,6 @@ beforeEach(async () => {
     journalDatabase: openTestJournalHostDatabase(root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-1',
-    onEventSinkError,
     now: () => NOW
   })
   expect(await host.attach(CALLER, hostTestAttachParams(null))).toMatchObject({ ok: true })
@@ -288,7 +287,11 @@ describe('a Stop that names no turn', () => {
     expect(await stop()).toMatchObject({ ok: true, value: { cancelled: false } })
 
     expect(closeSession).toHaveBeenCalledExactlyOnceWith(SESSION, 'user-stop')
-    expect(onEventSinkError).toHaveBeenCalledWith(expect.objectContaining({ sessionId: SESSION }))
+    expect(log.entries).toContainEqual(
+      expect.objectContaining({
+        fields: expect.objectContaining({ scope: 'stop-child', sessionId: SESSION })
+      })
+    )
     expect(await statusRows()).toEqual(["Codex didn't stop: failed to interrupt turn."])
   })
 
@@ -304,7 +307,11 @@ describe('a Stop that names no turn', () => {
     expect(await stop()).toMatchObject({ ok: true, value: { cancelled: true } })
 
     expect(closeSession).toHaveBeenCalledExactlyOnceWith(SESSION, 'user-stop')
-    expect(onEventSinkError).toHaveBeenCalledWith(expect.objectContaining({ sessionId: SESSION }))
+    expect(log.entries).toContainEqual(
+      expect.objectContaining({
+        fields: expect.objectContaining({ scope: 'stop-child', sessionId: SESSION })
+      })
+    )
     expect(await statusRows()).toEqual(['Cancellation requested.'])
   })
 

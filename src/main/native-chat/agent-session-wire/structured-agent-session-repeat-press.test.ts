@@ -14,6 +14,7 @@ import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-rec
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
 import {
   HOST_TEST_NOW as NOW,
   HOST_TEST_SESSION as SESSION,
@@ -42,6 +43,7 @@ beforeEach(async () => {
   cancelTurn = vi.fn(async () => ({ cancelled: true }))
   store = await openTestAgentSessionRecordStore(root)
   host = new StructuredAgentSessionHost({
+    logger: createStructuredAgentSessionLogger(),
     store,
     adapter: {
       acquire: async ({ fence, spawnToken }) => ({
