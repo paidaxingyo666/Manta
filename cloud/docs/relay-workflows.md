@@ -166,11 +166,13 @@ atomically register the new cells as migration-only, binding every mutation to
 the exact live selector generation and a durable attempt ID. Deploy and verify
 the director configuration only after registration, then promote C27 alone before C28/C29.
 
-The production Asia set is C27-C30. C27-C29 launched as one wave; C30 is an additive wave of its
-own at the same shape. Its plan names C30's template, MIG, and backend plus the shared URL map, and
-the URL map pulls every existing cell's backend, MIG, and template into the plan. Committed images
-lag what same-cap rolls serve, so the workflow first reads each non-target cell's served image out
-of its live template in state and plans that cell at it. It reads the committed cell map from a
+The production Asia set is C27-C31. C27-C29 launched as one wave; C30 and C31 are each an additive
+wave of their own at the same shape, and C31 takes `asia-east2-b` so the five cells spread 2/2/1
+across the zones. The C30 steps below apply to C31 unchanged, with C31 in place of C30. C30's plan
+names its template, MIG, and backend plus the shared URL map, and the URL map pulls every existing
+cell's backend, MIG, and template into the plan. Committed images lag what same-cap rolls serve,
+so the workflow first reads each non-target cell's served image out of its live template in state
+and plans that cell at it. It reads the committed cell map from a
 no-refresh, unlocked plan over the same targets, not `terraform console`. Console evaluates every
 output against state, so `relay_gce_cell_deployments` wraps each per-cell resource lookup in
 `try`: until C30's topology apply, console succeeds and that output shows C30 with null MIG,
@@ -189,6 +191,8 @@ database-pool rules read C30's own metrics only. Director values are recorded un
 2026-09-23, so the same-cap job now rolls it as a general cell and the shadow gate's fleet pool list
 reads it beside C27-C29. A later Asia cell stays in the same-cap migration-only list and out of the
 fleet pool list until its own promotion, then moves to both together, as its own reviewed wave.
+C31 is in that state now: declared and listed as a same-cap migration-only cell, not yet in the
+fleet pool list.
 Rollback returns
 Asia cells to migration-only; it does not destroy the network or use
 existing-only. The production topology dispatch remains unavailable until the

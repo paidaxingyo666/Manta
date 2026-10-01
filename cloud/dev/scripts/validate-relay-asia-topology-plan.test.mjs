@@ -96,15 +96,16 @@ const productionConfig = {
   environment: 'production', cells: ['production-gce-c30'], image: productionImage
 }
 
-// C30 joins a live Asia region: the network is a no-op and the existing C27 route is preserved.
-function productionC30Plan() {
+// A later cell joins a live Asia region: the network is a no-op and the existing C27 route is preserved.
+function productionWavePlan(hostname = 'c30', zone = 'asia-east2-a') {
   const plan = JSON.parse(JSON.stringify(resources)
     .replaceAll('onorca-cloud-staging/', 'onorca-cloud/')
     .replaceAll('orca-cloud-staging-relay-gce', 'orca-cloud-relay-gce')
-    .replaceAll('staging-gce-c4', 'production-gce-c30')
-    .replaceAll('relay-gce-c4', 'relay-gce-c30')
-    .replaceAll('cell-c4', 'cell-c30')
-    .replaceAll('c4.relay-staging.onorca.dev', 'c30.relay.onorca.dev')
+    .replaceAll('staging-gce-c4', `production-gce-${hostname}`)
+    .replaceAll('relay-gce-c4', `relay-gce-${hostname}`)
+    .replaceAll('cell-c4', `cell-${hostname}`)
+    .replaceAll('c4.relay-staging.onorca.dev', `${hostname}.relay.onorca.dev`)
+    .replaceAll('asia-east2-a', zone)
     .replaceAll("'10'", "'16'"))
   for (const network of plan.slice(0, 3)) {
     network.change.actions = ['no-op']
@@ -124,27 +125,39 @@ function productionC30Plan() {
 
 test('accepts the additive production C30 wave at the 16-connection Asia pool', () => {
   assert.deepEqual(
-    validateRelayAsiaTopologyPlan({ resource_changes: productionC30Plan() }, productionConfig),
+    validateRelayAsiaTopologyPlan({ resource_changes: productionWavePlan() }, productionConfig),
     { environment: 'production', cells: ['production-gce-c30'], changes: 4 }
   )
-  const staleShape = productionC30Plan()
+  const staleShape = productionWavePlan()
   staleShape[3].change.after.metadata_startup_script =
     staleShape[3].change.after.metadata_startup_script.replace("'16'", "'10'")
   assert.throws(
     () => validateRelayAsiaTopologyPlan({ resource_changes: staleShape }, productionConfig),
     /reviewed Asia cell shape/
   )
-  const wrongZone = productionC30Plan()
+  const wrongZone = productionWavePlan()
   wrongZone[4].change.after.zone = 'asia-east2-b'
   assert.throws(
     () => validateRelayAsiaTopologyPlan({ resource_changes: wrongZone }, productionConfig),
     /fixed-one Asia MIG shape/
   )
-  const liveCellTouched = productionC30Plan()
+  const liveCellTouched = productionWavePlan()
   liveCellTouched.push(create('google_compute_instance_template.relay_gce_cell["production-gce-c27"]'))
   assert.throws(
     () => validateRelayAsiaTopologyPlan({ resource_changes: liveCellTouched }, productionConfig),
     /outside the planned wave/
+  )
+})
+
+test('accepts the additive production C31 wave only in asia-east2-b', () => {
+  const c31Config = { ...productionConfig, cells: ['production-gce-c31'] }
+  assert.deepEqual(
+    validateRelayAsiaTopologyPlan({ resource_changes: productionWavePlan('c31', 'asia-east2-b') }, c31Config),
+    { environment: 'production', cells: ['production-gce-c31'], changes: 4 }
+  )
+  assert.throws(
+    () => validateRelayAsiaTopologyPlan({ resource_changes: productionWavePlan('c31') }, c31Config),
+    /fixed-one Asia MIG shape/
   )
 })
 
@@ -154,7 +167,7 @@ const liveCellResources = ['instance_template', 'instance_group_manager', 'backe
     .map((cellId) => `google_compute_${kind}.relay_gce_cell["${cellId}"]`))
 
 test('accepts live cells the URL map pulls in only while they stay unchanged', () => {
-  const plan = productionC30Plan()
+  const plan = productionWavePlan()
   for (const address of liveCellResources) plan.push({ address, change: { actions: ['no-op'] } })
   assert.equal(
     validateRelayAsiaTopologyPlan({ resource_changes: plan }, productionConfig).changes,
@@ -162,7 +175,7 @@ test('accepts live cells the URL map pulls in only while they stay unchanged', (
   )
   for (const address of liveCellResources) {
     for (const action of [['update'], ['delete'], ['create', 'delete'], ['delete', 'create']]) {
-      const drifted = productionC30Plan()
+      const drifted = productionWavePlan()
       drifted.push({ address, change: { actions: action } })
       assert.throws(
         () => validateRelayAsiaTopologyPlan({ resource_changes: drifted }, productionConfig),
@@ -180,7 +193,8 @@ test('accepts only a reviewed Asia topology wave', () => {
   for (const cellIds of [
     'production-gce-c27,production-gce-c28,production-gce-c29',
     'production-gce-c29,production-gce-c27,production-gce-c28',
-    'production-gce-c30'
+    'production-gce-c30',
+    'production-gce-c31'
   ]) {
     assert.doesNotThrow(
       () => parseRelayAsiaTopologyPlanArguments(argv('production', cellIds, productionImage)),
@@ -192,7 +206,8 @@ test('accepts only a reviewed Asia topology wave', () => {
     'production-gce-c27,production-gce-c30',
     'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30',
     'production-gce-c30,production-gce-c30',
-    'production-gce-c31'
+    'production-gce-c30,production-gce-c31',
+    'production-gce-c32'
   ]) {
     assert.throws(
       () => parseRelayAsiaTopologyPlanArguments(argv('production', cellIds, productionImage)),

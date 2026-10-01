@@ -16,12 +16,14 @@ const SHAPES = {
       'production-gce-c27': 'asia-east2-a',
       'production-gce-c28': 'asia-east2-b',
       'production-gce-c29': 'asia-east2-c',
-      'production-gce-c30': 'asia-east2-a'
+      'production-gce-c30': 'asia-east2-a',
+      'production-gce-c31': 'asia-east2-b'
     },
     // The launch set, then each later additive cell; a plan targets one wave, never live cells.
     waves: [
       ['production-gce-c27', 'production-gce-c28', 'production-gce-c29'],
-      ['production-gce-c30']
+      ['production-gce-c30'],
+      ['production-gce-c31']
     ]
   }
 }

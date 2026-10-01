@@ -11,7 +11,8 @@ const productionCells = () => Object.fromEntries([
   [27, 'asia-east2-a'],
   [28, 'asia-east2-b'],
   [29, 'asia-east2-c'],
-  [30, 'asia-east2-a']
+  [30, 'asia-east2-a'],
+  [31, 'asia-east2-b']
 ].map(([ordinal, zone]) => [`production-gce-c${ordinal}`, {
     hostname: `c${ordinal}`, region: 'asia-east2', zone,
     machine_type: 'e2-standard-4', boot_disk_gb: 30,
@@ -46,6 +47,13 @@ test('accepts the additive C30 wave without re-planning the launch cells', () =>
   assert.equal(result.relay_gce_cells['production-gce-c30'].zone, 'asia-east2-a')
 })
 
+test('accepts the additive C31 wave in the next zone of the rotation', () => {
+  const result = prepareRelayAsiaTopologyInput({ existingCells: productionCells(),
+    existingAdditionalRegions: additionalRegions, environment: 'production',
+    cellIds: 'production-gce-c31', image })
+  assert.equal(result.relay_gce_cells['production-gce-c31'].zone, 'asia-east2-b')
+})
+
 // Reads the committed file so a reviewed-shape constant cannot drift from what the plan reads.
 test('matches every committed production Asia cell entry', () => {
   const tfvars = readFileSync(
@@ -64,10 +72,11 @@ test('matches every committed production Asia cell entry', () => {
     }
     committed[cellId] = cell
   }
-  // Each wave is pinned on its own: C30 launches on the director's digest, not C27's.
+  // Each wave is pinned on its own: C30 and C31 launch on the director's digest, not C27's.
   for (const wave of [
     'production-gce-c27,production-gce-c28,production-gce-c29',
-    'production-gce-c30'
+    'production-gce-c30',
+    'production-gce-c31'
   ]) {
     const committedImage = committed[wave.split(',')[0]].image
     assert.doesNotThrow(() => prepareRelayAsiaTopologyInput({
@@ -109,7 +118,8 @@ test('rejects an uncommitted subnet or cell, partial wave, wrong image, and drif
     'production-gce-c27,production-gce-c30',
     'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30',
     'production-gce-c30,production-gce-c30',
-    'production-gce-c31'
+    'production-gce-c30,production-gce-c31',
+    'production-gce-c32'
   ]) {
     assert.throws(() => prepareRelayAsiaTopologyInput({
       existingCells: productionCells(), existingAdditionalRegions: additionalRegions,

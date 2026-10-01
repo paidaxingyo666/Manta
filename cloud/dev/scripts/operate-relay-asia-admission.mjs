@@ -19,16 +19,21 @@ const SHAPES = {
   production: {
     directorOrigin: 'https://relay.onorca.dev',
     domain: 'relay.onorca.dev',
-    allCells: ['production-gce-c27', 'production-gce-c28', 'production-gce-c29', 'production-gce-c30'],
+    allCells: [
+      'production-gce-c27', 'production-gce-c28', 'production-gce-c29', 'production-gce-c30',
+      'production-gce-c31'
+    ],
     // The launch set was registered together; each later cell registers alone beside it.
     registrationWaves: [
       ['production-gce-c27', 'production-gce-c28', 'production-gce-c29'],
-      ['production-gce-c30']
+      ['production-gce-c30'],
+      ['production-gce-c31']
     ],
     promotionWaves: [
       ['production-gce-c27'],
       ['production-gce-c28', 'production-gce-c29'],
-      ['production-gce-c30']
+      ['production-gce-c30'],
+      ['production-gce-c31']
     ]
   }
 }

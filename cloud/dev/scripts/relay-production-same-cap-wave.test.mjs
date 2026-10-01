@@ -56,12 +56,19 @@ test('requires one canary or a bounded reviewed batch', () => {
     rollbackDigest,
     confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c30`
   }).cells, ['production-gce-c30'])
-  assert.throws(() => validateSameCapWave({
+  assert.deepEqual(validateSameCapWave({
     mode: 'canary-apply',
     cellIds: 'production-gce-c31',
     targetDigest,
     rollbackDigest,
     confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c31`
+  }).cells, ['production-gce-c31'])
+  assert.throws(() => validateSameCapWave({
+    mode: 'canary-apply',
+    cellIds: 'production-gce-c32',
+    targetDigest,
+    rollbackDigest,
+    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c32`
   }), /cells/)
 })
 
@@ -107,8 +114,11 @@ test('the wave workflow chains exactly ten serial cell jobs', () => {
   assert.doesNotMatch(dispatch, /\n  cell_11:/)
 })
 
-test('lists only C17 and C18 as migration-only now that C30 is promoted', () => {
-  assert.deepEqual(SAME_CAP_MIGRATION_ONLY_CELLS, ['production-gce-c17', 'production-gce-c18'])
+test('lists C31 as migration-only beside C17 and C18 until its canary promotes it', () => {
+  assert.deepEqual(
+    SAME_CAP_MIGRATION_ONLY_CELLS,
+    ['production-gce-c17', 'production-gce-c18', 'production-gce-c31']
+  )
   assert.equal(SAME_CAP_CELLS.includes('production-gce-c30'), true)
 })
 
@@ -152,6 +162,17 @@ test('rolls the migration-only cells but never mixes the two classes in one wave
     targetDigest,
     rollbackDigest,
     confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} ${asiaMixed}`,
+    canaryRunId: '42'
+  }), /all general or all migration-only/)
+  // Until its canary promotes it, a same-cap restore must hand C31 back isolated, never activated.
+  assert.equal(entryAdmission('production-gce-c31'), 'migration-only')
+  const asiaUnpromoted = 'production-gce-c30,production-gce-c31'
+  assert.throws(() => validateSameCapWave({
+    mode: 'batch-apply',
+    cellIds: asiaUnpromoted,
+    targetDigest,
+    rollbackDigest,
+    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} ${asiaUnpromoted}`,
     canaryRunId: '42'
   }), /all general or all migration-only/)
   // A mixed wave has no single selector delta for its later cells to offset from.

@@ -11,7 +11,8 @@ const C27 = 'production-gce-c27'
 // Each canary proves its own cell under production load; C28/C29 promotion consumes only C27's.
 const PRODUCTION_CANARIES = {
   [C27]: { kind: 'production-c27-canary', origin: 'https://c27.relay.onorca.dev' },
-  'production-gce-c30': { kind: 'production-c30-canary', origin: 'https://c30.relay.onorca.dev' }
+  'production-gce-c30': { kind: 'production-c30-canary', origin: 'https://c30.relay.onorca.dev' },
+  'production-gce-c31': { kind: 'production-c31-canary', origin: 'https://c31.relay.onorca.dev' }
 }
 const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/
 const SHA_PATTERN = /^[a-f0-9]{40}$/

@@ -526,23 +526,30 @@ function admissionArguments(environment, mode, cellIds) {
 test('accepts only reviewed Asia admission waves', () => {
   const accepted = [
     ['inspect', 'production-gce-c27,production-gce-c28,production-gce-c29'],
-    ['inspect', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30'],
+    ['inspect', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30,production-gce-c31'],
     ['inspect', 'production-gce-c30'],
+    ['inspect', 'production-gce-c31'],
     ['verify', 'production-gce-c27,production-gce-c28,production-gce-c29'],
     ['verify', 'production-gce-c30'],
+    ['verify', 'production-gce-c31'],
     ['initialize', 'production-gce-c27,production-gce-c28,production-gce-c29'],
     ['register', 'production-gce-c27,production-gce-c28,production-gce-c29'],
     ['register', 'production-gce-c30'],
     ['registered', 'production-gce-c30'],
+    ['register', 'production-gce-c31'],
+    ['registered', 'production-gce-c31'],
     ['promote', 'production-gce-c27'],
     ['promote', 'production-gce-c28,production-gce-c29'],
     ['promote', 'production-gce-c30'],
     ['recover-promotion', 'production-gce-c30'],
+    ['promote', 'production-gce-c31'],
+    ['recover-promotion', 'production-gce-c31'],
     ['rollback', 'production-gce-c27'],
     ['rollback', 'production-gce-c28,production-gce-c29'],
     ['rollback', 'production-gce-c30'],
+    ['rollback', 'production-gce-c31'],
     ['rollback', 'production-gce-c27,production-gce-c28,production-gce-c29'],
-    ['rollback', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30']
+    ['rollback', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30,production-gce-c31']
   ]
   for (const [mode, cellIds] of accepted) {
     assert.deepEqual(
@@ -553,15 +560,21 @@ test('accepts only reviewed Asia admission waves', () => {
   }
   const rejected = [
     ['initialize', 'production-gce-c30'],
-    ['initialize', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30'],
-    ['register', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30'],
+    ['initialize', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30,production-gce-c31'],
+    ['register', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30,production-gce-c31'],
+    ['register', 'production-gce-c30,production-gce-c31'],
     ['register', 'production-gce-c29,production-gce-c30'],
-    ['registered', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30'],
+    ['registered', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30,production-gce-c31'],
+    ['inspect', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30'],
+    ['verify', 'production-gce-c30,production-gce-c31'],
     ['verify', 'production-gce-c27,production-gce-c30'],
     ['promote', 'production-gce-c27,production-gce-c30'],
     ['promote', 'production-gce-c28,production-gce-c29,production-gce-c30'],
-    ['promote', 'production-gce-c31'],
+    ['promote', 'production-gce-c30,production-gce-c31'],
+    ['promote', 'production-gce-c32'],
     ['rollback', 'production-gce-c27,production-gce-c30'],
+    ['rollback', 'production-gce-c30,production-gce-c31'],
+    ['rollback', 'production-gce-c27,production-gce-c28,production-gce-c29,production-gce-c30'],
     ['rollback', 'production-gce-c28,production-gce-c29,production-gce-c30'],
     ['rollback', 'production-gce-c29'],
     ['register', 'staging-gce-c4']
@@ -599,6 +612,25 @@ test('registers C30 alone beside the general launch cells', async () => {
   }])
   assert.deepEqual(result.states, { 'production-gce-c30': 'migration-only' })
   assert.deepEqual(subject.selector().membership.general, launchCells)
+})
+
+test('registers C31 alone beside the general C27-C30', async () => {
+  const general = [...launchCells, 'production-gce-c30']
+  const subject = harness({
+    generation: 11,
+    membership: { existingOnly: [], migrationOnly: [], general: [...general] }
+  })
+  const result = await operateRelayAsiaAdmission({
+    environment: 'production', mode: 'register', cells: ['production-gce-c31'],
+    expectedGeneration: 11, imageDigest: digest, attemptId: 'asia_register_c31', token: 'not-logged'
+  }, subject)
+  const request = subject.requests.find(({ path }) => path.endsWith('/add-migration-cells'))
+  assert.deepEqual(request.body.cells, [{
+    cellId: 'production-gce-c31', cellUrl: 'https://c31.relay.onorca.dev', region: 'asia-east2',
+    capacityRequests: 6_000, connectionHardCap: 3_000, connectionUnobservedBound: 60
+  }])
+  assert.deepEqual(result.states, { 'production-gce-c31': 'migration-only' })
+  assert.deepEqual(subject.selector().membership.general, general)
 })
 
 test('requires the C27 canary to be general before promoting C30', async () => {

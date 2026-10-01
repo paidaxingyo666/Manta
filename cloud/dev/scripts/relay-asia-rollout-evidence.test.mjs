@@ -389,6 +389,19 @@ test('builds and verifies a C30 canary from C30 runtime metrics and placement', 
   ), /evidence kind is invalid/)
 })
 
+test('builds a C31 canary that only C31 placement satisfies', () => {
+  const c31 = 'production-gce-c31'
+  const evidence = buildProductionCanaryEvidence(canaryInput({}, c31))
+  assert.equal(evidence.kind, 'production-c31-canary')
+  assert.equal(verifyRolloutEvidence(
+    evidence, workflowRun(evidence),
+    verifyExpected('production-c31-canary', { cellIds: [c31], selectorGeneration: 9 })
+  ), evidence)
+  const onC30 = canaryInput({}, c31)
+  onC30.loadReport.assignedCellOrigins = ['https://c30.relay.onorca.dev']
+  assert.throws(() => buildProductionCanaryEvidence(onC30), /C31 canary load was not placed only on C31/)
+})
+
 test('rejects a C30 canary that C30 did not serve', () => {
   const onLaunchCell = canaryInput({}, c30)
   onLaunchCell.loadReport.assignedCellOrigins = ['https://c27.relay.onorca.dev']
