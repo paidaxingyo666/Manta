@@ -12,7 +12,7 @@ import {
 } from '../windows/windows-process-table'
 
 /** The candidate process owns disposable PTY and watcher probes before it touches user state. */
-export async function preflightOrcadBunNativeRuntime(
+export async function preflightOrcadNativeRuntime(
   options: { nativeFeatures?: boolean } = {}
 ): Promise<void> {
   if (process.platform === 'win32') {
@@ -41,7 +41,7 @@ export async function preflightOrcadBunNativeRuntime(
     // A native callback can fail while subscribe is pending.
     void delivered.catch(() => {})
     timer = setTimeout(() => {
-      const error = new Error('Bun file watcher readiness timed out')
+      const error = new Error('Bundled file watcher readiness timed out')
       cancellation.abort(error)
       rejectDelivery(error)
     }, 5_000)

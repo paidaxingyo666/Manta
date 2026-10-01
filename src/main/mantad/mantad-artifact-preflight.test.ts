@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mantadArtifactFilenames } from '../../shared/mantad-artifacts'
-import { runOrcadProfilePreflight } from './orcad-profile-preflight'
-import { readOrcadArtifactIdentity } from './orcad-artifact-identity'
-import { resolveMantadExitCode } from './orcad-exit-code'
+import { runOrcadProfilePreflight } from './mantad-profile-preflight'
+import { readOrcadArtifactIdentity } from './mantad-artifact-identity'
+import { resolveMantadExitCode } from './mantad-exit-code'
 
 const fixture = vi.hoisted(() => ({
   directory: '',
@@ -16,8 +16,8 @@ vi.mock('./mantad-app-paths', () => ({ resolveMantadInstallRoot: () => fixture.d
 vi.mock('../persistence/profile-state/profile-state-runtime-preflight', () => ({
   preflightProfileStateRuntime: fixture.sqlite
 }))
-vi.mock('./orcad-bun-native-preflight', () => ({
-  preflightOrcadBunNativeRuntime: vi.fn(async () => {})
+vi.mock('./orcad-runtime-native-preflight', () => ({
+  preflightOrcadNativeRuntime: vi.fn(async () => {})
 }))
 
 beforeEach(async () => {

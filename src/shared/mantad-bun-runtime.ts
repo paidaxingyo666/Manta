@@ -3,6 +3,11 @@ import type { ServerTarget } from './node-runtime-pin.ts'
 
 export const ORCAD_BUN_VERSION = '1.4.2'
 
+export const ORCAD_BUN_RUNTIME_IDENTITY = {
+  runtime: 'bun',
+  runtimeVersion: ORCAD_BUN_VERSION
+} as const
+
 export type OrcadBunTarget = ServerTarget
 
 export type OrcadBunReleaseAsset = {

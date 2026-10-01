@@ -10,8 +10,8 @@ import { runProcessSync } from './script-child-process.mjs'
 import {
   ORCAD_PROFILE_PREFLIGHT_FLAG,
   parseOrcadProfilePreflight
-} from '../../src/shared/orcad-profile-preflight.ts'
-import { ORCAD_BUN_VERSION } from '../../src/shared/orcad-bun-runtime.ts'
+} from '../../src/shared/mantad-profile-preflight.ts'
+import { ORCAD_BUN_RUNTIME_IDENTITY } from '../../src/shared/mantad-bun-runtime.ts'
 
 async function initializeFixture(directory, databasePath, profileId) {
   const fixture = join(directory, 'initialize.cjs')
@@ -96,7 +96,7 @@ export async function smokeProfileStateWorkers(outDir, { timeoutMs = 30_000, run
     if (result.code !== 0 || result.timedOut || result.outputTruncated) {
       throw new Error(`Packaged profile runtime preflight failed: ${result.stderr}`)
     }
-    parseOrcadProfilePreflight(result.stdout, nonce, ORCAD_BUN_VERSION)
+    parseOrcadProfilePreflight(result.stdout, nonce, ORCAD_BUN_RUNTIME_IDENTITY)
     return
   }
   const directory = mkdtempSync(join(tmpdir(), 'orca-profile-worker-smoke-'))

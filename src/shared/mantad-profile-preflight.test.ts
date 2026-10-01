@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { parseOrcadProfilePreflight } from './orcad-profile-preflight'
+import { ORCAD_BUN_RUNTIME_IDENTITY } from './mantad-bun-runtime'
+import {
+  parseOrcadProfilePreflight,
+  type OrcadPreflightRuntimeIdentity
+} from './mantad-profile-preflight'
 
 const response = {
   type: 'manta_profile_state_ready',
@@ -12,11 +16,13 @@ const response = {
   revision: 1
 }
 
-function parse(value: unknown) {
+const bun: OrcadPreflightRuntimeIdentity = { runtime: 'bun', runtimeVersion: '1.4.2' }
+
+function parse(value: unknown, expected = bun) {
   return parseOrcadProfilePreflight(
     JSON.stringify(value),
     response.nonce,
-    response.runtimeVersion,
+    expected,
     response.artifactVersion
   )
 }
@@ -37,12 +43,27 @@ describe('candidate profile readiness', () => {
     expect(() => parse({ ...response, ...change })).toThrow()
   })
 
+  it('admits a Node candidate only when the caller launched Node', () => {
+    const node = { ...response, runtime: 'node', runtimeVersion: '24.21.0' }
+    const expected: OrcadPreflightRuntimeIdentity = { runtime: 'node', runtimeVersion: '24.21.0' }
+    expect(parse(node, expected)).toEqual(node)
+    expect(() => parse(node)).toThrow('expected candidate runtime')
+    expect(() => parse(response, expected)).toThrow('expected candidate runtime')
+  })
+
+  it('shipped callers still require the pinned Bun runtime', () => {
+    expect(ORCAD_BUN_RUNTIME_IDENTITY.runtime).toBe('bun')
+    expect(() =>
+      parse({ ...response, runtime: 'node' }, { ...ORCAD_BUN_RUNTIME_IDENTITY })
+    ).toThrow()
+  })
+
   it('does not choose a successful line out of contradictory output', () => {
     expect(() =>
       parseOrcadProfilePreflight(
         `${JSON.stringify(response)}\n${JSON.stringify({ ...response, revision: 0 })}`,
         response.nonce,
-        response.runtimeVersion
+        bun
       )
     ).toThrow()
   })

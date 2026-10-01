@@ -9,14 +9,14 @@ import {
   parseOrcadProfilePreflight,
   orcadProfilePreflightResponseSchema,
   type OrcadProfilePreflightResponse
-} from '../../shared/orcad-profile-preflight'
-import { readOrcadArtifactIdentity } from './orcad-artifact-identity'
+} from '../../shared/mantad-profile-preflight'
+import { readOrcadArtifactIdentity } from './mantad-artifact-identity'
 import { resolveMantadInstallRoot } from './mantad-app-paths'
 import { MANTAD_VERSION_FILENAME, orcadBunRuntimeFilename } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_VERSION } from '../../shared/orcad-bun-runtime'
+import { ORCAD_BUN_RUNTIME_IDENTITY } from '../../shared/mantad-bun-runtime'
 import { runProcess } from '../../shared/child-process/run-process'
-import { preflightOrcadBunNativeRuntime } from './orcad-bun-native-preflight'
-import { OrcadBundledRuntimeError } from './orcad-bundled-runtime'
+import { preflightOrcadNativeRuntime } from './orcad-runtime-native-preflight'
+import { OrcadBundledRuntimeError } from './mantad-bundled-runtime'
 
 /** Check every packaged start before a profile index, data-root lock or import is touched. */
 export async function preflightBundledOrcadStartup(): Promise<void> {
@@ -40,7 +40,7 @@ export async function preflightBundledOrcadStartup(): Promise<void> {
     throw new Failure(`The bundled Manta runtime failed readiness: ${result.stderr}`)
   }
   try {
-    parseOrcadProfilePreflight(result.stdout, nonce, ORCAD_BUN_VERSION, identity)
+    parseOrcadProfilePreflight(result.stdout, nonce, ORCAD_BUN_RUNTIME_IDENTITY, identity)
   } catch (cause) {
     throw new OrcadBundledRuntimeError('The bundled runtime returned invalid readiness identity', {
       cause
@@ -64,7 +64,7 @@ export async function runOrcadProfilePreflight(
   }
   const result = await preflightProfileStateRuntime()
   if (process.versions.bun) {
-    await preflightOrcadBunNativeRuntime(options)
+    await preflightOrcadNativeRuntime(options)
   }
   const response: OrcadProfilePreflightResponse = {
     type: 'manta_profile_state_ready',

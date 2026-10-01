@@ -4,7 +4,7 @@ import type {
   WatcherProcessCallback,
   WatcherProcessHooks
 } from '../ipc/parcel-watcher-process-subscription'
-import { preflightOrcadBunNativeRuntime } from './orcad-bun-native-preflight'
+import { preflightOrcadNativeRuntime } from './orcad-runtime-native-preflight'
 
 const fixture = vi.hoisted(() => ({
   temp: vi.fn(),
@@ -64,7 +64,7 @@ describe('bundled native readiness', () => {
   it('keeps runtime startup independent of PTY or watcher probe availability', async () => {
     fixture.pty.mockRejectedValue(new Error('PTY spawn health check timed out'))
     fixture.subscribe.mockRejectedValue(new Error('ENOSPC: watch limit reached'))
-    await preflightOrcadBunNativeRuntime({ nativeFeatures: false })
+    await preflightOrcadNativeRuntime({ nativeFeatures: false })
     expect(fixture.pty).not.toHaveBeenCalled()
     expect(fixture.subscribe).not.toHaveBeenCalled()
   })
@@ -72,20 +72,18 @@ describe('bundled native readiness', () => {
   it('still requires Windows ownership support on normal startup', async () => {
     vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
     fixture.startTime.mockReturnValue(false)
-    await expect(preflightOrcadBunNativeRuntime({ nativeFeatures: false })).rejects.toThrow(
+    await expect(preflightOrcadNativeRuntime({ nativeFeatures: false })).rejects.toThrow(
       'Windows process table'
     )
   })
 
   it('does not admit a failed PTY in explicit qualification', async () => {
     fixture.pty.mockRejectedValue(new Error('PTY spawn health check timed out'))
-    await expect(preflightOrcadBunNativeRuntime()).rejects.toThrow(
-      'PTY spawn health check timed out'
-    )
+    await expect(preflightOrcadNativeRuntime()).rejects.toThrow('PTY spawn health check timed out')
   })
 
   it('awaits actual watcher delivery and unsubscribe before disposing temporary state', async () => {
-    await preflightOrcadBunNativeRuntime()
+    await preflightOrcadNativeRuntime()
     expect(fixture.pty).toHaveBeenCalledOnce()
     expect(fixture.unsubscribe).toHaveBeenCalledOnce()
     expect(fixture.dispose).toHaveBeenCalledOnce()
@@ -107,7 +105,7 @@ describe('bundled native readiness', () => {
           })
         })
     )
-    const readiness = preflightOrcadBunNativeRuntime()
+    const readiness = preflightOrcadNativeRuntime()
     const rejected = expect(readiness).rejects.toThrow('readiness timed out')
     await vi.advanceTimersByTimeAsync(5_000)
     await rejected
@@ -123,14 +121,14 @@ describe('bundled native readiness', () => {
         return { unsubscribe: fixture.unsubscribe }
       }
     )
-    await expect(preflightOrcadBunNativeRuntime()).rejects.toThrow('native watcher failed')
+    await expect(preflightOrcadNativeRuntime()).rejects.toThrow('native watcher failed')
     expect(fixture.unsubscribe).toHaveBeenCalledOnce()
     expect(fixture.dispose).toHaveBeenCalledOnce()
   })
 
   it('still disposes temporary state when unsubscribe fails', async () => {
     fixture.unsubscribe.mockRejectedValue(new Error('watcher did not exit'))
-    await expect(preflightOrcadBunNativeRuntime()).rejects.toThrow('watcher did not exit')
+    await expect(preflightOrcadNativeRuntime()).rejects.toThrow('watcher did not exit')
     expect(fixture.dispose).toHaveBeenCalledOnce()
     expect(fixture.remove).toHaveBeenCalledOnce()
   })
@@ -148,7 +146,7 @@ describe('bundled native readiness', () => {
       if (reason === 'invalid-self-row') {
         fixture.rows.mockResolvedValue([{ pid: process.pid }])
       }
-      await expect(preflightOrcadBunNativeRuntime()).rejects.toThrow('Windows process table')
+      await expect(preflightOrcadNativeRuntime()).rejects.toThrow('Windows process table')
       expect(fixture.pty).not.toHaveBeenCalled()
       if (reason !== 'invalid-self-row') {
         expect(fixture.rows).not.toHaveBeenCalled()
@@ -158,7 +156,7 @@ describe('bundled native readiness', () => {
 
   it('reads a fresh self identity on Windows before qualifying the PTY', async () => {
     vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
-    await preflightOrcadBunNativeRuntime()
+    await preflightOrcadNativeRuntime()
     expect(fixture.rows).toHaveBeenCalledOnce()
     expect(fixture.pty).toHaveBeenCalledOnce()
   })
