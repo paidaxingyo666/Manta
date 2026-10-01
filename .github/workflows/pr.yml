@@ -852,6 +852,10 @@ jobs:
         with:
           native-runtime: node
 
+      # R1: an upgrade from the newest release must adopt its live terminal daemon.
+      - name: Daemon protocol crossing against newest release
+        run: pnpm run check:daemon-protocol-crossing
+
       # A path filter that matches nothing exits 1 ("No test files found"), so this
       # lane cannot report success while running zero tests.
       - name: Old/new client and server compatibility journeys
