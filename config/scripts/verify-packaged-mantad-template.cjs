@@ -10,8 +10,9 @@ const {
   orcadTemplateTargetFilenames
 } = require('../../src/shared/mantad-artifacts.ts')
 const {
-  NODE_RUNTIME_ASSETS,
-  ORCAD_TEMPLATE_TARGETS
+  COMPAT_SERVER_TARGETS,
+  ORCAD_TEMPLATE_TARGETS,
+  pinnedNodeRuntimeAsset
 } = require('../../src/shared/node-runtime-pin.ts')
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
@@ -117,7 +118,7 @@ function verifyTarget(templateDir, target, value) {
   requireContent(join(targetDir, ORCAD_SERVER_TARGET_FILENAME), target, `${target} server target`)
   requireContent(
     join(targetDir, ORCAD_NODE_RUNTIME_MARKER_FILENAME),
-    NODE_RUNTIME_ASSETS[target].executableSha256,
+    pinnedNodeRuntimeAsset(target).executableSha256,
     `${target} runtime reference`
   )
 
@@ -162,16 +163,23 @@ function verifyPackagedOrcadTemplate(resourcesDir, targets = ORCAD_TEMPLATE_TARG
   }
 
   const manifestTargets = requireRecord(manifest.targets, 'targets')
-  requireExactNames(Object.keys(manifestTargets), targets, 'target manifest inventory')
+  // Compat targets (design D6 rung B) are optional: a build without the compat slot omits them.
+  const compatTargets = COMPAT_SERVER_TARGETS.filter((target) =>
+    Object.hasOwn(manifestTargets, target)
+  )
+  const expectedTargets = [...targets, ...compatTargets]
+  requireExactNames(Object.keys(manifestTargets), expectedTargets, 'target manifest inventory')
   requireExactNames(
     readdirSync(join(templateDir, ORCAD_TEMPLATE_TARGETS_DIR)),
-    targets,
+    expectedTargets,
     'target directory inventory'
   )
-  for (const target of targets) {
+  for (const target of expectedTargets) {
     verifyTarget(templateDir, target, manifestTargets[target])
   }
-  console.log(`[verify-packaged-mantad-template] OK — verified ${targets.length} Node targets`)
+  console.log(
+    `[verify-packaged-mantad-template] OK — verified ${expectedTargets.length} Node targets`
+  )
 }
 
 module.exports = { TEMPLATE_SCHEMA_VERSION, verifyPackagedOrcadTemplate }

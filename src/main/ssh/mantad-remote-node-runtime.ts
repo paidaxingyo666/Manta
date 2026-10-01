@@ -11,10 +11,10 @@ import { randomBytes } from 'node:crypto'
 import { copyFile, link, mkdtemp, rm } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import {
-  NODE_RUNTIME_ASSETS,
+  pinnedNodeRuntimeAsset,
   NODE_RUNTIME_PIN,
   nodeRuntimeExecutablePath,
-  type ServerTarget
+  type NodeRuntimeTarget
 } from '../../shared/node-runtime-pin'
 import {
   ORCAD_NODE_RUNTIME_DIR_PREFIX,
@@ -69,13 +69,13 @@ export const RUNTIME_STORE_STAGE_PREFIX = '.stage-'
 export function nodeRuntimeStoreDir(
   host: RemoteHostPlatform,
   storeParent: string,
-  target: ServerTarget
+  target: NodeRuntimeTarget
 ): string {
   return joinRemotePath(
     host,
     storeParent,
     ORCAD_RUNTIMES_DIRNAME,
-    `${ORCAD_NODE_RUNTIME_DIR_PREFIX}${NODE_RUNTIME_ASSETS[target].executableSha256}`
+    `${ORCAD_NODE_RUNTIME_DIR_PREFIX}${pinnedNodeRuntimeAsset(target).executableSha256}`
   )
 }
 
@@ -86,7 +86,7 @@ export function nodeRuntimeStoreDir(
 export function remoteNodeRuntimeDir(
   host: RemoteHostPlatform,
   slotDir: string,
-  target: ServerTarget
+  target: NodeRuntimeTarget
 ): string {
   return nodeRuntimeStoreDir(host, remoteDirname(slotDir.replace(/\/+$/, ''), host), target)
 }
@@ -118,7 +118,7 @@ function sha256Of(path: string): string {
 export function probeRemoteNodeRuntimeCommand(
   host: RemoteHostPlatform,
   runtimeDir: string,
-  target: ServerTarget
+  target: NodeRuntimeTarget
 ): string {
   if (isWindowsRemoteHost(host)) {
     return windowsNodeRuntimeProbeCommand(runtimeDir, target)
@@ -127,7 +127,7 @@ export function probeRemoteNodeRuntimeCommand(
   const verified = shellEscape(joinRemotePath(host, runtimeDir, VERIFIED_MARKER))
   return (
     `if [ -f ${verified} ] && [ -x ${executable} ] && ` +
-    `[ "$(${sha256Of(executable)})" = ${shellEscape(NODE_RUNTIME_ASSETS[target].executableSha256)} ]; ` +
+    `[ "$(${sha256Of(executable)})" = ${shellEscape(pinnedNodeRuntimeAsset(target).executableSha256)} ]; ` +
     `then echo ${REMOTE_NODE_RUNTIME_READY}; else echo ${REMOTE_NODE_RUNTIME_MISSING}; fi`
   )
 }
@@ -160,12 +160,12 @@ export function promoteRemoteNodeRuntimeCommand(
     stageDir: string
     archive: string
     runtimeDir: string
-    target: ServerTarget
+    target: NodeRuntimeTarget
     token: string
   }
 ): string {
   assertPosixOrcadHost(host)
-  const asset = NODE_RUNTIME_ASSETS[args.target]
+  const asset = pinnedNodeRuntimeAsset(args.target)
   const member = nodeRuntimeExecutablePath(args.target, asset.archive)
   const stage = shellEscape(args.stageDir)
   const extracted = shellEscape(joinRemotePath(host, args.stageDir, ...member.split('/')))
@@ -198,7 +198,7 @@ export function promoteRemoteNodeRuntimeCommand(
  */
 export function installNodeRuntimeFromHostArchiveCommand(
   host: RemoteHostPlatform,
-  args: { runtimeDir: string; archive: string; target: ServerTarget; token: string }
+  args: { runtimeDir: string; archive: string; target: NodeRuntimeTarget; token: string }
 ): string {
   const stageDir = nodeRuntimeStageDir(host, args.runtimeDir, args.token)
   const stage = shellEscape(stageDir)
@@ -225,7 +225,7 @@ export async function ensureRemoteOrcadNodeRuntime(options: {
   conn: SshConnection
   host: RemoteHostPlatform
   slotDir: string
-  target: ServerTarget
+  target: NodeRuntimeTarget
   /** The locally verified pinned archive (pinned-runtime-materializer). */
   archivePath: () => Promise<string>
   signal?: AbortSignal

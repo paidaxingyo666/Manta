@@ -113,8 +113,55 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  hosts:
+  # Design D6 rung B: the CentOS 7 cell lands on the glibc 2.17 compat slot, built exactly as the
+  # headless-server compat lane builds it (see linux_glibc217_compat in node-server-tests.yml).
+  glibc217_slot:
     needs: musl_slot
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    env:
+      MANTA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+      # Why chained after musl: the compat build merges into the same prebuild manifest.
+      - uses: actions/download-artifact@v8
+        with:
+          name: hostile-hosts-slots
+          path: out/mantad-prebuilds
+      - name: Build and smoke the glibc 2.17 compat slot under the glibc-217 Node
+        run: |
+          compat_node="$(node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217 --print-runtime)"
+          case "$compat_node" in
+            "$GITHUB_WORKSPACE"/*) ;;
+            *) echo "glibc-217 Node cached outside the workspace: $compat_node" >&2; exit 1 ;;
+          esac
+          docker run --rm --init -i \
+            -e MANTA_BACKGROUND_LAUNCH=1 \
+            -e COMPAT_NODE="/work/${compat_node#"$GITHUB_WORKSPACE"/}" \
+            -e CC=gcc -e CXX=g++ \
+            -e PYTHON=/opt/python/cp312-cp312/bin/python3 \
+            -v "$GITHUB_WORKSPACE:/work" -w /work \
+            quay.io/pypa/manylinux2014_x86_64@sha256:6f74cabeac2432570aa4bfdb29f7c1f30313d4d6654d764c44e574b6ffdd4ed5 bash -s <<'GLIBC217_COMPAT_SLOT'
+          set -eu
+          export PATH="$(dirname "$COMPAT_NODE"):$PATH"
+          node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217
+          node config/scripts/build-mantad-prebuilds.mjs --require-slots linux-x64-glibc,linux-x64-musl,linux-x64-glibc217
+          # The image's devtoolset LD_LIBRARY_PATH must not stand in for a host C++ runtime.
+          env -u LD_LIBRARY_PATH node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217 --smoke
+          GLIBC217_COMPAT_SLOT
+      - uses: actions/upload-artifact@v7
+        with:
+          name: hostile-hosts-slots-compat
+          path: out/mantad-prebuilds
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+
+  hosts:
+    needs: glibc217_slot
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -128,10 +175,10 @@ jobs:
           native-runtime: node
       - uses: actions/download-artifact@v8
         with:
-          name: hostile-hosts-slots
+          name: hostile-hosts-slots-compat
           path: out/mantad-prebuilds
-      # The deploy materializes rung A and C addons from this template; only the x64 Linux
-      # slots exist here, so the template is built for just those two.
+      # The deploy materializes rung A, B and C addons from this template; only the x64 Linux
+      # slots exist here, so it is built for those two, and glibc217 is staged beside its base.
       - name: Build the mantad template and relay
         run: |
           node config/scripts/build-mantad-template.mjs --targets linux-x64-glibc,linux-x64-musl

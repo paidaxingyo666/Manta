@@ -59,8 +59,13 @@ describe('hostile-host cells', () => {
       'macos-x64-local-sshd'
     ])
     expect(new Set(HOSTILE_HOST_CELLS.map((c) => c.expect.outcome))).toEqual(
-      new Set(['launched', 'unavailable', 'legacy_failed'])
+      new Set(['launched', 'unavailable'])
     )
+    expect(
+      new Set(
+        HOSTILE_HOST_CELLS.flatMap((c) => (c.expect.outcome === 'launched' ? [c.expect.rung] : []))
+      )
+    ).toEqual(new Set(['A', 'B']))
   })
 
   it('pins every base image by digest and installs no compiler or host Node for rung A', () => {
@@ -192,23 +197,31 @@ describe('hostileHostCellViolations', () => {
     ])
   })
 
-  it('expects a glibc 2.17 host to fall through to a failing host-npm path', () => {
+  it('expects a glibc 2.17 host to launch on the rung B compat runtime', () => {
     const centos = cell('centos7-glibc217')
     const observed: HostileHostObservation = {
-      settledRung: null,
-      target: 'linux-x64-glibc',
-      unavailableReason: null,
-      deployError: 'Node.js was not found on the remote host',
-      refusals: [
-        { step: 'A', reason: 'libc_floor' },
-        { step: 'B', reason: 'runtime_unavailable' },
-        { step: 'C', reason: 'libc_floor' }
-      ],
-      forbiddenToolCalls: ['npm --version']
+      ...launched,
+      settledRung: 'B',
+      refusals: [{ step: 'A', reason: 'libc_floor' }]
     }
     expect(hostileHostCellViolations(centos, observed)).toEqual([])
-    expect(hostileHostCellViolations(centos, { ...observed, deployError: null })).toEqual([
-      'deploy succeeded on a host with no runnable runtime'
+    expect(
+      hostileHostCellViolations(centos, {
+        ...observed,
+        settledRung: null,
+        deployError: 'Node.js was not found on the remote host',
+        refusals: [
+          { step: 'A', reason: 'libc_floor' },
+          { step: 'B', reason: 'artifacts_unavailable' },
+          { step: 'C', reason: 'libc_floor' }
+        ],
+        forbiddenToolCalls: ['npm --version']
+      })
+    ).toEqual([
+      'refusals A:libc_floor > B:artifacts_unavailable > C:libc_floor, expected A:libc_floor',
+      'toolchain invoked: npm --version',
+      'deploy failed: Node.js was not found on the remote host',
+      'settled on nothing, expected B'
     ])
   })
 

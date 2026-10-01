@@ -29,7 +29,7 @@ vi.mock('./pinned-runtime-materializer', () => ({
   materializeNodeRuntimeArchive: mocks.materialize,
   materializeCachedNodeRuntime: vi.fn()
 }))
-vi.mock('./mantad-deployment-target', () => ({ resolveOrcadDeploymentTarget: mocks.target }))
+vi.mock('./mantad-deployment-target', () => ({ resolveOrcadDeploymentTargetFacts: mocks.target }))
 
 import type { SshConnection } from './ssh-connection'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
@@ -94,7 +94,7 @@ beforeEach(async () => {
   runtime = join(cacheRoot, archiveName)
   await writeFile(runtime, 'verified runtime')
   mocks.materialize.mockResolvedValue(runtime)
-  mocks.target.mockResolvedValue('linux-x64-glibc')
+  mocks.target.mockResolvedValue({ target: 'linux-x64-glibc', glibc: { major: 2, minor: 31 } })
   mocks.warm = false
   mocks.checksumError = false
   mocks.cleanupError = false
@@ -424,7 +424,7 @@ describe('SSH OpenCode runtime setup on a Windows host', () => {
 
   function answerWindows(storeReady: boolean): string[] {
     const scripts: string[] = []
-    mocks.target.mockResolvedValue('win32-x64')
+    mocks.target.mockResolvedValue({ target: 'win32-x64', glibc: null })
     mocks.exec.mockImplementation(async (_conn, command: string) => {
       const script = decodeRemotePowerShellScript(command)
       scripts.push(script)

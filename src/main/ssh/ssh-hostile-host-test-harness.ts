@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os'
 import { join, posix } from 'node:path'
 import { expect, vi } from 'vitest'
 import { setAppEnvironment } from '../../shared/app-environment'
-import { NODE_RUNTIME_ASSETS, type ServerTarget } from '../../shared/node-runtime-pin'
+import { pinnedNodeRuntimeAsset, type NodeRuntimeTarget } from '../../shared/node-runtime-pin'
 import { removeTreeSync } from '../../shared/windows-transient-lock-removal'
 import { orcadNodeRuntimeExecutable } from '../../shared/mantad-artifacts'
 import type { SshRemoteRuntimeRung, SshTarget } from '../../shared/ssh-types'
@@ -187,7 +187,7 @@ export type PinnedRuntimeLayout = { nodePath: string; runtimeDir: string; storeD
 
 export function pinnedRuntimeLayout(
   deployed: RelayDeployResult,
-  target: ServerTarget
+  target: NodeRuntimeTarget
 ): PinnedRuntimeLayout {
   if (!deployed.hostPlatform || !deployed.remoteRelayDir) {
     throw new Error('A pinned deploy must report its host and relay directory')
@@ -255,17 +255,18 @@ export async function exerciseLaunchedCell(run: LaunchedCellRun): Promise<Launch
   if (cell.expect.outcome !== 'launched' || !first.deployed || !first.run) {
     throw new Error(`${cell.id} did not launch a relay`)
   }
-  const { target } = cell.expect
+  // Rung B runs a compat runtime, which is what its store dir, sha and addon slot are keyed by.
+  const runtime = cell.expect.runtime ?? cell.expect.target
   expect(first.run.selfTest).toBe('passed')
   expect(first.run.runtimeTransfer).toBe('uploaded')
   run.inspectDeploy?.(first, true)
-  const layout = pinnedRuntimeLayout(first.deployed, target)
-  const { executableSha256 } = NODE_RUNTIME_ASSETS[target]
+  const layout = pinnedRuntimeLayout(first.deployed, runtime)
+  const { executableSha256 } = pinnedNodeRuntimeAsset(runtime)
   expect(posix.basename(layout.runtimeDir)).toBe(`node-${executableSha256}`)
   const nodeSha256 = await observer.fileSha256(layout.nodePath)
   expect(nodeSha256).toBe(executableSha256)
   // Every slot file the relay loads, the Windows bundled ConPTY pair included, landed beside it.
-  for (const file of pinnedRelayAddonFiles(target)) {
+  for (const file of pinnedRelayAddonFiles(runtime)) {
     expect(await observer.isFile(`${first.deployed.remoteRelayDir}/${file}`), file).toBe(true)
   }
   // Why one id for both connects: the app reconnects as the same client instance.

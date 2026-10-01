@@ -67,6 +67,16 @@ describe('planRuntimeStoreGc', () => {
     expect(plan.kept).toEqual([all[0], all[1]])
   })
 
+  it('keeps a compat pin beside the default one and still keeps the previous runtime', () => {
+    // b is the default pin, c the rung B compat pin; a is the newest other (previous) runtime.
+    const plan = planRuntimeStoreGc(
+      inventory({ entries: all, verifiedNewestFirst: [all[0], all[1], all[2], all[3]] }),
+      [sha('b'), sha('c')]
+    )
+    expect(plan.remove).toEqual([all[3]])
+    expect(plan.kept).toEqual([all[0], all[1], all[2]])
+  })
+
   it('keeps referenced, process-held and unverified runtimes', () => {
     const plan = planRuntimeStoreGc(
       inventory({

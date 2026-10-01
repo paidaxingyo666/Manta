@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   archive: vi.fn(),
   ensure: vi.fn()
 }))
-vi.mock('./mantad-deployment-target', () => ({ resolveOrcadDeploymentTarget: mocks.target }))
+vi.mock('./mantad-deployment-target', () => ({ resolveOrcadDeploymentTargetFacts: mocks.target }))
 vi.mock('./pinned-runtime-materializer', () => ({
   materializeNodeRuntimeArchive: mocks.archive
 }))
@@ -15,7 +15,7 @@ vi.mock('./mantad-remote-node-runtime', async (original) => ({
   ensureRemoteOrcadNodeRuntime: mocks.ensure
 }))
 
-import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
+import { NODE_RUNTIME_ASSETS, NODE_RUNTIME_COMPAT_ASSETS } from '../../shared/node-runtime-pin'
 import type { SshConnection } from './ssh-connection'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import { preparePinnedNodeForVault } from './ssh-relay-opencode-pinned-node'
@@ -42,14 +42,14 @@ beforeEach(() => {
 
 describe('pinned Node for the SSH vault reader', () => {
   it.each([
-    ['linux-x64', 'linux-x64-glibc', '/home/ada', 'bin/node'],
-    ['win32-x64', 'win32-x64', 'C:/Users/ada', 'node.exe']
+    ['linux-x64', 'linux-x64-glibc', { major: 2, minor: 31 }, '/home/ada', 'bin/node'],
+    ['win32-x64', 'win32-x64', null, 'C:/Users/ada', 'node.exe']
   ] as const)(
     'installs the official archive into the shared runtimes/ store on %s hosts',
-    async (platform, target, home, executableName) => {
+    async (platform, target, glibc, home, executableName) => {
       const sha = NODE_RUNTIME_ASSETS[target].executableSha256
       const executable = `${home}/.manta-remote/runtimes/node-${sha}/${executableName}`
-      mocks.target.mockResolvedValue(target)
+      mocks.target.mockResolvedValue({ target, glibc })
       mocks.ensure.mockImplementation(async (options) => {
         expect(options).toMatchObject({ slotDir: `${home}/.manta-remote/relay-build`, target })
         await options.archivePath()
@@ -63,9 +63,35 @@ describe('pinned Node for the SSH vault reader', () => {
   )
 
   it('fetches no archive when the host store already has a verified runtime', async () => {
-    mocks.target.mockResolvedValue('win32-x64')
+    mocks.target.mockResolvedValue({ target: 'win32-x64', glibc: null })
     mocks.ensure.mockResolvedValue({ executable: 'C:/x/node.exe', transfer: 'cached' })
     await prepare('win32-x64', vi.fn())
+    expect(mocks.archive).not.toHaveBeenCalled()
+  })
+
+  it('installs the glibc 2.17 compat Node for the reader on a host below the default floor', async () => {
+    const sha = NODE_RUNTIME_COMPAT_ASSETS['linux-x64-glibc217'].executableSha256
+    const executable = `/home/ada/.manta-remote/runtimes/node-${sha}/bin/node`
+    mocks.target.mockResolvedValue({ target: 'linux-x64-glibc', glibc: { major: 2, minor: 17 } })
+    mocks.ensure.mockImplementation(async (options) => {
+      expect(options).toMatchObject({ target: 'linux-x64-glibc217' })
+      await options.archivePath()
+      return { executable, transfer: 'uploaded' }
+    })
+    mocks.archive.mockResolvedValue('/cache/node-217.tar.gz')
+
+    // The compat sha is the relay dir's store ref, so store GC keeps this runtime.
+    expect(await prepare('linux-x64', vi.fn())).toEqual({ executable, runtimeSha256: sha })
+    expect(mocks.archive).toHaveBeenCalledWith('linux-x64-glibc217', '/cache', expect.any(Object))
+  })
+
+  it('uploads nothing when no Manta-managed Node runs on the host glibc', async () => {
+    mocks.target.mockResolvedValue({ target: 'linux-arm64-glibc', glibc: { major: 2, minor: 17 } })
+
+    await expect(prepare('linux-x64', vi.fn())).rejects.toThrow(
+      "No Manta-managed Node runs on this host's glibc 2.17"
+    )
+    expect(mocks.ensure).not.toHaveBeenCalled()
     expect(mocks.archive).not.toHaveBeenCalled()
   })
 })

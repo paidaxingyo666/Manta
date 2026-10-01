@@ -12,6 +12,7 @@ import type { PrebuiltRelayPlan } from './ssh-relay-host-node-addons'
 import {
   nextRelayRuntimeStep,
   relayRuntimeLadder,
+  relayRuntimeStorePins,
   type RelayRuntimeStep
 } from './ssh-relay-runtime-ladder'
 import {
@@ -22,7 +23,6 @@ import {
 import { planRelayRuntimeStep } from './ssh-relay-runtime-step-plan'
 import { getSshTargetRegistryStore } from './ssh-target-registry'
 import { gcRemoteNodeRuntimeStore } from './remote-node-runtime-store-gc'
-import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
 import type { SshConnection } from './ssh-connection'
 import { RELAY_REMOTE_DIR, type RelayPlatform } from './relay-protocol'
 import type { MultiplexerTransport } from './ssh-channel-multiplexer'
@@ -450,7 +450,7 @@ async function deployAndLaunchRelayInner(
         console.warn(
           `[ssh-relay] Relay runtime rung ${step} unavailable (${err.reason}): ${err.detail}`
         )
-        run.refused(step, err.reason)
+        run.refused(step, err.reason, err.remembered)
         step = nextRelayRuntimeStep(ladder, step, err.reason, err.remembered)
         run.enter(step)
         continue
@@ -902,9 +902,10 @@ async function deployAndLaunchRelayOnRuntime({
         )
         // Same ordering reason as ripgrep: the version pass drops the refs that held old runtimes.
         .then(() =>
+          // Why every compat pin too: a rung A connect must not collect the rung B runtime.
           prebuilt?.kind === 'pinned-node'
             ? gcRemoteNodeRuntimeStore(conn, hostPlatform, remoteHome, {
-                currentPins: [NODE_RUNTIME_ASSETS[prebuilt.target].executableSha256]
+                currentPins: relayRuntimeStorePins(prebuilt.target)
               })
             : undefined
         )

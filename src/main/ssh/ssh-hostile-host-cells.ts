@@ -4,7 +4,7 @@
  * `ssh-relay-hostile-hosts.docker.test.ts` drives the real client-side deploy against each one;
  * `.github/workflows/ssh-hostile-hosts.yml` runs it.
  */
-import type { ServerTarget } from '../../shared/node-runtime-pin'
+import type { NodeRuntimeTarget, ServerTarget } from '../../shared/node-runtime-pin'
 import type { SshRemoteRuntimeRung } from '../../shared/ssh-types'
 import type { RelayRuntimeFallbackReason } from './ssh-relay-pinned-node'
 import type { RelayRuntimeStep, RemoteRuntimeUnavailableReason } from './ssh-relay-runtime-ladder'
@@ -23,8 +23,15 @@ export function forbiddenToolShimScript(logPath: string): string {
 export type RungRefusal = { step: RelayRuntimeStep; reason: RelayRuntimeFallbackReason }
 
 export type HostileHostExpectation =
-  /** Rung A ran: the terminal echoes, a second connect reuses the runtime, GC keeps it. */
-  | { outcome: 'launched'; rung: 'A'; target: ServerTarget }
+  /** A pinned rung ran: the terminal echoes, a second connect reuses the runtime, GC keeps it. */
+  | {
+      outcome: 'launched'
+      rung: 'A' | 'B'
+      /** The host's target; `runtime` names the compat runtime rung B ran on instead. */
+      target: ServerTarget
+      runtime?: NodeRuntimeTarget
+      refusals?: readonly RungRefusal[]
+    }
   /** Rung D: nothing may run, and the connect fails with the classified reason. */
   | {
       outcome: 'unavailable'
@@ -156,8 +163,7 @@ export const HOSTILE_HOST_CELLS: readonly HostileHostCell[] = [
     }
   },
   {
-    // glibc 2.17 is below both the pinned Node and the prebuilt addons, and no compat runtime
-    // ships yet, so the ladder reaches the host-npm path, which has no Node to run.
+    // glibc 2.17 is below the pinned Node's floor, so rung B runs the glibc 2.17 compat runtime.
     id: 'centos7-glibc217',
     dockerfile: [
       `FROM ${CENTOS_7}`,
@@ -166,12 +172,11 @@ export const HOSTILE_HOST_CELLS: readonly HostileHostCell[] = [
         ' && yum install -y openssh-server procps-ng && yum clean all'
     ],
     expect: {
-      outcome: 'legacy_failed',
-      refusals: [
-        { step: 'A', reason: 'libc_floor' },
-        { step: 'B', reason: 'runtime_unavailable' },
-        { step: 'C', reason: 'libc_floor' }
-      ]
+      outcome: 'launched',
+      rung: 'B',
+      target: 'linux-x64-glibc',
+      runtime: 'linux-x64-glibc217',
+      refusals: [{ step: 'A', reason: 'libc_floor' }]
     }
   },
   {
@@ -262,8 +267,7 @@ export function hostileHostCellViolations(
 ): string[] {
   const { expect } = cell
   const violations: string[] = []
-  const expectedRefusals =
-    expect.outcome === 'launched' || expect.outcome === 'legacy_opt_out' ? [] : expect.refusals
+  const expectedRefusals = expect.outcome === 'legacy_opt_out' ? [] : (expect.refusals ?? [])
   if (describeRefusals(observed.refusals) !== describeRefusals(expectedRefusals)) {
     violations.push(
       `refusals ${describeRefusals(observed.refusals)}, expected ${describeRefusals(expectedRefusals)}`

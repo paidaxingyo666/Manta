@@ -9,6 +9,7 @@ import {
   ORCAD_TEMPLATE_MANIFEST_FILENAME,
   ORCAD_TEMPLATE_TARGETS_DIR
 } from '../../src/shared/mantad-artifacts.ts'
+import { NODE_RUNTIME_ASSETS } from '../../src/shared/node-runtime-pin.ts'
 import { writeOrcadTemplateTestFixture } from './mantad-template-test-fixture.mjs'
 
 const require = createRequire(import.meta.url)
@@ -16,10 +17,10 @@ const { verifyPackagedOrcadTemplate } = require('./verify-packaged-mantad-templa
 const builderConfig = require('../electron-builder.config.cjs')
 const roots = []
 
-async function createFixture() {
+async function createFixture(options) {
   const root = await mkdtemp(join(tmpdir(), 'orca-packaged-orcad-template-'))
   roots.push(root)
-  const templateDir = await writeOrcadTemplateTestFixture(root)
+  const templateDir = await writeOrcadTemplateTestFixture(root, options)
   return { root, templateDir }
 }
 
@@ -32,6 +33,29 @@ describe('verifyPackagedOrcadTemplate', () => {
     const fixture = await createFixture()
 
     expect(() => verifyPackagedOrcadTemplate(fixture.root)).not.toThrow()
+  })
+
+  it('accepts the optional rung B compat target beside the default ones', async () => {
+    const fixture = await createFixture({ compat: true })
+
+    expect(() => verifyPackagedOrcadTemplate(fixture.root)).not.toThrow()
+  })
+
+  it('rejects a compat target whose runtime reference names the default Node', async () => {
+    const fixture = await createFixture({ compat: true })
+    await writeFile(
+      join(
+        fixture.templateDir,
+        ORCAD_TEMPLATE_TARGETS_DIR,
+        'linux-x64-glibc217',
+        ORCAD_NODE_RUNTIME_MARKER_FILENAME
+      ),
+      `${NODE_RUNTIME_ASSETS['linux-x64-glibc'].executableSha256}\n`
+    )
+
+    expect(() => verifyPackagedOrcadTemplate(fixture.root)).toThrow(
+      /linux-x64-glibc217 .*(checksum mismatch|runtime reference)/
+    )
   })
 
   it('rejects target-native bytes changed after manifest generation', async () => {

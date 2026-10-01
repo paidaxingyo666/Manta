@@ -10,7 +10,7 @@ import {
 import { tmpdir } from 'node:os'
 import path, { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
+import { NODE_RUNTIME_ASSETS, NODE_RUNTIME_COMPAT_ASSETS } from '../../shared/node-runtime-pin'
 import { RELAY_WINDOWS_PROCESS_TREE_FILENAME } from '../../shared/relay-artifacts'
 import { remoteInstallVersionDirRegex, RELAY_INSTALL_MODEL } from './remote-install-model'
 import type { SshConnection } from './ssh-connection'
@@ -306,5 +306,67 @@ describe('planPinnedNodeRelay', () => {
       expect(plan.fullVersion).toBe(pinnedNodeRelayFullVersion(base, SHA, plan.addons.digest))
       await plan.addons.dispose()
     }
+  })
+
+  describe('on the rung B compat runtime', () => {
+    const compat = { target: 'linux-x64-glibc217' as const, glibcFloor: { major: 2, minor: 17 } }
+    const COMPAT_SHA = NODE_RUNTIME_COMPAT_ASSETS['linux-x64-glibc217'].executableSha256
+
+    it('plans the compat slot on a glibc below the default floor, folding the compat runtime', async () => {
+      vi.mocked(execCommand).mockResolvedValueOnce('ldd (GNU libc) 2.17')
+      const materializeOrcad = vi.fn(async (target: Parameters<typeof fakeOrcadSlot>[0]) =>
+        fakeOrcadSlot(target)
+      )
+      const plan = await planPinnedNodeRelay({
+        conn,
+        host: getRemoteHostPlatform('linux-x64'),
+        baseVersion: base,
+        targetId: 't',
+        compat,
+        // A persisted rung A refusal says nothing about the compat runtime.
+        persistedRefusal: () => 'libc_floor',
+        materializeOrcad
+      })
+      expect(materializeOrcad).toHaveBeenCalledWith('linux-x64-glibc217', undefined)
+      expect(plan).toMatchObject({ kind: 'pinned-node', target: 'linux-x64-glibc217' })
+      if (plan.kind === 'pinned-node') {
+        expect(plan.fullVersion).toBe(
+          pinnedNodeRelayFullVersion(base, COMPAT_SHA, plan.addons.digest)
+        )
+        expect(plan.fullVersion).not.toBe(pinnedNodeRelayFullVersion(base, SHA, plan.addons.digest))
+        expect(readdirSync(plan.addons.dir)).toContain(`${RELAY_RUNTIME_REF_PREFIX}${COMPAT_SHA}`)
+        await plan.addons.dispose()
+      }
+    })
+
+    it('refuses a glibc below the compat floor too', async () => {
+      vi.mocked(execCommand).mockResolvedValueOnce('ldd (GNU libc) 2.12')
+      await expect(
+        planPinnedNodeRelay({
+          conn,
+          host: getRemoteHostPlatform('linux-x64'),
+          baseVersion: base,
+          targetId: 't',
+          compat,
+          materializeOrcad: vi.fn()
+        })
+      ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'libc_floor' })
+    })
+
+    it('remembers compat refusals apart from the default runtime', async () => {
+      recordPinnedRuntimeRefusal('t', 'linux-x64-glibc', 'libc_floor')
+      recordPinnedRuntimeRefusal('t', 'linux-x64-glibc217', 'missing_lib')
+      vi.mocked(execCommand).mockResolvedValue('ldd (GNU libc) 2.17')
+      await expect(
+        planPinnedNodeRelay({
+          conn,
+          host: getRemoteHostPlatform('linux-x64'),
+          baseVersion: base,
+          targetId: 't',
+          compat,
+          materializeOrcad: vi.fn()
+        })
+      ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'missing_lib', remembered: true })
+    })
   })
 })

@@ -7,11 +7,11 @@
  * docs/reference/windows-edr-posture.md. node.exe keeps upstream's name and layout.
  */
 import {
-  NODE_RUNTIME_ASSETS,
+  pinnedNodeRuntimeAsset,
   NODE_RUNTIME_PIN,
   nodeRuntimeExecutablePath
 } from '../../shared/node-runtime-pin'
-import type { ServerTarget } from '../../shared/node-runtime-pin'
+import type { NodeRuntimeTarget } from '../../shared/node-runtime-pin'
 import { ORCAD_NODE_RUNTIME_WINDOWS_EXECUTABLE } from '../../shared/mantad-artifacts'
 import {
   REMOTE_NODE_RUNTIME_EXIT_PREFIX,
@@ -56,14 +56,14 @@ function runtimeVariables(runtimeDir: string): string[] {
  */
 export function windowsNodeRuntimeProbeCommand(
   runtimeDir: string,
-  target: ServerTarget,
+  target: NodeRuntimeTarget,
   stageDir?: string
 ): string {
   return powerShellCommand(
     [
       ...prelude(),
       ...runtimeVariables(runtimeDir),
-      `if ((Get-OrcaSha256 $exe) -eq ${powerShellLiteral(NODE_RUNTIME_ASSETS[target].executableSha256)}) {`,
+      `if ((Get-OrcaSha256 $exe) -eq ${powerShellLiteral(pinnedNodeRuntimeAsset(target).executableSha256)}) {`,
       `if (Test-Path -LiteralPath $verified -PathType Leaf) { Write-Output ${powerShellLiteral(REMOTE_NODE_RUNTIME_READY)}; exit 0 }`,
       // Why adopt: earlier Windows vault readers left the pinned node.exe here with no marker.
       // Running it is the same check promotion makes before it writes one.
@@ -98,9 +98,9 @@ export function windowsNodeRuntimePromoteCommand(args: {
   stageDir: string
   archive: string
   runtimeDir: string
-  target: ServerTarget
+  target: NodeRuntimeTarget
 }): string {
-  const asset = NODE_RUNTIME_ASSETS[args.target]
+  const asset = pinnedNodeRuntimeAsset(args.target)
   const member = nodeRuntimeExecutablePath(args.target, asset.archive)
   const modified = (what: string): string =>
     `Write-Output ${powerShellLiteral(`${REMOTE_NODE_RUNTIME_SECURITY_MODIFIED} ${what}`)}`

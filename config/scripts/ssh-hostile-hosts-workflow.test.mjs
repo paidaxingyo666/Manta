@@ -19,7 +19,8 @@ describe('SSH hostile-host workflow', () => {
     expect(workflow.on.pull_request.paths).toContain('src/main/ssh/ssh-relay-*')
     expect(workflow.jobs.glibc_slot.if).toContain('github.event.pull_request.draft != true')
     expect(workflow.jobs.musl_slot.needs).toBe('glibc_slot')
-    expect(workflow.jobs.hosts.needs).toBe('musl_slot')
+    expect(workflow.jobs.glibc217_slot.needs).toBe('musl_slot')
+    expect(workflow.jobs.hosts.needs).toBe('glibc217_slot')
   })
 
   // Why: the slots must come from the same builders the headless-server lanes qualify, so a
@@ -35,6 +36,23 @@ describe('SSH hostile-host workflow', () => {
     ])
     expect(imageRefs(hostile, manylinux)).toEqual(imageRefs(nodeServer, manylinux))
     expect(imageRefs(hostile, manylinux)).toHaveLength(1)
+    const manylinux2014 = /quay\.io\/pypa\/manylinux2014_x86_64@sha256:[0-9a-f]{64}/g
+    expect(imageRefs(hostile, manylinux2014)).toEqual(imageRefs(nodeServer, manylinux2014))
+    expect(imageRefs(hostile, manylinux2014)).toHaveLength(1)
+  })
+
+  // Why: the CentOS 7 cell expects rung B, which needs the compat slot in the hosts' template.
+  it('builds the glibc 2.17 compat slot and hands it to the hosts job', () => {
+    const compat = workflow.jobs.glibc217_slot.steps.map((step) => step.run ?? '').join('\n')
+    expect(compat).toContain('--slot=linux-x64-glibc217 --print-runtime')
+    expect(compat).toContain('--slot=linux-x64-glibc217 --smoke')
+    const upload = workflow.jobs.glibc217_slot.steps.find((step) =>
+      String(step.uses).startsWith('actions/upload-artifact')
+    )
+    const download = workflow.jobs.hosts.steps.find((step) =>
+      String(step.uses).startsWith('actions/download-artifact')
+    )
+    expect(download.with.name).toBe(upload.with.name)
   })
 
   it('opts the matrix in and runs it against both x64 Linux slots', () => {

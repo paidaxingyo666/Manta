@@ -13,8 +13,9 @@ import { dirname, join } from 'node:path'
 import { getAppEnvironment } from '../../shared/app-environment'
 import {
   isWindowsServerTarget,
-  NODE_RUNTIME_ASSETS,
-  type ServerTarget
+  pinnedNodeRuntimeAsset,
+  type CompatServerTarget,
+  type NodeRuntimeTarget
 } from '../../shared/node-runtime-pin'
 import {
   ORCAD_NODE_PTY_JS_ARTIFACTS,
@@ -86,7 +87,7 @@ export function pinnedNodeRelayFullVersion(
   return `${match[1]}+${digest.slice(0, 12)}`
 }
 
-export function pinnedRelayAddonFiles(target: ServerTarget): string[] {
+export function pinnedRelayAddonFiles(target: NodeRuntimeTarget): string[] {
   return [
     ...ORCAD_NODE_PTY_JS_ARTIFACTS,
     ...orcadNodePtyNativeArtifacts(target),
@@ -107,7 +108,7 @@ export type PinnedRelayAddons = {
 /** Copies this target's node-pty and watcher out of a verified mantad slot, beside a runtime ref. */
 export async function stagePinnedRelayAddons(
   orcadDir: string,
-  target: ServerTarget,
+  target: NodeRuntimeTarget,
   stagingParent: string = tmpdir(),
   /** Rung C runs on the host's Node, so its dir must not hold a pinned runtime against GC. */
   options: { runtimeRef: boolean } = { runtimeRef: true }
@@ -130,7 +131,7 @@ export async function stagePinnedRelayAddons(
       hash.update(`${file}\0${sha}\n`)
     }
     if (options.runtimeRef) {
-      const executableSha256 = NODE_RUNTIME_ASSETS[target].executableSha256
+      const executableSha256 = pinnedNodeRuntimeAsset(target).executableSha256
       await writeFile(
         join(dir, `${RELAY_RUNTIME_REF_PREFIX}${executableSha256}`),
         `${executableSha256}\n`
@@ -151,7 +152,7 @@ export async function stagePinnedRelayAddons(
 export function pinnedRelayNodePath(
   host: RemoteHostPlatform,
   remoteRelayDir: string,
-  target: ServerTarget
+  target: NodeRuntimeTarget
 ): string {
   return joinRemotePath(
     host,
@@ -162,7 +163,8 @@ export function pinnedRelayNodePath(
 
 export type PinnedRelayPlan = {
   kind: 'pinned-node'
-  target: ServerTarget
+  /** A compat target (rung B) when the plan runs a compat runtime on an older-glibc host. */
+  target: NodeRuntimeTarget
   glibc: GlibcVersion | null
   fullVersion: string
   addons: PinnedRelayAddons
@@ -207,20 +209,20 @@ export function isPinnedRuntimeRefusal(reason: string): reason is PinnedRuntimeR
 // Why also in memory: the persisted decision is written only once the ladder settles.
 const refusals = new Map<string, PinnedRuntimeRefusal>()
 
-function refusalKey(targetId: string, target: ServerTarget): string {
-  return `${targetId}\0${NODE_RUNTIME_ASSETS[target].executableSha256}`
+function refusalKey(targetId: string, target: NodeRuntimeTarget): string {
+  return `${targetId}\0${pinnedNodeRuntimeAsset(target).executableSha256}`
 }
 
 export function recordPinnedRuntimeRefusal(
   targetId: string,
-  target: ServerTarget,
+  target: NodeRuntimeTarget,
   refusal: PinnedRuntimeRefusal
 ): void {
   refusals.set(refusalKey(targetId, target), refusal)
 }
 
 /** Forgets a refusal a later rung has disproved, so the next connect retries rung A. */
-export function forgetPinnedRuntimeRefusal(targetId: string, target: ServerTarget): void {
+export function forgetPinnedRuntimeRefusal(targetId: string, target: NodeRuntimeTarget): void {
   refusals.delete(refusalKey(targetId, target))
 }
 
@@ -266,7 +268,9 @@ export async function planPinnedNodeRelay(options: {
   facts?: OrcadDeploymentTargetFacts
   /** A refusal persisted for this host under a still-matching key (D6). */
   persistedRefusal?: (facts: OrcadDeploymentTargetFacts) => PinnedRuntimeRefusal | null
-  materializeOrcad?: (target: ServerTarget, signal?: AbortSignal) => Promise<string>
+  /** Rung B: run this compat runtime and its slot instead of the host target's own. */
+  compat?: { target: CompatServerTarget; glibcFloor: GlibcVersion | null }
+  materializeOrcad?: (target: NodeRuntimeTarget, signal?: AbortSignal) => Promise<string>
   runtimeCacheRoot?: () => string
 }): Promise<PinnedRelayPlan | HostNodeRelayPlan> {
   const { host, signal } = options
@@ -275,23 +279,27 @@ export async function planPinnedNodeRelay(options: {
   if ('kind' in facts) {
     return facts
   }
-  const { target, glibc } = facts
+  const { glibc } = facts
+  const { compat } = options
+  const target: NodeRuntimeTarget = compat?.target ?? facts.target
   const cached = refusals.get(refusalKey(options.targetId, target))
   if (cached) {
     return { ...logPinnedRelayFallback(cached, 'refused earlier this session'), remembered: true }
   }
-  const persisted = options.persistedRefusal?.(facts)
+  // Why rung A only: the persisted decision is keyed by the default runtime's hash.
+  const persisted = compat ? null : options.persistedRefusal?.(facts)
   if (persisted) {
     return {
       ...logPinnedRelayFallback(persisted, 'refused on an earlier connect'),
       remembered: true
     }
   }
-  if (glibc && isGlibcBelow(glibc, PINNED_NODE_GLIBC_FLOOR)) {
+  const floor = compat ? compat.glibcFloor : PINNED_NODE_GLIBC_FLOOR
+  if (glibc && floor && isGlibcBelow(glibc, floor)) {
     recordPinnedRuntimeRefusal(options.targetId, target, 'libc_floor')
     return logPinnedRelayFallback(
       'libc_floor',
-      `host glibc ${glibc.major}.${glibc.minor} is below 2.28`
+      `host glibc ${glibc.major}.${glibc.minor} is below ${floor.major}.${floor.minor}`
     )
   }
   let addons: PinnedRelayAddons
@@ -313,7 +321,7 @@ export async function planPinnedNodeRelay(options: {
   try {
     fullVersion = pinnedNodeRelayFullVersion(
       options.baseVersion,
-      NODE_RUNTIME_ASSETS[target].executableSha256,
+      pinnedNodeRuntimeAsset(target).executableSha256,
       addons.digest
     )
   } catch (error) {

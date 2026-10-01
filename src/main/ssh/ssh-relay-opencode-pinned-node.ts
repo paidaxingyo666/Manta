@@ -1,12 +1,13 @@
 import { join } from 'node:path'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { waitForPromiseWithSignal } from '../../shared/abort-signal-reason'
-import { NODE_RUNTIME_ASSETS, type ServerTarget } from '../../shared/node-runtime-pin'
+import { pinnedNodeRuntimeAsset, type NodeRuntimeTarget } from '../../shared/node-runtime-pin'
 import type { SshConnection } from './ssh-connection'
-import { resolveOrcadDeploymentTarget } from './mantad-deployment-target'
+import { resolveOrcadDeploymentTargetFacts } from './mantad-deployment-target'
 import { ensureRemoteOrcadNodeRuntime, type RemoteRuntimeStep } from './mantad-remote-node-runtime'
 import { materializeNodeRuntimeArchive } from './pinned-runtime-materializer'
 import type { RemoteHostPlatform } from './ssh-remote-platform'
+import { pinnedRuntimeTargetForHost } from './ssh-relay-runtime-ladder'
 
 const DOWNLOAD_TIMEOUT_MS = 180_000
 const downloads = new Map<string, Promise<string>>()
@@ -27,7 +28,13 @@ export async function preparePinnedNodeForVault(options: {
   remote: RemoteRuntimeStep
 }): Promise<{ executable: string; runtimeSha256: string }> {
   const { conn, host, signal, exec } = options
-  const target = await resolveOrcadDeploymentTarget({ conn, host, signal, exec })
+  const facts = await resolveOrcadDeploymentTargetFacts({ conn, host, signal, exec })
+  // Why before any upload: below every runtime's glibc floor the self-test could only fail.
+  const target = pinnedRuntimeTargetForHost(facts)
+  if (!target) {
+    const glibc = facts.glibc ? `${facts.glibc.major}.${facts.glibc.minor}` : 'unknown'
+    throw new Error(`No Manta-managed Node runs on this host's glibc ${glibc}`)
+  }
   const cacheRoot =
     options.cacheRoot ?? join(getAppEnvironment().getPath('userData'), 'mantad-artifacts')
   const { executable } = await ensureRemoteOrcadNodeRuntime({
@@ -39,11 +46,11 @@ export async function preparePinnedNodeForVault(options: {
     signal,
     remoteStep: options.remote
   })
-  return { executable, runtimeSha256: NODE_RUNTIME_ASSETS[target].executableSha256 }
+  return { executable, runtimeSha256: pinnedNodeRuntimeAsset(target).executableSha256 }
 }
 
 function cachedArchive(
-  target: ServerTarget,
+  target: NodeRuntimeTarget,
   cacheRoot: string,
   signal: AbortSignal
 ): Promise<string> {
