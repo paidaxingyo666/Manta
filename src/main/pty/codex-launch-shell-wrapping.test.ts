@@ -61,7 +61,10 @@ describe.skipIf(process.platform === 'win32')('Manta Codex launch shells carry t
 
     expect(
       wrapperText(
-        getShellLaunchConfig(shell, codexLaunchFeatures(shell), { hasStartupCommand: true })
+        getShellLaunchConfig(shell, codexLaunchFeatures(shell), {
+          hasStartupCommand: true,
+          inheritedXdgDataDirs: undefined
+        })
       )
     ).toContain(marker)
   })
