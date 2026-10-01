@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { trackSshConnectionChannelLifetime } from './ssh-connection-channel-lifetime'
 import { SshConnectionWorkLedger } from './ssh-connection-work-ledger'
 
@@ -62,4 +62,41 @@ it('runs the injected admission check before admitting work', () => {
     throw new Error('connection disposed')
   })
   expect(() => ledger.beginChannelOpen()).toThrow('connection disposed')
+})
+
+it('reports a channel error that nothing else handles instead of hiding it', () => {
+  const report = vi.fn()
+  const channel = new EventEmitter()
+  trackSshConnectionChannelLifetime(
+    new SshConnectionWorkLedger().beginChannelOpen(),
+    channel,
+    report
+  )
+  const failure = new Error('channel reset')
+  expect(() => channel.emit('error', failure)).not.toThrow()
+  expect(report).toHaveBeenCalledWith(failure)
+})
+
+it('leaves a channel error to the owner that handles it', () => {
+  const report = vi.fn()
+  const channel = new EventEmitter()
+  trackSshConnectionChannelLifetime(
+    new SshConnectionWorkLedger().beginChannelOpen(),
+    channel,
+    report
+  )
+  const owner = vi.fn()
+  channel.on('error', owner)
+  channel.emit('error', new Error('handled'))
+  expect(owner).toHaveBeenCalledOnce()
+  expect(report).not.toHaveBeenCalled()
+})
+
+it('logs an unhandled channel error with the [ssh] prefix when no reporter is given', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const channel = new EventEmitter()
+  trackSshConnectionChannelLifetime(new SshConnectionWorkLedger().beginChannelOpen(), channel)
+  channel.emit('error', new Error('orphaned'))
+  expect(warn).toHaveBeenCalledWith('[ssh] Unhandled SSH channel error: orphaned')
+  warn.mockRestore()
 })
