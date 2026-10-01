@@ -331,23 +331,21 @@ describe('importing a per-chat journal', () => {
       })
     )
     const between: number[] = []
-    let copying = true
     const tick = (): void => {
       // What a live chat's append would commit under, between two copy batches.
       between.push(synchronous())
-      if (copying) {
-        setImmediate(tick)
-      }
+      pending = setImmediate(tick)
     }
 
-    setImmediate(tick)
+    let pending = setImmediate(tick)
     await importPerSessionJournal({
       database,
       identity: IDENTITY,
       legacyDirectory: legacyDir(),
       batchRows: 1
     })
-    copying = false
+    // A flag would still let the queued tick read the database after teardown closes it.
+    clearImmediate(pending)
 
     // 2 is FULL, 1 is NORMAL.
     expect(commits.slice(0, rows.length)).toEqual(rows.map(() => 1))
