@@ -82,19 +82,19 @@ export async function withdrawQueuedMessagesForOperation(
  * discarded, so they wait for the user's next turn there, or Resume, rather than
  * sending into the fresh context unasked. Each card lands with the pause in one
  * transaction, so the drain never sees a carried card unpaused and no pause is
- * left over an empty queue if an insert fails. Runs after the
- * replacement's attach succeeded and before the clear commits. Each insert is
- * idempotent on (session, message), so a retried clear replays it safely; the source rows are then tombstoned. Bookkeeping around the clear:
- * a failure leaves the cards on the superseded source — whose supersession
- * fence already blocks the drain — reported, never gating the clear. A crash
- * between the copy and the tombstone leaves both, which the fence also makes
- * harmless: nothing is lost and nothing runs.
+ * left over an empty queue if an insert fails. Runs after the clear commits,
+ * opening the replacement's conversation only when there are drafts to carry;
+ * the source rows are then tombstoned. Bookkeeping around the clear: a failure,
+ * or a crash before the carry, leaves the cards on the superseded source — whose
+ * supersession fence already blocks the drain — reported, never gating the
+ * clear. A crash between the copy and the tombstone leaves both, which the
+ * fence also makes harmless: nothing is lost and nothing runs.
  */
 export async function carryQueuedMessagesToClearReplacement(
   ctx: AgentSessionTurnContext,
   input: {
     replacementSessionId: string
-    replacementJournal: AgentSessionJournal | undefined
+    openReplacementJournal: () => Promise<AgentSessionJournal | undefined>
     callerKey: string
     operationId: string
   }
@@ -104,7 +104,7 @@ export async function carryQueuedMessagesToClearReplacement(
     if (rows.length === 0) {
       return
     }
-    const replacement = input.replacementJournal
+    const replacement = await input.openReplacementJournal()
     if (!replacement) {
       throw new Error('the replacement journal is not open')
     }

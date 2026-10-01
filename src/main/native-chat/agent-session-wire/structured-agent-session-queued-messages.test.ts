@@ -728,6 +728,8 @@ describe('/clear', () => {
     if (!replacementId) {
       throw new Error('expected a replacement session')
     }
+    // Nothing to carry, so nothing opened the new conversation.
+    expect(host.hasSession(replacementId)).toBe(false)
     expect(await drafts(replacementId)).toHaveLength(0)
   })
 })

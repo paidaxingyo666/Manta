@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../../../shared/agent-session-mutation-envelope'
+import type { AgentSessionStatusSummary } from '../../../../shared/agent-session-wire'
 import {
   CLAUDE_STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY
@@ -261,9 +262,22 @@ describe('a chat tab across /clear', () => {
     expect(await send(replacement, 'still here')).toMatchObject({ ok: true, result: { ok: true } })
   })
 
+  // A worktree delete closes every chat in it; one that never started must not ask to be forced.
+  it('closes a replacement that never started as settled', async () => {
+    await createChat(HOST_TEST_SESSION)
+    const replacement = await clear(HOST_TEST_SESSION)
+    expect(await closeStructuredAgentSessionChild(replacement)).toEqual({
+      stopped: true,
+      closeAttempted: true
+    })
+  })
+
   it('puts a cleared chat back under the tab id it had when its close does not land', async () => {
     await createChat(HOST_TEST_SESSION)
     const replacement = await clear(HOST_TEST_SESSION)
+    // Its agent starts on its first message; only a running agent has a close that can fail.
+    expect(await send(replacement, 'first message')).toMatchObject({ ok: true })
+    await vi.waitFor(() => expect(store.getRecord(replacement)?.lease.claimStatus).toBe('live'))
     closeSession.mockResolvedValue(false)
 
     const outcome = await closeStructuredAgentSessionChild(replacement)
@@ -283,6 +297,86 @@ describe('a chat tab across /clear', () => {
       present: true,
       sessionIds: [replacement]
     })
+  })
+})
+
+describe('other clients after a /clear from this window', () => {
+  const STRUCTURED = [
+    STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY,
+    CLAUDE_STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY
+  ]
+  const clients = {
+    window: { clientKind: 'runtime' as const, clientCapabilities: STRUCTURED },
+    phone: { clientKind: 'mobile' as const, clientCapabilities: STRUCTURED }
+  }
+
+  /** The chat tabs a client lists, as that client is sent them. */
+  async function listedChats(context: RpcDispatchStreamingOptions) {
+    const response = await dispatcher.dispatch(
+      {
+        id: 'list',
+        authToken: 'token',
+        method: 'session.tabs.list',
+        params: { worktree: WORKTREE }
+      },
+      context
+    )
+    const listed: { result?: { tabs?: { type: string }[] } } = JSON.parse(JSON.stringify(response))
+    return (listed.result?.tabs ?? []).filter((tab) => tab.type === 'agent-session')
+  }
+
+  /** The session list each client keeps: the latest status the host published per session. */
+  function sessionList(id: string): Map<string, AgentSessionStatusSummary | null> {
+    const latest = new Map<string, AgentSessionStatusSummary | null>()
+    host.subscribeStatus({
+      id,
+      emit: (event) => {
+        if (event.type === 'snapshot') {
+          event.sessions.forEach((session) => latest.set(session.sessionId, session))
+        } else if (event.type === 'status') {
+          latest.set(event.session.sessionId, event.session)
+        }
+      }
+    })
+    return latest
+  }
+
+  it('shows another window and a phone the replacement the marker names, with nothing unread', async () => {
+    await createChat(HOST_TEST_SESSION)
+    const lists = { window: sessionList('window-b'), phone: sessionList('phone') }
+    const replacement = await clear(HOST_TEST_SESSION)
+    // The stored pointer is the only source of the id: nothing a client holds can derive it.
+    expect(store.getRecord(HOST_TEST_SESSION)?.conversationCommand).toMatchObject({
+      phase: 'committed',
+      replacementSessionId: replacement
+    })
+    expect(store.getSessionTabId(replacement)).toBe(SOURCE_TAB)
+
+    for (const context of Object.values(clients)) {
+      expect(await listedChats(context)).toEqual([
+        expect.objectContaining({ sessionId: replacement, replacesSessionId: HOST_TEST_SESSION })
+      ])
+    }
+    // Never started, so no client lists a turn for it to be unread.
+    for (const list of Object.values(lists)) {
+      expect(list.get(replacement)?.status ?? null).toBeNull()
+      expect(list.get(replacement)?.turnOutcome).toBeUndefined()
+    }
+
+    expect(await send(replacement, 'first message')).toMatchObject({
+      ok: true,
+      result: { ok: true }
+    })
+    await vi.waitFor(() => {
+      for (const list of Object.values(lists)) {
+        expect(list.get(replacement)).toMatchObject({ sessionId: replacement, status: 'working' })
+      }
+    })
+    for (const context of Object.values(clients)) {
+      expect(await listedChats(context)).toEqual([
+        expect.objectContaining({ sessionId: replacement })
+      ])
+    }
   })
 })
 

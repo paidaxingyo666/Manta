@@ -198,6 +198,29 @@ describe('an interrupted Codex rewind on a chat at rest (R16)', () => {
     expect(texts).toEqual(['verified history', 'after the rewind'])
     expect(snapshot.submissions.at(-1)?.dispatchState).toBe('accepted')
   })
+
+  it('is settled by the start a /clear makes, and the clear commits', async () => {
+    await interruptedRewindAtRest()
+    const before = acquires
+
+    const cleared = await host.conversationCommand(caller, {
+      command: 'clear',
+      envelope: {
+        sessionId: SESSION,
+        clientOperationId: hostTestOperationId(),
+        expectedRuntimeFence: fence(),
+        payloadFingerprint: computeAgentSessionPayloadFingerprint({
+          method: 'agentSession.conversationCommand',
+          sessionId: SESSION,
+          fields: { command: 'clear' }
+        })
+      }
+    })
+    expect(cleared).toMatchObject({ ok: true, value: { phase: 'committed', state: 'completed' } })
+    expect(acquires - before).toBe(1)
+    expect(recoverRewind).toHaveBeenCalledOnce()
+    expect(store.getRecord(SESSION)?.rewind?.phase).toBe('completed')
+  })
 })
 
 describe('a rewind asked of a chat at rest (P2-23)', () => {
