@@ -410,8 +410,10 @@ sets and the two migration-only US 600/60 cells, C17 and C18, without changing a
 shape. Use `canary-apply` for exactly one cell. A successful canary
 seals its commit, target and rollback digests, selector generation, and durable rehome generation;
 `batch-apply` accepts only that same authority and rolls two to four cells sequentially. Both apply
-modes first refuse a cell whose hosts (controls) exceed 80% of the free slots on the other fresh
-general cells, since drained hosts with nowhere to go keep redialling and pin the cell. A cell's free
+modes and `rollback` first refuse a cell whose hosts (controls) exceed 80% of the free slots on the
+other fresh general cells, since drained hosts with nowhere to go keep redialling and pin the cell.
+`verify` runs the same read-only check, so it reports the headroom answer before an apply is
+dispatched; a rollback that resumes after its restart drains nothing and skips it. A cell's free
 slots are its normal admission pause minus the larger of observed connections and enforced units,
 minus outstanding control reservations; each moved host also brings its splices, which the 20%
 margin covers. Each cell is isolated, drained until restart-safe, replaced
