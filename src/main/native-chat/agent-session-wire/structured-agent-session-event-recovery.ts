@@ -1,8 +1,6 @@
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
-import {
-  stopAgentSessionProviderRoot,
-  type StructuredAgentSessionLifecycleEvent
-} from './structured-agent-session-adapter'
+import type { StructuredAgentSessionLifecycleEvent } from './structured-agent-session-adapter'
+import { stopAgentSessionProviderRoot } from './structured-agent-session-provider-exit-proof'
 import type {
   StructuredAgentSessionHostDeps,
   StructuredAgentSessionHostSession

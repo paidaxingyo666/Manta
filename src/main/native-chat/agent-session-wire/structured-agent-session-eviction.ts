@@ -17,11 +17,11 @@
 // reach it; forgetting it anyway stranded the process forever and reported success. Leaving the
 // session in place is what makes the next close a real retry instead of a no-op.
 
-import {
-  stopAgentSessionProviderRoot,
-  type StructuredAgentSessionAdapter,
-  type StructuredAgentSessionStopCause
+import type {
+  StructuredAgentSessionAdapter,
+  StructuredAgentSessionStopCause
 } from './structured-agent-session-adapter'
+import { stopAgentSessionProviderRoot } from './structured-agent-session-provider-exit-proof'
 import type { DeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import type { StructuredAgentSessionStopVerdict } from './structured-agent-session-host-types'
 import { withTimeout } from '../../../shared/promise-timeout-fallback'
