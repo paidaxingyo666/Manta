@@ -197,6 +197,25 @@ reads it beside C27-C29. A later Asia cell stays in the same-cap migration-only 
 fleet pool list until its own promotion, then moves to both together, as its own reviewed wave.
 C31 followed that path and was promoted to general on 2026-10-01, so it is now a same-cap general
 cell and in the fleet pool list beside C27-C30.
+
+C32 and C33 are US cells at that same 3,000-connection shape, in `us-central1-a` and
+`us-central1-b`, and use the same two workflows and the C30 steps. They are declared together, so
+they share one topology wave: the live-image step refuses a declared non-target cell with no
+template, so a lone C32 plan would fail on C33. Registration, director configuration, and
+promotion still take one cell at a time. Each wave's region comes from its reviewed zone. A US wave plans no additional-region network, and its template
+carries no region label or region line. Its pool stays at the US default of 10 and emits no pool
+line, because 16 exists only for the asia-east2 round trip. Registration and the runtime check
+expect `us-central1`. Promotion skips the Asia launch-order gates, which bind Asia cells only.
+The canary aims its load at `us-central1`, reads the cell's own `us-central1` metrics, and
+requires a US selection. It gates neither region's fallbacks: US-targeted fallbacks have a
+nonzero baseline while the US fleet is full, and Asia-targeted ones are not the cell's to cause.
+Both are recorded. The US selection gate is a fleet-level check that director metrics flowed; the
+placement check is what proves the cell. Placement breaks a load-ratio tie by cell ID, so do not
+promote while a same-cap restore has just returned an empty general US cell: the canary control
+would land there and the canary would roll the new cell back. Both cells are declared rehome
+sources and sit in the same-cap migration-only list until each one's canary promotes it, then move
+to the general list. The shadow gate's fleet pool list tracks the 16-connection Asia pools, so
+whether a US cell belongs there is decided at promotion, not assumed.
 Rollback returns
 Asia cells to migration-only; it does not destroy the network or use
 existing-only. The production topology dispatch remains unavailable until the

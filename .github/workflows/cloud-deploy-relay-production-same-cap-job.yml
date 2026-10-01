@@ -285,6 +285,11 @@ jobs:
               EXPECTED_REGION=asia-east2
               EXPECTED_DATABASE_POOL_MAX=16
               ;;
+            c32|c33)
+              EXPECTED_HARD_CAP=3000
+              EXPECTED_REGION=us-central1
+              EXPECTED_DATABASE_POOL_MAX=
+              ;;
             *) exit 1 ;;
           esac
           EXPECTED_UNOBSERVED_BOUND=60

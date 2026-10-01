@@ -256,14 +256,14 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
       assert.equal(resolved.status, 0, `${cellId}: ${resolved.stderr}`)
       assert.match(
         resolved.stdout.trim(),
-        /^(us-central1 1000 pool=|us-central1 600 pool=|asia-east2 3000 pool=16)$/,
+        /^(us-central1 1000 pool=|us-central1 600 pool=|asia-east2 3000 pool=16|us-central1 3000 pool=)$/,
         cellId
       )
       assert.equal(tfvarsDatabasePoolMax(cellId), cellShape(cellId).pool ?? '10', cellId)
       assert.equal(String(cellShape(cellId).cap), tfvarsHardCap(cellId), cellId)
     }
     assert.equal(resolveCellShape('production-gce-c12').status, 1)
-    assert.equal(resolveCellShape('production-gce-c32').status, 1)
+    assert.equal(resolveCellShape('production-gce-c34').status, 1)
   })
 
 
@@ -275,9 +275,11 @@ describe('same-cap roll scripts accept every same-cap cell', () => {
     const trusted = SAME_CAP_CELLS.filter((cell) => REHOME_SOURCE_CELLS.has(cell))
     // Only a declared rehome source may roll at a trusted protocol at all; the job refuses
     // the rest before it plans, and the next test covers them at protocol 0.
+    // C32 and C33 are already rehome sources but stay migration-only until their canaries.
+    const unpromotedSources = ['production-gce-c32', 'production-gce-c33']
     assert.deepEqual(
       SAME_CAP_CELLS.filter((cell) => !REHOME_SOURCE_CELLS.has(cell)),
-      SAME_CAP_MIGRATION_ONLY_CELLS
+      SAME_CAP_MIGRATION_ONLY_CELLS.filter((cell) => !unpromotedSources.includes(cell))
     )
     for (const [cellId, protocol] of trusted.flatMap((cell) => [[cell, 1], [cell, 3]])) {
       const { cap, pool } = cellShape(cellId)
