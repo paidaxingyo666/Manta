@@ -79,7 +79,11 @@ export function ensureStructuredAgentSessionAgentForOperation(
 ): Promise<StructuredAgentSessionResumeOutcome> {
   return ensureStructuredAgentSessionAgent(context, sessionId).catch((error: unknown) => {
     // The error is Manta's own and goes to the log; the refusal says only that the start failed.
-    console.warn('[agent-session] starting the agent for an operation failed:', error)
+    context.deps.logger.warn('starting the agent for an operation failed', {
+      scope: 'operation-agent-start',
+      sessionId,
+      error
+    })
     return {
       ok: false,
       refusal: refuseUnclassified(

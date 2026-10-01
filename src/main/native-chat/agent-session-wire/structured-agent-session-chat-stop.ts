@@ -108,7 +108,12 @@ export function mutateWithChatStop<TValue>(
         { sessionId, adapter: context.deps.adapter },
         windDown,
         () => context.stopAgent(sessionId),
-        (error) => context.deps.onEventSinkError?.({ sessionId, error })
+        (error) =>
+          context.deps.logger.warn("ending a stopped chat's provider session failed", {
+            scope: 'chat-stop',
+            sessionId,
+            error
+          })
       )
     }
   })

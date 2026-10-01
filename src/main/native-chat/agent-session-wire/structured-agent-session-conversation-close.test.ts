@@ -317,8 +317,14 @@ describe('the wind-down retry with a message queued (P2-31)', () => {
       stopAgent,
       stopStartingAgent: stopAgent,
       closeConversation: vi.fn(async () => false),
-      onError: (_id, error) => {
-        throw error
+      // A failed step fails the test.
+      logger: {
+        warn: (_message, fields) => {
+          throw fields.error
+        },
+        error: (_message, fields) => {
+          throw fields.error
+        }
       }
     })
     await sweep.tick()

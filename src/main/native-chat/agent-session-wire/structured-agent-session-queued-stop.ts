@@ -59,8 +59,10 @@ export async function runStopWithQueuePause<TValue>(
 }
 
 function report(ctx: AgentSessionTurnContext, step: string, error: unknown): void {
-  console.warn(`[agent-session] Stop's ${step} skipped:`, {
+  ctx.logger.warn(`Stop's ${step} failed`, {
+    scope: 'stop-queued-bookkeeping',
     sessionId: ctx.sessionId,
-    error: error instanceof Error ? error.message : String(error)
+    step,
+    error
   })
 }

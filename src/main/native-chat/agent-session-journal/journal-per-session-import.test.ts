@@ -28,6 +28,7 @@ import {
 import { journalDirectoryFor, legacyJournalDatabaseFile } from './journal-paths'
 import { importPerSessionJournal } from './journal-per-session-import'
 import { readJournalSessionEpoch, type JournalStoredRow } from './journal-row-table'
+import { createStructuredAgentSessionLogger } from '../agent-session-wire/structured-agent-session-logger'
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof NodeFs>()
@@ -221,6 +222,7 @@ describe('importing a per-chat journal', () => {
 
     const journal = await openChat()
     const withdrawal = createStructuredAgentSessionRestartOfferWithdrawal({
+      logger: createStructuredAgentSessionLogger(),
       sessions: new Map([[IDENTITY.sessionId, { journal, child: null }]]),
       now: () => clock,
       enqueue: (operation) => operation()

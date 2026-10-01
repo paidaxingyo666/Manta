@@ -127,9 +127,11 @@ export async function carryQueuedMessagesToClearReplacement(
       operationId: input.operationId
     })
   } catch (error) {
-    console.warn("[agent-session] /clear's queued-draft carry skipped:", {
+    ctx.logger.warn("carrying queued drafts to /clear's replacement failed", {
+      scope: 'clear-queued-carry',
       sessionId: ctx.sessionId,
-      error: error instanceof Error ? error.message : String(error)
+      replacementSessionId: input.replacementSessionId,
+      error
     })
   }
 }

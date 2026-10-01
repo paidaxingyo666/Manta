@@ -107,6 +107,7 @@ export function runStructuredConversationCommand(
     return admitAndRunAgentSessionMutation({
       store,
       adapter: context.deps.adapter,
+      logger: context.deps.logger,
       callerKey: caller.callerKey,
       envelope,
       // Starts the agent only to settle a rewind in doubt, as a send does; a /clear itself starts nothing.

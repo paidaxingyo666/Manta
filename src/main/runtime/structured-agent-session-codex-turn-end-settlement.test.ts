@@ -34,6 +34,7 @@ import {
   ensureStructuredAgentSessionHost,
   stopStructuredAgentSessionRuntime
 } from './structured-agent-session-runtime'
+import { createStructuredAgentSessionLogger } from '../native-chat/agent-session-wire/structured-agent-session-logger'
 
 // The turns a send or Stop is waiting on to open, so a test knows the wait began.
 const openWaits = vi.hoisted(() => {
@@ -217,6 +218,7 @@ beforeEach(async () => {
     return connection
   }
   host = await ensureStructuredAgentSessionHost({
+    logger: createStructuredAgentSessionLogger(),
     stateDirectory: root,
     hostId: 'local',
     claimKeyId: 'key-1',

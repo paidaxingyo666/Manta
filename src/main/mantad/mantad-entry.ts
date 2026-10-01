@@ -30,6 +30,7 @@ import {
 export { parseArgs }
 
 let runMantadQuitHandlers = (): void => {}
+let closeOrcadObservability = (): void => {}
 
 function createNodeAppEnvironment(): AppEnvironment {
   const quitHandlers: (() => void)[] = []
@@ -109,7 +110,12 @@ export async function startMantad(options: MantadOptions = {}): Promise<MantadHa
   return startOrcadWithHost(
     resolveUserDataPath(),
     (registerCleanup) => startMantadRuntime(options, registerCleanup),
-    () => runMantadQuitHandlers()
+    () => {
+      runMantadQuitHandlers()
+      // Last, after every quit handler, so the spans they end still reach the file.
+      closeOrcadObservability()
+      closeOrcadObservability = () => {}
+    }
   )
 }
 
@@ -122,6 +128,8 @@ async function startMantadRuntime(
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
     await import('../ipc/pty')
   const { getAppEnvironment } = await import('../../shared/app-environment')
+  const { installOrcadObservability } = await import('./orcad-observability')
+  closeOrcadObservability = installOrcadObservability()
   const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
   const { createOrcadProfileStateStartup } = await import('./mantad-profile-state-startup')

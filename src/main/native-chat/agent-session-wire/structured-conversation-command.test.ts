@@ -23,6 +23,7 @@ import {
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
+import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 const caller = { callerKey: 'desktop' }
 let directory: string
@@ -64,6 +65,7 @@ let ownerProbe: AgentSessionOwnerProbe = { outcome: 'pid-absent' }
 async function openHost(): Promise<void> {
   store = await openTestAgentSessionRecordStore(generationRoot())
   host = new StructuredAgentSessionHost({
+    logger: createStructuredAgentSessionLogger(),
     store,
     adapter,
     journalDatabase: openTestJournalHostDatabase(generationRoot()),

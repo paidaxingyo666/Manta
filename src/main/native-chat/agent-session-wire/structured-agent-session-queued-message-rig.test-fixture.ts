@@ -26,6 +26,7 @@ import {
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
+import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 export const QUEUED_RIG_CALLER = { callerKey: 'client-1' }
 
@@ -54,6 +55,7 @@ export async function createQueuedMessageTestRig() {
   let events: StructuredAgentSessionEventSink | undefined
   const store = await openTestAgentSessionRecordStore(root)
   const host = new StructuredAgentSessionHost({
+    logger: createStructuredAgentSessionLogger(),
     store,
     adapter: {
       acquire: async ({ fence, spawnToken, events: sink }) => {

@@ -24,6 +24,7 @@ import {
   hostTestOperationId,
   resetHostTestOperationIds
 } from './structured-agent-session-host-test-data'
+import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 const CALLER = { callerKey: 'client-1' }
 
@@ -51,6 +52,7 @@ beforeEach(async () => {
   }
   const store = await openTestAgentSessionRecordStore(root)
   host = new StructuredAgentSessionHost({
+    logger: createStructuredAgentSessionLogger(),
     store,
     adapter: Object.assign(adapterFor(codex), { supportsCreate: () => true }),
     journalDatabase: openTestJournalHostDatabase(root),

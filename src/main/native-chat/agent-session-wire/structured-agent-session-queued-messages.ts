@@ -30,6 +30,7 @@ import {
   structuredAgentSessionHostInstance,
   structuredQueuePause
 } from './structured-agent-session-queued-pause'
+import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 /** Budget at accept, in the send schema's own unit (`Buffer.byteLength` of the
  *  serialized blocks); refused readably rather than trimmed. */
@@ -263,7 +264,7 @@ export type QueuedMessageDrainDeps = {
   conversationFence: (sessionId: string) => number
   /** The consumed submission is ordinary #22821 work from here on. */
   wakeDelivery: (sessionId: string) => void
-  onError: (sessionId: string, error: unknown) => void
+  logger: StructuredAgentSessionLogger
 }
 
 /**
@@ -312,7 +313,11 @@ export class StructuredAgentSessionQueuedMessageDrain {
       })
       .catch((error: unknown) => {
         this.scheduled.delete(sessionId)
-        this.deps.onError(sessionId, error)
+        this.deps.logger.warn('draining queued messages failed', {
+          scope: 'queued-drain',
+          sessionId,
+          error
+        })
       })
   }
 
@@ -326,7 +331,11 @@ export class StructuredAgentSessionQueuedMessageDrain {
     if (journal.queuedMessages.settlementOwed() || journal.queuedMessages.deliveredByEchoOwed()) {
       // A live per-row hook was skipped; heal now, before a draft sends, rather than at reopen.
       await journal.queuedMessages.settleOwed().catch((error: unknown) => {
-        this.deps.onError(sessionId, error)
+        this.deps.logger.warn('settling owed queued-message bookkeeping failed', {
+          scope: 'queued-settle-owed',
+          sessionId,
+          error
+        })
       })
     }
     const next = oldestActionableQueuedMessage(journal)

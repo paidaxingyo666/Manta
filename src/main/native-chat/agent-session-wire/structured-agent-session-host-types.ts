@@ -17,6 +17,7 @@ import type {
 import type { AgentSessionAttachParams } from './structured-agent-session-attach'
 import type { StructuredAgentSessionStatusSink } from './structured-agent-session-status-feed'
 import type { AgentModelCatalogService } from '../agent-model-catalog/agent-model-catalog-service'
+import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 export type StructuredAgentSessionCaller = { callerKey: string }
 
@@ -121,11 +122,9 @@ export type StructuredAgentSessionHostDeps = {
   idleSweep?: { intervalMs?: number; idleMs?: number }
   /** Whether an orchestration dispatch still owns this session's worker; absent answers no. */
   hasOpenDispatch?: (record: AgentSessionRecord) => boolean
-  onEventSinkError?: (input: { sessionId: string; error: unknown }) => void
-  /** Lease bookkeeping run for startup or a read (the reconcile, or resolving a chat's recovery)
-   *  that refused or threw, once per distinct failure. Startup and the read carry on: the next
-   *  attach or send reconciles and resolves recovery again before it acts. */
-  onLeaseReconcileFailure?: (failure: unknown) => void
+  /** Where every failure the host carries on past is reported. Required: a host without one would
+   *  drop exactly the failures nobody sees in the UI. */
+  logger: StructuredAgentSessionLogger
   /** Every status projection this host publishes. `replay` marks a re-projection of state the host
    *  already knew (restore, an arriving subscriber) rather than a fresh journal edge. */
   onSessionStatusChanged?: (

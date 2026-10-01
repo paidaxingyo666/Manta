@@ -32,6 +32,7 @@ import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-rec
 import { structuredClaudeLifecycleEvent } from '../../runtime/structured-claude-runtime-adapter'
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { recordingStructuredAgentSessionLogger } from './structured-agent-session-logger-test-support'
 import {
   HOST_TEST_NOW as NOW,
   HOST_TEST_SESSION as SESSION,
@@ -52,7 +53,7 @@ let store: AgentSessionRecordStore
 let queued: string[]
 let claude: ReturnType<typeof fakeClaude>
 let events: ClaudeStructuredSessionEvent[]
-let sinkErrors: unknown[]
+let logs: ReturnType<typeof recordingStructuredAgentSessionLogger>
 // The host's status row and child records, as the app's hook server holds them.
 let server: AgentHookServer
 let statusSubject: AgentStatusStructuredSessionSubject | undefined
@@ -62,7 +63,7 @@ beforeEach(async () => {
   resetHostTestOperationIds()
   queued = []
   events = []
-  sinkErrors = []
+  logs = recordingStructuredAgentSessionLogger()
   server = new AgentHookServer()
   statusSubject = undefined
   claude = fakeClaude({
@@ -107,7 +108,7 @@ beforeEach(async () => {
     journalDatabase: openTestJournalHostDatabase(root),
     claimKeyId: 'key-1',
     mintSpawnToken: () => 'spawn-a',
-    onEventSinkError: ({ error }) => sinkErrors.push(error),
+    logger: logs.logger,
     statusSink: {
       publish: (summary, subject) => {
         statusSubject = subject
@@ -601,10 +602,15 @@ it('still answers the Stop, with its row, when the child cannot be proven gone; 
   await laneDrained()
 
   expect(await statusTexts()).toEqual(['Cancellation requested.'])
-  expect(sinkErrors).toEqual([
+  expect(logs.entries).toEqual([
     expect.objectContaining({
-      name: 'StructuredAgentSessionEvictionError',
-      step: 'stop-provider-child'
+      fields: expect.objectContaining({
+        scope: 'chat-stop',
+        error: expect.objectContaining({
+          name: 'StructuredAgentSessionEvictionError',
+          step: 'stop-provider-child'
+        })
+      })
     })
   ])
   connection.close = close
@@ -660,7 +666,7 @@ it('keeps a second Stop pressed while the first ends the child quiet', async () 
   expect(connection.closed).toBe(true)
   expect(connection.calls.filter((call) => call.subtype === 'interrupt')).toHaveLength(1)
   expect(await statusTexts()).toEqual(['Cancellation requested.'])
-  expect(sinkErrors).toEqual([])
+  expect(logs.entries).toEqual([])
 })
 
 const BRANCH_QUESTION = {

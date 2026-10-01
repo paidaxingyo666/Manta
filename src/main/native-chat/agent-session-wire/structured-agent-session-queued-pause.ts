@@ -15,6 +15,7 @@ import { randomUUID } from 'node:crypto'
 import type { AgentSessionQueuePause } from '../../../shared/agent-session-wire'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import type { QueuePauseFact } from '../agent-session-journal/queued-message-pause-table'
+import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 /** A per-process id, minted once per host process like the runtime's own
  *  `runtimeId` (`manta-runtime-runtime-id.ts`); a draft written by another
@@ -74,7 +75,8 @@ export function structuredQueuePause(journal: PauseJournal): AgentSessionQueuePa
  */
 export async function retireEndedQueuePause(
   sessionId: string,
-  journal: PauseJournal
+  journal: PauseJournal,
+  logger: StructuredAgentSessionLogger
 ): Promise<void> {
   try {
     const stop = journal.queuedMessages.pause()
@@ -88,9 +90,10 @@ export async function retireEndedQueuePause(
       adoptInto: adopt ? hostInstance : null
     })
   } catch (error) {
-    console.warn("[agent-session] a started turn's queue-pause retirement skipped:", {
+    logger.warn('retiring a queue pause a started turn ended failed', {
+      scope: 'queue-pause-retirement',
       sessionId,
-      error: error instanceof Error ? error.message : String(error)
+      error
     })
   }
 }

@@ -25,6 +25,7 @@ import { stopAgentSessionProviderRoot } from './structured-agent-session-provide
 import type { DeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import type { StructuredAgentSessionStopVerdict } from './structured-agent-session-host-types'
 import { withTimeout } from '../../../shared/promise-timeout-fallback'
+import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
 
 export type StructuredAgentSessionEvictionContext = {
   sessionId: string
@@ -33,6 +34,7 @@ export type StructuredAgentSessionEvictionContext = {
   hasProviderChild?: boolean
   eventSink: DeferredStructuredAgentSessionEventSink
   adapter: StructuredAgentSessionAdapter
+  logger: StructuredAgentSessionLogger
   /** Tells the adapter the released lease is done with, so it drops this child's route and index.
    *  The conversation stays: stopping the agent never closes its journal. */
   acknowledgeRelease: () => Promise<void> | void
@@ -76,7 +78,10 @@ export const STRUCTURED_AGENT_SESSION_EVICTION_STEPS: readonly StructuredAgentSe
         try {
           context.beforeProviderChildStop()
         } catch {
-          console.warn('[structured-agent-session] capturing recovery witness failed')
+          context.logger.warn('capturing a recovery witness before a stop failed', {
+            scope: 'recovery-witness',
+            sessionId: context.sessionId
+          })
         }
       }
     },

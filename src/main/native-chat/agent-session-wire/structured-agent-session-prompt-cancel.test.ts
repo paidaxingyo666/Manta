@@ -11,6 +11,7 @@ import {
   type StructuredAgentSessionAdapter
 } from './structured-agent-session-adapter'
 import { performCancel, type AgentSessionTurnContext } from './structured-agent-session-turns'
+import { createStructuredAgentSessionLogger } from './structured-agent-session-logger'
 import { cancelStructuredAgentSessionPrompt } from './structured-agent-session-prompt-cancel'
 import type { AgentSessionPromptCancelRoute } from './structured-agent-session-adapter-stop'
 
@@ -81,6 +82,7 @@ function context(
   flushStreamedEvents: () => Promise<void>
 ): AgentSessionTurnContext {
   return {
+    logger: createStructuredAgentSessionLogger(),
     sessionId: 'session-1',
     journal,
     fence: 1,
