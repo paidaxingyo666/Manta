@@ -238,4 +238,17 @@ describe('managed stops that retire the daemon', () => {
     await completeOrcadManagedStop(request, options({ probeProcess: () => 'missing' }))
     expect(readOrcadCompletedStopReceipt(request)).not.toHaveProperty('retirement')
   })
+
+  it('reports the recorded retirement in the completion line, so a client need not read files', async () => {
+    const { request } = running()
+    const retireRequest = { ...request, retireIdleDaemon: true as const }
+    await prepareOrcadManagedStop(retireRequest, outcome('live', 1))
+    vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
+    expect(
+      await runOrcadManagedStopCommand(
+        ['--complete-managed-stop', JSON.stringify(retireRequest)],
+        options({ probeProcess: () => 'missing' })
+      )
+    ).toMatchObject({ verdict: 'exited', retirement: 'live' })
+  })
 })

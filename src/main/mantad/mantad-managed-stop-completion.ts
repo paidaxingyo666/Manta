@@ -20,6 +20,7 @@ import {
   startTimesWithinTolerance
 } from '../daemon/daemon-process-start-time'
 import { persistOrcadCompletedStopReceipt } from './orcad-completed-stop-receipt'
+import { readOrcadManagedStopDecision } from './orcad-managed-stop-decision'
 import {
   orcadInstanceLockNames,
   orcadManagedStopRequestPath,
@@ -88,6 +89,10 @@ export async function completeOrcadManagedStop(
   if (!lockStillNamesInstance(request.instance)) {
     // The process lives but no longer owns the lock it published: it is not ours to address.
     return 'unverifiable'
+  }
+  if (readOrcadManagedStopDecision(request) === 'canceled') {
+    // A cancelled transaction is never reissued; its mantad keeps running.
+    return 'live'
   }
   const requestPath = orcadManagedStopRequestPath(request.instance)
   if (!existingRequestMatches(requestPath, request)) {

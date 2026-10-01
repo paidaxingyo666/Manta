@@ -16,6 +16,7 @@ import {
   orcadManagedStopRequestPath,
   validateOrcadManagedStopRequest
 } from './orcad-managed-stop-request'
+import { claimOrcadManagedStopDecision } from './orcad-managed-stop-decision'
 
 export type OrcadStopRequestListener = { close(): void }
 
@@ -116,6 +117,10 @@ export function installOrcadStopRequestListeners(
         orcadManagedStopRequestPath(managedStop.instance),
         (path) => {
           const request = validateOrcadManagedStopRequest(managedStop, path)
+          // A cancelled request is never acted on; keep listening for the next transaction.
+          if (claimOrcadManagedStopDecision(request, 'dispatched') === 'canceled') {
+            throw new Error('orcad_managed_stop_canceled')
+          }
           close()
           // Preparation is best effort: whatever it reports, the stop proceeds.
           void prepare(request)

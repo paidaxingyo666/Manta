@@ -172,6 +172,21 @@ An external supervisor (systemd, launchd, a process manager). mantad conforms to
       its terminals, and mantad reopens new-terminal admission before exiting.
     - The completed-stop receipt records `retirement` as `retired`, `live` or `unverifiable`.
       If mantad exits without recording an outcome, the receipt says `unverifiable`.
+  - `mantad --cancel-managed-stop '<request JSON>'` withdraws a request mantad has not acted on.
+    mantad and the canceller each try to create `<transactionId>.decision.json` exclusively,
+    so exactly one wins. `canceled` means mantad keeps running and the request file is removed;
+    `dispatched` means mantad already began stopping, and only the completion can say how it
+    ended.
+  - A build advertises all of the above with `health.stopRequests: 1` in its readiness line.
+    Clients stop such a build through the slot request file and older builds with `SIGTERM`,
+    after corroborating the PID with readiness either way. A launch clears a slot request
+    that the previous process never consumed.
+- **Decommissioning a managed slot.** A Manta client decommissions through the same activation
+  journal and fence as deploy and rollback. It refuses while the terminal census reports live
+  or uncounted terminals, stops the instance with a managed request that also asks to retire
+  the daemon, and records that no version is active only after `exited` is proven. A stop
+  that did not finish is cancelled; if mantad already acted on it, or the host cannot answer,
+  the fence stays for recovery.
 - **Instance lock.** `<data-root>/orcad.lock` names the running mantad. A record that is
   unreadable, malformed or over 64 KiB is never reclaimed: mantad exits 78 until an operator
   removes it. A shutdown whose teardown failed keeps the lock until the process exits, so a

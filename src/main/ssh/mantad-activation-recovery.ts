@@ -1,5 +1,5 @@
 /**
- * Finishing or undoing an activation or rollback that a crash, a lost connection or an
+ * Finishing or undoing an activation, rollback or decommission that a crash, a lost connection or an
  * unverifiable failure left fenced. Either way the host ends serving exactly the slot its
  * activation record names, or the fence stays for an operator.
  */
@@ -19,6 +19,7 @@ import {
 } from './mantad-activation-lock'
 import { RemoteInstallLockBusyError } from './ssh-relay-install-lock'
 import { ensureOrcadSlotServing, resolveOrcadSlotIdentity } from './orcad-recovery-slot'
+import { reconcileOrcadDecommission } from './orcad-decommission-recovery'
 import {
   recoverOrcadIncumbent,
   type OrcadIncumbentRecoveryOptions
@@ -88,6 +89,13 @@ export async function reconcileOrcadTransaction(
   const plan = planOrcadTransactionRecovery(transaction, await readOrcadActivationRecord(options))
   if (plan.action === 'refuse') {
     return { outcome: 'refused', verdict: 'unverifiable', code: plan.code, reason: plan.reason }
+  }
+  if (
+    plan.action === 'confirm-decommissioned' ||
+    plan.action === 'resume-stop' ||
+    plan.action === 'keep-serving'
+  ) {
+    return reconcileOrcadDecommission(options, plan)
   }
   if (plan.action === 'finish-commit') {
     await writeOrcadActivationRecord(options, plan.record)

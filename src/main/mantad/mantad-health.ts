@@ -17,7 +17,8 @@ import {
   getDaemonEndpointFacts,
   readDaemonPidRecord
 } from '../daemon/daemon-init'
-import type { OrcadProfileStateAuthoritySelection } from './orcad-profile-state-telemetry'
+import type { OrcadProfileStateAuthoritySelection } from './mantad-profile-state-telemetry'
+import { ORCAD_STOP_REQUESTS_CAPABILITY } from '../../shared/orcad-stop-request'
 
 /**
  * How much a green self-test actually proves.
@@ -67,6 +68,11 @@ export type OrcadHealth = {
   terminalDaemon: TerminalDaemonHealth
   /** The low-cardinality profile-state authority selected during startup, when available. */
   profileStateAuthority?: OrcadProfileStateAuthoritySelection
+  /**
+   * Present when this build consumes stop-request files and answers the managed-stop commands.
+   * Absent on older builds, which a client must keep stopping with SIGTERM.
+   */
+  stopRequests?: typeof ORCAD_STOP_REQUESTS_CAPABILITY
 }
 
 /**
@@ -162,6 +168,7 @@ export async function collectMantadHealth(
     arch: process.arch,
     pid: process.pid,
     terminalDaemon: await collectTerminalDaemonHealth(),
-    ...(profileStateAuthority ? { profileStateAuthority } : {})
+    ...(profileStateAuthority ? { profileStateAuthority } : {}),
+    stopRequests: ORCAD_STOP_REQUESTS_CAPABILITY
   }
 }

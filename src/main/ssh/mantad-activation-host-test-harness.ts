@@ -30,6 +30,9 @@ export class FakeOrcadHost {
   mutations = 0
   crashAt: number | null = null
   crashMode: CrashMode = 'before'
+  /** How the slot's managed-stop command behaves: mantad exits, or keeps serving. */
+  managedStop: 'exits' | 'stays' | 'stays-dispatched' = 'exits'
+  readonly dispatched = new Set<string>()
 
   static deployedOld(): FakeOrcadHost {
     const host = new FakeOrcadHost()
@@ -111,6 +114,15 @@ export class FakeOrcadHost {
     this.commands.push(command)
     const version = /\/mantad-(\d+\.\d+\.\d+\+[0-9a-f]+)/u.exec(command)?.[1] ?? null
     const snapshot = /mantad-state-snapshots\/([A-Za-z0-9][A-Za-z0-9.+-]*)/u.exec(command)?.[1]
+    if (command.includes('__ORCAD_RECORD_PRESENT__') && command.includes('mantad.lock')) {
+      const owner = [...this.alive][0]
+      return owner
+        ? `__ORCAD_RECORD_PRESENT__\n${JSON.stringify(lockRecord(owner))}`
+        : '__ORCAD_RECORD_ABSENT__\n'
+    }
+    if (command.includes('-managed-stop ') && version) {
+      return this.runManagedStopCommand(command, version)
+    }
     if (command.includes('__ORCAD_RECORD_PRESENT__')) {
       const value = command.includes('transaction.json') ? this.journal : this.record
       return value === null ? '__ORCAD_RECORD_ABSENT__\n' : `__ORCAD_RECORD_PRESENT__\n${value}`
@@ -195,6 +207,42 @@ export class FakeOrcadHost {
     }
     return ''
   }
+
+  /** The slot's `--complete-managed-stop` / `--cancel-managed-stop`, as mantad answers them. */
+  private runManagedStopCommand(command: string, version: string): string {
+    const request = JSON.parse(command.slice(command.lastIndexOf(" '{") + 2, -1))
+    if (command.includes('--cancel-managed-stop')) {
+      const outcome = this.dispatched.has(request.transactionId) ? 'dispatched' : 'canceled'
+      return JSON.stringify({ ...request, kind: 'orcad_managed_stop_cancellation', outcome })
+    }
+    const verdict = this.mutate(() => {
+      if (this.managedStop === 'exits') {
+        this.dispatched.add(request.transactionId)
+        this.alive.delete(version)
+      } else if (this.managedStop === 'stays-dispatched') {
+        this.dispatched.add(request.transactionId)
+      }
+      return this.alive.has(version) ? 'live' : 'exited'
+    })
+    return JSON.stringify({
+      ...request,
+      kind: 'orcad_managed_stop_completion',
+      verdict,
+      receiptPersisted: verdict === 'exited',
+      ...(verdict === 'exited' ? { retirement: 'retired' } : {})
+    })
+  }
+}
+
+function lockRecord(version: string) {
+  return {
+    pid: 1,
+    startedAtMs: null,
+    identity: 'uid-1000',
+    version,
+    acquiredAt: new Date(0).toISOString(),
+    nonce: `nonce-${version}`
+  }
 }
 
 export function readyLine(version: string): string {
@@ -214,6 +262,7 @@ export function readyLine(version: string): string {
       platform: 'linux',
       arch: 'x64',
       pid: 1,
+      stopRequests: 1,
       terminalDaemon: {
         state: 'live',
         ownsFreshSessions: true,

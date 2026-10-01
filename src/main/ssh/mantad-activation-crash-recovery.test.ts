@@ -93,7 +93,8 @@ function expectExactlyTheRecordedSlot(): void {
 function expectNoSlotOrSnapshotRemoved(): void {
   const removals = host.commands.filter((command) => /\brm -r?f\b/u.test(command))
   for (const command of removals) {
-    expect(command).not.toMatch(/rm -r?f '[^']*\/mantad-\d/u)
+    // A file inside a slot (a consumed stop request) may go; the slot directory never does.
+    expect(command).not.toMatch(/rm -r?f '[^']*\/mantad-\d[^'/]*\/?'/u)
     expect(command).not.toMatch(/rm -r?f '[^']*mantad-state-snapshots/u)
   }
 }

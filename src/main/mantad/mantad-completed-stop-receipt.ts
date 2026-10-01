@@ -16,11 +16,11 @@ import {
 
 const RECEIPT_MAX_BYTES = 64 * 1024
 
-type ReceiptKind = 'completed' | 'retirement'
+export type ReceiptKind = 'completed' | 'retirement' | 'decision'
 
 export function orcadStopReceiptPath(request: OrcadManagedStopRequest, kind: ReceiptKind): string {
   const { transactionId, instance } = OrcadManagedStopRequestSchema.parse(request)
-  const suffix = kind === 'completed' ? '' : '.retirement'
+  const suffix = kind === 'completed' ? '' : `.${kind}`
   return join(
     dirname(instance.lockPath),
     ORCAD_STOP_RECEIPTS_DIRNAME,
@@ -29,7 +29,7 @@ export function orcadStopReceiptPath(request: OrcadManagedStopRequest, kind: Rec
 }
 
 /** `null` when absent; a receipt for a different request throws rather than reading as absent. */
-function readReceipt<T extends { request: OrcadManagedStopRequest }>(
+export function readOrcadStopReceipt<T extends { request: OrcadManagedStopRequest }>(
   request: OrcadManagedStopRequest,
   kind: ReceiptKind,
   schema: z.ZodType<T>
@@ -64,7 +64,7 @@ function writeReceipt(request: OrcadManagedStopRequest, kind: ReceiptKind, recei
 export function readOrcadCompletedStopReceipt(
   request: OrcadManagedStopRequest
 ): OrcadCompletedStopReceipt | null {
-  return readReceipt(request, 'completed', OrcadCompletedStopReceiptSchema)
+  return readOrcadStopReceipt(request, 'completed', OrcadCompletedStopReceiptSchema)
 }
 
 /**
@@ -93,7 +93,7 @@ export function persistOrcadCompletedStopReceipt(
 export function readOrcadDaemonRetirementRecord(
   request: OrcadManagedStopRequest
 ): OrcadDaemonRetirementRecord | null {
-  return readReceipt(request, 'retirement', OrcadDaemonRetirementRecordSchema)
+  return readOrcadStopReceipt(request, 'retirement', OrcadDaemonRetirementRecordSchema)
 }
 
 export function persistOrcadDaemonRetirementRecord(

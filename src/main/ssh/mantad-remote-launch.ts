@@ -21,6 +21,7 @@ import {
 } from './mantad-remote-host-support'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { selectOrcadSlotRuntimeCommand } from './mantad-remote-runtime'
+import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/orcad-stop-request'
 
 /** Stdout of the launched candidate: exactly one `manta_server_ready` line, then nothing. */
 export const MANTAD_READINESS_FILENAME = '.mantad-readiness'
@@ -63,6 +64,8 @@ export function orcadLaunchCommand(host: RemoteHostPlatform, spec: OrcadLaunchSp
     // Why truncate: a re-launch into a dir that already holds a previous readiness line would
     // otherwise let the deploy activate on the OLD process's health payload.
     `: > ${readiness} &&`,
+    // A stop request the previous process never consumed must not stop this one.
+    `rm -f ${shellEscape(joinRemotePath(host, spec.remoteInstallDir, ORCAD_STOP_REQUEST_FILENAME))} &&`,
     'umask 077 &&',
     `MANTA_VERSION=${shellEscape(spec.fullVersion)}`,
     `MANTA_USER_DATA=${shellEscape(spec.userDataDir)}`,

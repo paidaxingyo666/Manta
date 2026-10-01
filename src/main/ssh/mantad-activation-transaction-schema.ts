@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { OrcadManagedStopRequestSchema } from '../../shared/orcad-stop-request'
 import {
   MANTAD_INSTALL_MODEL,
   remoteInstallDirName,
@@ -58,9 +59,27 @@ export const OrcadActivationTransactionSchema = z
       targetVersion: RemoteVersionSchema,
       recordAfter: z.unknown(),
       rescue: SnapshotVerdictSchema
+    }),
+    z.object({
+      ...OrcadActivationTransactionCommonFields,
+      operation: z.literal('decommission'),
+      phase: z.enum(['prepared', 'stop-dispatched', 'process-exited']),
+      activeVersion: RemoteVersionSchema,
+      recordAfter: z.unknown(),
+      /** The instance-bound stop request; durable before it can reach the host. */
+      request: OrcadManagedStopRequestSchema.nullable()
     })
   ])
   .superRefine((transaction, context) => {
+    if (transaction.operation === 'decommission') {
+      if ((transaction.phase === 'prepared') !== (transaction.request === null)) {
+        context.addIssue({ code: 'custom', message: 'Stop request is inconsistent with phase' })
+      }
+      if (transaction.request && transaction.request.transactionId !== transaction.transactionId) {
+        context.addIssue({ code: 'custom', message: 'Stop request names another transaction' })
+      }
+      return
+    }
     const beforeVerdict =
       transaction.phase === 'prepared' || transaction.phase === 'incumbent-stopped'
     const verdict = transaction.operation === 'activate' ? transaction.snapshot : transaction.rescue
