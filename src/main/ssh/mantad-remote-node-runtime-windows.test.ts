@@ -76,12 +76,28 @@ describe('Windows runtime store commands', () => {
         $runtimeDir = 'C:/Users/u/.manta-remote/runtimes/node-ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32'
         $exe = 'C:/Users/u/.manta-remote/runtimes/node-ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32/node.exe'
         $verified = 'C:/Users/u/.manta-remote/runtimes/node-ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32/.verified'
-        if ((Test-Path -LiteralPath $verified -PathType Leaf) -and ((Get-OrcaSha256 $exe) -eq 'ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32')) { Write-Output 'ORCA_NODE_RUNTIME_READY'; exit 0 }
+        if ((Get-OrcaSha256 $exe) -eq 'ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32') {
+        if (Test-Path -LiteralPath $verified -PathType Leaf) { Write-Output 'ORCA_NODE_RUNTIME_READY'; exit 0 }
+        try { $adoptOut = ((& $exe --version 2>&1) | ForEach-Object { "$_" }) -join ''; if (($LASTEXITCODE -eq 0) -and ($adoptOut.Trim() -eq 'v24.21.0')) { [IO.File]::WriteAllText($verified, ''); Write-Output 'ORCA_NODE_RUNTIME_READY'; exit 0 } } catch { }
+        }
         Write-Output 'ORCA_NODE_RUNTIME_MISSING'"
       `)
     expect(
       decodeRemotePowerShellScript(windowsNodeRuntimeProbeCommand(runtimeDir, target, stageDir))
     ).toContain(`New-Item -ItemType Directory -Force -Path '${stageDir}' -ErrorAction Stop`)
+  })
+
+  it('adopts a pinned node.exe an earlier vault reader left without a marker, after running it', () => {
+    const script = decodeRemotePowerShellScript(
+      windowsNodeRuntimeProbeCommand(runtimeDir, target, stageDir)
+    )
+    const hashed = script.indexOf(`if ((Get-OrcaSha256 $exe) -eq '${asset.executableSha256}') {`)
+    const ran = script.indexOf('& $exe --version')
+    const marked = script.indexOf("[IO.File]::WriteAllText($verified, '')")
+    expect(hashed).toBeGreaterThan(0)
+    expect(ran).toBeGreaterThan(hashed)
+    expect(marked).toBeGreaterThan(ran)
+    expect(script).toContain(`($adoptOut.Trim() -eq 'v${NODE_RUNTIME_PIN.version}')`)
   })
 
   it('checks only the marker and node.exe on the warm path', () => {
@@ -171,25 +187,61 @@ describe('ensureRemoteOrcadNodeRuntime on Windows', () => {
     expect(uploadRelayDirectory).not.toHaveBeenCalled()
   })
 
-  it('uploads into the stage the probe created and promotes with a long budget in two execs', async () => {
-    vi.mocked(execCommand)
-      .mockResolvedValueOnce(REMOTE_NODE_RUNTIME_MISSING)
-      .mockResolvedValueOnce(`extracted-by tar\r\n${REMOTE_NODE_RUNTIME_READY}\r\n`)
+  /** Answers the probe, the store lock and the promote script by what each script does. */
+  function answer(promote: string, reprobe = REMOTE_NODE_RUNTIME_MISSING): string[] {
+    const scripts: string[] = []
+    let probes = 0
+    vi.mocked(execCommand).mockImplementation(async (_conn, command) => {
+      const script = decodeRemotePowerShellScript(command)
+      scripts.push(script)
+      if (script.includes('.store-lock') && script.includes('CreateNew')) {
+        return 'OK'
+      }
+      if (script.includes('Invoke-OrcaPromote')) {
+        return promote
+      }
+      if (script.includes(REMOTE_NODE_RUNTIME_MISSING)) {
+        return ++probes === 1 ? REMOTE_NODE_RUNTIME_MISSING : reprobe
+      }
+      return ''
+    })
+    return scripts
+  }
+
+  it('uploads into the stage the probe created and promotes under the store lock with a long budget', async () => {
+    const scripts = answer(`extracted-by tar\r\n${REMOTE_NODE_RUNTIME_READY}\r\n`)
     await ensureRemoteOrcadNodeRuntime({ conn, host, slotDir: relayDir, target, archivePath })
     const calls = vi.mocked(execCommand).mock.calls
-    // The promote script removes its own stage, so no third powershell.exe runs.
-    expect(calls).toHaveLength(2)
     for (const call of calls) {
       expect(call[1]).toMatch(/^powershell\.exe /)
       expect(call[2]).toMatchObject({ wrapCommand: false })
     }
-    const probe = decodeRemotePowerShellScript(calls[0][1])
-    const stage = /New-Item -ItemType Directory -Force -Path '([^']+)'/.exec(probe)?.[1]
+    const stage = /New-Item -ItemType Directory -Force -Path '([^']+)'/.exec(scripts[0])?.[1]
     expect(stage).toMatch(
       /^C:\/Users\/u\/\.manta-remote\/runtimes\/\.stage-node-[0-9a-f]{64}-[0-9a-f]{16}$/
     )
     expect(vi.mocked(uploadRelayDirectory).mock.calls[0][2]).toBe(stage)
-    expect(calls[1][2]).toMatchObject({ timeoutMs: WINDOWS_NODE_RUNTIME_PROMOTE_TIMEOUT_MS })
+    const locked = scripts.findIndex((s) => s.includes('CreateNew'))
+    const promoted = scripts.findIndex((s) => s.includes('Invoke-OrcaPromote'))
+    const released = scripts.findIndex(
+      (s) => s.startsWith('Remove-Item') && s.includes('.store-lock')
+    )
+    // Store GC collects on Windows too, so promotion holds the lock it takes (design D5).
+    expect(locked).toBeGreaterThan(0)
+    expect(promoted).toBeGreaterThan(locked)
+    expect(released).toBeGreaterThan(promoted)
+    expect(calls[promoted][2]).toMatchObject({ timeoutMs: WINDOWS_NODE_RUNTIME_PROMOTE_TIMEOUT_MS })
+    // The promote script removes its own stage, so no separate cleanup runs.
+    expect(scripts.some((s) => s.startsWith('Remove-Item') && s.includes('.stage-node-'))).toBe(
+      false
+    )
+  })
+
+  it('removes its stage when a sibling published the pin while this client uploaded', async () => {
+    const scripts = answer('unused', REMOTE_NODE_RUNTIME_READY)
+    await ensureRemoteOrcadNodeRuntime({ conn, host, slotDir: relayDir, target, archivePath })
+    expect(scripts.some((s) => s.includes('Invoke-OrcaPromote'))).toBe(false)
+    expect(scripts.at(-1)).toMatch(/^Remove-Item -LiteralPath '[^']*\.stage-node-/)
   })
 
   it('still removes the stage when the upload fails before promote runs', async () => {
@@ -209,11 +261,7 @@ describe('ensureRemoteOrcadNodeRuntime on Windows', () => {
   })
 
   it('surfaces a post-write change as a security-software verdict', async () => {
-    vi.mocked(execCommand)
-      .mockResolvedValueOnce(REMOTE_NODE_RUNTIME_MISSING)
-      .mockResolvedValueOnce(
-        'ORCA_NODE_RUNTIME_SECURITY_MODIFIED node.exe changed after it ran\r\n'
-      )
+    answer('ORCA_NODE_RUNTIME_SECURITY_MODIFIED node.exe changed after it ran\r\n')
     const failure = await ensureRemoteOrcadNodeRuntime({
       conn,
       host,
@@ -226,11 +274,9 @@ describe('ensureRemoteOrcadNodeRuntime on Windows', () => {
   })
 
   it('carries what node.exe said when it would not run', async () => {
-    vi.mocked(execCommand)
-      .mockResolvedValueOnce(REMOTE_NODE_RUNTIME_MISSING)
-      .mockResolvedValueOnce(
-        "ORCA_NODE_RUNTIME_SELFTEST_FAILED\r\nORCA_RUNTIME_EXIT=-1\r\nProgram 'node.exe' failed to run: This program is blocked by group policy.\r\n"
-      )
+    answer(
+      "ORCA_NODE_RUNTIME_SELFTEST_FAILED\r\nORCA_RUNTIME_EXIT=-1\r\nProgram 'node.exe' failed to run: This program is blocked by group policy.\r\n"
+    )
     const failure = await ensureRemoteOrcadNodeRuntime({
       conn,
       host,

@@ -351,17 +351,4 @@ describe('gcRemoteNodeRuntimeStore termination', () => {
       gcRemoteNodeRuntimeStore(conn, host, '/home/u', { currentPins: [sha('a')] })
     ).rejects.toBe(error)
   })
-
-  it('skips Windows hosts without running anything', async () => {
-    const result = await gcRemoteNodeRuntimeStore(
-      conn,
-      getRemoteHostPlatform('win32-x64'),
-      'C:/Users/u',
-      {
-        currentPins: [sha('a')]
-      }
-    )
-    expect(result.state).toBe('skipped')
-    expect(mockExec).not.toHaveBeenCalled()
-  })
 })

@@ -286,7 +286,8 @@ describe('pinned relay on a Windows host', () => {
     })
   })
 
-  it('self-tests on node.exe with no chmod step', async () => {
+  it('confirms the runtime under the store lock, then self-tests on node.exe with no chmod step', async () => {
+    vi.mocked(execCommand).mockResolvedValueOnce(`${REMOTE_NODE_RUNTIME_READY}\r\n`)
     vi.mocked(runPinnedRuntimeSelfTest).mockResolvedValueOnce({
       verdict: 'passed',
       report: {
@@ -299,7 +300,18 @@ describe('pinned relay on a Windows host', () => {
       }
     })
     await expect(verifyPinnedRelayInstall(windowsContext)).resolves.toBeUndefined()
-    expect(execCommand).not.toHaveBeenCalled()
+    // Windows store GC collects too, so the held-runtime check runs there as well (design D5).
+    expect(withRuntimeStoreLock).toHaveBeenCalledWith(
+      conn,
+      windowsHost,
+      'C:/Users/u/.manta-remote/runtimes',
+      expect.any(Function),
+      undefined
+    )
+    expect(execCommand).toHaveBeenCalledOnce()
+    const [, command, options] = vi.mocked(execCommand).mock.calls[0]
+    expect(command).toMatch(/^powershell\.exe /)
+    expect(options).toMatchObject({ wrapCommand: false })
     expect(runPinnedRuntimeSelfTest).toHaveBeenCalledWith(
       conn,
       windowsContext.remoteRelayDir,

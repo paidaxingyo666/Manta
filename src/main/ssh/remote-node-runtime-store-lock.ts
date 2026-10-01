@@ -14,7 +14,7 @@ import {
 } from './ssh-relay-install-lock-commands'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import { removeRemoteTreeCommand } from './ssh-remote-commands'
-import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
+import { isWindowsRemoteHost, joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 
 export const RUNTIME_STORE_LOCK_NAME = '.store-lock'
 
@@ -31,7 +31,9 @@ async function releaseRuntimeStoreLock(
   host: RemoteHostPlatform,
   storeDir: string
 ): Promise<void> {
-  await execCommand(conn, removeRemoteTreeCommand(host, lockDir(host, storeDir))).catch((error) => {
+  await execCommand(conn, removeRemoteTreeCommand(host, lockDir(host, storeDir)), {
+    wrapCommand: !isWindowsRemoteHost(host)
+  }).catch((error) => {
     if (isUnconfirmedSshCommandTermination(error)) {
       throw error
     }
@@ -47,14 +49,19 @@ async function tryAcquireRuntimeStoreLock(
 ): Promise<boolean> {
   const lock = lockDir(host, storeDir)
   try {
-    const created = await execCommand(conn, tryCreateInstallLockCommand(host, lock), { signal })
+    // Why unwrapped on Windows: these are already self-contained powershell.exe command lines.
+    const wrapCommand = !isWindowsRemoteHost(host)
+    const created = await execCommand(conn, tryCreateInstallLockCommand(host, lock), {
+      signal,
+      wrapCommand
+    })
     if (created.trim().endsWith('OK')) {
       return true
     }
     const stolen = await execCommand(
       conn,
       tryStealInstallLockCommand(host, lock, INSTALL_LOCK_STALE_SECONDS),
-      { signal }
+      { signal, wrapCommand }
     )
     return stolen.trim().endsWith('OK')
   } catch (error) {

@@ -21,7 +21,6 @@ import {
   RUNTIME_STORE_ENTRY_NAME,
   RUNTIME_STORE_TOMBSTONE_NAME,
   RUNTIME_STORE_TOMBSTONE_PREFIX,
-  runtimeStoreInventoryCommand,
   type RuntimeStoreInventory
 } from './remote-node-runtime-store-inventory'
 import {
@@ -38,6 +37,10 @@ import {
   restoreRemoteTreeCommand
 } from './ssh-remote-commands'
 import { isWindowsRemoteHost, joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
+import {
+  hostRuntimeStoreInventoryCommand,
+  windowsSweepStaleRuntimeStagesCommand
+} from './remote-node-runtime-store-windows'
 
 const MAX_REMOVALS_PER_PASS = 8
 const ABANDONED_TOMBSTONE_MS = 30 * 60_000
@@ -127,8 +130,14 @@ const SWEPT_STAGE = 'SWEPT'
  * mtimes and not the directory's: an upload in flight keeps rewriting its archive, not the dir.
  * A `find` that cannot answer keeps the stage.
  */
-export function sweepStaleRuntimeStagesCommand(storeDir: string): string {
+export function sweepStaleRuntimeStagesCommand(
+  storeDir: string,
+  host?: RemoteHostPlatform
+): string {
   const staleMinutes = Math.ceil(INSTALL_LOCK_STALE_MS / 60_000)
+  if (host && isWindowsRemoteHost(host)) {
+    return windowsSweepStaleRuntimeStagesCommand(storeDir, staleMinutes, SWEPT_STAGE)
+  }
   return [
     `for s in ${shellEscape(storeDir)}/${RUNTIME_STORE_STAGE_PREFIX}*; do`,
     '  [ -d "$s" ] && [ ! -L "$s" ] || continue',
@@ -148,8 +157,14 @@ export function parseSweptRuntimeStages(output: string): string[] {
     .map((line) => line.slice(SWEPT_STAGE.length + 1))
 }
 
-function exec(conn: SshConnection, command: string, signal?: AbortSignal): Promise<string> {
-  return execCommand(conn, command, { wrapCommand: true, signal })
+function exec(
+  conn: SshConnection,
+  host: RemoteHostPlatform,
+  command: string,
+  signal?: AbortSignal
+): Promise<string> {
+  // Why unwrapped on Windows: these are already self-contained powershell.exe command lines.
+  return execCommand(conn, command, { wrapCommand: !isWindowsRemoteHost(host), signal })
 }
 
 async function readInventory(
@@ -160,7 +175,7 @@ async function readInventory(
 ): Promise<RuntimeStoreInventory | null> {
   try {
     return parseRuntimeStoreInventory(
-      await exec(conn, runtimeStoreInventoryCommand(host, remoteHome), signal)
+      await exec(conn, host, hostRuntimeStoreInventoryCommand(host, remoteHome), signal)
     )
   } catch (err) {
     if (isUnconfirmedSshCommandTermination(err)) {
@@ -180,9 +195,6 @@ export async function gcRemoteNodeRuntimeStore(
   remoteHome: string,
   options: { currentPins: readonly string[]; signal?: AbortSignal }
 ): Promise<RuntimeStoreGcResult> {
-  if (isWindowsRemoteHost(host)) {
-    return { state: 'skipped', reason: 'Windows hosts have no managed runtime store yet' }
-  }
   const store = remoteNodeRuntimeStoreDir(host, remoteHome)
   const locked = await tryWithRuntimeStoreLock(
     conn,
@@ -201,7 +213,12 @@ async function collectHoldingStoreLock(
   store: string,
   options: { currentPins: readonly string[]; signal?: AbortSignal }
 ): Promise<RuntimeStoreGcResult> {
-  const sweptStages = await exec(conn, sweepStaleRuntimeStagesCommand(store), options.signal)
+  const sweptStages = await exec(
+    conn,
+    host,
+    sweepStaleRuntimeStagesCommand(store, host),
+    options.signal
+  )
     .then(parseSweptRuntimeStages)
     .catch((error: unknown) => {
       if (isUnconfirmedSshCommandTermination(error)) {
@@ -276,7 +293,7 @@ async function moveTree(
 ): Promise<boolean> {
   try {
     return (
-      (await exec(conn, moveRemoteTreeCommand(host, source, destination), signal)).trim() ===
+      (await exec(conn, host, moveRemoteTreeCommand(host, source, destination), signal)).trim() ===
       'MOVED'
     )
   } catch (err) {
@@ -294,11 +311,13 @@ async function restoreTree(
   entryDir: string,
   signal?: AbortSignal
 ): Promise<void> {
-  await exec(conn, restoreRemoteTreeCommand(host, tombstone, entryDir), signal).catch((err) => {
-    if (isUnconfirmedSshCommandTermination(err)) {
-      throw err
+  await exec(conn, host, restoreRemoteTreeCommand(host, tombstone, entryDir), signal).catch(
+    (err) => {
+      if (isUnconfirmedSshCommandTermination(err)) {
+        throw err
+      }
     }
-  })
+  )
 }
 
 async function removeTree(
@@ -308,7 +327,7 @@ async function removeTree(
   signal?: AbortSignal
 ): Promise<boolean> {
   try {
-    await exec(conn, removeRemoteTreeCommand(host, path), signal)
+    await exec(conn, host, removeRemoteTreeCommand(host, path), signal)
     return true
   } catch (err) {
     if (isUnconfirmedSshCommandTermination(err)) {

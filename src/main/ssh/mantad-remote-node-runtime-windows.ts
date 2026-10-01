@@ -63,7 +63,12 @@ export function windowsNodeRuntimeProbeCommand(
     [
       ...prelude(),
       ...runtimeVariables(runtimeDir),
-      `if ((Test-Path -LiteralPath $verified -PathType Leaf) -and ((Get-OrcaSha256 $exe) -eq ${powerShellLiteral(NODE_RUNTIME_ASSETS[target].executableSha256)})) { Write-Output ${powerShellLiteral(REMOTE_NODE_RUNTIME_READY)}; exit 0 }`,
+      `if ((Get-OrcaSha256 $exe) -eq ${powerShellLiteral(NODE_RUNTIME_ASSETS[target].executableSha256)}) {`,
+      `if (Test-Path -LiteralPath $verified -PathType Leaf) { Write-Output ${powerShellLiteral(REMOTE_NODE_RUNTIME_READY)}; exit 0 }`,
+      // Why adopt: earlier Windows vault readers left the pinned node.exe here with no marker.
+      // Running it is the same check promotion makes before it writes one.
+      `try { $adoptOut = ((& $exe --version 2>&1) | ForEach-Object { "$_" }) -join ''; if (($LASTEXITCODE -eq 0) -and ($adoptOut.Trim() -eq ${powerShellLiteral(`v${NODE_RUNTIME_PIN.version}`)})) { [IO.File]::WriteAllText($verified, ''); Write-Output ${powerShellLiteral(REMOTE_NODE_RUNTIME_READY)}; exit 0 } } catch { }`,
+      '}',
       ...(stageDir
         ? [
             `$null = New-Item -ItemType Directory -Force -Path ${powerShellLiteral(stageDir)} -ErrorAction Stop`

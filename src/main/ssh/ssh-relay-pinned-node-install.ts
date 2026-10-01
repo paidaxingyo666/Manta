@@ -126,7 +126,11 @@ async function confirmPinnedRuntimeHeld(
     conn,
     host,
     remoteDirname(runtimeDir, host),
-    () => execCommand(conn, remoteNodeRuntimePresentCommand(host, runtimeDir), { signal }),
+    () =>
+      execCommand(conn, remoteNodeRuntimePresentCommand(host, runtimeDir), {
+        signal,
+        wrapCommand: !isWindowsRemoteHost(host)
+      }),
     signal
   )
   if (present.trim() !== REMOTE_NODE_RUNTIME_READY) {
@@ -140,8 +144,8 @@ async function confirmPinnedRuntimeHeld(
 /** Runs after the payload is promoted and before `.install-complete`, so a refused dir never completes. */
 export async function verifyPinnedRelayInstall(context: PinnedInstallContext): Promise<void> {
   const { conn, host, remoteRelayDir, plan, signal } = context
-  // Why POSIX only: the store lock and store GC are POSIX-only for now; rung C has no managed runtime.
-  if (plan.kind === 'pinned-node' && !isWindowsRemoteHost(host)) {
+  // Rung C runs no store runtime, so it has nothing store GC can take.
+  if (plan.kind === 'pinned-node') {
     await confirmPinnedRuntimeHeld({ ...context, plan })
   }
   const spawnHelpers = orcadNodePtyNativeArtifacts(plan.target).filter((artifact) =>

@@ -335,6 +335,45 @@ flight and unmerged at the time of writing; check the code rather than this
 paragraph for what the shipped build does. Screen capture and `SendInput` are
 inherent to the feature and no refactor removes them.
 
+### SSH hosts: upload-stage file identity and runtime-store GC
+
+These run on the _remote_ Windows host over SSH, not on the desktop, but the
+host's EDR scores them the same way.
+
+The relay upload stage fences each slot with the directory's file ID (volume
+serial plus file index). That used to come from `Add-Type -TypeDefinition` over
+a P/Invoke of `GetFileInformationByHandle`, compiled in every stage command. When
+the relay runs on Manta's pinned Node (design D5), node.exe is already hashed
+against the pin and has run once, so the stage commands now ask it instead:
+`src/main/ssh/ssh-relay-upload-stage-windows-commands.ts` runs
+`node.exe -e <fixed script> -- <path>`, a fixed `fs.lstatSync(..., { bigint: true })`
+with the path as an argument. libuv fills `dev` and `ino` from the same volume
+serial and file index, so both readers write the same `vol:high:low` lowercase
+hex, and identity files are compared after normalising hex spelling. An old
+client can recover a stage a new one reserved, and the reverse.
+
+Two alternatives were rejected:
+
+- **PowerShell alone.** Neither .NET Framework (Windows PowerShell 5.1) nor .NET
+  exposes a file index without P/Invoke, which is what `Add-Type` compiles.
+  `fsutil file queryfileid` would spawn another binary per lookup and prints a
+  different format, which would break mixed-version recovery.
+- **Host Node.** Relays still on the host's own Node (rung C and the legacy
+  path) keep the `Add-Type` helper, because Manta has not verified that binary.
+  That is the one remaining `Add-Type` site on SSH hosts; it goes when those
+  rungs do.
+
+A lookup costs one short-lived node.exe per existing stage directory the command
+inspects, usually one or two. It is not a loop over the whole pool.
+
+Runtime-store GC (`src/main/ssh/remote-node-runtime-store-windows.ts`) reads the
+store in one PowerShell invocation. It learns which runtimes are in use from a
+single `Get-CimInstance Win32_Process` query, filtered on an image path under
+`runtimes\`. It never matches on the image name, so another program's node.exe
+holds nothing. If the query fails, no process check has run and the pass keeps
+everything. Windows itself also refuses to delete a running image, which is a
+second safeguard.
+
 ## Signing is not the gate
 
 The most useful calibration in the whole incident set came from the reporter's

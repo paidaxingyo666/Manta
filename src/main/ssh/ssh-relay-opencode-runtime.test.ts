@@ -36,6 +36,7 @@ import { getRemoteHostPlatform } from './ssh-remote-platform'
 import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
 import { ensureRemoteOpenCodeRuntime } from './ssh-relay-opencode-runtime'
 import { OPENCODE_RUNTIME_RESULT } from './ssh-relay-opencode-runtime-commands'
+import { decodeRemotePowerShellScript } from './ssh-remote-powershell'
 
 const host = getRemoteHostPlatform('linux-x64')
 const remoteHome = '/home/ada'
@@ -411,5 +412,87 @@ describe('SSH OpenCode runtime setup', () => {
       'failed'
     )
     expect(mocks.materialize).not.toHaveBeenCalled()
+  })
+})
+
+describe('SSH OpenCode runtime setup on a Windows host', () => {
+  const windows = getRemoteHostPlatform('win32-x64')
+  const home = 'C:/Users/ada'
+  const windowsRelayDir = `${home}/.manta-remote/relay-build`
+  const sha = NODE_RUNTIME_ASSETS['win32-x64'].executableSha256
+  const storeNode = `${home}/.manta-remote/runtimes/node-${sha}/node.exe`
+
+  function answerWindows(storeReady: boolean): string[] {
+    const scripts: string[] = []
+    mocks.target.mockResolvedValue('win32-x64')
+    mocks.exec.mockImplementation(async (_conn, command: string) => {
+      const script = decodeRemotePowerShellScript(command)
+      scripts.push(script)
+      if (script.includes('SELECT 1 AS ready')) {
+        return frame('unsupported')
+      }
+      if (script.includes('.store-lock') && script.includes('CreateNew')) {
+        return 'OK'
+      }
+      if (script.includes('Invoke-OrcaPromote')) {
+        return 'ORCA_NODE_RUNTIME_READY'
+      }
+      if (script.includes('ORCA_NODE_RUNTIME_MISSING')) {
+        return storeReady ? 'ORCA_NODE_RUNTIME_READY' : 'ORCA_NODE_RUNTIME_MISSING'
+      }
+      if (script.includes('staging quota is full')) {
+        return `__MANTA_UPLOAD_STAGE_SLOT__${script.match(/\.sftp-namespace-[0-9a-f]{32}/)?.[0]}:slot-0`
+      }
+      if (script.includes('COPYFILE_EXCL')) {
+        return frame('published')
+      }
+      return ''
+    })
+    return scripts
+  }
+
+  it('installs the official archive through the runtime store, not a client-extracted node.exe', async () => {
+    const scripts = answerWindows(false)
+    expect(
+      await ensureRemoteOpenCodeRuntime(connection(true), windows, home, {
+        nodePath: 'C:/Program Files/nodejs/node.exe',
+        relayDir: windowsRelayDir,
+        cacheRoot
+      })
+    ).toBe('ready')
+    expect(mocks.materialize).toHaveBeenCalledWith('win32-x64', cacheRoot, expect.any(Object))
+    expect(mocks.upload).toHaveBeenCalledOnce()
+    expect(mocks.upload.mock.calls[0][2]).toMatch(
+      /\/runtimes\/\.stage-node-[0-9a-f]{64}-[0-9a-f]{16}$/
+    )
+    expect(scripts.some((script) => script.includes('Invoke-OrcaPromote'))).toBe(true)
+    expect(JSON.parse(mocks.write.mock.calls[0][3])).toEqual({ protocol: 1, executable: storeNode })
+    const publish = scripts.find((script) => script.includes('COPYFILE_EXCL'))
+    expect(publish).toContain(`${windowsRelayDir}/.runtime-ref-node-${sha}`)
+    // Stage fencing reads file IDs through the verified node.exe, so no script compiles C#.
+    const stageScripts = scripts.filter((script) => script.includes('$getFileIdentity'))
+    expect(stageScripts.length).toBeGreaterThan(0)
+    for (const script of stageScripts) {
+      expect(script).toContain(`$orcaIdentityNode = '${storeNode}'`)
+      expect(script).not.toContain('Add-Type')
+    }
+  })
+
+  it("reuses a verified store runtime and prefers the relay's own verified node.exe", async () => {
+    const scripts = answerWindows(true)
+    const relayNode = `${home}/.manta-remote/runtimes/node-other/node.exe`
+    expect(
+      await ensureRemoteOpenCodeRuntime(connection(true), windows, home, {
+        nodePath: relayNode,
+        verifiedNodePath: relayNode,
+        relayDir: windowsRelayDir,
+        cacheRoot
+      })
+    ).toBe('ready')
+    expect(mocks.materialize).not.toHaveBeenCalled()
+    expect(mocks.upload).not.toHaveBeenCalled()
+    for (const script of scripts.filter((s) => s.includes('$getFileIdentity'))) {
+      expect(script).toContain(`$orcaIdentityNode = '${relayNode}'`)
+    }
   })
 })
