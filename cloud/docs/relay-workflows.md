@@ -195,8 +195,8 @@ intentional fallback. C30 was promoted to general on
 2026-09-23, so the same-cap job now rolls it as a general cell and the shadow gate's fleet pool list
 reads it beside C27-C29. A later Asia cell stays in the same-cap migration-only list and out of the
 fleet pool list until its own promotion, then moves to both together, as its own reviewed wave.
-C31 is in that state now: declared and listed as a same-cap migration-only cell, not yet in the
-fleet pool list.
+C31 followed that path and was promoted to general on 2026-10-01, so it is now a same-cap general
+cell and in the fleet pool list beside C27-C30.
 Rollback returns
 Asia cells to migration-only; it does not destroy the network or use
 existing-only. The production topology dispatch remains unavailable until the
