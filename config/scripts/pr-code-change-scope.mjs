@@ -47,6 +47,7 @@ const GIT_COMPAT_PREFIXES = [
   '.github/actions/prepare-git-compatibility/',
   'src/shared/git-',
   'src/shared/review-head-tracking-ref',
+  'src/shared/worktree/local-base-branch-fast-forward',
   'src/main/git/',
   'src/relay/git-',
   'config/scripts/git-binary-compatibility'

@@ -132,6 +132,12 @@ describe('per-job path classification', () => {
     expectClassification(['.github/actions/prepare-git-compatibility/action.yml'], {
       git_compatibility: true
     })
+    // The contract pins the local-main fast-forward's exact arguments.
+    expectClassification(['src/shared/worktree/local-base-branch-fast-forward.ts'], {
+      git_compatibility: true,
+      package: true,
+      package_windows: true
+    })
   })
 
   it('runs the Codex index-heal contract only when the heal or its transport changes', () => {
