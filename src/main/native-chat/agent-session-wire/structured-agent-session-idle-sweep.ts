@@ -15,6 +15,7 @@ import type { AgentJournalRenderItem } from '../../../shared/agent-session-journ
 import type { AgentChildWorkView } from '../../../shared/agent-status-child-work-view'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
 import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
+import { pendingProviderChildWindDown } from './structured-agent-session-provider-child'
 
 export const STRUCTURED_AGENT_SESSION_IDLE_SWEEP_INTERVAL_MS = 5 * 60_000
 export const STRUCTURED_AGENT_SESSION_IDLE_MS = 30 * 60_000
@@ -36,6 +37,8 @@ export type StructuredAgentSessionIdleSweepDeps = {
   providerHoldsDispatch: (sessionId: string) => boolean
   /** Each of these runs inside the session's serialize and never takes it again. */
   stopAgent: (sessionId: string) => Promise<void>
+  /** Retries a stop that did not finish; landing, it hands over what waited on it. */
+  finishOwedWindDown: (sessionId: string) => Promise<boolean>
   stopStartingAgent: (sessionId: string) => Promise<void>
   closeConversation: (sessionId: string) => Promise<boolean>
   logger: StructuredAgentSessionLogger
@@ -108,14 +111,10 @@ export class StructuredAgentSessionIdleSweep {
     if (!session || this.deps.isDisposed()) {
       return
     }
-    // A stop that failed after the child was proven gone: finish it now, before the idle test, so
-    // the rows its settlement wrote cannot push the retry out. A message accepted since goes first.
-    if (
-      session.owesProviderChildWindDown !== undefined &&
-      !session.child &&
-      !this.queuedOrDelivering(sessionId, session)
-    ) {
-      await this.deps.stopAgent(sessionId)
+    // A stop that did not finish: retry it now, before the idle test, so the rows its settlement
+    // wrote cannot push the retry out. A running delivery step retries it itself.
+    if (pendingProviderChildWindDown(session) && !this.deps.deliveryActive(sessionId)) {
+      await this.deps.finishOwedWindDown(sessionId)
       return
     }
     // Owed work is activity, read every tick, so the agent gets a full window once it ends: a child

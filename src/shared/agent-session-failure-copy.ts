@@ -80,7 +80,9 @@ export const AGENT_SESSION_FAILURE_COPY = {
   hostStopped: '{{agent}} never finished starting, so Manta stopped it.',
   providerRateLimited: '{{agent}} is rate-limited and retrying.',
   providerRetrying: '{{agent}} hit a temporary problem and is retrying.',
-  providerRetryingQuoted: '{{agent}} is retrying: {{detail}}.'
+  providerRetryingQuoted: '{{agent}} is retrying: {{detail}}.',
+  previousExitUnverifiable:
+    "Manta couldn't confirm {{agent}}'s previous process ended. Messages wait to be sent until Manta confirms it has ended."
 } as const
 
 export type AgentSessionFailureCopyId = keyof typeof AGENT_SESSION_FAILURE_COPY

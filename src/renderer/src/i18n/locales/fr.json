@@ -17452,7 +17452,8 @@
         "hostStopped": "{{agent}} n'a jamais fini de démarrer, Manta l'a donc arrêté.",
         "providerRateLimited": "{{agent}} est limité en débit et réessaie.",
         "providerRetrying": "{{agent}} a rencontré un problème temporaire et réessaie.",
-        "providerRetryingQuoted": "{{agent}} réessaie : {{detail}}."
+        "providerRetryingQuoted": "{{agent}} réessaie : {{detail}}.",
+        "previousExitUnverifiable": "Manta n'a pas pu confirmer que le processus précédent de {{agent}} s'est arrêté. Les messages attendent d'être envoyés jusqu'à ce qu'Manta confirme son arrêt."
       },
       "writeNotice": {
         "notDoneReadHistory": "L'historique de ce chat n'a pas pu être chargé.",

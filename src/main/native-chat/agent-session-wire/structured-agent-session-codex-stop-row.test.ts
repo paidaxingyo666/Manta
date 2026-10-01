@@ -36,6 +36,8 @@ let host: StructuredAgentSessionHost
 let turns: ReturnType<typeof codexTurnLifecycleFake>
 let codex: ReturnType<typeof fakeCodex>
 let notify: (method: string, params: unknown) => void
+/** Read at each start, so a test can say what the next start resumes. */
+let launch: { resumeThreadId?: string | null }
 let disposeSession: MockInstance<NonNullable<StructuredAgentSessionAdapter['disposeSession']>>
 
 beforeEach(async () => {
@@ -57,7 +59,8 @@ beforeEach(async () => {
   }
   const store = await openTestAgentSessionRecordStore(root)
   // The runtime's wiring: an echo accepts its send, and an exit reaches the host.
-  const adapter = adapterFor(codex, {}, [], {
+  launch = {}
+  const adapter = adapterFor(codex, launch, [], {
     onDispatchSettledLate: (settlement) => void host.settleLateDispatch(settlement),
     onEvent: (event) => {
       if (event.type === 'ended' && 'cause' in event && event.cause === 'unexpected-exit') {
@@ -440,5 +443,54 @@ describe('a Codex Stop whose interrupt failed', () => {
 
     expect(stopped).toMatchObject({ ok: true, value: { cancelled: false } })
     expect(childEndedByStop()).toBe(false)
+  })
+})
+
+describe('a message after a Codex Stop whose exit was unproven', () => {
+  it('retries that stop first, then goes to a fresh Codex, never to the old one', async () => {
+    await runningTurn()
+    codex.routes['turn/interrupt'] = () => {
+      throw interruptFailure('internal error')
+    }
+    // As the real connection: once a close begins it refuses every request, proven or not.
+    const old = codex.connections.at(-1)!
+    const close = old.close
+    const request = old.request
+    let unproven = 1
+    old.close = async () => {
+      old.closed = true
+      if (unproven === 0) {
+        return close()
+      }
+      unproven -= 1
+      return false
+    }
+    old.request = (method, params) =>
+      old.closed
+        ? Promise.reject(new Error('codex app-server is closing'))
+        : request(method, params)
+
+    await stop()
+    await host.flushStreamedEvents(SESSION)
+    expect(host['sessions'].get(SESSION)?.owesProviderChildWindDown).toBeDefined()
+    // The next start resumes the chat's thread, as the runtime's launch resolves it from the record.
+    launch.resumeThreadId = THREAD
+
+    const sent = await send('carry on')
+    expect(sent).toMatchObject({ ok: true })
+    await vi.waitFor(() => expect(codex.connections).toHaveLength(2))
+    await vi.waitFor(() =>
+      expect(
+        codex.connections[1]!.calls.some(
+          (call) => call.method === 'turn/start' && JSON.stringify(call.params).includes('carry on')
+        )
+      ).toBe(true)
+    )
+    expect(
+      old.calls.some(
+        (call) => call.method === 'turn/start' && JSON.stringify(call.params).includes('carry on')
+      )
+    ).toBe(false)
+    expect(host['sessions'].get(SESSION)?.owesProviderChildWindDown).toBeUndefined()
   })
 })

@@ -22,10 +22,7 @@ import { structuredAgentSessionOwnerStatus } from './structured-agent-session-ow
 import { StructuredAgentSessionHostRuntimeState } from './structured-agent-session-host-runtime-state'
 import { attachStructuredAgentSession } from './structured-agent-session-attach-orchestration'
 import type { StructuredAgentSessionLifetimeContext } from './structured-agent-session-host-lifetime'
-import {
-  ensureStructuredAgentSessionAgent,
-  ensureStructuredAgentSessionAgentForOperation
-} from './structured-agent-session-agent-start'
+import * as agentStart from './structured-agent-session-agent-start'
 import {
   createStructuredAgentSessionConversationLifetime,
   type StructuredAgentSessionConversationLifetime
@@ -128,7 +125,7 @@ export class StructuredAgentSessionHost {
       // Quit drains a delivery start before it evicts, so the child it produces is stopped.
       trackStart: (start) => this.tasks.trackAttach(start),
       ensureProviderChild: (sessionId, startedFor) =>
-        ensureStructuredAgentSessionAgent(this.attachContext(), sessionId, startedFor),
+        agentStart.ensureStructuredAgentSessionAgent(this.attachContext(), sessionId, startedFor),
       reset: (sessionId, journal, reset) =>
         this.subscribers.reset(
           sessionId,
@@ -195,7 +192,8 @@ export class StructuredAgentSessionHost {
       runtimeState: this.runtimeState,
       sessions: this.sessions,
       now: () => this.now(),
-      publishStatus: this.clientDelivery.publishStatus
+      publishStatus: this.clientDelivery.publishStatus,
+      wakeDelivery: (sessionId: string) => this.conversationDelivery.loop.wake(sessionId)
     } satisfies StructuredAgentSessionLifetimeContext
   }
 
@@ -283,7 +281,12 @@ export class StructuredAgentSessionHost {
       serialize: (sessionId, task) => this.serialize(sessionId, task),
       openConversation: this.conversationDelivery.open,
       ensureAgent: (sessionId) =>
-        ensureStructuredAgentSessionAgentForOperation(this.attachContext(), sessionId),
+        agentStart.ensureStructuredAgentSessionAgentForOperation(this.attachContext(), sessionId),
+      finishOwedStop: (sessionId) =>
+        agentStart.finishOwedStructuredAgentSessionStopForProviderWrite(
+          this.attachContext(),
+          sessionId
+        ),
       wakeDelivery: (sessionId) => this.conversationDelivery.loop.wake(sessionId),
       stopAgent: (sessionId) => this.lifetime.stopAgent(sessionId, 'user-stop'),
       wakeQueuedDrain: (sessionId) => this.queued.drain.schedule(sessionId),

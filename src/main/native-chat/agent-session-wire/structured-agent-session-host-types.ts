@@ -38,9 +38,13 @@ export type StructuredAgentSessionProviderChildIdentity = {
   readonly fence: number
 }
 
-/** A wind-down still owed, with the cause of the stop that owes it: a retry finishes that stop. */
+/** A wind-down still owed, with the stop that owes it: a retry finishes that stop. */
 export type StructuredAgentSessionOwedWindDown = StructuredAgentSessionProviderChildIdentity & {
   readonly cause: StructuredAgentSessionStopCause
+  /** Where the journal stood when the stop was asked for; the child's end is ordered there. */
+  readonly requestedAt: AgentJournalCursor
+  /** Where it stood once the newest pass failed: a message accepted by then waited through a retry. */
+  readonly failedAt?: AgentJournalCursor
 }
 
 /** The provider process behind a conversation. Written only in
@@ -74,7 +78,8 @@ export type StructuredAgentSessionEndedChild = StructuredAgentSessionProviderChi
     duringStartup: boolean
     startedFor?: string
     /** Where the conversation's journal stood when the child ended, to order the end against a
-     *  message's acceptance. */
+     *  message's acceptance. A stop's end stands where it was asked for: a message accepted while
+     *  retries proved the exit waited on it, and came after it. */
     endedAt: AgentJournalCursor
   }
 

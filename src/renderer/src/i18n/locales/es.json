@@ -14986,7 +14986,8 @@
         "hostStopped": "{{agent}} no terminó de iniciarse, así que Manta lo detuvo.",
         "providerRateLimited": "{{agent}} alcanzó un límite de solicitudes y está reintentando.",
         "providerRetrying": "{{agent}} tuvo un problema temporal y está reintentando.",
-        "providerRetryingQuoted": "{{agent}} está reintentando: {{detail}}."
+        "providerRetryingQuoted": "{{agent}} está reintentando: {{detail}}.",
+        "previousExitUnverifiable": "Manta no pudo confirmar que el proceso anterior de {{agent}} terminó. Los mensajes esperan para enviarse hasta que Manta confirme que terminó."
       },
       "writeNotice": {
         "notDoneReadHistory": "No se pudo cargar el historial de este chat.",

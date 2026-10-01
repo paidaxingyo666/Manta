@@ -17388,7 +17388,8 @@
         "hostStopped": "{{agent}}이(가) 시작을 마치지 못해 Manta가 중지했습니다.",
         "providerRateLimited": "{{agent}}이(가) 속도 제한에 걸려 다시 시도하고 있습니다.",
         "providerRetrying": "{{agent}}에 일시적인 문제가 발생하여 다시 시도하고 있습니다.",
-        "providerRetryingQuoted": "{{agent}}이(가) 다시 시도하고 있습니다: {{detail}}."
+        "providerRetryingQuoted": "{{agent}}이(가) 다시 시도하고 있습니다: {{detail}}.",
+        "previousExitUnverifiable": "Manta가 {{agent}}의 이전 프로세스가 종료되었는지 확인하지 못했습니다. Manta가 종료를 확인할 때까지 메시지는 전송을 기다립니다."
       },
       "writeNotice": {
         "notDoneReadHistory": "이 채팅의 기록을 불러오지 못했습니다.",

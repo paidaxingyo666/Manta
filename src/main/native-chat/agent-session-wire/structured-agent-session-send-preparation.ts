@@ -83,6 +83,25 @@ export function openForWrite(
   return () => openConversationForWrite(context.openConversation, envelope, context.deps.logger)
 }
 
+/** For an operation the running child performs, which starts none: the conversation, then any
+ *  stop an earlier attempt left owed, so it never reaches a child that takes no input. */
+export function openForProviderWrite(
+  context: Pick<
+    StructuredAgentSessionMutationContext,
+    'openConversation' | 'finishOwedStop' | 'deps'
+  >,
+  envelope: AgentSessionMutationEnvelope
+): () => Promise<AgentSessionMutationSessionPreparation> {
+  return async () => {
+    const opened = await openConversationForWrite(
+      context.openConversation,
+      envelope,
+      context.deps.logger
+    )
+    return opened.ok ? context.finishOwedStop(envelope.sessionId) : opened
+  }
+}
+
 /** For an operation only the provider can perform: the conversation, then its agent. */
 export function openWithAgent(
   context: Pick<StructuredAgentSessionMutationContext, 'openConversation' | 'ensureAgent' | 'deps'>,

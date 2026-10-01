@@ -17353,7 +17353,8 @@
         "hostStopped": "{{agent}} 始终未完成启动，因此 Manta 已将其停止。",
         "providerRateLimited": "{{agent}} 已被限流，正在重试。",
         "providerRetrying": "{{agent}} 遇到临时问题，正在重试。",
-        "providerRetryingQuoted": "{{agent}} 正在重试：{{detail}}。"
+        "providerRetryingQuoted": "{{agent}} 正在重试：{{detail}}。",
+        "previousExitUnverifiable": "Manta 无法确认 {{agent}} 的上一个进程已结束。在 Manta 确认其已结束之前，消息会等待发送。"
       },
       "writeNotice": {
         "notDoneReadHistory": "无法加载此聊天的历史记录。",
