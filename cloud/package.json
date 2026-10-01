@@ -12,6 +12,7 @@
     "dev": "pnpm --filter @orca-cloud/relay dev",
     "incident:relay": "pnpm --filter @orca-cloud/relay-ops incident:monitor",
     "incident:relay-preflight": "pnpm --filter @orca-cloud/relay-ops incident:preflight",
+    "incident:relay-pre-drain-sample": "pnpm --filter @orca-cloud/relay-ops incident:pre-drain-sample",
     "infra:apply": "node dev/scripts/infra.mjs apply",
     "infra:init": "node dev/scripts/infra.mjs init",
     "infra:plan": "node dev/scripts/infra.mjs plan",

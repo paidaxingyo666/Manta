@@ -428,7 +428,7 @@ targeted Terraform plan, and per-cell heartbeat/admission oracle are unchanged.
 sets and the two migration-only US 600/60 cells, C17 and C18, without changing a cell's connection
 shape. Use `canary-apply` for exactly one cell. A successful canary
 seals its commit, target and rollback digests, selector generation, and durable rehome generation;
-`batch-apply` accepts only that same authority and rolls two to four cells sequentially. Both apply
+`batch-apply` accepts only that same authority and rolls two to ten cells sequentially. Both apply
 modes and `rollback` first refuse a cell whose hosts (controls) exceed 80% of the free slots on the
 other fresh general cells, since drained hosts with nowhere to go keep redialling and pin the cell.
 `verify` runs the same read-only check, so it reports the headroom answer before an apply is
@@ -511,41 +511,46 @@ drained. Then read the cell's live runtime image from
    target image while the old instance is still up. Wait for the MIG to finish replacing it,
    then dispatch again; it will classify as `roll`.
 
-A mutating dispatch still needs a fresh aggregate monitor dry-run unless the break-glass
-override below is used.
+### Pre-drain fleet-health sample
 
-"Fresh" is short. The dispatch's `gate` job must see the dry-run completed at most 5 minutes
-earlier, on its own clock, and its checkout alone takes about 1.5 minutes, so dispatch within
-about 3 minutes of the monitor finishing. The gate records that authorization instant in the
-single-use consumed marker. Each cell job then checks the evidence was at most 5 minutes old at
-that instant, and that the job itself started within 5 minutes of it, plus 75 minutes per
-predecessor cell. The live preflight in each wave still rejects evidence older than 10 minutes,
-plus the same 75 minutes per predecessor, on its own clock. Evidence the gate rejects as stale
-is not consumed, so a fresh monitor run is the only fix.
+A same-cap dispatch does not need a separate monitor run. Each `apply` wave samples fleet health
+itself, inside its own job, as the last step before it isolates its cell:
 
-### Gate override (break-glass)
+1. The live preflight takes one sample against the monitor's thresholds, with the expected
+   selector taken from the dispatch inputs (offset for the wave) and the migration policy pinned
+   to `strict`. The membership is canonicalised the way the monitor canonicalises its own, so it
+   must name every configured cell exactly once and its order does not matter.
+2. The headroom check reads how many hosts the cell carries.
+3. The pre-drain sample (`pnpm incident:relay-pre-drain-sample`) then samples once a minute for a
+   window sized to that count: up to 500 hosts, 3 minutes; up to 1,500, 5 minutes; above that,
+   8 minutes. Every sample is judged by the monitor's own evaluator and thresholds, with the same
+   tolerance for a flaky cell probe, a director instance replacement, or an unread signal (two
+   consecutive samples). Every sample also applies three lookback rules no single reading can
+   see: no container exit (`orca_relay_cell_process_exit`) in the last 10 minutes on a cell that
+   takes placements (general or migration-only in the dispatch membership) other than the cell
+   being rolled, no minute in the last 10 with more than 500 director 503s (a disconnect
+   pulse), and director concurrency p99 at most the monitor's 64 over the last 4 minutes. The window does not end on a
+   sample that still carries a tolerated failure, and trips if three samples past the window
+   still have not come back clean.
 
-Every mutating same-cap wave normally consumes a fresh 15-minute aggregate monitor dry-run.
-`gate-override-reason` plus `gate-override-confirmation`, the latter exactly
-`SKIP_RELAY_MONITOR_GATE <target-image-digest>`, skips that aggregate evidence and nothing
-else. A partial or mismatched override fails the run before any mutation, and `verify` mode
-rejects it outright.
+The exit metric names only an instance, so each exiting instance is matched to a cell by that
+instance's own newest `orca_relay_runtime_metrics` line from the last two hours. The target's own
+exits are ignored, because the roll exists to fix them, and so are existing-only legacy cells,
+which take no placements. An exit whose instance cannot be matched to a configured cell trips the
+rule; a failed lookup counts as a failed read. A newly booted instance can exit several times in
+its first seconds while its Cloud SQL proxy sidecar starts (c25's replacement did on
+2026-09-28); if that lands within 10 minutes of the next wave's sample, that wave trips and the
+remaining cells need a new dispatch.
 
-It is legitimate when the roll is the fix for the condition the gate is freezing on, or
-during an incident with the director healthy. It is not a way to move faster on an ordinary
-wave.
+Any trip fails the wave before isolation, so nothing has changed; dispatch again once the fleet is
+quiet. Every later cell in a batch runs all three again, so a batch never drains on health read
+before the previous cell rolled. `rollback` runs the live preflight but not the window, because
+getting off a crash-looping image must not wait for the crashes to stop; `verify` runs neither.
 
-The live per-wave preflight still runs, against the same thresholds, with the expected
-selector taken from the dispatch inputs and the migration policy pinned to `strict`. That
-membership is canonicalised the same way the monitor canonicalises its own, so it must name
-every configured cell exactly once and its order does not matter.
-Durable rehome disabled, the exact selector generation and membership, the reviewed
-Terraform plan, the predecessor and new-incarnation checks, the rollout lease, the
-failed-wave failsafe, and single-dispatch mutation are all unchanged. The actor, reason,
-and confirmation are recorded in the gate job's run summary and, for a canary, sealed into
-the canary artifact under `gateOverride`; a batch may reuse a canary rolled under an
-override, because that authority never carried a monitor run ID. See
-[gate override (break-glass)](./relay-incident-monitor.md#gate-override-break-glass).
+The monitor workflow itself is unchanged and still gates the rehome enable path and incident
+watches. What a same-cap wave no longer has is the 15-minute history before the dispatch; the
+sized window plus the 10-minute lookbacks replace it, and the dispatch no longer has to land
+within minutes of a monitor run finishing.
 
 The first compatible director rollout uses `bootstrap-runtime-identity=true` with
 `BOOTSTRAP_RELAY_DIRECTOR_REHOME_IDENTITY`. That one-time path requires the exact stamped-cell

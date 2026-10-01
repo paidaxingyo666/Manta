@@ -207,20 +207,13 @@ test('requires fresh green evidence and rechecks the live selector', async () =>
   }
 })
 
-test('later same-cap waves accept evidence aged by predecessor cell rolls', async () => {
+test('dry-run authority holds evidence to five minutes on its own clock', async () => {
   const directory = await evidenceDirectory()
   try {
     const statePath = join(directory, 'relay-123.state.json')
     const state = JSON.parse(await readFile(statePath, 'utf8'))
-    const authorityAt = (...waveArgs) => verifyDryRunAuthority(
-      [
-        '--directory',
-        directory,
-        ...provenance,
-        '--required-migration-policy',
-        'strict',
-        ...waveArgs.flatMap((waveIndex) => ['--wave-index', waveIndex])
-      ],
+    const authority = () => verifyDryRunAuthority(
+      ['--directory', directory, ...provenance, '--required-migration-policy', 'strict'],
       () => now
     )
     const ageState = async (ageMs) => {
@@ -231,217 +224,13 @@ test('later same-cap waves accept evidence aged by predecessor cell rolls', asyn
       await writeFile(statePath, `${JSON.stringify(state)}\n`)
       await createEvidenceManifest(['--directory', directory, ...provenance])
     }
-    // The wave-0 bound in isolation: exactly 5 minutes, flag or no flag.
     await ageState(5 * 60_000)
-    await assert.doesNotReject(authorityAt())
-    await assert.doesNotReject(authorityAt('0'))
+    await assert.doesNotReject(authority())
     await ageState(5 * 60_000 + 1)
-    await assert.rejects(authorityAt(), /authority is incomplete or stale/)
-    await assert.rejects(authorityAt('0'), /authority is incomplete or stale/)
-    // One predecessor cell roll (~16 min) exceeds wave 0 but fits wave 1.
-    await ageState(17 * 60_000)
-    await assert.rejects(authorityAt('0'), /authority is incomplete or stale/)
-    await assert.doesNotReject(authorityAt('1'))
-    await assert.rejects(authorityAt('10'), /wave index is invalid/)
-    await assert.rejects(authorityAt('x'), /wave index is invalid/)
-    // Both edges of one predecessor job timeout: 5min + 75min exactly.
-    await ageState(80 * 60_000)
-    await assert.doesNotReject(authorityAt('1'))
-    await ageState(80 * 60_000 + 1)
-    await assert.rejects(authorityAt('1'), /authority is incomplete or stale/)
-    await assert.doesNotReject(authorityAt('2'))
-    // Wave 2 and wave 3 edges: 5min + 2 * 75min and 5min + 3 * 75min exactly.
-    await ageState(155 * 60_000)
-    await assert.doesNotReject(authorityAt('2'))
-    await ageState(155 * 60_000 + 1)
-    await assert.rejects(authorityAt('2'), /authority is incomplete or stale/)
-    await ageState(230 * 60_000)
-    await assert.doesNotReject(authorityAt('3'))
-    await ageState(230 * 60_000 + 1)
-    await assert.rejects(authorityAt('3'), /authority is incomplete or stale/)
-    // The last cell of a ten-cell same-cap batch: 5min + 9 * 75min exactly.
-    await ageState(680 * 60_000)
-    await assert.doesNotReject(authorityAt('9'))
-    await ageState(680 * 60_000 + 1)
-    await assert.rejects(authorityAt('9'), /authority is incomplete or stale/)
+    await assert.rejects(authority(), /authority is incomplete or stale/)
   } finally {
     await rm(directory, { recursive: true, force: true })
   }
-})
-
-test('same-cap freshness is decided at gate authorization, not cell startup', async () => {
-  const directory = await evidenceDirectory()
-  const authorizationDirectory = await mkdtemp(join(tmpdir(), 'relay-monitor-authorization-'))
-  try {
-    const statePath = join(directory, 'relay-123.state.json')
-    const state = JSON.parse(await readFile(statePath, 'utf8'))
-    const ageState = async (ageMs) => {
-      state.completedAt = new Date(now - ageMs).toISOString()
-      state.lastSampleAt = new Date(now - ageMs - 7).toISOString()
-      state.startedAt = new Date(now - ageMs - 17 * 60_000).toISOString()
-      state.windowStartedAt = new Date(now - ageMs - 16 * 60_000).toISOString()
-      await writeFile(statePath, `${JSON.stringify(state)}\n`)
-      await createEvidenceManifest(['--directory', directory, ...provenance])
-    }
-    let markers = 0
-    const base = ['--directory', directory, ...provenance, '--required-migration-policy', 'strict']
-    // The gate authorizes at `now`; returns the marker path it recorded.
-    const authorize = async (extra = []) => {
-      const marker = join(authorizationDirectory, `marker-${markers++}`)
-      await verifyDryRunAuthority(
-        [...base, '--consumer-run-id', '777', '--record-authorization', marker, ...extra],
-        () => now
-      )
-      return marker
-    }
-    const cellAt = (marker, sinceGateMs, waveIndex = '0', consumerRunId = '777') =>
-      verifyDryRunAuthority(
-        [
-          ...base,
-          '--wave-index',
-          waveIndex,
-          '--consumer-run-id',
-          consumerRunId,
-          '--authorization',
-          marker
-        ],
-        () => now + sinceGateMs
-      )
-
-    // 4 min old when the gate authorizes, 9 min old when the cell verifies: passes.
-    await ageState(4 * 60_000)
-    const marker = await authorize()
-    const recorded = JSON.parse(await readFile(marker, 'utf8'))
-    assert.deepEqual(recorded, {
-      schemaVersion: 1,
-      consumerRunId: '777',
-      monitorRunId: '123',
-      monitorRunAttempt: 1,
-      authorizedAt: new Date(now).toISOString()
-    })
-    assert.equal((await stat(marker)).mode & 0o777, 0o600)
-    await assert.doesNotReject(cellAt(marker, 5 * 60_000))
-    // The old rule, applied at cell startup, rejects that same evidence.
-    await assert.rejects(
-      verifyDryRunAuthority(base, () => now + 5 * 60_000),
-      /authority is incomplete or stale/
-    )
-    // A cell that starts past the startup allowance fails, however fresh the evidence was.
-    await assert.rejects(cellAt(marker, 5 * 60_000 + 1), /authority is incomplete or stale/)
-    await assert.rejects(cellAt(marker, -1), /authority is incomplete or stale/)
-    // Later waves extend only the time since authorization, one job timeout per predecessor.
-    await assert.doesNotReject(cellAt(marker, 80 * 60_000, '1'))
-    await assert.rejects(cellAt(marker, 80 * 60_000 + 1, '1'), /incomplete or stale/)
-    await assert.doesNotReject(cellAt(marker, 680 * 60_000, '9'))
-    await assert.rejects(cellAt(marker, 680 * 60_000 + 1, '9'), /incomplete or stale/)
-    // The authorization binds this run and this exact monitor attempt.
-    await assert.rejects(cellAt(marker, 60_000, '0', '778'), /does not match this run/)
-    await writeFile(marker, `${JSON.stringify({ ...recorded, monitorRunAttempt: 2 })}\n`)
-    await assert.rejects(cellAt(marker, 60_000), /does not match this run/)
-    // A recorded instant that predates the evidence, or is not canonical, is not authority.
-    await writeFile(
-      marker,
-      `${JSON.stringify({ ...recorded, authorizedAt: new Date(now - 5 * 60_000).toISOString() })}\n`
-    )
-    await assert.rejects(cellAt(marker, -5 * 60_000 + 1), /incomplete or stale/)
-    await writeFile(marker, `${JSON.stringify({ ...recorded, authorizedAt: '2026-07-28T12:00:00Z' })}\n`)
-    await assert.rejects(cellAt(marker, 60_000), /does not match this run/)
-
-    // The pre-change marker held only the run ID; it is not authority.
-    await writeFile(marker, '777\n')
-    await assert.rejects(cellAt(marker, 60_000), /does not match this run/)
-
-    // The gate's own bound at its exact edge.
-    await ageState(5 * 60_000)
-    await assert.doesNotReject(authorize())
-    await ageState(5 * 60_000 + 1)
-    await assert.rejects(authorize(), /authority is incomplete or stale/)
-
-    // 6 min old when the gate authorizes: fails, and records nothing to consume.
-    await ageState(6 * 60_000)
-    const staleMarker = join(authorizationDirectory, 'stale')
-    await assert.rejects(
-      verifyDryRunAuthority(
-        [...base, '--consumer-run-id', '777', '--record-authorization', staleMarker],
-        () => now
-      ),
-      /authority is incomplete or stale/
-    )
-    await assert.rejects(stat(staleMarker), { code: 'ENOENT' })
-
-    // The gate records once, before the first wave, for a named consumer run.
-    await ageState(60_000)
-    const existing = await authorize()
-    await assert.rejects(
-      verifyDryRunAuthority(
-        [...base, '--consumer-run-id', '777', '--record-authorization', existing],
-        () => now
-      ),
-      { code: 'EEXIST' }
-    )
-    await assert.rejects(authorize(['--wave-index', '1']), /before the first wave/)
-    await assert.rejects(
-      verifyDryRunAuthority(
-        [...base, '--record-authorization', join(authorizationDirectory, 'x')],
-        () => now
-      ),
-      /consumer run is invalid/
-    )
-    await assert.rejects(
-      verifyDryRunAuthority(
-        [
-          ...base,
-          '--consumer-run-id',
-          '777',
-          '--record-authorization',
-          join(authorizationDirectory, 'y'),
-          '--authorization',
-          existing
-        ],
-        () => now
-      ),
-      /authorization arguments are invalid/
-    )
-  } finally {
-    await rm(directory, { recursive: true, force: true })
-    await rm(authorizationDirectory, { recursive: true, force: true })
-  }
-})
-
-test('the same-cap gate authorizes on the evidence before it is consumed', async () => {
-  const stepOf = (workflow, name) => {
-    const start = workflow.indexOf(`- name: ${name}`)
-    assert.ok(start > 0, name)
-    const next = workflow.indexOf('\n      - ', start + 1)
-    return { start, body: workflow.slice(start, next < 0 ? undefined : next) }
-  }
-  const gate = await readFile(relayWorkflowUrl('deploy-relay-production-same-cap.yml'), 'utf8')
-  const reject = stepOf(gate, 'Reject previously consumed aggregate safety evidence')
-  const download = stepOf(gate, 'Download private aggregate monitor evidence')
-  const authorize = stepOf(gate, 'Authorize this run on fresh monitor evidence')
-  const consume = stepOf(gate, 'Consume aggregate safety evidence for this exact wave')
-  assert.match(reject.body, /test "\$\{GITHUB_RUN_ATTEMPT\}" = 1/)
-  assert.doesNotMatch(reject.body, /GITHUB_RUN_ID/)
-  assert.match(authorize.body, /verify-authority/)
-  assert.match(authorize.body, /--consumer-run-id "\$\{GITHUB_RUN_ID\}"/)
-  assert.match(authorize.body, /--record-authorization/)
-  assert.doesNotMatch(authorize.body, /--wave-index/)
-  assert.ok(reject.start < download.start)
-  assert.ok(download.start < authorize.start)
-  assert.ok(authorize.start < consume.start)
-  const job = await readFile(relayWorkflowUrl('deploy-relay-production-same-cap-job.yml'), 'utf8')
-  const marker = stepOf(job, "Download this wave's single-use safety authority")
-  const attempt = stepOf(job, 'Require safety evidence consumed by this workflow')
-  const verify = stepOf(job, 'Verify monitor evidence provenance')
-  assert.match(marker.body, /run-id: \$\{\{ github\.run_id \}\}/)
-  assert.match(attempt.body, /test "\$\{GITHUB_RUN_ATTEMPT\}" = 1/)
-  assert.match(verify.body, /--consumer-run-id "\$\{GITHUB_RUN_ID\}"/)
-  assert.match(verify.body, /--authorization "\$\{RUNNER_TEMP\}\/relay-same-cap-monitor-authority\//)
-  assert.match(verify.body, /--wave-index "\$\{WAVE_INDEX\}"/)
-  assert.ok(marker.start < verify.start)
-  assert.ok(attempt.start < verify.start)
-  assert.ok(verify.start < job.indexOf('uses: ./.github/actions/cloud-sql-rollout-lease'))
-  assert.ok(verify.start < job.indexOf('Recheck aggregate SQL, pool, reconnect'))
 })
 
 test('binds migration policies to their exact mutations', async () => {
@@ -631,19 +420,14 @@ test('workflow reruns restore the prior attempt into one stable incident', async
   assert.match(dispatchWorkflow, /capacity-cell-id: \$\{\{ inputs\.capacity-cell-id \}\}/)
 })
 
-test('same-cap and rehome mutations require complete strict dry-run authority', async () => {
-  for (const name of [
-    'deploy-relay-production-same-cap-job.yml',
-    'operate-relay-production-rehome-job.yml'
-  ]) {
-    const workflow = await readFile(
-      relayWorkflowUrl(name),
-      'utf8'
-    )
-    assert.match(workflow, /relay-monitor-evidence\.mjs verify-authority/)
-    assert.match(workflow, /--required-migration-policy strict/)
-    assert.doesNotMatch(workflow, /relay-monitor-evidence\.mjs verify-restore/)
-  }
+test('rehome enable requires complete strict dry-run authority', async () => {
+  const workflow = await readFile(
+    relayWorkflowUrl('operate-relay-production-rehome-job.yml'),
+    'utf8'
+  )
+  assert.match(workflow, /relay-monitor-evidence\.mjs verify-authority/)
+  assert.match(workflow, /--required-migration-policy strict/)
+  assert.doesNotMatch(workflow, /relay-monitor-evidence\.mjs verify-restore/)
 })
 
 test('production mutation workflows consume and live-recheck dry-run evidence', async () => {

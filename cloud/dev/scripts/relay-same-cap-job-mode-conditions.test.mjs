@@ -105,3 +105,59 @@ test('the headroom gate runs whenever the drain runs, and in verify', () => {
   }
   assert.ok(evaluate(headroom, { 'inputs.mode': 'verify', 'env.ROLLBACK_RESUME': 'false' }))
 })
+
+// The roll's fleet-health gate lives inside the job now; a separate monitor run must not creep back.
+test('neither same-cap workflow depends on monitor evidence', () => {
+  for (const [name, text] of [['parent', parent], ['job', job]]) {
+    for (const pattern of [
+      /monitor-run-(id|attempt)/,
+      /MONITOR_RUN_/,
+      /relay-monitor-evidence/,
+      /relay-monitor-dry-run-/,
+      /monitor-consumed/,
+      /gate-override/,
+      /GATE_OVERRIDE/,
+      /SKIP_RELAY_MONITOR_GATE/,
+      /--state-file/
+    ]) {
+      assert.doesNotMatch(text, pattern, `${name} still references ${pattern}`)
+    }
+  }
+})
+
+test('every apply wave samples fleet health right before it drains', () => {
+  const sampleName = 'Sample fleet health for a window sized to this drain'
+  const sample = stepCondition(sampleName)
+  const drain = stepCondition('Reversibly isolate and drain only the selected cell')
+  for (const mode of parentJobModes()) {
+    for (const resume of ['true', 'false']) {
+      const context = { 'inputs.mode': mode, 'env.ROLLBACK_RESUME': resume }
+      if (mode === 'apply' && evaluate(drain, context)) {
+        assert.ok(evaluate(sample, context), `apply drain without a sample: ${resume}`)
+      }
+    }
+  }
+  assert.equal(evaluate(sample, { 'inputs.mode': 'verify' }), false)
+  assert.equal(evaluate(sample, { 'inputs.mode': 'rollback' }), false)
+  const at = (name) => {
+    const index = job.indexOf(`- name: ${name}\n`)
+    assert.notEqual(index, -1, name)
+    return index
+  }
+  const order = [
+    'Recheck aggregate SQL, pool, reconnect, migration, and selector safety',
+    "Require free general-cell slots for the selected cell's hosts",
+    sampleName,
+    'Reversibly isolate and drain only the selected cell'
+  ].map(at)
+  assert.deepEqual(order, [...order].sort((left, right) => left - right))
+  const step = job.slice(at(sampleName), job.indexOf('\n      - ', at(sampleName) + 1))
+  // The window is sized from the headroom step's own count, and each wave offsets its selector.
+  assert.match(step, /pnpm incident:relay-pre-drain-sample/)
+  assert.match(step, /--target-hosts "\$\{TARGET_HOSTS\}"/)
+  // The crash rule exempts the cell being rolled, so it must be told which one that is.
+  assert.match(step, /--target-cell-id "\$\{TARGET_CELL_ID\}"/)
+  assert.match(step, /--wave-index "\$\{WAVE_INDEX\}"/)
+  assert.match(step, /--selector-wave-delta "\$\{SELECTOR_WAVE_DELTA\}"/)
+  assert.match(job, /echo "TARGET_HOSTS=\$\{TARGET_HOSTS\}" >> "\$\{GITHUB_ENV\}"/)
+})
