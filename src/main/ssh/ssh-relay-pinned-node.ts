@@ -2,7 +2,7 @@
  * Plan a relay launch on Manta's pinned Node with the mantad slot's prebuilt addons, instead
  * of the host's Node plus a host-side npm install (design D5, D6 rung A, D8.1).
  *
- * Opt-in per host (`SshTarget.remoteRuntime`), POSIX hosts only. Anything this module cannot
+ * Opt-in per host (`SshTarget.remoteRuntime`). Anything this module cannot
  * establish on the client, and every classified refusal from the host, falls back to the
  * legacy host-Node path with a logged reason.
  */
@@ -11,13 +11,18 @@ import { chmod, copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { getAppEnvironment } from '../../shared/app-environment'
-import { NODE_RUNTIME_ASSETS, type ServerTarget } from '../../shared/node-runtime-pin'
+import {
+  isWindowsServerTarget,
+  NODE_RUNTIME_ASSETS,
+  type ServerTarget
+} from '../../shared/node-runtime-pin'
 import {
   ORCAD_NODE_PTY_JS_ARTIFACTS,
-  ORCAD_NODE_RUNTIME_POSIX_EXECUTABLE,
   ORCAD_PARCEL_WATCHER_ENTRY,
   ORCAD_PARCEL_WATCHER_NATIVE,
-  orcadNodePtyNativeArtifacts
+  ORCAD_WINDOWS_PROCESS_TREE_FILENAME,
+  orcadNodePtyNativeArtifacts,
+  orcadNodeRuntimeExecutable
 } from '../../shared/mantad-artifacts'
 import {
   DEFAULT_SSH_REMOTE_RUNTIME,
@@ -86,7 +91,9 @@ export function pinnedRelayAddonFiles(target: ServerTarget): string[] {
     ...ORCAD_NODE_PTY_JS_ARTIFACTS,
     ...orcadNodePtyNativeArtifacts(target),
     ORCAD_PARCEL_WATCHER_ENTRY,
-    ORCAD_PARCEL_WATCHER_NATIVE
+    ORCAD_PARCEL_WATCHER_NATIVE,
+    // The slot's patched copy, so the process table never falls back to a PowerShell scan.
+    ...(isWindowsServerTarget(target) ? [ORCAD_WINDOWS_PROCESS_TREE_FILENAME] : [])
   ]
 }
 
@@ -140,7 +147,7 @@ export async function stagePinnedRelayAddons(
   }
 }
 
-/** `~/.manta-remote/runtimes/node-<sha>/bin/node`, the sibling store mantad slots use too. */
+/** `~/.manta-remote/runtimes/node-<sha>/bin/node` (`…\\node.exe` on Windows), shared with mantad slots. */
 export function pinnedRelayNodePath(
   host: RemoteHostPlatform,
   remoteRelayDir: string,
@@ -149,7 +156,7 @@ export function pinnedRelayNodePath(
   return joinRemotePath(
     host,
     remoteNodeRuntimeDir(host, remoteRelayDir, target),
-    ...ORCAD_NODE_RUNTIME_POSIX_EXECUTABLE.split('/')
+    ...orcadNodeRuntimeExecutable(target).split('/')
   )
 }
 
@@ -164,6 +171,7 @@ export type PinnedRelayPlan = {
 
 export type RelayRuntimeFallbackReason =
   | PinnedRuntimeRefusal
+  /** Rung C only: the host-Node addon relay is POSIX-only. */
   | 'windows_host_unsupported'
   | 'target_unresolved'
   | 'artifacts_unavailable'
@@ -262,12 +270,6 @@ export async function planPinnedNodeRelay(options: {
   runtimeCacheRoot?: () => string
 }): Promise<PinnedRelayPlan | HostNodeRelayPlan> {
   const { host, signal } = options
-  if (host.os === 'win32') {
-    return logPinnedRelayFallback(
-      'windows_host_unsupported',
-      'Windows hosts keep the host-Node relay for now'
-    )
-  }
   const facts =
     options.facts ?? (await resolvePinnedRelayTargetFacts({ conn: options.conn, host, signal }))
   if ('kind' in facts) {

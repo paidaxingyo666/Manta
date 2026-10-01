@@ -47,12 +47,6 @@ export async function planRelayRuntimeStep(
     case 'legacy':
       return undefined
     case 'A': {
-      if (host.os === 'win32') {
-        throw new PinnedRelayFallbackError(
-          'windows_host_unsupported',
-          'Windows hosts keep the host-Node relay for now'
-        )
-      }
       const facts = await ladderTargetFacts(options)
       const plan = await planPinnedNodeRelay({
         conn,
@@ -87,7 +81,7 @@ export async function planRelayRuntimeStep(
       if (host.os === 'win32') {
         throw new PinnedRelayFallbackError(
           'windows_host_unsupported',
-          'Windows hosts keep the host-Node relay for now'
+          'Windows hosts have no host-Node addon relay'
         )
       }
       const plan = await planHostNodeAddonRelay({

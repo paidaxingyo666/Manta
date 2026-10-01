@@ -25,10 +25,9 @@ export type CompatServerTarget = (typeof COMPAT_SERVER_TARGETS)[number]
 
 export type NodeRuntimeTarget = ServerTarget | CompatServerTarget
 
-// Managed SSH deployment supports POSIX hosts; Windows uses standalone builds.
-export const ORCAD_TEMPLATE_TARGETS = SERVER_TARGETS.filter(
-  (target) => !target.startsWith('win32-')
-)
+// Every target: Windows SSH relays take their node-pty/ConPTY slot from here (design D5), even
+// though managed mantad launch stays POSIX-only (mantad-remote-host-support.ts).
+export const ORCAD_TEMPLATE_TARGETS: readonly ServerTarget[] = SERVER_TARGETS
 
 export type NodeRuntimePin = {
   version: string

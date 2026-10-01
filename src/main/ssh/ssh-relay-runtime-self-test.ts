@@ -14,6 +14,8 @@ import {
   type RelayRuntimeSelfTestReport
 } from '../../shared/relay-runtime-self-test-report'
 import type { SshConnection } from './ssh-connection'
+import { isWindowsRemoteHost, type RemoteHostPlatform } from './ssh-remote-platform'
+import { powerShellCommand, powerShellLiteral } from './ssh-remote-powershell'
 import { shellEscape } from './ssh-connection-utils'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { isUnconfirmedSshCommandTermination } from './ssh-relay-exec-command'
@@ -27,7 +29,9 @@ export const PINNED_RUNTIME_REFUSALS = [
   'missing_lib',
   'libc_floor',
   'illegal_instruction',
-  'wrong_libc'
+  'wrong_libc',
+  // Windows: AV or application control removed, rewrote or blocked verified bytes.
+  'security_software'
 ] as const
 export type PinnedRuntimeRefusal = (typeof PINNED_RUNTIME_REFUSALS)[number]
 
@@ -46,6 +50,17 @@ export function classifyPinnedRuntimeFailure(
   exitStatus: number | null,
   output: string
 ): PinnedRuntimeRefusal | null {
+  if (/contains a virus|potentially unwanted software|missing after upload/i.test(output)) {
+    return 'security_software'
+  }
+  // Windows application control refuses to start binaries under the user profile.
+  if (
+    /blocked by group policy|Application Control policy|AppLocker|software restriction/i.test(
+      output
+    )
+  ) {
+    return 'noexec'
+  }
   if (exitStatus === SIGILL_EXIT_STATUS || /illegal instruction/i.test(output)) {
     return 'illegal_instruction'
   }
@@ -96,6 +111,26 @@ export function relayRuntimeSelfTestCommand(
   return `cd ${shellEscape(relayDir)} && ${wrapWithExitReport(
     `${shellEscape(nodePath)} relay.js ${RELAY_RUNTIME_SELF_TEST_FLAG} ${shellEscape(nonce)}`
   )}`
+}
+
+/**
+ * One powershell.exe for the whole Windows self-test: the promote step already ran
+ * `node.exe --version`, and the report's `node` field repeats it, so no second spawn.
+ */
+export function windowsRelayRuntimeSelfTestCommand(
+  relayDir: string,
+  nodePath: string,
+  nonce: string
+): string {
+  return powerShellCommand(
+    [
+      `Set-Location -LiteralPath ${powerShellLiteral(relayDir)}`,
+      "$out = ''; $status = $null",
+      `try { $out = ((& ${powerShellLiteral(nodePath)} 'relay.js' ${powerShellLiteral(RELAY_RUNTIME_SELF_TEST_FLAG)} ${powerShellLiteral(nonce)} 2>&1) | ForEach-Object { "$_" }) -join "\`n"; $status = $LASTEXITCODE } catch { $status = -1; $out = $_.Exception.Message }`,
+      `Write-Output (${powerShellLiteral(REMOTE_NODE_RUNTIME_EXIT_PREFIX)} + $status)`,
+      'Write-Output ($out.Substring(0, [Math]::Min(16000, $out.Length)))'
+    ].join('\n')
+  )
 }
 
 function readReport(output: string, nonce: string): RelayRuntimeSelfTestReport | null {
@@ -161,9 +196,26 @@ export function evaluateRelayRuntimeSelfTest(
   return refusedOrFailed(selfTest.exitStatus, evidence, 'relay self-test')
 }
 
+/** The Windows run skips the separate `--version` step, so the report must name the pin. */
+export function evaluateWindowsRelayRuntimeSelfTest(
+  selfTestOutput: string,
+  nonce: string
+): PinnedRuntimeSelfTestVerdict {
+  const verdict = evaluateRelayRuntimeSelfTest(selfTestOutput, nonce)
+  if (verdict.verdict === 'passed' && verdict.report.node !== `v${NODE_RUNTIME_PIN.version}`) {
+    return {
+      verdict: 'failed',
+      detail: `relay self-test ran on ${verdict.report.node}, not the pin`
+    }
+  }
+  return verdict
+}
+
 export type RelayRuntimeSelfTestOptions = {
+  attempts?: number
+  host?: RemoteHostPlatform
   /** False on rung C: the host's own Node has no pinned version to match. */
-  expectPinnedVersion: boolean
+  expectPinnedVersion?: boolean
 }
 
 async function runSelfTestOnce(
@@ -177,14 +229,25 @@ async function runSelfTestOnce(
   const remaining = (): number => Math.max(1_000, deadline - Date.now())
   const nonce = randomBytes(12).toString('hex')
   try {
-    const versionVerdict = options.expectPinnedVersion
-      ? evaluatePinnedRuntimeVersion(
-          await execCommand(conn, pinnedRuntimeVersionCommand(nodePath), {
-            timeoutMs: remaining(),
-            signal
-          })
-        )
-      : null
+    if (options.host && isWindowsRemoteHost(options.host)) {
+      const output = await execCommand(
+        conn,
+        windowsRelayRuntimeSelfTestCommand(relayDir, nodePath, nonce),
+        { timeoutMs: remaining(), wrapCommand: false, signal }
+      )
+      return options.expectPinnedVersion === false
+        ? evaluateRelayRuntimeSelfTest(output, nonce)
+        : evaluateWindowsRelayRuntimeSelfTest(output, nonce)
+    }
+    const versionVerdict =
+      options.expectPinnedVersion === false
+        ? null
+        : evaluatePinnedRuntimeVersion(
+            await execCommand(conn, pinnedRuntimeVersionCommand(nodePath), {
+              timeoutMs: remaining(),
+              signal
+            })
+          )
     if (versionVerdict) {
       return versionVerdict
     }
@@ -212,9 +275,9 @@ export async function runPinnedRuntimeSelfTest(
   relayDir: string,
   nodePath: string,
   signal?: AbortSignal,
-  attempts = 2,
-  options: RelayRuntimeSelfTestOptions = { expectPinnedVersion: true }
+  options: RelayRuntimeSelfTestOptions = {}
 ): Promise<PinnedRuntimeSelfTestVerdict> {
+  const attempts = options.attempts ?? 2
   let verdict: PinnedRuntimeSelfTestVerdict = {
     verdict: 'unverifiable',
     detail: 'the self-test never ran'

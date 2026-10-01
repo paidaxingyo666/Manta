@@ -8,9 +8,10 @@ import {
   writeFileSync
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import path, { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
+import { RELAY_WINDOWS_PROCESS_TREE_FILENAME } from '../../shared/relay-artifacts'
 import { remoteInstallVersionDirRegex, RELAY_INSTALL_MODEL } from './remote-install-model'
 import type { SshConnection } from './ssh-connection'
 import { execCommand } from './ssh-relay-deploy-helpers'
@@ -123,6 +124,30 @@ describe('staged addons', () => {
     expect(existsSync(addons.dir)).toBe(false)
   })
 
+  it('ships the win32 ConPTY pair and the process-table addon at the names the relay loads', async () => {
+    const files = pinnedRelayAddonFiles('win32-x64')
+    expect(files).toEqual(
+      expect.arrayContaining([
+        'node_modules/node-pty/build/Release/conpty.node',
+        'node_modules/node-pty/build/Release/conpty_console_list.node',
+        'node_modules/node-pty/build/Release/conpty/conpty.dll',
+        'node_modules/node-pty/build/Release/conpty/OpenConsole.exe',
+        RELAY_WINDOWS_PROCESS_TREE_FILENAME
+      ])
+    )
+    expect(files).not.toContain('node_modules/node-pty/build/Release/pty.node')
+    expect(pinnedRelayAddonFiles('linux-x64-glibc')).not.toContain(
+      RELAY_WINDOWS_PROCESS_TREE_FILENAME
+    )
+    const addons = await stagePinnedRelayAddons(
+      fakeOrcadSlot('win32-x64'),
+      'win32-x64',
+      tempDir('stage-')
+    )
+    expect(existsSync(join(addons.dir, RELAY_WINDOWS_PROCESS_TREE_FILENAME))).toBe(true)
+    await addons.dispose()
+  })
+
   it('refuses a slot missing an addon and leaves nothing behind', async () => {
     const slot = fakeOrcadSlot('linux-x64-glibc')
     rmSync(join(slot, 'node_modules/@parcel/watcher/watcher.node'))
@@ -141,21 +166,58 @@ describe('pinned runtime layout', () => {
       pinnedRelayNodePath(host, '/home/u/.manta-remote/relay-0.1.0+abc', 'linux-x64-glibc')
     ).toBe(`/home/u/.manta-remote/runtimes/node-${SHA}/bin/node`)
   })
+
+  it('keeps node.exe under its real name at the runtime root on Windows', () => {
+    const host = getRemoteHostPlatform('win32-x64')
+    const sha = NODE_RUNTIME_ASSETS['win32-x64'].executableSha256
+    const nodePath = pinnedRelayNodePath(
+      host,
+      'C:/Users/u/.manta-remote/relay-0.1.0+abc',
+      'win32-x64'
+    )
+    expect(nodePath).toBe(`C:/Users/u/.manta-remote/runtimes/node-${sha}/node.exe`)
+    expect(path.win32.normalize(nodePath)).toBe(
+      `C:\\Users\\u\\.manta-remote\\runtimes\\node-${sha}\\node.exe`
+    )
+    expect(path.win32.basename(nodePath)).toBe('node.exe')
+  })
 })
 
 describe('planPinnedNodeRelay', () => {
   const base = '0.1.0+abcdef012345'
 
-  it('keeps Windows hosts on the host-Node relay', async () => {
+  it('plans a Windows host on the win32 slot without a libc probe', async () => {
+    const plan = await planPinnedNodeRelay({
+      conn,
+      host: getRemoteHostPlatform('win32-arm64'),
+      baseVersion: base,
+      targetId: 't',
+      materializeOrcad: async (target) => fakeOrcadSlot(target)
+    })
+    expect(execCommand).not.toHaveBeenCalled()
+    expect(plan).toMatchObject({ kind: 'pinned-node', target: 'win32-arm64', glibc: null })
+    if (plan.kind === 'pinned-node') {
+      expect(plan.fullVersion).toBe(
+        pinnedNodeRelayFullVersion(
+          base,
+          NODE_RUNTIME_ASSETS['win32-arm64'].executableSha256,
+          plan.addons.digest
+        )
+      )
+      await plan.addons.dispose()
+    }
+  })
+
+  it('falls back on Windows when this client packaged no win32 slot', async () => {
     await expect(
       planPinnedNodeRelay({
         conn,
         host: getRemoteHostPlatform('win32-x64'),
         baseVersion: base,
-        targetId: 't'
+        targetId: 't',
+        materializeOrcad: () => Promise.reject(new Error('template has no win32-x64'))
       })
-    ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'windows_host_unsupported' })
-    expect(execCommand).not.toHaveBeenCalled()
+    ).resolves.toEqual({ kind: 'host-node', fallbackReason: 'artifacts_unavailable' })
   })
 
   it('refuses a glibc below the pinned Node floor without uploading anything', async () => {

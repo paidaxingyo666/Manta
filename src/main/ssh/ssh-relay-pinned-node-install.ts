@@ -4,6 +4,7 @@ import {
   ensureRemoteOrcadNodeRuntime,
   remoteNodeRuntimeDir,
   remoteNodeRuntimePresentCommand,
+  RemoteNodeRuntimeSecurityModifiedError,
   RemoteNodeRuntimeSelfTestError,
   REMOTE_NODE_RUNTIME_READY
 } from './mantad-remote-node-runtime'
@@ -24,7 +25,7 @@ import {
   classifyPinnedRuntimeFailure,
   runPinnedRuntimeSelfTest
 } from './ssh-relay-runtime-self-test'
-import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
+import { isWindowsRemoteHost, joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 
 type PinnedInstallContext = {
   conn: SshConnection
@@ -66,7 +67,8 @@ export async function ensurePinnedRelayRuntime(
   if (relayAlreadyInstalled) {
     const runtimeDir = remoteNodeRuntimeDir(host, remoteRelayDir, plan.target)
     const present = await execCommand(conn, remoteNodeRuntimePresentCommand(host, runtimeDir), {
-      signal
+      signal,
+      wrapCommand: !isWindowsRemoteHost(host)
     })
     if (present.trim() === REMOTE_NODE_RUNTIME_READY) {
       if (run && run.runtimeTransfer === 'none') {
@@ -90,6 +92,9 @@ export async function ensurePinnedRelayRuntime(
   } catch (error) {
     if (error instanceof PinnedRelayFallbackError) {
       refuse(context, error)
+    }
+    if (error instanceof RemoteNodeRuntimeSecurityModifiedError) {
+      refuse(context, new PinnedRelayFallbackError('security_software', error.detail))
     }
     if (error instanceof RemoteNodeRuntimeSelfTestError) {
       const refusal = classifyPinnedRuntimeFailure(error.exitStatus, error.output)
@@ -120,7 +125,8 @@ export async function verifyPinnedRelayInstall(context: PinnedInstallContext): P
     )
   }
   const nodePath = prebuiltRelayNodePath(context)
-  const verdict = await runPinnedRuntimeSelfTest(conn, remoteRelayDir, nodePath, signal, 2, {
+  const verdict = await runPinnedRuntimeSelfTest(conn, remoteRelayDir, nodePath, signal, {
+    host,
     expectPinnedVersion: plan.kind === 'pinned-node'
   })
   if (context.run && verdict.verdict !== 'unverifiable') {
