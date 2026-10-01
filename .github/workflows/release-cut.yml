@@ -1149,6 +1149,19 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  # Design D2: every desktop build ships the mantad template (server JS plus every target's
+  # addons), merged from the node-server lanes that qualified each slot at this tag. It needs no
+  # signing quota, so it runs beside the release gates instead of behind them.
+  mantad-template:
+    needs: cut
+    if: needs.cut.outputs.should_release == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/node-server-tests.yml
+    with:
+      ref: refs/tags/${{ needs.cut.outputs.tag }}
+      build_template: true
+
   # Why: artifact jobs submit Windows binaries to SignPath. Keep every
   # quota-consuming build behind all blocking release gates so a late test
   # failure cannot create signing requests that can never be published.
@@ -1175,8 +1188,12 @@ jobs:
     needs:
       - cut
       - create-release
+      - mantad-template
       - release-preflight
     if: needs.cut.outputs.should_release == 'true'
+    env:
+      # beforePack and afterPack fail the package when the template is absent.
+      ORCA_REQUIRE_ORCAD_TEMPLATE: '1'
     strategy:
       fail-fast: false
       matrix:
@@ -1435,6 +1452,13 @@ jobs:
           # the PowerShell scan on every Windows SSH host.
           MANTA_REQUIRE_RELAY_NATIVE_ADDONS: ${{ matrix.platform == 'win' && 'x64,arm64' || '' }}
 
+      # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
+      - name: Download the mantad deployment template
+        uses: actions/download-artifact@v8
+        with:
+          name: mantad-template
+          path: out/mantad-template
+
       - name: Gate runtime file-watcher process isolation
         if: runner.os == 'Linux'
         run: |
@@ -1584,6 +1608,11 @@ jobs:
             Where-Object { $_.Extension -in '.exe', '.dll', '.node' } |
             ForEach-Object {
               $relative = [System.IO.Path]::GetRelativePath($root, $_.FullName)
+              # The mantad template's Linux/macOS addons are data for SSH hosts, not PE files.
+              if ($relative -match '^resources[\\/]mantad-template[\\/]targets[\\/](?!win32-)') {
+                $skipped.Add("$relative  <non-Windows mantad template payload>")
+                return
+              }
               $signature = Get-AuthenticodeSignature -FilePath $_.FullName
               if ($signature.Status -eq 'Valid') {
                 $skipped.Add("$relative  <already signed: $($signature.SignerCertificate.Subject)>")
@@ -1763,6 +1792,13 @@ jobs:
             $failures | ForEach-Object { Write-Host "::error::$_" }
             throw "Signed inner artifact did not round-trip cleanly ($($failures.Count) failures)."
           }
+
+      # Why: SignPath rewrote the template's Windows binaries, and the client materializer checks
+      # each file against the template manifest, so it must record the signed bytes.
+      - name: Reseal the mantad template over its signed binaries
+        id: reseal-orcad-template
+        if: matrix.platform == 'win' && github.run_attempt == 1 && steps.restore-signed-inner.outcome == 'success'
+        run: node config/scripts/packaged-orcad-template.cjs --reseal-signed dist/win-unpacked inner-signing-list.txt
 
       # The uninstaller must return signed before rebuilding the installer.
       - name: Restore signed uninstaller for the installer rebuild
@@ -2257,6 +2293,7 @@ jobs:
     needs:
       - cut
       - create-release
+      - mantad-template
       - release-preflight
     if: needs.cut.outputs.should_release == 'true'
     # Why: SignPath requires every job in this signing workflow to be

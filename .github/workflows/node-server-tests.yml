@@ -36,15 +36,33 @@ on:
       - '.github/actions/install-node-dependencies/**'
       - '.github/workflows/node-server-tests.yml'
   workflow_dispatch:
+    inputs:
+      build_template:
+        description: Also merge every lane's slot into the desktop mantad template artifact
+        type: boolean
+        default: false
+  # Release packaging calls this to build the mantad template it ships (design D2).
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref every lane checks out, e.g. the release tag
+        type: string
+        default: ''
+      build_template:
+        description: Upload each lane's release slot and merge them into the mantad-template artifact
+        type: boolean
+        default: false
   schedule:
     - cron: '30 11 * * *'
 
 permissions:
   contents: read
 
+# Why a run-scoped group for template builds: a release call shares github.ref with main's push
+# runs, and cancelling either would drop a release's template or a main qualification.
 concurrency:
-  group: node-server-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: node-server-${{ inputs.build_template && format('template-{0}', github.run_id) || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !inputs.build_template }}
 
 jobs:
   changes:
@@ -91,6 +109,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - uses: ./.github/actions/install-node-dependencies
         with:
@@ -125,6 +144,24 @@ jobs:
           echo "ORCA_BUN_ORCAD_SLOT=$RUNNER_TEMP/bun-orcad" >> "$GITHUB_ENV"
           echo "BUN_EXECUTABLE=$(command -v bun)" >> "$GITHUB_ENV"
       - run: pnpm test:node-server --artifact ${{ runner.os == 'Linux' && '--cross-runtime' || '' }}
+      # Only a Windows runner compiles it; arm64 cross-compiles here, as release-cut does for the relay.
+      # Before the Node 18 check below: the build script imports TypeScript, which Node 18 cannot load.
+      - name: Build the Windows process-table addons for the desktop template
+        if: inputs.build_template && matrix.os == 'windows-2022'
+        shell: bash
+        run: |
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=x64
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=arm64
+      - name: Keep the Windows process-table addons for the desktop template
+        if: inputs.build_template && matrix.os == 'windows-2022'
+        uses: actions/upload-artifact@v7
+        with:
+          name: mantad-windows-process-tree
+          path: .build/windows-process-tree/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
       - uses: actions/setup-node@v6
         if: runner.arch == 'X64'
         with:
@@ -136,6 +173,17 @@ jobs:
           node out/mantad/mantad.js --mantad-smoke-load-check
           node out/mantad/mantad.js --mantad-profile-state-preflight 00000000-0000-4000-8000-000000000018 | tee "$RUNNER_TEMP/preflight.json"
           node -e "const r=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));if(r.runtime!=='node'||!/^24\./.test(r.runtimeVersion))process.exit(1)" "$RUNNER_TEMP/preflight.json"
+      # Linux release slots come from the floor and Alpine lanes; these runners own the rest.
+      - name: Keep this runner's qualified slot for the desktop template
+        if: inputs.build_template && runner.os != 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: orcad-prebuild-${{ matrix.os }}
+          path: out/mantad-prebuilds/
+          if-no-files-found: error
+          retention-days: 7
+          # A rerun attempt re-uploads under the same name, which v4 otherwise refuses.
+          overwrite: true
 
   linux_glibc_floor:
     needs: [changes, persistence]
@@ -170,6 +218,7 @@ jobs:
         run: dnf install -y git procps-ng unzip which xz
       - uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - name: Trust the checked-out workspace
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -181,6 +230,15 @@ jobs:
           pnpm build:mantad-prebuilds --smoke
       - run: pnpm build:mantad
       - run: pnpm test:node-server --artifact
+      - name: Keep this runner's glibc 2.28 slot for the desktop template
+        if: inputs.build_template
+        uses: actions/upload-artifact@v7
+        with:
+          name: orcad-prebuild-glibc-${{ matrix.os }}
+          path: out/mantad-prebuilds/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
 
   linux_glibc217_compat:
     needs: [changes, persistence]
@@ -196,6 +254,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - uses: ./.github/actions/install-node-dependencies
       # Design D6 rung B: the opt-in linux-x64-glibc217 slot beside the unofficial glibc-217 Node.
@@ -223,6 +282,15 @@ jobs:
           # The image's devtoolset LD_LIBRARY_PATH must not stand in for a host C++ runtime.
           env -u LD_LIBRARY_PATH node config/scripts/build-mantad-prebuilds.mjs --slot=linux-x64-glibc217 --smoke
           GLIBC217_COMPAT_SLOT
+      - name: Keep the glibc 2.17 compat slot for the desktop template
+        if: inputs.build_template
+        uses: actions/upload-artifact@v7
+        with:
+          name: orcad-prebuild-glibc217
+          path: out/mantad-prebuilds/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
 
   linux_musl:
     needs: [changes, persistence]
@@ -242,6 +310,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref }}
           persist-credentials: false
       - name: Verify native Alpine artifact and persistence
         run: |
@@ -261,3 +330,64 @@ jobs:
           pnpm build:mantad
           pnpm test:node-server --artifact
           NODE_SERVER_QUALIFICATION
+      - name: Keep this runner's musl slot for the desktop template
+        if: inputs.build_template
+        uses: actions/upload-artifact@v7
+        with:
+          name: orcad-prebuild-musl-${{ matrix.os }}
+          path: out/mantad-prebuilds/
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+  # Design D2: the desktop ships every target's addons, merged from the lanes that qualified them.
+  desktop_template:
+    needs: [persistence, linux_glibc_floor, linux_glibc217_compat, linux_musl]
+    if: >-
+      ${{ !cancelled() && inputs.build_template &&
+      needs.persistence.result == 'success' && needs.linux_glibc_floor.result == 'success' &&
+      needs.linux_glibc217_compat.result == 'success' && needs.linux_musl.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+      - name: Collect every lane's slot
+        uses: actions/download-artifact@v8
+        with:
+          pattern: orcad-prebuild-*
+          path: ${{ runner.temp }}/orcad-prebuild-lanes
+      - name: Collect the Windows process-table addons
+        uses: actions/download-artifact@v8
+        with:
+          name: mantad-windows-process-tree
+          path: .build/windows-process-tree
+      - name: Merge the lanes and gate the full slot matrix
+        shell: bash
+        run: |
+          node config/scripts/merge-orcad-prebuilds.mjs "$RUNNER_TEMP"/orcad-prebuild-lanes/*
+          pnpm build:mantad-prebuilds --require-slots
+          pnpm build:mantad-prebuilds --require-slots linux-x64-glibc217
+      - run: pnpm build:mantad-template
+      - name: Report the template size
+        shell: bash
+        run: |
+          {
+            echo '### mantad template'
+            echo '```'
+            du -sh out/mantad-template
+            du -sh out/mantad-template/targets/*
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mantad-template
+          path: out/mantad-template/
+          # The per-target .server-target and .runtime-node markers are dotfiles.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true

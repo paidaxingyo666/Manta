@@ -132,15 +132,27 @@ describe('verifyPackagedOrcadTemplate', () => {
     )
   })
 
-  it('does not ship the unused deployment template in desktop packages', async () => {
+  // Design D2 reverses the old "unused, excluded" contract: SSH relays and managed mantad deploys
+  // materialize their slot from process.resourcesPath/mantad-template, so every desktop OS ships it.
+  it('ships the deployment template as a resource on every desktop OS, never its runtimes', async () => {
     for (const platform of ['win', 'mac', 'linux']) {
+      expect(builderConfig[platform].extraResources).toContainEqual({
+        from: 'out/mantad-template',
+        to: 'mantad-template'
+      })
+      // electron-builder's copy filter drops a source's root node_modules, so it needs its own entry.
+      expect(builderConfig[platform].extraResources).toContainEqual({
+        from: 'out/mantad-template/node_modules',
+        to: 'mantad-template/node_modules'
+      })
       expect(
         builderConfig[platform].extraResources.some(
-          (resource) => typeof resource === 'object' && resource.to.startsWith('mantad-template')
+          (resource) =>
+            typeof resource === 'object' && /runtimes|node-runtime-cache/.test(resource.from)
         )
       ).toBe(false)
     }
-    // The pinned Node a local build references is ~120 MB; none of these outputs is desktop code.
+    // The pinned Node a local build references is ~120 MB and is downloaded on demand instead.
     expect(builderConfig.files).toEqual(
       expect.arrayContaining([
         '!out/mantad{,/**/*}',
@@ -149,6 +161,8 @@ describe('verifyPackagedOrcadTemplate', () => {
         '!out/node-runtime-cache{,/**/*}'
       ])
     )
+    expect(builderConfig.mac.signIgnore).toContain('/mantad-template/')
+    // Release CI builds the template from every lane's slot; one host cannot build it alone.
     const { scripts } = JSON.parse(await readFile(join(process.cwd(), 'package.json'), 'utf8'))
     for (const name of ['build:desktop', 'build:release', 'build:release:parallel']) {
       expect(scripts[name]).not.toContain('build:mantad-template')

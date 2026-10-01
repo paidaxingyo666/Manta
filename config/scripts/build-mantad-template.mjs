@@ -56,6 +56,9 @@ function buildTargetPackage(target) {
       packageDir
     ],
     cwd: root,
+    // Why no agent-browser: the template ships inside every desktop build (design D2), and seven
+    // ~10 MB browsers would outweigh everything else in it; a slot without one reports no browser.
+    env: { ...process.env, ORCAD_OMIT_AGENT_BROWSER: '1' },
     stdio: 'inherit',
     timeoutMs: null
   })

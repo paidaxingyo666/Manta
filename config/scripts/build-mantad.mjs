@@ -155,7 +155,8 @@ copyFileSync(
   createRequire(import.meta.url).resolve('emojibase-data/en/shortcodes/emojibase.json'),
   emojiDatasetOutput
 )
-if (existsSync(AGENT_BROWSER_SOURCE)) {
+// The desktop template omits it: ~10 MB per target, and mantad already treats it as optional.
+if (existsSync(AGENT_BROWSER_SOURCE) && process.env.ORCAD_OMIT_AGENT_BROWSER !== '1') {
   copyFileSync(AGENT_BROWSER_SOURCE, AGENT_BROWSER_OUTPUT)
   if (!targetIsWindows) {
     chmodSync(AGENT_BROWSER_OUTPUT, 0o755)

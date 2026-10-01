@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync
@@ -27,7 +28,14 @@ import {
 } from '../../shared/mantad-artifacts'
 import { readOrcadArtifactIdentity } from '../mantad/mantad-artifact-identity'
 import {
+  getAppEnvironment,
+  hasAppEnvironment,
+  setAppEnvironment,
+  type AppEnvironment
+} from '../../shared/app-environment'
+import {
   assembleOrcadArtifact,
+  getOrcadTemplateCandidates,
   materializeOrcadArtifact,
   resetOrcadArtifactMaterializationsForTests
 } from './mantad-artifact-materializer'
@@ -270,6 +278,73 @@ describe('materializeOrcadArtifact cancellation', () => {
     controller.abort(new Error('cancelled'))
     await expect(materializeOrcadArtifact(TARGET, { signal: controller.signal })).rejects.toThrow(
       'cancelled'
+    )
+  })
+})
+
+describe('packaged template lookup', () => {
+  const originalResourcesPath = process.resourcesPath
+  const originalTemplatePath = process.env.ORCA_ORCAD_TEMPLATE_PATH
+  let previousEnvironment: AppEnvironment | null = null
+
+  afterEach(() => {
+    Object.defineProperty(process, 'resourcesPath', {
+      value: originalResourcesPath,
+      configurable: true,
+      writable: true
+    })
+    if (originalTemplatePath === undefined) {
+      delete process.env.ORCA_ORCAD_TEMPLATE_PATH
+    } else {
+      process.env.ORCA_ORCAD_TEMPLATE_PATH = originalTemplatePath
+    }
+    if (previousEnvironment) {
+      setAppEnvironment(previousEnvironment)
+    }
+  })
+
+  /** An installed app: electron-builder copies out/mantad-template to Resources/mantad-template. */
+  function installPackagedApp(): { resourcesDir: string; userData: string } {
+    const fixture = createTemplate()
+    const root = dirname(fixture.templateDir)
+    const resourcesDir = join(root, 'Resources')
+    mkdirSync(resourcesDir)
+    renameSync(fixture.templateDir, join(resourcesDir, 'mantad-template'))
+    const userData = join(root, 'userData')
+    delete process.env.ORCA_ORCAD_TEMPLATE_PATH
+    Object.defineProperty(process, 'resourcesPath', {
+      value: resourcesDir,
+      configurable: true,
+      writable: true
+    })
+    previousEnvironment = hasAppEnvironment() ? getAppEnvironment() : null
+    setAppEnvironment({
+      getPath: () => userData,
+      getAppPath: () => join(resourcesDir, 'app.asar'),
+      getVersion: () => '0.0.0-test',
+      isPackaged: () => true,
+      onWillQuit: () => {},
+      exit: () => {},
+      getAppMetrics: () => []
+    })
+    return { resourcesDir, userData }
+  }
+
+  it('materializes from Resources/mantad-template into userData with no explicit paths', async () => {
+    const { resourcesDir, userData } = installPackagedApp()
+
+    expect(getOrcadTemplateCandidates()[0]).toBe(join(resourcesDir, 'mantad-template'))
+    const artifact = await materializeOrcadArtifact(TARGET)
+    expect(dirname(dirname(artifact))).toBe(join(userData, 'mantad-artifacts'))
+    expect(readFileSync(join(artifact, 'mantad.js'), 'utf8')).toBe('mantad-entry')
+  })
+
+  it('reports a build that shipped no template, which relays treat as a legacy fallback', async () => {
+    const { resourcesDir } = installPackagedApp()
+    rmSync(join(resourcesDir, 'mantad-template'), { recursive: true })
+
+    await expect(materializeOrcadArtifact(TARGET)).rejects.toThrow(
+      'The packaged mantad deployment template is missing'
     )
   })
 })
