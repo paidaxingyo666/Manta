@@ -3,6 +3,7 @@ import type { RelayDispatcher } from './dispatcher'
 import { setupDaemonHandshake } from './relay-handshake'
 import { relayLogLine } from './relay-diagnostic-log'
 import type { RelaySocketOwnership } from './relay-socket-ownership'
+import { isRelaySocketPeerClosed } from './relay-socket-peer-close'
 
 type RelayReconnectCallbacks = {
   detachPrimaryInput: () => void
@@ -96,10 +97,18 @@ export class RelayReconnectListener {
     socket.on('error', flushDrainWaiters)
     const clientId = this.dispatcher.attachClient(
       (data, onSettled) => {
+        // Why detach before settling: a failed settlement closes the client as 'local', and a peer
+        // that reset the pipe must get the peer-closed grace floor, not the full grace.
         if (!socket.destroyed) {
           return socket.write(data, (error) => {
+            if (error && isRelaySocketPeerClosed(socket, error)) {
+              this.detachSocketClient(socket)
+            }
             onSettled(error ? { ok: false, error } : { ok: true })
           })
+        }
+        if (isRelaySocketPeerClosed(socket)) {
+          this.detachSocketClient(socket)
         }
         onSettled({ ok: false, error: new Error('Relay socket is closed') })
         return false
