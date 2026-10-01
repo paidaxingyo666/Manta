@@ -87,22 +87,42 @@ function stageTarget(target, packageDir) {
   return { files, browserName, browserSha256: sha256(browserDestination) }
 }
 
+/**
+ * `--targets a,b` builds a partial template for CI jobs that can fill only some prebuild slots
+ * (the SSH hostile-host matrix). A shipped template always carries every target.
+ */
+export function requestedTemplateTargets(argv = process.argv) {
+  const index = argv.indexOf('--targets')
+  if (index === -1) {
+    return ORCAD_TEMPLATE_TARGETS
+  }
+  const targets = (argv[index + 1] ?? '').split(',').filter(Boolean)
+  const unknown = targets.filter((target) => !ORCAD_TEMPLATE_TARGETS.includes(target))
+  if (targets.length === 0 || unknown.length > 0) {
+    throw new Error(
+      `--targets needs a comma-separated subset of ${ORCAD_TEMPLATE_TARGETS.join(',')}; got ${argv[index + 1] ?? 'nothing'}`
+    )
+  }
+  return [...new Set(targets)]
+}
+
 function sameBytes(left, right) {
   return sha256(left) === sha256(right)
 }
 
 async function main() {
+  const templateTargets = requestedTemplateTargets()
   rmSync(buildDir, { recursive: true, force: true })
   const packages = Object.fromEntries(
-    ORCAD_TEMPLATE_TARGETS.map((target) => [target, buildTargetPackage(target)])
+    templateTargets.map((target) => [target, buildTargetPackage(target)])
   )
   rmSync(outputDir, { recursive: true, force: true })
   mkdirSync(outputDir, { recursive: true })
-  const [firstTarget] = ORCAD_TEMPLATE_TARGETS
+  const [firstTarget] = templateTargets
   for (const filename of commonArtifacts) {
     const source = join(packages[firstTarget], ...filename.split('/'))
     // Why check every target: the template keeps one copy, so a per-target difference would ship wrong bytes.
-    for (const target of ORCAD_TEMPLATE_TARGETS) {
+    for (const target of templateTargets) {
       if (!sameBytes(source, join(packages[target], ...filename.split('/')))) {
         throw new Error(`${filename} differs between ${firstTarget} and ${target} packages`)
       }
@@ -110,7 +130,7 @@ async function main() {
     copy(source, join(outputDir, ...filename.split('/')), isExecutable(filename))
   }
   const targets = Object.fromEntries(
-    ORCAD_TEMPLATE_TARGETS.map((target) => [target, stageTarget(target, packages[target])])
+    templateTargets.map((target) => [target, stageTarget(target, packages[target])])
   )
   const commonSha256 = Object.fromEntries(
     commonArtifacts.map((filename) => [filename, sha256(join(outputDir, filename))])
@@ -119,9 +139,11 @@ async function main() {
     join(outputDir, ORCAD_TEMPLATE_MANIFEST_FILENAME),
     `${JSON.stringify({ schemaVersion: 3, commonSha256, targets }, null, 2)}\n`
   )
-  verifyPackagedOrcadTemplate(join(root, 'out'))
+  verifyPackagedOrcadTemplate(join(root, 'out'), templateTargets)
   rmSync(buildDir, { recursive: true, force: true })
-  process.stdout.write(`[build-mantad-template] ok — ${ORCAD_TEMPLATE_TARGETS.length} targets\n`)
+  process.stdout.write(`[build-mantad-template] ok — ${templateTargets.length} targets\n`)
 }
 
-await main()
+if (process.argv[1]?.endsWith('build-mantad-template.mjs')) {
+  await main()
+}

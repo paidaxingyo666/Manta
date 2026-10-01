@@ -74,15 +74,19 @@ export function classifyPinnedRuntimeFailure(
     return 'libc_floor'
   }
   // A glibc binary on musl (or the reverse) fails in the ELF interpreter or on relocation.
-  if (/ld-linux[\w.-]*\.so|ld-musl[\w.-]*\.so|Error relocating|symbol not found/i.test(output)) {
+  if (/ld-linux[\w.-]*\.so|ld-musl[\w.-]*\.so/i.test(output)) {
     return 'wrong_libc'
   }
+  // Why before relocation: musl reports each symbol of a missing library as "symbol not found".
   if (
     /error while loading shared libraries|cannot open shared object file|Error loading shared library/i.test(
       output
     )
   ) {
     return 'missing_lib'
+  }
+  if (/Error relocating|symbol not found/i.test(output)) {
+    return 'wrong_libc'
   }
   // The shell's "not found" for a file that exists: its ELF interpreter is absent.
   if (exitStatus === 127 && /no such file or directory|not found/i.test(output)) {

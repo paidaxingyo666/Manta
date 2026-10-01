@@ -141,7 +141,8 @@ function verifyTarget(templateDir, target, value) {
   requireExactNames(listFiles(targetDir), inventory, `${target} file inventory`)
 }
 
-function verifyPackagedOrcadTemplate(resourcesDir) {
+/** `targets` narrows the inventory for a CI-only partial template; packaging checks them all. */
+function verifyPackagedOrcadTemplate(resourcesDir, targets = ORCAD_TEMPLATE_TARGETS) {
   const templateDir = join(resourcesDir, 'mantad-template')
   const manifest = requireRecord(readManifest(templateDir), 'manifest')
   if (manifest.schemaVersion !== TEMPLATE_SCHEMA_VERSION) {
@@ -160,19 +161,17 @@ function verifyPackagedOrcadTemplate(resourcesDir) {
     )
   }
 
-  const targets = requireRecord(manifest.targets, 'targets')
-  requireExactNames(Object.keys(targets), ORCAD_TEMPLATE_TARGETS, 'target manifest inventory')
+  const manifestTargets = requireRecord(manifest.targets, 'targets')
+  requireExactNames(Object.keys(manifestTargets), targets, 'target manifest inventory')
   requireExactNames(
     readdirSync(join(templateDir, ORCAD_TEMPLATE_TARGETS_DIR)),
-    ORCAD_TEMPLATE_TARGETS,
+    targets,
     'target directory inventory'
   )
-  for (const target of ORCAD_TEMPLATE_TARGETS) {
-    verifyTarget(templateDir, target, targets[target])
+  for (const target of targets) {
+    verifyTarget(templateDir, target, manifestTargets[target])
   }
-  console.log(
-    `[verify-packaged-mantad-template] OK — verified ${ORCAD_TEMPLATE_TARGETS.length} Node targets`
-  )
+  console.log(`[verify-packaged-mantad-template] OK — verified ${targets.length} Node targets`)
 }
 
 module.exports = { TEMPLATE_SCHEMA_VERSION, verifyPackagedOrcadTemplate }

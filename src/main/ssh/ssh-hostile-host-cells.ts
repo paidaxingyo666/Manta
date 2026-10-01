@@ -1,0 +1,235 @@
+/**
+ * The design D5/D6 hostile-host matrix: each cell is a container SSH target and the place the
+ * relay runtime ladder must land there. `ssh-relay-hostile-hosts.docker.test.ts` drives the real
+ * client-side deploy against each one; `.github/workflows/ssh-hostile-hosts.yml` runs it.
+ */
+import type { ServerTarget } from '../../shared/node-runtime-pin'
+import type { SshRemoteRuntimeRung } from '../../shared/ssh-types'
+import type { RelayRuntimeFallbackReason } from './ssh-relay-pinned-node'
+import type { RelayRuntimeStep, RemoteRuntimeUnavailableReason } from './ssh-relay-runtime-ladder'
+
+/** Every shimmed toolchain command appends its name here; rungs A and C must leave it empty. */
+export const FORBIDDEN_TOOL_LOG = '/tmp/orca-forbidden-tool-calls.log'
+export const FORBIDDEN_TOOLS = ['npm', 'npx', 'node-gyp', 'gcc', 'g++', 'cc', 'c++', 'make']
+
+export type RungRefusal = { step: RelayRuntimeStep; reason: RelayRuntimeFallbackReason }
+
+export type HostileHostExpectation =
+  /** Rung A ran: the terminal echoes, a second connect reuses the runtime, GC keeps it. */
+  | { outcome: 'launched'; rung: 'A'; target: ServerTarget }
+  /** Rung D: nothing may run, and the connect fails with the classified reason. */
+  | {
+      outcome: 'unavailable'
+      reason: RemoteRuntimeUnavailableReason
+      refusals: readonly RungRefusal[]
+    }
+  /** The ladder fell through to the host-npm path, which cannot run on this host either. */
+  | { outcome: 'legacy_failed'; refusals: readonly RungRefusal[] }
+
+export type HostileHostCell = {
+  id: string
+  /** Dockerfile lines, FROM included; the harness appends sshd and the toolchain shims. */
+  dockerfile: readonly string[]
+  /** Mount `/root` as a noexec tmpfs, the way a hardened host mounts home. */
+  homeNoexec?: boolean
+  /** Attach only to a `docker network create --internal` network: the host has no egress. */
+  noEgress?: boolean
+  expect: HostileHostExpectation
+}
+
+// Digests are the multi-arch indexes of each tag as of 2026-09-30.
+const DEBIAN_10 =
+  'debian:10@sha256:58ce6f1271ae1c8a2006ff7d3e54e9874d839f573d8009c20154ad0f2fb0a225'
+const ALMALINUX_8 =
+  'almalinux:8@sha256:9f355ae942d6a6c0561f0771dc053a2cfae9580fc45fa4252756db7c7e80c09f'
+const ALPINE_3_20 =
+  'alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc'
+const UBUNTU_22_04 =
+  'ubuntu:22.04@sha256:b8b6ee6aa931ecd9d0d952abc34dc0e5f7c6a30c6bb71b079fe399fde0329c02'
+const CENTOS_7 = 'centos:7@sha256:be65f488b7764ad3638f236b7b515b3678369a5124c47b8d32916d6487418ea4'
+const NODE_20 =
+  'node:20-bookworm-slim@sha256:2cf067cfed83d5ea958367df9f966191a942351a2df77d6f0193e162b5febfc0'
+
+// Why the archive: buster left deb.debian.org; its packages live on only at archive.debian.org.
+const DEBIAN_10_LINES = [
+  `FROM ${DEBIAN_10}`,
+  "RUN printf '%s\\n' 'deb http://archive.debian.org/debian buster main' 'deb http://archive.debian.org/debian-security buster/updates main' > /etc/apt/sources.list" +
+    ' && apt-get -o Acquire::Check-Valid-Until=false update' +
+    ' && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends openssh-server procps' +
+    ' && rm -rf /var/lib/apt/lists/*'
+]
+
+const ALPINE_SSHD = 'RUN apk add --no-cache openssh'
+
+export const HOSTILE_HOST_CELLS: readonly HostileHostCell[] = [
+  {
+    id: 'debian10-glibc228',
+    dockerfile: DEBIAN_10_LINES,
+    expect: { outcome: 'launched', rung: 'A', target: 'linux-x64-glibc' }
+  },
+  {
+    id: 'almalinux8-glibc228',
+    dockerfile: [
+      `FROM ${ALMALINUX_8}`,
+      'RUN dnf install -y openssh-server procps-ng tar gzip && dnf clean all'
+    ],
+    expect: { outcome: 'launched', rung: 'A', target: 'linux-x64-glibc' }
+  },
+  {
+    id: 'alpine-musl',
+    dockerfile: [`FROM ${ALPINE_3_20}`, `${ALPINE_SSHD} libgcc libstdc++`],
+    expect: { outcome: 'launched', rung: 'A', target: 'linux-x64-musl' }
+  },
+  {
+    // The musl Node links libstdc++, so its self-test proves the missing library; B has no
+    // compat runtime yet and C finds no host Node.
+    id: 'alpine-musl-no-libstdcxx',
+    dockerfile: [`FROM ${ALPINE_3_20}`, ALPINE_SSHD],
+    expect: {
+      outcome: 'unavailable',
+      reason: 'no_runtime',
+      refusals: [
+        { step: 'A', reason: 'missing_lib' },
+        { step: 'B', reason: 'runtime_unavailable' },
+        { step: 'C', reason: 'host_node_missing' }
+      ]
+    }
+  },
+  {
+    // A host Node 20 does not help: rung C would load its addons from the same noexec tree.
+    id: 'ubuntu2204-node20-noexec-home',
+    dockerfile: [
+      `FROM ${NODE_20} AS host-node`,
+      `FROM ${UBUNTU_22_04}`,
+      'RUN apt-get update' +
+        ' && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends openssh-server procps' +
+        ' && rm -rf /var/lib/apt/lists/*',
+      'COPY --from=host-node /usr/local/bin/node /usr/local/bin/node'
+    ],
+    homeNoexec: true,
+    expect: {
+      outcome: 'unavailable',
+      reason: 'home_noexec',
+      refusals: [{ step: 'A', reason: 'noexec' }]
+    }
+  },
+  {
+    // glibc 2.17 is below both the pinned Node and the prebuilt addons, and no compat runtime
+    // ships yet, so the ladder reaches the host-npm path, which has no Node to run.
+    id: 'centos7-glibc217',
+    dockerfile: [
+      `FROM ${CENTOS_7}`,
+      // Why the vault: CentOS 7 is end of life and mirror.centos.org no longer serves it.
+      "RUN sed -i -e 's/^mirrorlist=/#mirrorlist=/' -e 's|^#\\?baseurl=http://mirror.centos.org/centos/$releasever|baseurl=http://vault.centos.org/7.9.2009|' /etc/yum.repos.d/CentOS-*.repo" +
+        ' && yum install -y openssh-server procps-ng && yum clean all'
+    ],
+    expect: {
+      outcome: 'legacy_failed',
+      refusals: [
+        { step: 'A', reason: 'libc_floor' },
+        { step: 'B', reason: 'runtime_unavailable' },
+        { step: 'C', reason: 'libc_floor' }
+      ]
+    }
+  },
+  {
+    // The client uploads the runtime over SSH, so a host that cannot reach nodejs.org still runs A.
+    id: 'debian10-no-egress',
+    dockerfile: DEBIAN_10_LINES,
+    noEgress: true,
+    expect: { outcome: 'launched', rung: 'A', target: 'linux-x64-glibc' }
+  }
+]
+
+/** `ORCA_SSH_HOSTILE_HOST_CELLS=a,b` narrows a run; unset or empty runs every cell. */
+export function selectHostileHostCells(
+  filter: string | undefined,
+  cells: readonly HostileHostCell[] = HOSTILE_HOST_CELLS
+): HostileHostCell[] {
+  const wanted = (filter ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean)
+  if (wanted.length === 0) {
+    return [...cells]
+  }
+  const unknown = wanted.filter((id) => !cells.some((cell) => cell.id === id))
+  if (unknown.length > 0) {
+    throw new Error(`Unknown hostile-host cells: ${unknown.join(', ')}`)
+  }
+  return cells.filter((cell) => wanted.includes(cell.id))
+}
+
+export type HostileHostObservation = {
+  /** The rung the ladder settled on, or null when it never settled (legacy failure). */
+  settledRung: SshRemoteRuntimeRung | null
+  /** The server target of a launched relay, when the ladder resolved one. */
+  target: ServerTarget | null
+  /** Set when the deploy failed with the rung D error. */
+  unavailableReason: RemoteRuntimeUnavailableReason | null
+  deployError: string | null
+  refusals: readonly RungRefusal[]
+  forbiddenToolCalls: readonly string[]
+}
+
+function describeRefusals(refusals: readonly RungRefusal[]): string {
+  return refusals.map(({ step, reason }) => `${step}:${reason}`).join(' > ') || 'none'
+}
+
+/** Every way `observed` departs from the cell's expectation; empty when the cell holds. */
+export function hostileHostCellViolations(
+  cell: HostileHostCell,
+  observed: HostileHostObservation
+): string[] {
+  const { expect } = cell
+  const violations: string[] = []
+  const expectedRefusals = expect.outcome === 'launched' ? [] : expect.refusals
+  if (describeRefusals(observed.refusals) !== describeRefusals(expectedRefusals)) {
+    violations.push(
+      `refusals ${describeRefusals(observed.refusals)}, expected ${describeRefusals(expectedRefusals)}`
+    )
+  }
+  // Why every outcome: no rung the ladder reached before legacy may reach for npm or a compiler.
+  if (expect.outcome !== 'legacy_failed' && observed.forbiddenToolCalls.length > 0) {
+    violations.push(`toolchain invoked: ${observed.forbiddenToolCalls.join('; ')}`)
+  }
+  switch (expect.outcome) {
+    case 'launched':
+      if (observed.deployError) {
+        violations.push(`deploy failed: ${observed.deployError}`)
+      }
+      if (observed.settledRung !== expect.rung) {
+        violations.push(`settled on ${observed.settledRung ?? 'nothing'}, expected ${expect.rung}`)
+      }
+      if (observed.target !== expect.target) {
+        violations.push(`target ${observed.target ?? 'unresolved'}, expected ${expect.target}`)
+      }
+      break
+    case 'unavailable':
+      if (observed.settledRung !== 'D') {
+        violations.push(`settled on ${observed.settledRung ?? 'nothing'}, expected D`)
+      }
+      if (observed.unavailableReason !== expect.reason) {
+        violations.push(
+          `rung D reason ${observed.unavailableReason ?? 'none'}, expected ${expect.reason}`
+        )
+      }
+      break
+    case 'legacy_failed':
+      if (observed.settledRung !== null) {
+        violations.push(`settled on ${observed.settledRung}, expected the host-npm path to fail`)
+      }
+      if (!observed.deployError) {
+        violations.push('deploy succeeded on a host with no runnable runtime')
+      }
+      break
+  }
+  return violations
+}
+
+export function parseForbiddenToolLog(contents: string): string[] {
+  return contents
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+}

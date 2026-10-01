@@ -70,6 +70,16 @@ describe('pinned runtime refusal classification', () => {
       127,
       'node: error while loading shared libraries: libatomic.so.1: cannot open shared object file: No such file or directory',
       'missing_lib'
+    ],
+    // Alpine without libstdc++: musl lists every unresolved C++ symbol after the missing library.
+    [
+      127,
+      [
+        'Error loading shared library libstdc++.so.6: No such file or directory (needed by /root/.manta-remote/runtimes/node-x/bin/node)',
+        'Error loading shared library libgcc_s.so.1: No such file or directory (needed by /root/.manta-remote/runtimes/node-x/bin/node)',
+        'Error relocating /root/.manta-remote/runtimes/node-x/bin/node: _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE9_M_createERmm: symbol not found'
+      ].join('\n'),
+      'missing_lib'
     ]
   ])('classifies exit %j with %j as %s', (status, output, refusal) => {
     expect(classifyPinnedRuntimeFailure(status, output)).toBe(refusal)
