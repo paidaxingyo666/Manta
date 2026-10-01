@@ -187,7 +187,11 @@ C30: the evidence must show the canary control was placed on C30, read C30's own
 and bind the selector generation, and any failure returns C30 to migration-only. The SQL-failure and
 database-pool rules read C30's own metrics only. Director values are recorded under
 `director`-prefixed names but do not fail the canary, because directors show a steady baseline of
-`relay_cells` lock refusals and pool waits unrelated to C30. C30 was promoted to general on
+`relay_cells` lock refusals and pool waits unrelated to C30. Director region fallbacks are keyed by
+the host's target region, and the canary fails on any Asia-targeted one. US-targeted fallbacks are
+recorded but not gated: they are placement-lane requests from unhinted or US-preferring hosts, which
+an Asia cell cannot cause. Staging still requires exactly its one
+intentional fallback. C30 was promoted to general on
 2026-09-23, so the same-cap job now rolls it as a general cell and the shadow gate's fleet pool list
 reads it beside C27-C29. A later Asia cell stays in the same-cap migration-only list and out of the
 fleet pool list until its own promotion, then moves to both together, as its own reviewed wave.

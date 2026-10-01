@@ -330,7 +330,7 @@ test('rejects a C27 canary without a real control and splice', () => {
 
 for (const [label, mutation, message] of [
   ['Asia selections', (input) => input.logs.forEach((entry) => { entry.jsonPayload.selectedRegionsDelta = {} }), /no Asia selections/],
-  ['region fallbacks', (input) => { input.logs[0].jsonPayload.regionFallbacksDelta = { 'asia-east2': 1 } }, /regionFallbacks/],
+  ['Asia-targeted region fallbacks', (input) => { input.logs[0].jsonPayload.regionFallbacksDelta = { 'asia-east2': 1 } }, /C27 canary asiaRegionFallbacks must be zero/],
   ['unavailable regions', (input) => { input.logs[0].jsonPayload.unavailableRegionsDelta = { 'asia-east2': 1 } }, /unavailableRegions/],
   ['C27 SQL failures', (input) => { input.logs[1].jsonPayload.sqlFailuresDelta = 1 }, /C27 canary relaySqlFailures must be zero/],
   ['C27 pool waiting', (input) => { input.logs[1].jsonPayload.databasePoolWaiting = 1 }, /databasePoolWaitingMax/],
@@ -400,6 +400,20 @@ test('builds a C31 canary that only C31 placement satisfies', () => {
   const onC30 = canaryInput({}, c31)
   onC30.loadReport.assignedCellOrigins = ['https://c30.relay.onorca.dev']
   assert.throws(() => buildProductionCanaryEvidence(onC30), /C31 canary load was not placed only on C31/)
+})
+
+test('records but does not gate organic US-targeted fallbacks during a canary', () => {
+  // Mirrors C31's 2026-10-01 canary: US-targeted fallbacks, none targeting Asia.
+  const input = canaryInput({}, 'production-gce-c31')
+  input.logs.filter((entry) => entry.jsonPayload.role === 'director').forEach((entry) => {
+    entry.jsonPayload.regionFallbacksDelta = { 'us-central1': 24 }
+  })
+  const evidence = buildProductionCanaryEvidence(input)
+  assert.equal(evidence.metrics.regionFallbacks, 144)
+  assert.equal(evidence.metrics.usRegionFallbacks, 144)
+  assert.equal(evidence.metrics.asiaRegionFallbacks, 0)
+  input.logs[0].jsonPayload.regionFallbacksDelta = { 'us-central1': 24, 'asia-east2': 1 }
+  assert.throws(() => buildProductionCanaryEvidence(input), /C31 canary asiaRegionFallbacks must be zero/)
 })
 
 test('rejects a C30 canary that C30 did not serve', () => {
