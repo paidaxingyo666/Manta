@@ -59,6 +59,7 @@ vi.mock('./ssh-relay-versioned-install', async (importOriginal) => ({
 }))
 
 function readyLine(overrides: {
+  version?: string
   buildHash?: string
   daemonState?: 'live' | 'degraded' | 'absent'
   selfTestOk?: boolean
@@ -73,7 +74,7 @@ function readyLine(overrides: {
     pairing: { available: false, reason: 'disabled_by_operator', guidance: 'n/a' },
     health: {
       buildHash: overrides.buildHash ?? 'abc123def4567890',
-      buildVersion: NEW_VERSION,
+      buildVersion: overrides.version ?? NEW_VERSION,
       nodeVersion: '20.11.0',
       nodeAbi: '115',
       platform: 'linux',
@@ -116,6 +117,15 @@ function scriptHost(script: HostScript): void {
       return script.activationRecord
         ? `__ORCAD_RECORD_PRESENT__\n${script.activationRecord}`
         : '__ORCAD_RECORD_ABSENT__\n'
+    }
+    if (text.includes('__ORCAD_RECORD_PRESENT__') && text.includes('transaction.json')) {
+      return '__ORCAD_RECORD_ABSENT__\n'
+    }
+    if (text.includes('__ORCAD_BUILD_HASH__')) {
+      return '__ORCAD_BUILD_HASH__ abc123def4567890\n'
+    }
+    if (text.includes('mantad.lock') && text.includes('manta-runtime.json')) {
+      return 'CLEAR'
     }
     if (text.includes('.mantad-readiness') && text.startsWith('head -c ')) {
       if (script.readinessAtMs !== undefined && Date.now() < script.readinessAtMs) {
@@ -170,7 +180,7 @@ function options(overrides: Partial<OrcadDeployOptions> = {}): OrcadDeployOption
     userDataDir: '/home/u/.manta',
     bindHost: '127.0.0.1',
     port: 7777,
-    census: { liveSessions: 0, startedSinceActivation: 0 },
+    census: { liveSessions: 0, startedSinceActivation: 0, daemonProtocolVersion: 3 },
     readinessTimeoutMs: 50,
     sleep: async () => {},
     now: () => new Date('2026-02-02T00:00:00.000Z'),
@@ -315,7 +325,7 @@ describe('deployOrcad', () => {
         options({
           host: getRemoteHostPlatform(platform),
           target,
-          census: { liveSessions: 1, startedSinceActivation: 0 }
+          census: { liveSessions: 1, startedSinceActivation: 0, daemonProtocolVersion: 3 }
         })
       )
       const chmod = mockExec.mock.calls.findIndex(([, command]) =>
@@ -478,7 +488,7 @@ describe('deployOrcad', () => {
     }
     scriptHost(script)
     const result = await deployOrcad(
-      options({ census: { liveSessions: 2, startedSinceActivation: 0 } })
+      options({ census: { liveSessions: 2, startedSinceActivation: 0, daemonProtocolVersion: 3 } })
     )
     expect(result).toMatchObject({
       outcome: 'installed-not-activated',
@@ -510,7 +520,7 @@ describe('deployOrcad', () => {
       activationRecord: ACTIVE_OLD,
       readiness: {
         [NEW_VERSION]: readyLine({ selfTestOk: false }),
-        [OLD_VERSION]: readyLine({})
+        [OLD_VERSION]: readyLine({ version: OLD_VERSION })
       },
       log: []
     }
@@ -568,7 +578,7 @@ describe('deployOrcad', () => {
   it('restarts the incumbent when a quiescent snapshot cannot be captured', async () => {
     const script: HostScript = {
       activationRecord: ACTIVE_OLD,
-      readiness: { [OLD_VERSION]: readyLine({}) },
+      readiness: { [OLD_VERSION]: readyLine({ version: OLD_VERSION }) },
       log: [],
       snapshotResult: 'tar: write failed'
     }
@@ -611,7 +621,7 @@ describe('deployOrcad', () => {
       activationRecord: ACTIVE_OLD,
       readiness: {
         [NEW_VERSION]: readyLine({ buildHash: 'deadbeefdeadbeef' }),
-        [OLD_VERSION]: readyLine({})
+        [OLD_VERSION]: readyLine({ version: OLD_VERSION })
       },
       log: []
     }
