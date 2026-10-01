@@ -33,8 +33,13 @@ import {
 } from './structured-agent-session-provider-child'
 import { releaseStoredStructuredAgentSessionOwner } from './structured-agent-session-lease-release'
 import { settleStructuredAgentSessionDeadGeneration } from './structured-agent-session-dead-generation-settlement'
-import { turnVerdictForChildEnd } from './structured-agent-session-stale-turn-verdict'
 import type { StructuredAgentSessionStopCause } from './structured-agent-session-adapter'
+export type { StructuredAgentSessionStopEnding } from './structured-agent-session-host-stop-event'
+import {
+  recordStopEvent,
+  stopEndsWork,
+  type StructuredAgentSessionStopEnding
+} from './structured-agent-session-host-stop-event'
 
 export type StructuredAgentSessionLifetimeContext = {
   deps: StructuredAgentSessionHostDeps
@@ -126,21 +131,22 @@ function owedStop(
 export async function stopStructuredAgentSessionAgentUnderSerialize(
   context: StructuredAgentSessionLifetimeContext,
   sessionId: string,
-  // Required: an omitted cause must not default to the user's cancellation. `retry` is set only by
-  // the retry of a stop already owed.
-  ending: { cause: StructuredAgentSessionStopCause; reason?: string; retry?: true }
+  ending: StructuredAgentSessionStopEnding
 ): Promise<void> {
   const session = context.sessions.get(sessionId)
   if (!session) {
     return
   }
-  // A retry finishes the stop that ended the child, so the turn that stop cut keeps its cause.
-  const cause = session.child
-    ? ending.cause
-    : (session.owesProviderChildWindDown?.cause ?? ending.cause)
+  // Judged before the kill: a stop that ends nothing writes nothing.
+  const recorded = (await stopEndsWork(context, sessionId, session, ending))
+    ? recordStopEvent(context, sessionId, session, ending)
+    : Promise.resolve()
   // The obligation OUTLIVES the child. `child` is ended the instant the adapter proves the exit,
   // so a step that aborts after that point would otherwise leave the retry reading "no child
   // here" and skipping the settlement and the lease release it still owes.
+  const asked = 'recorded' in ending ? ending.recorded : ending.cause
+  // A retry finishes the stop that ended the child, so the child's end keeps that stop's cause.
+  const cause = session.child ? asked : (session.owesProviderChildWindDown?.cause ?? asked)
   const owed = owedStop(session, cause, ending.retry === true)
   session.owesProviderChildWindDown = owed
   const stopping = session.child
@@ -152,8 +158,6 @@ export async function stopStructuredAgentSessionAgentUnderSerialize(
     eventSink: context.runtimeState.eventSinkFor(sessionId),
     adapter: context.deps.adapter,
     logger: context.deps.logger,
-    // The adapter settles its own open turn with this, so who asked travels with the stop.
-    stopCause: cause,
     ...(context.restartWitness
       ? { beforeProviderChildStop: () => context.restartWitness?.beforeStop(sessionId) }
       : {}),
@@ -164,7 +168,7 @@ export async function stopStructuredAgentSessionAgentUnderSerialize(
           generation: stopping.generation,
           fence: stopping.fence,
           cause,
-          reason: ending.reason ?? null,
+          reason: ('reason' in ending ? ending.reason : undefined) ?? null,
           duringStartup: stopping.phase === 'starting',
           // A later retry that proves the exit still ends the child at the Stop it finishes.
           ...(owed ? { endedAt: owed.requestedAt } : {}),
@@ -176,6 +180,8 @@ export async function stopStructuredAgentSessionAgentUnderSerialize(
     acknowledgeRelease: () => context.deps.adapter.acknowledgeSessionRelease?.(sessionId),
     discardSink: () => context.runtimeState.discardEventSink(sessionId),
     settleWork: async () => {
+      // Folded before the fallback's end is built, so the end reads it (`turnEndAfterStop`).
+      await recorded
       const fence =
         owed?.fence ?? structuredAgentSessionConversationFence(context.deps.store, sessionId)
       const settled = await settleStructuredAgentSessionDeadGeneration({
@@ -184,8 +190,9 @@ export async function stopStructuredAgentSessionAgentUnderSerialize(
         fence,
         settlementId: `expected-close:${sessionId}:${fence}:${owed?.generation ?? 'unknown'}`,
         pendingSubmissionReason: 'provider_closed_before_acknowledgement',
-        // Only a turn no adapter settled: one with no close, or whose settle threw.
-        verdict: turnVerdictForChildEnd(cause, context.now()),
+        // Only a turn no adapter settled: one with no close, or whose settle threw. Whether it was
+        // a person's Stop is its event's to say (`turnEndAfterStop`).
+        verdict: { state: 'interrupted', completedAt: context.now() },
         showUnexpectedExitOutcome: false
       })
       if (!settled.ok) {
@@ -247,10 +254,13 @@ export async function finishOwedStructuredAgentSessionWindDownUnderSerialize(
     return true
   }
   try {
-    await stopStructuredAgentSessionAgentUnderSerialize(context, sessionId, {
-      cause: owed.cause,
-      retry: true
-    })
+    await stopStructuredAgentSessionAgentUnderSerialize(
+      context,
+      sessionId,
+      owed.cause === 'user-stop'
+        ? { recorded: 'user-stop', retry: true }
+        : { cause: owed.cause, retry: true }
+    )
   } catch (error) {
     context.deps.logger.warn('retrying an unfinished agent stop failed', {
       scope: 'owed-stop-retry',
@@ -325,7 +335,10 @@ export async function evictOwnedStructuredAgentSessions(
     ownedSessionIds.map(async (sessionId) => {
       try {
         await context.serialize(sessionId, () =>
-          stopStructuredAgentSessionAgentUnderSerialize(context, sessionId, { cause: 'evict' })
+          stopStructuredAgentSessionAgentUnderSerialize(context, sessionId, {
+            cause: 'evict',
+            quit: true
+          })
         )
         retainOnFailure.delete(sessionId)
       } catch (error) {

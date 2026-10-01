@@ -138,7 +138,7 @@ describe('closing the handle', () => {
     await foundRestTestChat(rig)
 
     await rig.host.close(SESSION, 'evict')
-    expect(rig.adapter.closeSession).toHaveBeenCalledWith(SESSION, 'evict')
+    expect(rig.adapter.closeSession).toHaveBeenCalledWith(SESSION)
     // The stop says not-running; the row belongs to the tab, so nothing forgets it.
     expect(rig.sink.forget).not.toHaveBeenCalled()
     expect(rig.sink.publish.mock.calls.at(-1)?.[0]).toMatchObject({ sessionId: SESSION })
@@ -261,7 +261,7 @@ describe('a start that never finishes (P2-15)', () => {
     rig.clock.now += IDLE_MS + 1
 
     await sweepOnce(rig.host)
-    expect(rig.adapter.closeSession).toHaveBeenCalledWith(SESSION, 'host-stop')
+    expect(rig.adapter.closeSession).toHaveBeenCalledWith(SESSION)
     await vi.waitFor(() =>
       expect(readerSaw(reader.events).submissions).toContainEqual(
         expect.objectContaining({ dispatchState: 'rejected', reason: stopReason })

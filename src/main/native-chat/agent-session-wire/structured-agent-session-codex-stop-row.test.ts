@@ -183,9 +183,10 @@ async function followUpUnopened(): Promise<void> {
   await host.flushStreamedEvents(SESSION)
 }
 
-/** Whether the Stop ended the child: the host's stop, which proves the exit, with the user's cause. */
+/** Whether the Stop ended the child: the host's stop, which proves the exit. Nothing else here
+ *  stops it before the test's teardown. */
 function childEndedByStop(): boolean {
-  return disposeSession.mock.calls.some(([, cause]) => cause === 'user-stop')
+  return disposeSession.mock.calls.length > 0
 }
 
 describe('a Codex Stop that Codex answered', () => {
@@ -228,7 +229,7 @@ describe('a Codex Stop whose interrupt failed', () => {
       await host.flushStreamedEvents(SESSION)
 
       expect(stopped).toMatchObject({ ok: true, value: { cancelled: true } })
-      expect(disposeSession).toHaveBeenCalledExactlyOnceWith(SESSION, 'user-stop')
+      expect(disposeSession).toHaveBeenCalledExactlyOnceWith(SESSION)
       expect(codex.connections.at(-1)?.closed).toBe(true)
       const rows = await journalRows()
       expect(rows.turns).toEqual(['interrupted'])
@@ -248,7 +249,7 @@ describe('a Codex Stop whose interrupt failed', () => {
     await host.flushStreamedEvents(SESSION)
 
     expect(stopped).toMatchObject({ ok: true, value: { cancelled: false } })
-    expect(disposeSession).toHaveBeenCalledExactlyOnceWith(SESSION, 'user-stop')
+    expect(disposeSession).toHaveBeenCalledExactlyOnceWith(SESSION)
     expect((await journalRows()).statuses).toEqual([
       "Codex didn't stop: failed to interrupt turn: channel closed."
     ])

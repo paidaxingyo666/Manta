@@ -69,6 +69,7 @@ test("an older build keeps every row around a Stop's event and a Resume, and fol
     await append(0, 'before the Stop')
     const beforeMarks = journal.cursor()
     await journal.appendStopEvent({ reason: 'user-stop', turnId: 'turn-1', caller: 'client-1' }, 1)
+    await journal.appendStopEvent({ reason: 'user-close', turnId: 'turn-1' }, 1)
     await journal.appendQueueResume(1)
     const afterMarks = journal.cursor()
     await append(1, 'after the Stop')

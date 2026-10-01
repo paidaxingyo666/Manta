@@ -350,6 +350,25 @@ describe('/clear starts nothing', () => {
     expect(atCommit).toEqual({ child: null, claim: 'released' })
   })
 
+  // Its own cause, never the reason of whatever Stop the journal holds last.
+  it("ends a running source's agent as the user closing the chat", async () => {
+    const session = host.collaboratorsForTests().sessions.get(HOST_TEST_SESSION)!
+    await session.journal.appendStopEvent(
+      { reason: 'host-stop' },
+      store.getRecord(HOST_TEST_SESSION)!.lease.runtimeFence
+    )
+    const commit = store.commitConversationClear
+    let endedAs: string | undefined
+    vi.spyOn(store, 'commitConversationClear').mockImplementationOnce(async (clear) => {
+      endedAs = session.lastEndedChild?.cause
+      return commit(clear)
+    })
+
+    await clearCommits()
+
+    expect(endedAs).toBe('user-close')
+  })
+
   it('founds one record per /clear through a chain of clears, starting neither', async () => {
     const first = await clearCommits()
     const second = await host.conversationCommand(caller, {

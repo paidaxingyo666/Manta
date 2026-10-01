@@ -12,6 +12,7 @@ import {
   type AgentSessionMutationSessionPreparation
 } from './structured-agent-session-mutation-admission'
 import type { MutationPlan } from './structured-agent-session-mutation-plans'
+import type { StructuredAgentSessionStopEnding } from './structured-agent-session-host-lifetime'
 import type {
   StructuredAgentSessionCaller,
   StructuredAgentSessionHostDeps,
@@ -37,8 +38,9 @@ export type StructuredAgentSessionMutationContext = {
   finishOwedStop: (sessionId: string) => Promise<AgentSessionMutationSessionPreparation>
   /** A message was accepted: the session's delivery loop hands it over. */
   wakeDelivery: (sessionId: string) => void
-  /** Stops the session's provider child, keeping its conversation; inside the caller's serialize. */
-  stopAgent: (sessionId: string) => Promise<void>
+  /** Stops the session's provider child, keeping its conversation; inside the caller's serialize.
+   *  Each caller names why (`ending`). */
+  stopAgent: (sessionId: string, ending: StructuredAgentSessionStopEnding) => Promise<void>
   /** Only for gate inputs living in the RECORD store, which can settle with no
    *  journal commit (a conversation command). Draft-table changes need no call:
    *  the draft store notifies through the journal's own commit listener. */

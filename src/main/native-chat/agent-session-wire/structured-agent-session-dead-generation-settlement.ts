@@ -26,8 +26,10 @@ import {
 } from './structured-agent-session-start-failure-row'
 import type { AgentSessionDeathEvidence } from '../../../shared/agent-session-record'
 import {
+  endedByPersonsStop,
   provenUnverifiableTurnRevisions,
   runningTurnLifecycleRevisions,
+  stopFoundTurnLiveAt,
   turnVerdictFromDeathEvidence,
   type StructuredAgentSessionTurnVerdict
 } from './structured-agent-session-stale-turn-verdict'
@@ -220,7 +222,11 @@ export async function settleStaleStructuredAgentSessionState(input: {
   const items = journal.snapshot().items
   // Each turn is judged by the evidence only if it names that turn's owner.
   const verdictFor = (item: AgentJournalRenderItem) =>
-    turnVerdictFromDeathEvidence(input.deathEvidence, journal.itemFence(item.itemId))
+    turnVerdictFromDeathEvidence(
+      input.deathEvidence,
+      journal.itemFence(item.itemId),
+      stopFoundTurnLiveAt(journal, item)
+    )
   // Per attempt: a retry re-partitions only what is left, and a reused chunk id would skip it.
   const generation = input.acquisitionGeneration ?? `seq-${journal.cursor().sequence}`
   const settlementId = `stale-session:${input.sessionId}:${input.fence}:${generation}`
@@ -238,15 +244,17 @@ export async function settleStaleStructuredAgentSessionState(input: {
     }
   }
   const proven = provenUnverifiableTurnRevisions(items, input.deathEvidence, journal)
-  mutations.push(
+  const turnEnds = [
     ...items.flatMap((item) => runningTurnLifecycleRevisions([item], verdictFor(item))),
     ...proven
-  )
+  ]
+  mutations.push(...turnEnds)
   const evidence = input.deathEvidence
   if (
     evidence &&
     (proven.length > 0 ||
-      items.some((item) => isInProgressItem(item) && verdictFor(item).state === 'interrupted'))
+      items.some((item) => isInProgressItem(item) && verdictFor(item).state === 'interrupted')) &&
+    !endedByPersonsStop(journal, turnEnds)
   ) {
     mutations.unshift({
       kind: 'item',

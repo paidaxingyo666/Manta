@@ -70,6 +70,7 @@ import { createJournalStoreCollaborators } from './journal-store-collaborators'
 import { journalStoreLoadedFields } from './journal-store-open'
 import type { JournalItemAppender } from './journal-item-appender'
 import type { JournalLifecycleBatchAppender } from './journal-lifecycle-batch-appender'
+import type { JournalStopMarks } from './journal-stop-marks'
 
 export { AgentSessionJournalError } from './journal-write-guards'
 
@@ -93,6 +94,7 @@ export class AgentSessionJournal {
   private readonly restore: () => Promise<void>
   /** Draft rows queued while the agent works; never reducer input or owed work. */
   readonly queuedMessages: JournalQueuedMessages
+  readonly stopMarks: JournalStopMarks
 
   constructor(options: AgentSessionJournalOptions) {
     this.identity = options.identity
@@ -141,6 +143,7 @@ export class AgentSessionJournal {
     this.itemAppender = collaborators.itemAppender
     this.lifecycleBatchAppender = collaborators.lifecycleBatchAppender
     this.queuedMessages = collaborators.queuedMessages
+    this.stopMarks = collaborators.stopMarks
     this.restore = collaborators.restore
   }
 

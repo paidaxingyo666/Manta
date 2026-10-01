@@ -26,11 +26,7 @@ import {
   settleStaleStructuredAgentSessionState,
   settleStructuredAgentSessionDeadGeneration
 } from './structured-agent-session-dead-generation-settlement'
-import {
-  childEndCauseOfEndedEvent,
-  turnVerdictForChildEnd,
-  type StructuredAgentSessionTurnVerdict
-} from './structured-agent-session-stale-turn-verdict'
+import type { StructuredAgentSessionTurnVerdict } from './structured-agent-session-stale-turn-verdict'
 import { StructuredAgentSessionStatusFeed } from './structured-agent-session-status-feed'
 import { indexedStatusFeedSession } from './structured-agent-session-status-feed-test-session'
 import { StructuredAgentSessionTurnCompletionFeed } from './structured-agent-session-turn-completion-feed'
@@ -197,7 +193,7 @@ describe('a turn recovery settled after its host went away', () => {
     ],
     [
       'quitting Manta',
-      // A quit evicts the child, and its adapter settles the open turn through the one mapping.
+      // A quit evicts the child, writing no Stop event, and its adapter settles the open turn.
       (journal: AgentSessionJournal) =>
         journal.appendItem(
           { provider: 'codex', threadId: THREAD, turnId: 'turn-1', ordinal: 9 },
@@ -205,14 +201,8 @@ describe('a turn recovery settled after its host went away', () => {
             kind: 'turn',
             turnId: 'turn-1',
             startedAt: TURN_STARTED,
-            ...turnVerdictForChildEnd(
-              childEndCauseOfEndedEvent({
-                type: 'ended',
-                cause: 'requested-close',
-                stopCause: 'evict'
-              }),
-              EXIT_OBSERVED
-            )
+            state: 'interrupted',
+            completedAt: EXIT_OBSERVED
           },
           { fence: 1, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
         )

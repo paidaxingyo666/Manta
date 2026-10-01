@@ -288,7 +288,7 @@ export class StructuredAgentSessionHost {
           sessionId
         ),
       wakeDelivery: (sessionId) => this.conversationDelivery.loop.wake(sessionId),
-      stopAgent: (sessionId) => this.lifetime.stopAgent(sessionId, 'user-stop'),
+      stopAgent: (sessionId, ending) => this.lifetime.stopAgent(sessionId, ending),
       wakeQueuedDrain: (sessionId) => this.queued.drain.schedule(sessionId),
       now: () => this.now()
     }

@@ -136,6 +136,10 @@ export type StructuredAgentSessionEventSink = {
   journalEpoch?(): string | null
   /** The bound journal's producer linkage; null until bound. */
   journalLinkage?(): StructuredAgentSessionLinkageJournal | null
+  /** Whether the bound journal's Stop rule makes turn `turnId`, ending at `endedAt` with no verdict
+   *  of its own, a person's cancellation (`personStopDecidesTurn`); false until bound. `openedBy`:
+   *  the submission that opened it, for a turn whose rows have yet to land. */
+  journalStopDecidesTurn?(turnId: string, endedAt: number, openedBy?: string): boolean
   appendLifecycleBatch?(
     settlementId: string,
     mutations: readonly JournalLifecycleMutationInput[],
@@ -288,6 +292,7 @@ export function createDeferredStructuredAgentSessionEventSink(deps: {
       ...resolvedAppend,
       journalEpoch: queue.journalEpoch,
       journalLinkage: queue.journalLinkage,
+      journalStopDecidesTurn: queue.journalStopDecidesTurn,
       appendLifecycleBatch: (settlementId, mutations, options = {}) => {
         const admission = appendLifecycleBatch(settlementId, mutations, options)
         if (!admission.accepted) {

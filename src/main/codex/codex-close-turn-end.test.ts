@@ -1,10 +1,9 @@
-// Closing a Codex child settles its open turn in the adapter, with the cause the host handed the
-// close. Only a stop the user aimed at this chat reads as their cancellation.
+// Closing a Codex child settles its open turn in the adapter as interrupted, with no verdict: the
+// close names no cause. Whether the end was a person's is the journal's Stop event to say.
 
 import { createCodexTurnOpenWaits } from './codex-structured-turn-open-wait'
 import { describe, expect, it, vi } from 'vitest'
 import type { AgentJournalItemBody } from '../../shared/agent-session-journal-types'
-import type { StructuredAgentSessionStopCause } from '../native-chat/agent-session-wire/structured-agent-session-adapter'
 import type { StructuredAgentSessionEventSink } from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
 import { CodexBackgroundTaskTracker } from './codex-background-task-tracker'
 import { createCodexDispatchEchoes } from './codex-structured-dispatch-echo'
@@ -75,48 +74,26 @@ function sessionWithRunningTurn() {
   return { sessions: new Map([['session-1', session]]), session, turnBodies }
 }
 
-describe('a Codex close settles the open turn with the host-named cause', () => {
-  it.each(['user-close', 'user-stop'] satisfies StructuredAgentSessionStopCause[])(
-    "records the user's %s as their cancellation",
-    async (stopCause) => {
-      const { sessions, turnBodies } = sessionWithRunningTurn()
-      const onEvent = vi.fn()
+describe('a Codex close settles the open turn with no verdict of its own', () => {
+  // Whose end it was is the journal's Stop event to say (`turnEndAfterStop`), never the close's.
+  it('ends it interrupted at the exit, with no outcome', async () => {
+    const { sessions, turnBodies } = sessionWithRunningTurn()
+    const onEvent = vi.fn()
 
-      await expect(
-        closeCodexPublishedSession(sessions, 'session-1', onEvent, { stopCause })
-      ).resolves.toBe(true)
+    await expect(closeCodexPublishedSession(sessions, 'session-1', onEvent)).resolves.toBe(true)
 
-      expect(turnBodies).toEqual([
-        expect.objectContaining({ turnId: 'turn-1', state: 'interrupted', outcome: 'cancellation' })
-      ])
-      expect(onEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'ended', cause: 'requested-close', stopCause })
-      )
-    }
-  )
+    expect(turnBodies).toEqual([
+      expect.objectContaining({ turnId: 'turn-1', state: 'interrupted' })
+    ])
+    expect(turnBodies[0]).not.toHaveProperty('outcome')
+    expect(onEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'ended', cause: 'requested-close' })
+    )
+  })
 
-  it.each([['evict'], ['host-stop'], [undefined]] as const)(
-    'leaves a close for %s as news',
-    async (stopCause) => {
-      const { sessions, turnBodies } = sessionWithRunningTurn()
-
-      await closeCodexPublishedSession(
-        sessions,
-        'session-1',
-        undefined,
-        stopCause ? { stopCause } : {}
-      )
-
-      expect(turnBodies).toEqual([
-        expect.objectContaining({ turnId: 'turn-1', state: 'interrupted' })
-      ])
-      expect(turnBodies[0]).not.toHaveProperty('outcome')
-    }
-  )
-
-  it('leaves a crash it saw before the user closed the chat as news', async () => {
+  it('settles a crash it saw before the close once, as that exit', async () => {
     const { sessions, session, turnBodies } = sessionWithRunningTurn()
-    // The child died on its own first; the user's close then finds it already ended.
+    // The child died on its own first; the close then finds it already ended.
     handleCodexSessionExit({
       sessions,
       sessionId: 'session-1',
@@ -124,7 +101,7 @@ describe('a Codex close settles the open turn with the host-named cause', () => 
       error: new Error('app-server exited')
     })
 
-    await closeCodexPublishedSession(sessions, 'session-1', undefined, { stopCause: 'user-close' })
+    await closeCodexPublishedSession(sessions, 'session-1')
 
     expect(turnBodies).toEqual([
       expect.objectContaining({ turnId: 'turn-1', state: 'interrupted' })
@@ -132,18 +109,7 @@ describe('a Codex close settles the open turn with the host-named cause', () => 
     expect(turnBodies[0]).not.toHaveProperty('outcome')
   })
 
-  it('never carries a user cause onto a close forced after a sink failure', async () => {
-    const { sessions, turnBodies } = sessionWithRunningTurn()
-
-    await closeCodexPublishedSession(sessions, 'session-1', undefined, {
-      requestedClose: false,
-      stopCause: 'user-close'
-    })
-
-    expect(turnBodies[0]).not.toHaveProperty('outcome')
-  })
-
-  it("carries the host's cause from the adapter's close to the ended batch", async () => {
+  it("settles the same through the adapter's close", async () => {
     const { sessions, turnBodies } = sessionWithRunningTurn()
     const teardown = new CodexStructuredSessionTeardown({
       sessions,
@@ -151,8 +117,11 @@ describe('a Codex close settles the open turn with the host-named cause', () => 
       forgetNotificationRetries: () => {}
     })
 
-    await expect(teardown.close('session-1', 'user-close')).resolves.toBe(true)
+    await expect(teardown.close('session-1')).resolves.toBe(true)
 
-    expect(turnBodies[0]).toMatchObject({ state: 'interrupted', outcome: 'cancellation' })
+    expect(turnBodies).toEqual([
+      expect.objectContaining({ turnId: 'turn-1', state: 'interrupted' })
+    ])
+    expect(turnBodies[0]).not.toHaveProperty('outcome')
   })
 })

@@ -192,8 +192,15 @@ describe("a Stop never hides a restart's pause", () => {
     await rig.settleAccepted(working, 'stopped')
     const mail = await mailTurn()
     const typed = await queuedDraft('typed during the mail turn')
-    await rig.restartHostProcess()
+    // The process dies with no close: a quit writes no Stop event either, so the Stop's pause stays.
+    rig.crashRestartHostProcess()
     await rig.settleAccepted(mail, 'mail')
+    // The new host opens the conversation for its first reader.
+    await rig.queuePause()
+    expect(structuredQueuePauses(journal()).map((pause) => pause.reason)).toEqual([
+      'stopped',
+      'restarted'
+    ])
     await expectHeld('restarted', typed)
   })
 
@@ -207,8 +214,13 @@ describe("a Stop never hides a restart's pause", () => {
       expect((await rig.handoff(correction))?.handedOverAt).toBeDefined()
     )
     const typed = await queuedDraft('typed during that send')
-    await rig.restartHostProcess()
+    rig.crashRestartHostProcess()
     await rig.settleAccepted(await rig.handoffId(correction), 'correction')
+    await rig.queuePause()
+    expect(structuredQueuePauses(journal()).map((pause) => pause.reason)).toEqual([
+      'stopped',
+      'restarted'
+    ])
     await expectHeld('restarted', typed)
   })
 })

@@ -1,6 +1,6 @@
-// Closing a Claude child settles its open turn in the adapter, with the cause the host handed the
-// close. Only a stop the user aimed at this chat reads as their cancellation; an exit the adapter
-// saw before the close settles as that exit.
+// Closing a Claude child settles its open turn in the adapter as interrupted, with no verdict: the
+// close names no cause. Whether the end was a person's is the journal's Stop event to say; an exit
+// the adapter saw before the close settles as that exit.
 
 import { describe, expect, it } from 'vitest'
 import type {
@@ -53,33 +53,24 @@ async function childInsideTurn() {
   return { adapter, connection, events, turns }
 }
 
-describe('a Claude close settles the open turn with the host-named cause', () => {
-  it("records the user's close of this chat as their cancellation", async () => {
+describe('a Claude close settles the open turn with no verdict of its own', () => {
+  // Whose end it was is the journal's Stop event to say (`turnEndAfterStop`), never the close's.
+  it('ends it interrupted, with no outcome', async () => {
     const { adapter, events, turns } = await childInsideTurn()
 
-    await expect(adapter.closeSession('session-1', 'user-close')).resolves.toBe(true)
-
-    expect(turns.at(-1)).toMatchObject({ state: 'interrupted', outcome: 'cancellation' })
-    expect(events.find((event) => event.type === 'ended')).toMatchObject({
-      stopCause: 'user-close'
-    })
-  })
-
-  it('leaves an eviction as news', async () => {
-    const { adapter, turns } = await childInsideTurn()
-
-    await adapter.closeSession('session-1', 'evict')
+    await expect(adapter.closeSession('session-1')).resolves.toBe(true)
 
     expect(turns.at(-1)).toMatchObject({ state: 'interrupted' })
     expect(turns.at(-1)).not.toHaveProperty('outcome')
+    expect(events.find((event) => event.type === 'ended')).not.toHaveProperty('stopCause')
   })
 
-  it('leaves a crash it saw before the user closed the chat as news', async () => {
+  it('settles a crash it saw before the close once, as that exit', async () => {
     const { adapter, connection, events, turns } = await childInsideTurn()
-    // The child dies on its own first; the user's close arrives while that exit is still settling.
+    // The child dies on its own first; the close arrives while that exit is still settling.
     connection.handlers.onExit?.(new Error('provider exited'))
 
-    await adapter.closeSession('session-1', 'user-close')
+    await adapter.closeSession('session-1')
     await tick()
 
     const settled = turns.filter((turn) => turn.state !== 'running')

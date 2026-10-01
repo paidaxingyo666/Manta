@@ -134,7 +134,7 @@ describe('a Codex reconnecting a dropped stream', () => {
     // Once the frames stop, the same clock does let the sweep close it.
     clock += STRUCTURED_AGENT_SESSION_IDLE_MS
     await vi.waitFor(() => {
-      expect(closeSession).toHaveBeenCalledWith(SESSION, 'evict')
+      expect(closeSession).toHaveBeenCalledWith(SESSION)
       expect(host.hasSession(SESSION)).toBe(false)
     })
   })

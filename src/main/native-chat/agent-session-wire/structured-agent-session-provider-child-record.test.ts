@@ -648,7 +648,7 @@ describe('a quit with a message still queued', () => {
     starting.resolve()
     await quit
 
-    expect(closeSession).toHaveBeenCalledWith(SESSION, 'evict')
+    expect(closeSession).toHaveBeenCalledWith(SESSION)
     expect(store.getRecord(SESSION)?.lease).toMatchObject({ claimStatus: 'released' })
     expect(dispatch).not.toHaveBeenCalled()
     expect(await afterRelaunch(id)).toMatchObject({

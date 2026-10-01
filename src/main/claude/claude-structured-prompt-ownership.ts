@@ -48,16 +48,7 @@ function cancelClaudeConversation(
     session.fence === request.fence &&
     session.acquisitionGeneration === acquisitionGeneration &&
     (claudeLiveTurnId(session, request) !== null || session.dispatchWaiters.length > 0)
-  // A turn is cancelled only at a client's request, so the stop is the user's: on the named turn,
-  // else on whatever turn is open.
-  const stoppedTurnId = request.turnId ?? session.translator?.currentTurnId ?? null
-  return cancelClaudeTurn(
-    session,
-    timeoutMs,
-    isCurrent,
-    onDispatchSettledLate,
-    stoppedTurnId === null ? undefined : { turnId: stoppedTurnId, cause: 'user-stop' }
-  )
+  return cancelClaudeTurn(session, timeoutMs, isCurrent, onDispatchSettledLate)
 }
 
 /** A Stop's interrupt. A card's own Cancel never comes here: `claudePromptCancelRoute` routes it. */
@@ -117,7 +108,6 @@ export async function cancelClaudeStructuredTurn(input: {
         )
   const compactionOwnsTurn = (): boolean =>
     session.translator !== null && session.translator.commandTurnId === requestedTurnId
-  // A turn is cancelled only at a client's request, so the stop is the user's.
   return cancelClaudeTurn(
     session,
     timeoutMs,
@@ -133,8 +123,7 @@ export async function cancelClaudeStructuredTurn(input: {
       }
       return current
     },
-    input.onDispatchSettledLate,
-    { turnId: requestedTurnId, cause: 'user-stop' }
+    input.onDispatchSettledLate
   )
 }
 

@@ -99,6 +99,7 @@ describe('provider-exit settlement', () => {
           items: [lifecycleItem('turn-1', 1, { state: 'running', startedAt: 1_000 })]
         }),
         itemFence: () => 7,
+        stopMarks: { latest: () => null, personStopDecides: () => false },
         appendLifecycleBatch,
         markPendingSubmissionsUnknown: vi.fn(async () => [])
       }

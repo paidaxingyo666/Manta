@@ -146,7 +146,8 @@ export function runStructuredConversationCommand(
           }
           // Stopped before the marker, so nothing the old agent does can land after the clear. The
           // stop releases the lease, which moves its fence: the marker is written at the new one.
-          await context.stopAgent(sessionId)
+          // A /clear replaces this chat: the user closing it.
+          await context.stopAgent(sessionId, { cause: 'user-close' })
           const fence = store.getRecord(sessionId)!.lease.runtimeFence
           const completed = {
             command,

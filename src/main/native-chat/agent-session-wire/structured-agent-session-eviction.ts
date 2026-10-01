@@ -17,10 +17,7 @@
 // reach it; forgetting it anyway stranded the process forever and reported success. Leaving the
 // session in place is what makes the next close a real retry instead of a no-op.
 
-import type {
-  StructuredAgentSessionAdapter,
-  StructuredAgentSessionStopCause
-} from './structured-agent-session-adapter'
+import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import { stopAgentSessionProviderRoot } from './structured-agent-session-provider-exit-proof'
 import type { DeferredStructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import type { StructuredAgentSessionStopVerdict } from './structured-agent-session-host-types'
@@ -29,8 +26,6 @@ import type { StructuredAgentSessionLogger } from './structured-agent-session-lo
 
 export type StructuredAgentSessionEvictionContext = {
   sessionId: string
-  /** Why the host stops the child; the adapter settles the turn it cuts with it. */
-  stopCause?: StructuredAgentSessionStopCause
   hasProviderChild?: boolean
   eventSink: DeferredStructuredAgentSessionEventSink
   adapter: StructuredAgentSessionAdapter
@@ -94,9 +89,7 @@ export const STRUCTURED_AGENT_SESSION_EVICTION_STEPS: readonly StructuredAgentSe
         // An adapter with no close has nothing to stop; anything else must PROVE the exit.
         const stop = context.adapter.disposeSession ?? context.adapter.closeSession
         const rootGone = stop
-          ? await stopAgentSessionProviderRoot(() =>
-              stop.call(context.adapter, context.sessionId, context.stopCause)
-            )
+          ? await stopAgentSessionProviderRoot(() => stop.call(context.adapter, context.sessionId))
           : true
         if (!rootGone) {
           throw new Error('provider child exit was not proven')
