@@ -1,9 +1,10 @@
 name: SSH hostile hosts
 
 # Design D5/D6 hostile-host matrix: the real client-side relay deploy against container SSH
-# targets (old glibc, musl, no libstdc++, noexec home, no egress), asserting which rung of the
-# relay runtime ladder each lands on. Heavy (two slot builds plus seven images), so it runs only
-# when the ladder, the runtime store, the relay or the slot build changes, and on demand.
+# targets (old glibc, musl, no libstdc++, noexec home, no egress) and against each macOS runner's
+# own loopback sshd, asserting which rung of the relay runtime ladder each lands on. Heavy (three
+# slot builds plus seven images), so it runs only when the ladder, the runtime store, the relay
+# or the slot build changes, and on demand.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -14,6 +15,7 @@ on:
       - 'src/main/ssh/remote-install-*'
       - 'src/main/ssh/ssh-remote-*'
       - 'src/main/ssh/ssh-hostile-host-*'
+      - 'src/main/ssh/sftp-*'
       - 'src/relay/**'
       - 'src/shared/node-runtime-pin.ts'
       - 'src/shared/mantad-artifacts.ts'
@@ -28,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       cells:
-        description: Comma-separated cell ids from src/main/ssh/ssh-hostile-host-cells.ts; empty runs all.
+        description: Comma-separated Docker cell ids from src/main/ssh/ssh-hostile-host-cells.ts; empty runs all. macOS cells always run on their own runners.
         required: false
         default: ''
 
@@ -138,4 +140,43 @@ jobs:
         env:
           ORCA_RUN_SSH_HOSTILE_HOSTS: '1'
           ORCA_SSH_HOSTILE_HOST_CELLS: ${{ github.event.inputs.cells || '' }}
+        run: pnpm test src/main/ssh/ssh-relay-hostile-hosts.docker.test.ts
+
+  # Design D6 on macOS: the runner is the SSH host. A user-level sshd on a loopback port logs in
+  # as the runner user with PATH cut to the toolchain shims and /usr/bin:/bin, so Homebrew's node
+  # and npm are unreachable; see ssh-hostile-host-local-sshd.ts for what SIP keeps in /usr/bin.
+  macos_hosts:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft != true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: darwin-arm64
+            cell: macos-arm64-local-sshd
+          - os: macos-15-intel
+            target: darwin-x64
+            cell: macos-x64-local-sshd
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    env:
+      MANTA_BACKGROUND_LAUNCH: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/install-node-dependencies
+        with:
+          native-runtime: node
+      - name: Build and smoke this runner's slot, the mantad template and relay
+        run: |
+          pnpm build:mantad-prebuilds
+          pnpm build:mantad-prebuilds --require-slots ${{ matrix.target }}
+          pnpm build:mantad-prebuilds --smoke
+          node config/scripts/build-mantad-template.mjs --targets ${{ matrix.target }}
+          pnpm run build:relay
+      - name: Run the macOS hostile-host cell
+        env:
+          ORCA_RUN_SSH_HOSTILE_HOSTS: '1'
+          ORCA_SSH_HOSTILE_HOST_CELLS: ${{ matrix.cell }}
         run: pnpm test src/main/ssh/ssh-relay-hostile-hosts.docker.test.ts

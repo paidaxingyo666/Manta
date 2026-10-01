@@ -1,13 +1,32 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canRunHostileHostCell,
+  forbiddenToolsFor,
+  forbiddenToolShimScript,
   HOSTILE_HOST_CELLS,
   hostileHostCellViolations,
+  isLocalSshdCell,
   parseForbiddenToolLog,
   selectHostileHostCells,
+  type DockerHostileHostCell,
   type HostileHostCell,
   type HostileHostObservation
 } from './ssh-hostile-host-cells'
 import { hostileHostDockerfile } from './ssh-hostile-host-test-fixture'
+
+const LINUX = { platform: 'linux', arch: 'x64' } as const
+const MAC_ARM = { platform: 'darwin', arch: 'arm64' } as const
+const DOCKER_CELLS = HOSTILE_HOST_CELLS.filter(
+  (candidate): candidate is DockerHostileHostCell => !isLocalSshdCell(candidate)
+)
+
+function dockerCell(id: string): DockerHostileHostCell {
+  const found = DOCKER_CELLS.find((candidate) => candidate.id === id)
+  if (!found) {
+    throw new Error(`no docker cell ${id}`)
+  }
+  return found
+}
 
 function cell(id: string): HostileHostCell {
   const found = HOSTILE_HOST_CELLS.find((candidate) => candidate.id === id)
@@ -35,7 +54,9 @@ describe('hostile-host cells', () => {
       'alpine-musl-no-libstdcxx',
       'ubuntu2204-node20-noexec-home',
       'centos7-glibc217',
-      'debian10-no-egress'
+      'debian10-no-egress',
+      'macos-arm64-local-sshd',
+      'macos-x64-local-sshd'
     ])
     expect(new Set(HOSTILE_HOST_CELLS.map((c) => c.expect.outcome))).toEqual(
       new Set(['launched', 'unavailable', 'legacy_failed'])
@@ -43,7 +64,7 @@ describe('hostile-host cells', () => {
   })
 
   it('pins every base image by digest and installs no compiler or host Node for rung A', () => {
-    for (const { dockerfile, expect: expectation } of HOSTILE_HOST_CELLS) {
+    for (const { dockerfile, expect: expectation } of DOCKER_CELLS) {
       for (const from of dockerfile.filter((line) => line.startsWith('FROM '))) {
         expect(from).toMatch(/@sha256:[0-9a-f]{64}\b/)
       }
@@ -54,22 +75,59 @@ describe('hostile-host cells', () => {
   })
 
   it('shims the toolchain and starts sshd in every image', () => {
-    const dockerfile = hostileHostDockerfile(cell('alpine-musl'))
+    const dockerfile = hostileHostDockerfile(dockerCell('alpine-musl'))
     expect(dockerfile.startsWith('FROM alpine:3.20@sha256:')).toBe(true)
     expect(dockerfile).toContain('ln -sf orca-forbidden-tool /usr/local/bin/npm')
     expect(dockerfile).toContain('ln -sf orca-forbidden-tool /usr/local/bin/gcc')
     expect(dockerfile.trimEnd().endsWith('CMD ["/orca-entrypoint.sh"]')).toBe(true)
   })
 
-  it('selects named cells and rejects unknown ones', () => {
-    expect(selectHostileHostCells(undefined)).toHaveLength(HOSTILE_HOST_CELLS.length)
-    expect(selectHostileHostCells(' ')).toHaveLength(HOSTILE_HOST_CELLS.length)
-    expect(selectHostileHostCells('alpine-musl, centos7-glibc217').map((c) => c.id)).toEqual([
-      'alpine-musl',
-      'centos7-glibc217'
-    ])
-    expect(() => selectHostileHostCells('alpine-musl,solaris')).toThrow(
+  it('selects named cells this machine can host and rejects unknown ones', () => {
+    expect(selectHostileHostCells(undefined, HOSTILE_HOST_CELLS, LINUX)).toEqual(DOCKER_CELLS)
+    expect(selectHostileHostCells(' ', HOSTILE_HOST_CELLS, LINUX)).toEqual(DOCKER_CELLS)
+    expect(
+      selectHostileHostCells('alpine-musl, centos7-glibc217', HOSTILE_HOST_CELLS, LINUX).map(
+        (c) => c.id
+      )
+    ).toEqual(['alpine-musl', 'centos7-glibc217'])
+    expect(() => selectHostileHostCells('alpine-musl,solaris', HOSTILE_HOST_CELLS, LINUX)).toThrow(
       'Unknown hostile-host cells: solaris'
+    )
+  })
+
+  it('runs a macOS cell only on its own OS and arch, and no Docker cell there', () => {
+    expect(selectHostileHostCells('', HOSTILE_HOST_CELLS, MAC_ARM).map((c) => c.id)).toEqual([
+      'macos-arm64-local-sshd'
+    ])
+    expect(
+      selectHostileHostCells('macos-arm64-local-sshd', HOSTILE_HOST_CELLS, MAC_ARM).map((c) => c.id)
+    ).toEqual(['macos-arm64-local-sshd'])
+    expect(() =>
+      selectHostileHostCells('alpine-musl,macos-arm64-local-sshd', HOSTILE_HOST_CELLS, LINUX)
+    ).toThrow('cannot run on linux-x64: macos-arm64-local-sshd')
+    expect(() =>
+      selectHostileHostCells('macos-x64-local-sshd', HOSTILE_HOST_CELLS, MAC_ARM)
+    ).toThrow('cannot run on darwin-arm64: macos-x64-local-sshd')
+    expect(canRunHostileHostCell(cell('macos-x64-local-sshd'), MAC_ARM)).toBe(false)
+    expect(
+      canRunHostileHostCell(cell('macos-x64-local-sshd'), { platform: 'darwin', arch: 'x64' })
+    ).toBe(true)
+  })
+
+  it('expects each macOS runner on rung A with its own darwin slot, and forbids xattr there', () => {
+    expect(cell('macos-arm64-local-sshd').expect).toEqual({
+      outcome: 'launched',
+      rung: 'A',
+      target: 'darwin-arm64'
+    })
+    expect(cell('macos-x64-local-sshd').expect).toMatchObject({ target: 'darwin-x64' })
+    expect(forbiddenToolsFor(cell('macos-arm64-local-sshd'))).toContain('xattr')
+    expect(forbiddenToolsFor(cell('debian10-glibc228'))).not.toContain('xattr')
+  })
+
+  it('writes a shim that logs its own name and arguments, then fails like a missing tool', () => {
+    expect(forbiddenToolShimScript('/tmp/x/calls.log')).toBe(
+      `#!/bin/sh\nprintf '%s %s\\n' "\${0##*/}" "$*" >> '/tmp/x/calls.log'\nexit 127\n`
     )
   })
 

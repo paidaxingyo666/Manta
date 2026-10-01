@@ -1,7 +1,8 @@
 /**
- * The design D5/D6 hostile-host matrix: each cell is a container SSH target and the place the
- * relay runtime ladder must land there. `ssh-relay-hostile-hosts.docker.test.ts` drives the real
- * client-side deploy against each one; `.github/workflows/ssh-hostile-hosts.yml` runs it.
+ * The design D5/D6 hostile-host matrix: each cell is an SSH target (a container, or the runner's
+ * own loopback sshd) and the place the relay runtime ladder must land there.
+ * `ssh-relay-hostile-hosts.docker.test.ts` drives the real client-side deploy against each one;
+ * `.github/workflows/ssh-hostile-hosts.yml` runs it.
  */
 import type { ServerTarget } from '../../shared/node-runtime-pin'
 import type { SshRemoteRuntimeRung } from '../../shared/ssh-types'
@@ -11,6 +12,13 @@ import type { RelayRuntimeStep, RemoteRuntimeUnavailableReason } from './ssh-rel
 /** Every shimmed toolchain command appends its name here; rungs A and C must leave it empty. */
 export const FORBIDDEN_TOOL_LOG = '/tmp/orca-forbidden-tool-calls.log'
 export const FORBIDDEN_TOOLS = ['npm', 'npx', 'node-gyp', 'gcc', 'g++', 'cc', 'c++', 'make']
+
+/** The shim every forbidden tool name links to: it records the call and fails like a missing tool. */
+export function forbiddenToolShimScript(logPath: string): string {
+  return ['#!/bin/sh', `printf '%s %s\\n' "\${0##*/}" "$*" >> '${logPath}'`, 'exit 127', ''].join(
+    '\n'
+  )
+}
 
 export type RungRefusal = { step: RelayRuntimeStep; reason: RelayRuntimeFallbackReason }
 
@@ -34,7 +42,8 @@ export type HostileHostCellCore = {
   expect: HostileHostExpectation
 }
 
-export type HostileHostCell = HostileHostCellCore & {
+export type DockerHostileHostCell = HostileHostCellCore & {
+  host?: 'docker'
   /** Dockerfile lines, FROM included; the harness appends sshd and the toolchain shims. */
   dockerfile: readonly string[]
   /** Mount `/root` as a noexec tmpfs, the way a hardened host mounts home. */
@@ -42,6 +51,33 @@ export type HostileHostCell = HostileHostCellCore & {
   /** Attach only to a `docker network create --internal` network: the host has no egress. */
   noEgress?: boolean
 }
+
+/**
+ * The runner itself as the SSH host: a user-level sshd on a loopback port logs in as the runner
+ * user with PATH cut to the shims and the OS base, and HOME moved to an empty directory so no
+ * profile or rc file puts Homebrew or a toolchain back.
+ */
+export type LocalSshdHostileHostCell = HostileHostCellCore & {
+  host: 'local-sshd'
+  /** The machine the cell must run on; its runtime target is this machine's own. */
+  runsOn: { platform: NodeJS.Platform; arch: string }
+  /** Shimmed beside FORBIDDEN_TOOLS for this host only. */
+  extraForbiddenTools?: readonly string[]
+}
+
+export type HostileHostCell = DockerHostileHostCell | LocalSshdHostileHostCell
+
+export function isLocalSshdCell(cell: HostileHostCell): cell is LocalSshdHostileHostCell {
+  return cell.host === 'local-sshd'
+}
+
+export function forbiddenToolsFor(cell: HostileHostCell): string[] {
+  return [...FORBIDDEN_TOOLS, ...(isLocalSshdCell(cell) ? (cell.extraForbiddenTools ?? []) : [])]
+}
+
+// Why xattr: SFTP writes carry no com.apple.quarantine, so the pinned Node must run as uploaded;
+// a deploy that reached for `xattr -d` would be papering over a Gatekeeper block.
+const MACOS_FORBIDDEN_TOOLS = ['xattr']
 
 // Digests are the multi-arch indexes of each tag as of 2026-09-30.
 const DEBIAN_10 =
@@ -144,26 +180,63 @@ export const HOSTILE_HOST_CELLS: readonly HostileHostCell[] = [
     dockerfile: DEBIAN_10_LINES,
     noEgress: true,
     expect: { outcome: 'launched', rung: 'A', target: 'linux-x64-glibc' }
+  },
+  {
+    id: 'macos-arm64-local-sshd',
+    host: 'local-sshd',
+    runsOn: { platform: 'darwin', arch: 'arm64' },
+    extraForbiddenTools: MACOS_FORBIDDEN_TOOLS,
+    expect: { outcome: 'launched', rung: 'A', target: 'darwin-arm64' }
+  },
+  {
+    id: 'macos-x64-local-sshd',
+    host: 'local-sshd',
+    runsOn: { platform: 'darwin', arch: 'x64' },
+    extraForbiddenTools: MACOS_FORBIDDEN_TOOLS,
+    expect: { outcome: 'launched', rung: 'A', target: 'darwin-x64' }
   }
 ]
 
-/** `ORCA_SSH_HOSTILE_HOST_CELLS=a,b` narrows a run; unset or empty runs every cell. */
+export type HostileHostMachine = { platform: NodeJS.Platform; arch: string }
+
+/** Docker cells need a Linux daemon that shares its bridge; loopback cells need their own OS. */
+export function canRunHostileHostCell(cell: HostileHostCell, machine: HostileHostMachine): boolean {
+  if (isLocalSshdCell(cell)) {
+    return cell.runsOn.platform === machine.platform && cell.runsOn.arch === machine.arch
+  }
+  return machine.platform === 'linux'
+}
+
+/**
+ * `ORCA_SSH_HOSTILE_HOST_CELLS=a,b` narrows a run and every named cell must be hostable here;
+ * unset or empty runs every cell this machine can host.
+ */
 export function selectHostileHostCells(
   filter: string | undefined,
-  cells: readonly HostileHostCell[] = HOSTILE_HOST_CELLS
+  cells: readonly HostileHostCell[] = HOSTILE_HOST_CELLS,
+  machine: HostileHostMachine = { platform: process.platform, arch: process.arch }
 ): HostileHostCell[] {
   const wanted = (filter ?? '')
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean)
-  if (wanted.length === 0) {
-    return [...cells]
-  }
   const unknown = wanted.filter((id) => !cells.some((cell) => cell.id === id))
   if (unknown.length > 0) {
     throw new Error(`Unknown hostile-host cells: ${unknown.join(', ')}`)
   }
-  return cells.filter((cell) => wanted.includes(cell.id))
+  // Why: a named cell skipped for the wrong OS or arch would leave its CI job green with no run.
+  const unhostable = cells.filter(
+    (cell) => wanted.includes(cell.id) && !canRunHostileHostCell(cell, machine)
+  )
+  if (unhostable.length > 0) {
+    throw new Error(
+      `Hostile-host cells cannot run on ${machine.platform}-${machine.arch}: ${unhostable.map((cell) => cell.id).join(', ')}`
+    )
+  }
+  return cells.filter(
+    (cell) =>
+      (wanted.length === 0 || wanted.includes(cell.id)) && canRunHostileHostCell(cell, machine)
+  )
 }
 
 export type HostileHostObservation = {
