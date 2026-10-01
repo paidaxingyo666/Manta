@@ -153,4 +153,28 @@ describe('hostileHostCellViolations', () => {
       'deploy succeeded on a host with no runnable runtime'
     ])
   })
+
+  it('judges an opted-out host only on the ladder never running', () => {
+    const optOut = { id: 'opt-out', expect: { outcome: 'legacy_opt_out' } } as const
+    const observed: HostileHostObservation = {
+      settledRung: null,
+      target: null,
+      unavailableReason: null,
+      deployError: 'Node.js was not found on the remote host',
+      refusals: [],
+      forbiddenToolCalls: ['npm']
+    }
+    expect(hostileHostCellViolations(optOut, observed)).toEqual([])
+    expect(hostileHostCellViolations(optOut, { ...observed, deployError: null })).toEqual([])
+    expect(
+      hostileHostCellViolations(optOut, {
+        ...observed,
+        settledRung: 'A',
+        refusals: [{ step: 'A', reason: 'noexec' }]
+      })
+    ).toEqual([
+      'refusals A:noexec, expected none',
+      'settled on A, expected the ladder never to run'
+    ])
+  })
 })

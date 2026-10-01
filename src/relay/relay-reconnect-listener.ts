@@ -62,6 +62,9 @@ export class RelayReconnectListener {
       onAccepted: (acceptedSocket, leftover) => this.attachAcceptedSocket(acceptedSocket, leftover)
     })
     socket.on('end', () => {
+      // Why detach first: a relay write between this destroy and 'close' fails, and the dispatcher
+      // would close the client as 'local', holding its PTY owner for the full grace (seen on Windows).
+      this.detachSocketClient(socket)
       if (!socket.destroyed) {
         socket.destroy()
       }
@@ -133,12 +136,16 @@ export class RelayReconnectListener {
     })
   }
 
-  private handleSocketClose(socket: Socket): void {
+  private detachSocketClient(socket: Socket): void {
     const clientId = this.socketClients.get(socket)
     this.socketClients.delete(socket)
     if (clientId !== undefined) {
       this.dispatcher.detachClient(clientId, 'peer-closed')
     }
+  }
+
+  private handleSocketClose(socket: Socket): void {
+    this.detachSocketClient(socket)
     relayLogLine(`[relay] Socket client closed (clients=${this.socketClients.size})`)
     if (this.socketClients.size === 0) {
       this.callbacks.onLastClientClosed()

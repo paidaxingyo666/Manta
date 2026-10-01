@@ -82,6 +82,23 @@ describe('sftp-upload', () => {
     })
   })
 
+  it('accepts a root named through a symlink or short name that realpath rewrites', async () => {
+    const realDir = await mkdtemp(join(tmpdir(), 'manta-sftp-upload-'))
+    await writeFile(join(realDir, 'asset.txt'), 'asset')
+    const aliasDir = `${realDir}-alias`
+    // Why a junction on Windows: directory symlinks need Developer Mode or admin there.
+    await symlink(realDir, aliasDir, process.platform === 'win32' ? 'junction' : 'dir')
+    const sftp = createSftpMock()
+
+    await uploadDirectory(sftp, aliasDir, '/remote/assets')
+
+    expect(sftp.createWriteStream).toHaveBeenCalledWith('/remote/assets/asset.txt', {
+      flags: 'w'
+    })
+    await rm(aliasDir, { force: true })
+    await rm(realDir, { recursive: true, force: true })
+  })
+
   it('rejects sibling directories outside the upload root', async () => {
     const localDir = await mkdtemp(join(tmpdir(), 'manta-sftp-upload-'))
     const escapedDir = `${localDir}-sibling`

@@ -1,0 +1,123 @@
+# Ephemeral CI only. Runs each Windows host cell (src/main/ssh/ssh-windows-host-cells.ts) against the
+# private sshd prove-preview-openssh.ps1 provisioned: one account, one DefaultShell and one vitest
+# process per cell, so every cell starts from an empty runtime store.
+param(
+ [Parameter(Mandatory=$true)][string]$SourceRoot,
+ [Parameter(Mandatory=$true)][hashtable]$Context,
+ [Parameter(Mandatory=$true)][ValidateSet('win32-arm64','win32-x64')][string]$Target,
+ [Parameter(Mandatory=$true)][string]$ReceiptRoot,
+ [ValidateSet('pinned-cmd','pinned-powershell','legacy-opt-out')][string[]]$Cells=@('pinned-cmd','pinned-powershell','legacy-opt-out')
+)
+$ErrorActionPreference='Stop'
+if($env:GITHUB_ACTIONS -ne 'true' -or $env:ORCA_ISOLATED_SSH_CI -ne '1'){throw 'Disposable CI only'}
+$shells=@{'pinned-cmd'='cmd';'pinned-powershell'='powershell';'legacy-opt-out'='cmd'}
+if($Context.accounts.Count -lt $Cells.Count){throw 'Each cell needs its own private account'}
+if(-not $Context.forbiddenToolLog){throw 'Run the provisioning with -HiddenTools so toolchain calls are logged'}
+$openSshKey='HKLM:\SOFTWARE\OpenSSH'
+$windowsPowerShell=Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+$knownPath=Join-Path ([Environment]::GetFolderPath('UserProfile')) '.ssh\known_hosts'
+$knownExisted=Test-Path -LiteralPath $knownPath
+$priorKnown=if($knownExisted){[IO.File]::ReadAllBytes($knownPath)}else{$null}
+$priorBackground=$env:MANTA_BACKGROUND_LAUNCH
+$failed=[Collections.Generic.List[string]]::new()
+$summary=[Collections.Generic.List[hashtable]]::new()
+$wmiOriginalSd=$null
+
+function Invoke-PrivateSsh([string]$Account,[string]$Command) {
+  $start=[Diagnostics.ProcessStartInfo]::new($Context.sshExe)
+  $start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
+  foreach($argument in @('-F','NUL','-T','-p',[string]$Context.port,'-i',$Context.identityFile,'-o','BatchMode=yes','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o',"UserKnownHostsFile=$($Context.knownHosts)",'-o','ConnectTimeout=5',"$Account@127.0.0.1",$Command)){$start.ArgumentList.Add($argument)}
+  $process=[Diagnostics.Process]::Start($start)
+  try {
+    $stdout=$process.StandardOutput.ReadToEndAsync();$null=$process.StandardError.ReadToEndAsync()
+    if(-not $process.WaitForExit(30000)){$process.Kill($true);throw 'Private SSH probe deadline exceeded'}
+    return $stdout.GetAwaiter().GetResult()
+  } finally {$process.Dispose()}
+}
+
+function Set-PrivateDefaultShell([string]$Shell) {
+  if($Shell -eq 'powershell'){
+    if(-not (Test-Path -LiteralPath $openSshKey)){New-Item -Path $openSshKey -Force | Out-Null}
+    New-ItemProperty -LiteralPath $openSshKey -Name DefaultShell -Value $windowsPowerShell -PropertyType String -Force | Out-Null
+  } elseif(Test-Path -LiteralPath $openSshKey) {
+    Remove-ItemProperty -LiteralPath $openSshKey -Name DefaultShell -ErrorAction SilentlyContinue
+  }
+}
+
+# The relay launch goes through WMI Win32_Process.Create, which WMI refuses to a standard user's SSH
+# (network) logon without Remote Enable on root\cimv2. Prints ORCA_WMI=<ReturnValue> or ORCA_WMI=denied.
+function Test-PrivateWmiLaunch([string]$Account) {
+  $out=Invoke-PrivateSsh $Account 'powershell.exe -NoProfile -NonInteractive -Command "try{$r=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=''cmd.exe /d /c exit 0''} -ErrorAction Stop;''ORCA_WMI=''+$r.ReturnValue}catch{''ORCA_WMI=denied''}"'
+  $match=[regex]::Match($out,'ORCA_WMI=(\S+)')
+  if($match.Success){return $match.Groups[1].Value}else{return 'no-output'}
+}
+
+function Grant-CellWmiLaunch([string[]]$Sids) {
+  $sd=(Invoke-CimMethod -Namespace root/cimv2 -ClassName __SystemSecurity -MethodName GetSD).SD
+  $script:wmiOriginalSd=[byte[]]$sd
+  $raw=[Security.AccessControl.RawSecurityDescriptor]::new([byte[]]$sd,0)
+  # WBEM_ENABLE | WBEM_METHOD_EXECUTE | WBEM_REMOTE_ACCESS
+  foreach($sid in $Sids){$raw.DiscretionaryAcl.InsertAce(0,[Security.AccessControl.CommonAce]::new([Security.AccessControl.AceFlags]::None,[Security.AccessControl.AceQualifier]::AccessAllowed,0x23,[Security.Principal.SecurityIdentifier]::new($sid),$false,$null))}
+  $bytes=[byte[]]::new($raw.BinaryLength);$raw.GetBinaryForm($bytes,0)
+  $result=Invoke-CimMethod -Namespace root/cimv2 -ClassName __SystemSecurity -MethodName SetSD -Arguments @{SD=$bytes}
+  if($result.ReturnValue -ne 0){throw "WMI namespace grant failed with $($result.ReturnValue)"}
+}
+
+New-Item -ItemType Directory -Force -Path $ReceiptRoot | Out-Null
+Push-Location $SourceRoot
+try {
+  if(-not (Test-Path -LiteralPath "out\relay\$Target\relay.js")){throw 'Build the relay before provisioning'}
+  if(-not (Test-Path -LiteralPath 'out\mantad-template')){throw 'Build the mantad template before provisioning'}
+  # ssh2 consults the runner's known_hosts: pin only this private endpoint, restored below.
+  New-Item -ItemType Directory -Force -Path (Split-Path $knownPath) | Out-Null
+  Add-Content -LiteralPath $knownPath -Value ("`n"+[IO.File]::ReadAllText($Context.knownHosts))
+  $env:MANTA_BACKGROUND_LAUNCH='1'
+  # DefaultShell is still stock cmd here.
+  $wmi=@{beforeGrant=(Test-PrivateWmiLaunch $Context.accounts[0].name);granted=$false}
+  if($wmi.beforeGrant -ne '0'){
+    Write-Host "::warning::Standard SSH user cannot launch through WMI Win32_Process.Create ($($wmi.beforeGrant)); Manta's Windows relay launch needs it. Granting the cell accounts Remote Enable on root\cimv2 so the remaining assertions run."
+    Grant-CellWmiLaunch @($Context.accounts[0..($Cells.Count-1)] | ForEach-Object {(Get-LocalUser -Name $_.name).SID.Value})
+    $wmi.granted=$true
+    $wmi.afterGrant=Test-PrivateWmiLaunch $Context.accounts[0].name
+    if($wmi.afterGrant -ne '0'){throw "WMI launch still refused after the grant ($($wmi.afterGrant))"}
+  }
+  $summary.Add(@{standardUserWmiLaunch=$wmi})
+  for($index=0;$index -lt $Cells.Count;$index++){
+    $cell=$Cells[$index];$account=$Context.accounts[$index];$shell=$shells[$cell]
+    Set-PrivateDefaultShell $shell
+    # cmd expands %COMSPEC%; PowerShell prints it literally.
+    $dispatch=Invoke-PrivateSsh $account.name 'echo %COMSPEC%'
+    $dispatchShell=if($dispatch -match '(?i)\\cmd\.exe'){'cmd'}elseif($dispatch -match '%COMSPEC%'){'powershell'}else{'unknown'}
+    if($dispatchShell -ne $shell){throw "DefaultShell $shell did not take effect for $cell (saw $dispatchShell)"}
+    if(Test-Path -LiteralPath $Context.forbiddenToolLog){Move-Item -LiteralPath $Context.forbiddenToolLog -Destination (Join-Path $ReceiptRoot "$cell.before.forbidden-tool-calls.log")}
+    $descriptor=Join-Path $ReceiptRoot "$cell.descriptor.json"
+    @{cell=$cell;target=$Target;host='127.0.0.1';port=[int]$Context.port;username=$account.name;identityFile=$Context.identityFile;home=$account.home;forbiddenToolLog=$Context.forbiddenToolLog;receipt=(Join-Path $ReceiptRoot "$cell.json")} | ConvertTo-Json | Set-Content -LiteralPath $descriptor -Encoding utf8NoBOM
+    $env:ORCA_RUN_SSH_WINDOWS_HOST='1';$env:ORCA_SSH_WINDOWS_HOST_CELL=$descriptor
+    Write-Host "Windows host cell $cell ($Target, DefaultShell $shell, account $($account.name))"
+    & node node_modules/vitest/vitest.mjs run --config config/vitest.config.ts src/main/ssh/ssh-relay-windows-host-lane.test.ts --reporter=verbose 2>&1 | Tee-Object -FilePath (Join-Path $ReceiptRoot "$cell.log")
+    # Why global: under the workflow's GetNewClosure callback, bare $LASTEXITCODE reads a stale captured copy.
+    $code=$global:LASTEXITCODE
+    # The relay's own log is the only record of why it closed a client.
+    foreach($log in @(Get-ChildItem -Path (Join-Path $account.home '.manta-remote\relay-*\relay*.log') -File -ErrorAction SilentlyContinue)){Copy-Item -LiteralPath $log.FullName -Destination (Join-Path $ReceiptRoot "$cell.$($log.Directory.Name).$($log.Name)")}
+    if(Test-Path -LiteralPath $Context.forbiddenToolLog){Copy-Item -LiteralPath $Context.forbiddenToolLog -Destination (Join-Path $ReceiptRoot "$cell.forbidden-tool-calls.log")}
+    $summary.Add(@{cell=$cell;shell=$shell;account=$account.name;exitCode=$code})
+    if($code -ne 0){$failed.Add($cell)}
+  }
+  # Relays outlive their client by a 60s grace; wait so cleanup can unload the profiles.
+  $homes=@($Context.accounts | ForEach-Object {$_.home.TrimEnd('\')+'\'})
+  $graceDeadline=[DateTime]::UtcNow.AddSeconds(120)
+  do {
+    $relays=@(Get-CimInstance Win32_Process | Where-Object {$path=$_.ExecutablePath;$path -and @($homes | Where-Object {$path.StartsWith($_,[StringComparison]::OrdinalIgnoreCase)}).Count})
+    if(-not $relays.Count){break};Start-Sleep -Seconds 2
+  } while([DateTime]::UtcNow -lt $graceDeadline)
+  $summary.Add(@{relayProcessesAfterGrace=@($relays | ForEach-Object {[IO.Path]::GetFileName($_.ExecutablePath)})})
+} finally {
+  if($wmiOriginalSd){$null=Invoke-CimMethod -Namespace root/cimv2 -ClassName __SystemSecurity -MethodName SetSD -Arguments @{SD=$wmiOriginalSd}}
+  Set-PrivateDefaultShell 'cmd'
+  if($knownExisted){[IO.File]::WriteAllBytes($knownPath,$priorKnown)}else{Remove-Item -LiteralPath $knownPath -Force -ErrorAction SilentlyContinue}
+  $env:MANTA_BACKGROUND_LAUNCH=$priorBackground
+  Remove-Item Env:ORCA_RUN_SSH_WINDOWS_HOST,Env:ORCA_SSH_WINDOWS_HOST_CELL -ErrorAction SilentlyContinue
+  $summary | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $ReceiptRoot 'summary.json') -Encoding utf8NoBOM
+  Pop-Location
+}
+if($failed.Count){throw "Windows host cells failed: $($failed -join ', ')"}

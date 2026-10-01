@@ -5,7 +5,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { runProcess } from '../../shared/child-process/run-process'
 import type { SshTarget } from '../../shared/ssh-types'
+import { shellEscape } from './ssh-connection-utils'
 import { FORBIDDEN_TOOL_LOG, FORBIDDEN_TOOLS, type HostileHostCell } from './ssh-hostile-host-cells'
+import type { HostileHostObserver } from './ssh-hostile-host-observer'
 
 export type HostileHostTarget = {
   cell: HostileHostCell
@@ -195,6 +197,26 @@ export async function hostExecStatus(target: HostileHostTarget, command: string)
     timeoutMs: 60_000
   })
   return result.code ?? -1
+}
+
+/** Observes the container as root through `docker exec`, never through the SSH session under test. */
+export function dockerHostObserver(target: HostileHostTarget): HostileHostObserver {
+  return {
+    readForbiddenToolLog: () => hostExec(target, `cat ${FORBIDDEN_TOOL_LOG} 2>/dev/null || true`),
+    plantIdleRuntime: async (storeDir, name, age) => {
+      const dir = `${storeDir}/${name}`
+      const stamp = age === 'old' ? '-t 200001010000 ' : ''
+      await hostExec(
+        target,
+        `mkdir -p ${shellEscape(`${dir}/bin`)} && touch ${stamp}${shellEscape(`${dir}/.verified`)}`
+      )
+    },
+    exists: async (path) => (await hostExecStatus(target, `test -e ${shellEscape(path)}`)) === 0,
+    isFile: async (path) => (await hostExecStatus(target, `test -f ${shellEscape(path)}`)) === 0,
+    fileStamp: (path) => hostExec(target, `stat -c '%i:%Y' ${shellEscape(path)}`),
+    fileSha256: async (path) =>
+      (await hostExec(target, `sha256sum ${shellEscape(path)}`)).split(/\s+/)[0]
+  }
 }
 
 export function hostileHostSshTarget(target: HostileHostTarget): SshTarget {

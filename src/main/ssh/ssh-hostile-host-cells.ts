@@ -25,16 +25,22 @@ export type HostileHostExpectation =
     }
   /** The ladder fell through to the host-npm path, which cannot run on this host either. */
   | { outcome: 'legacy_failed'; refusals: readonly RungRefusal[] }
+  /** The host opted out: the ladder never runs and nothing enters the pinned runtime store. */
+  | { outcome: 'legacy_opt_out' }
 
-export type HostileHostCell = {
+/** What any hostile-host driver needs, whatever provisions the host. */
+export type HostileHostCellCore = {
   id: string
+  expect: HostileHostExpectation
+}
+
+export type HostileHostCell = HostileHostCellCore & {
   /** Dockerfile lines, FROM included; the harness appends sshd and the toolchain shims. */
   dockerfile: readonly string[]
   /** Mount `/root` as a noexec tmpfs, the way a hardened host mounts home. */
   homeNoexec?: boolean
   /** Attach only to a `docker network create --internal` network: the host has no egress. */
   noEgress?: boolean
-  expect: HostileHostExpectation
 }
 
 // Digests are the multi-arch indexes of each tag as of 2026-09-30.
@@ -178,19 +184,21 @@ function describeRefusals(refusals: readonly RungRefusal[]): string {
 
 /** Every way `observed` departs from the cell's expectation; empty when the cell holds. */
 export function hostileHostCellViolations(
-  cell: HostileHostCell,
+  cell: HostileHostCellCore,
   observed: HostileHostObservation
 ): string[] {
   const { expect } = cell
   const violations: string[] = []
-  const expectedRefusals = expect.outcome === 'launched' ? [] : expect.refusals
+  const expectedRefusals =
+    expect.outcome === 'launched' || expect.outcome === 'legacy_opt_out' ? [] : expect.refusals
   if (describeRefusals(observed.refusals) !== describeRefusals(expectedRefusals)) {
     violations.push(
       `refusals ${describeRefusals(observed.refusals)}, expected ${describeRefusals(expectedRefusals)}`
     )
   }
-  // Why every outcome: no rung the ladder reached before legacy may reach for npm or a compiler.
-  if (expect.outcome !== 'legacy_failed' && observed.forbiddenToolCalls.length > 0) {
+  // Why every ladder outcome: no rung reached before legacy may reach for npm or a compiler.
+  const legacy = expect.outcome === 'legacy_failed' || expect.outcome === 'legacy_opt_out'
+  if (!legacy && observed.forbiddenToolCalls.length > 0) {
     violations.push(`toolchain invoked: ${observed.forbiddenToolCalls.join('; ')}`)
   }
   switch (expect.outcome) {
@@ -221,6 +229,12 @@ export function hostileHostCellViolations(
       }
       if (!observed.deployError) {
         violations.push('deploy succeeded on a host with no runnable runtime')
+      }
+      break
+    case 'legacy_opt_out':
+      // The host-Node path's own verdict depends on the host's Node, so only the ladder is judged.
+      if (observed.settledRung !== null) {
+        violations.push(`settled on ${observed.settledRung}, expected the ladder never to run`)
       }
       break
   }
