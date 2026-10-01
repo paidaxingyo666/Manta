@@ -9,13 +9,13 @@ import {
   mantadArtifactFilenames,
   mantadArtifactHashPrefix
 } from '../../shared/mantad-artifacts'
-import { ORCAD_BUN_TARGETS } from '../../shared/orcad-bun-runtime'
+import { SERVER_TARGETS } from '../../shared/node-runtime-pin'
 import { mantadAgentBrowserNativeName } from '../../shared/mantad-agent-browser-name'
 
 /** Hash installed bytes in the build's order; a version marker is not proof of delivery. */
 export async function readOrcadArtifactIdentity(directory: string): Promise<string> {
   const target = z
-    .enum(ORCAD_BUN_TARGETS)
+    .enum(SERVER_TARGETS)
     .parse((await readFile(join(directory, ORCAD_BUILD_TARGET_FILENAME), 'utf8')).trim())
   const platform = target.startsWith('win32-')
     ? 'win32'

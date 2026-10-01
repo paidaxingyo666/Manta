@@ -267,6 +267,9 @@ jobs:
       - name: Enforce runtime Electron-import ratchet
         run: pnpm run check:runtime-electron-ratchet
 
+      - name: Check Node runtime pin
+        run: pnpm run check:node-runtime-pin
+
       # Why: extraction writes sorted evidence to an isolated temporary path,
       # so feature PRs need one normalized AST pass rather than a three-OS matrix.
       - name: Verify localization extraction

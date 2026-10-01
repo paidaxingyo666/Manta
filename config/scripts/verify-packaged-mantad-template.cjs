@@ -7,7 +7,7 @@ const {
   ORCAD_TEMPLATE_TARGETS_DIR,
   orcadTemplateCommonFilenames
 } = require('../../src/shared/mantad-artifacts.ts')
-const { ORCAD_TEMPLATE_TARGETS } = require('../../src/shared/orcad-bun-runtime.ts')
+const { ORCAD_TEMPLATE_TARGETS } = require('../../src/shared/node-runtime-pin.ts')
 
 const SHA256_PATTERN = /^[a-f0-9]{64}$/
 const BROWSER_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
@@ -22,21 +22,21 @@ function readManifest(templateDir) {
     return JSON.parse(readFileSync(path, 'utf8'))
   } catch (error) {
     throw new Error(
-      `[verify-packaged-orcad-template] invalid manifest at ${path}: ${error instanceof Error ? error.message : String(error)}`
+      `[verify-packaged-mantad-template] invalid manifest at ${path}: ${error instanceof Error ? error.message : String(error)}`
     )
   }
 }
 
 function requireRecord(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`[verify-packaged-orcad-template] ${label} must be an object`)
+    throw new Error(`[verify-packaged-mantad-template] ${label} must be an object`)
   }
   return value
 }
 
 function requireSha256(value, label) {
   if (typeof value !== 'string' || !SHA256_PATTERN.test(value)) {
-    throw new Error(`[verify-packaged-orcad-template] ${label} must be a SHA-256 digest`)
+    throw new Error(`[verify-packaged-mantad-template] ${label} must be a SHA-256 digest`)
   }
   return value
 }
@@ -46,10 +46,10 @@ function requireRegularFile(path, label) {
   try {
     metadata = lstatSync(path)
   } catch {
-    throw new Error(`[verify-packaged-orcad-template] missing ${label} at ${path}`)
+    throw new Error(`[verify-packaged-mantad-template] missing ${label} at ${path}`)
   }
   if (!metadata.isFile() || metadata.isSymbolicLink()) {
-    throw new Error(`[verify-packaged-orcad-template] ${label} is not a regular file at ${path}`)
+    throw new Error(`[verify-packaged-mantad-template] ${label} is not a regular file at ${path}`)
   }
 }
 
@@ -58,7 +58,7 @@ function verifyFile(path, expected, label) {
   const actual = sha256(path)
   if (actual !== expected) {
     throw new Error(
-      `[verify-packaged-orcad-template] ${label} checksum mismatch: expected ${expected}, got ${actual}`
+      `[verify-packaged-mantad-template] ${label} checksum mismatch: expected ${expected}, got ${actual}`
     )
   }
 }
@@ -71,7 +71,7 @@ function requireExactNames(actual, expected, label) {
     actualNames.some((name, index) => name !== expectedNames[index])
   ) {
     throw new Error(
-      `[verify-packaged-orcad-template] ${label} mismatch: expected=${expectedNames.join(',')} actual=${actualNames.join(',')}`
+      `[verify-packaged-mantad-template] ${label} mismatch: expected=${expectedNames.join(',')} actual=${actualNames.join(',')}`
     )
   }
 }
@@ -84,14 +84,14 @@ function verifyTarget(templateDir, target, value) {
   const hasBrowserSha256 = Object.hasOwn(targetManifest, 'browserSha256')
   if (hasBrowserName !== hasBrowserSha256) {
     throw new Error(
-      `[verify-packaged-orcad-template] ${target} browserName and browserSha256 must both be present`
+      `[verify-packaged-mantad-template] ${target} browserName and browserSha256 must both be present`
     )
   }
   const targetDir = join(templateDir, ORCAD_TEMPLATE_TARGETS_DIR, target)
   const targetIdentity = join(targetDir, ORCAD_BUILD_TARGET_FILENAME)
   verifyFile(targetIdentity, targetSha256, `${target} build target`)
   if (readFileSync(targetIdentity, 'utf8').trim() !== target) {
-    throw new Error(`[verify-packaged-orcad-template] ${target} build target identity disagrees`)
+    throw new Error(`[verify-packaged-mantad-template] ${target} build target identity disagrees`)
   }
   verifyFile(join(targetDir, 'watcher.node'), watcherSha256, `${target} watcher`)
 
@@ -103,7 +103,7 @@ function verifyTarget(templateDir, target, value) {
       !BROWSER_NAME_PATTERN.test(browserName) ||
       basename(browserName) !== browserName
     ) {
-      throw new Error(`[verify-packaged-orcad-template] ${target} browserName is invalid`)
+      throw new Error(`[verify-packaged-mantad-template] ${target} browserName is invalid`)
     }
     verifyFile(
       join(targetDir, browserName),
@@ -116,10 +116,10 @@ function verifyTarget(templateDir, target, value) {
 }
 
 function verifyPackagedOrcadTemplate(resourcesDir) {
-  const templateDir = join(resourcesDir, 'orcad-template')
+  const templateDir = join(resourcesDir, 'mantad-template')
   const manifest = requireRecord(readManifest(templateDir), 'manifest')
   if (manifest.schemaVersion !== 2) {
-    throw new Error('[verify-packaged-orcad-template] manifest schemaVersion must be 2')
+    throw new Error('[verify-packaged-mantad-template] manifest schemaVersion must be 2')
   }
   const commonSha256 = requireRecord(manifest.commonSha256, 'commonSha256')
   const commonFilenames = orcadTemplateCommonFilenames()
@@ -143,7 +143,7 @@ function verifyPackagedOrcadTemplate(resourcesDir) {
     verifyTarget(templateDir, target, targets[target])
   }
   console.log(
-    `[verify-packaged-orcad-template] OK — verified ${ORCAD_TEMPLATE_TARGETS.length} Bun targets`
+    `[verify-packaged-mantad-template] OK — verified ${ORCAD_TEMPLATE_TARGETS.length} Bun targets`
   )
 }
 

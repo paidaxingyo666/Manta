@@ -7,10 +7,10 @@ import {
   ORCAD_RIPGREP_ARTIFACTS,
   mantadArtifactFilenames
 } from '../../src/shared/mantad-artifacts.ts'
-import { ORCAD_BUN_TARGETS } from '../../src/shared/orcad-bun-runtime.ts'
+import { SERVER_TARGETS } from '../../src/shared/node-runtime-pin.ts'
 import { mantadAgentBrowserNativeName } from '../../src/shared/mantad-agent-browser-name.ts'
 import { readOrcadArtifactIdentity } from '../../src/main/mantad/mantad-artifact-identity.ts'
-import { computeOrcadFullVersion } from './orcad-artifact-version.mjs'
+import { computeOrcadFullVersion } from './mantad-artifact-version.mjs'
 
 const directories = []
 afterEach(() => {
@@ -20,7 +20,7 @@ afterEach(() => {
 })
 
 function createArtifactDirectory(target = '') {
-  const directory = mkdtempSync(join(tmpdir(), 'orcad-version-'))
+  const directory = mkdtempSync(join(tmpdir(), 'mantad-version-'))
   directories.push(directory)
   for (const filename of mantadArtifactFilenames(target)) {
     const path = join(directory, filename)
@@ -42,7 +42,7 @@ describe('standalone runtime version', () => {
     expect(() => computeOrcadFullVersion(dir)).toThrow(ORCAD_RIPGREP_ARTIFACTS[0])
   })
 
-  it.each(ORCAD_BUN_TARGETS)(
+  it.each(SERVER_TARGETS)(
     'matches the installed %s identity with and without its optional browser',
     async (target) => {
       const dir = createArtifactDirectory(target)

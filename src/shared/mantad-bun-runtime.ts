@@ -1,22 +1,9 @@
+// Targets come from SERVER_TARGETS. Type-only: a value import needs a .ts suffix tsc rejects.
+import type { ServerTarget } from './node-runtime-pin.ts'
+
 export const ORCAD_BUN_VERSION = '1.4.2'
 
-export const ORCAD_BUN_TARGETS = [
-  'darwin-arm64',
-  'darwin-x64',
-  'linux-arm64-glibc',
-  'linux-x64-glibc',
-  'linux-arm64-musl',
-  'linux-x64-musl',
-  'win32-arm64',
-  'win32-x64'
-] as const
-
-export type OrcadBunTarget = (typeof ORCAD_BUN_TARGETS)[number]
-
-// Managed SSH deployment supports POSIX hosts; Windows uses standalone builds.
-export const ORCAD_TEMPLATE_TARGETS = ORCAD_BUN_TARGETS.filter(
-  (target) => !target.startsWith('win32-')
-)
+export type OrcadBunTarget = ServerTarget
 
 export type OrcadBunReleaseAsset = {
   filename: string
