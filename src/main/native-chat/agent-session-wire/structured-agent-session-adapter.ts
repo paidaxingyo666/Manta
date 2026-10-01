@@ -40,6 +40,7 @@ import type {
   SubmissionRejectionFact
 } from '../../../shared/agent-session-failure'
 import type { StructuredAgentSessionStopCause } from './structured-agent-session-stop-cause'
+import type { StructuredAgentSessionAdapterStop } from './structured-agent-session-adapter-stop'
 export type {
   StructuredAgentSessionChildEndCause,
   StructuredAgentSessionStopCause
@@ -250,7 +251,7 @@ export type AgentSessionCancelOutcome = {
   refusal?: { detail?: ProviderDiagnostic }
 }
 
-export type StructuredAgentSessionAdapter = {
+export type StructuredAgentSessionAdapter = StructuredAgentSessionAdapterStop & {
   /** Provider-aware capability check for hosts that route more than one adapter. */
   supportsCreate?(location: AgentSessionExecutionLocation, agent: string): boolean
   /** Provider/runtime support, kept here so remote enablement changes adapter data, not UI logic. */

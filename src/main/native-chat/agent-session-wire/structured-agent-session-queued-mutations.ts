@@ -34,7 +34,7 @@ import { unsettledQueuedMessages } from './structured-agent-session-queued-stop'
 import {
   mutateStructuredAgentSession,
   type StructuredAgentSessionMutationContext
-} from './structured-agent-session-host-mutations'
+} from './structured-agent-session-mutation-context'
 import type { StructuredAgentSessionCaller } from './structured-agent-session-host-types'
 import {
   openForWrite,

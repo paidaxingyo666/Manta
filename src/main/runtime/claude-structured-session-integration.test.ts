@@ -780,15 +780,35 @@ describe('a structured Claude session over agentSession.*', () => {
       provider: 'claude',
       leafUuid: 'assistant-leaf'
     })
+    // A Claude Stop ends its child once Claude ends the stopped turn, so the chat rests; the next
+    // open resumes the conversation.
     const old = claude.live()
-    const resumed = await ok<{ fence: number }>('agentSession.ensure', ensureParams(created.fence))
-    expect(resumed.fence).toBe(created.fence + 1)
+    old.handlers.onMessage?.({
+      type: 'result',
+      subtype: 'error_during_execution',
+      is_error: true,
+      session_id: PROVIDER_SESSION,
+      uuid: 'interrupted-result'
+    })
+    await vi.waitFor(() => expect(leaseOf(SESSION).claimStatus).toBe('released'))
     expect(old.closed).toBe(true)
-    // Claude owns where the conversation continues; the stored leaf is the last completed turn.
+    const rested = leaseOf(SESSION)
+    const resumed = await ok<{ fence: number }>(
+      'agentSession.ensure',
+      ensureParams(rested.runtimeFence)
+    )
+    expect(resumed.fence).toBe(rested.runtimeFence + 1)
+    expect(claude.live()).not.toBe(old)
+    // Claude owns where the conversation continues; the stored leaf is the stopped turn's, which
+    // Claude ended with its own result.
     expect(claude.live().launch.options).toMatchObject({ resume: PROVIDER_SESSION })
     expect(claude.live().launch.options).not.toHaveProperty('resumeSessionAt')
     const lastCompletedTurn = {
-      handle: { provider: 'claude', sessionId: PROVIDER_SESSION, leafUuid: 'assistant-leaf' },
+      handle: {
+        provider: 'claude',
+        sessionId: PROVIDER_SESSION,
+        leafUuid: 'provider-opened-assistant'
+      },
       origin: 'resumed'
     }
     expect(host.deps.store.getRecord(SESSION).providerHandleChain.at(-1)).toMatchObject(
