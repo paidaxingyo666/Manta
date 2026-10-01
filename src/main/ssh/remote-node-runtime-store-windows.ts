@@ -3,7 +3,10 @@
  * `sh` passes, each as ONE PowerShell invocation (docs/reference/windows-edr-posture.md).
  *
  * Process holds come from one `Get-CimInstance Win32_Process` query filtered on the image path
- * under `runtimes\`, never on the image name: another program's node.exe must hold nothing.
+ * under `runtimes\`, never on the image name: another program's node.exe must hold nothing. WMI
+ * refuses a standard user's SSH logon, so a refusal falls back to `Get-Process`, which reads the
+ * image path of this account's own processes -- the only ones that run from its store. Windows
+ * also refuses to delete a running image, which backs both.
  */
 import {
   ORCAD_NODE_RUNTIME_DIR_PREFIX,
@@ -64,7 +67,14 @@ export function windowsRuntimeStoreInventoryCommand(root: string): string {
       `$held = @(Get-CimInstance -ClassName Win32_Process -Filter "ExecutablePath LIKE '%\\\\${ORCAD_RUNTIMES_DIRNAME}\\\\%'" -Property ExecutablePath -ErrorAction Stop)`,
       "Write-Output 'PROCESS_CHECK cim'",
       "foreach ($p in $held) { if ($p.ExecutablePath) { Write-Output ('HOLD ' + $p.ExecutablePath) } }",
+      '} catch {',
+      // WMI refuses a standard user's SSH logon; this account's own relays still report their image.
+      'try {',
+      `$held = @(Get-Process -ErrorAction Stop | Where-Object { $_.Path -and $_.Path.IndexOf(${powerShellLiteral(`\\${ORCAD_RUNTIMES_DIRNAME}\\`)}, [StringComparison]::OrdinalIgnoreCase) -ge 0 })`,
+      "Write-Output 'PROCESS_CHECK process'",
+      "foreach ($p in $held) { Write-Output ('HOLD ' + $p.Path) }",
       '} catch { }',
+      '}',
       `Write-Output ${powerShellLiteral(INVENTORY_OK)}`
     ].join('\n')
   )

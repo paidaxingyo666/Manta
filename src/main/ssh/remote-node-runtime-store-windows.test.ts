@@ -60,10 +60,21 @@ describe('Windows runtime store commands', () => {
     expect(script).toContain(
       `Get-CimInstance -ClassName Win32_Process -Filter "ExecutablePath LIKE '%\\\\runtimes\\\\%'" -Property ExecutablePath -ErrorAction Stop`
     )
-    expect(script).not.toMatch(/Name\s*=|node\.exe|Get-Process/)
+    expect(script).not.toMatch(/Name\s*=|node\.exe|ProcessName/)
     // A failed query must not report that the check ran.
     expect(script.indexOf("Write-Output 'PROCESS_CHECK cim'")).toBeGreaterThan(
       script.indexOf('Get-CimInstance')
+    )
+  })
+
+  it('falls back to Get-Process image paths when WMI refuses a standard user', () => {
+    const script = decodeRemotePowerShellScript(windowsRuntimeStoreInventoryCommand(root))
+    const fallback = script.slice(script.indexOf("Write-Output 'PROCESS_CHECK cim'"))
+    expect(fallback).toContain(
+      "Get-Process -ErrorAction Stop | Where-Object { $_.Path -and $_.Path.IndexOf('\\runtimes\\', [StringComparison]::OrdinalIgnoreCase) -ge 0 }"
+    )
+    expect(fallback.indexOf("Write-Output 'PROCESS_CHECK process'")).toBeGreaterThan(
+      fallback.indexOf('Get-Process')
     )
   })
 

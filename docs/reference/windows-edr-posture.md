@@ -370,9 +370,31 @@ Runtime-store GC (`src/main/ssh/remote-node-runtime-store-windows.ts`) reads the
 store in one PowerShell invocation. It learns which runtimes are in use from a
 single `Get-CimInstance Win32_Process` query, filtered on an image path under
 `runtimes\`. It never matches on the image name, so another program's node.exe
-holds nothing. If the query fails, no process check has run and the pass keeps
-everything. Windows itself also refuses to delete a running image, which is a
+holds nothing. WMI refuses a standard user's SSH logon, so a refusal falls back to
+`Get-Process`, which reads the image path of the account's own processes — the
+only ones running from its store. If both fail, no process check has run and the
+pass keeps everything. Windows itself also refuses to delete a running image, which is a
 second safeguard.
+
+### SSH hosts: starting the relay outside the session
+
+Win32-OpenSSH puts each session's shell in a job with
+`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK`
+(`contrib/win32/win32compat/w32-doexec.c`, unchanged since 2018), so the relay
+must leave that job to outlive the connection. It used to leave through WMI
+`Win32_Process.Create`, which is both an EDR-scored remote-execution shape
+(T1047) and refused to a standard user's network logon unless an administrator
+grants Remote Enable on `root\cimv2`.
+
+Now `relay.js --windows-breakaway-launch` runs once per launch on the same
+node.exe and calls `spawnOutsideJob` in the staged process-tree addon
+(`src/process_launch.cc` in the patch): one `CreateProcessW` with
+`CREATE_BREAKAWAY_FROM_JOB`, and a handle list that passes only the relay's
+three stdio handles, so no SSH channel pipe is inherited. libuv never passes that
+flag, so Node alone cannot do this. WMI remains only as the fallback for a relay
+built without the addon or a job that refuses breakaway, and a refusal there is
+reported as `ORCA_RELAY_LAUNCH_REFUSED`. The Windows SSH-host lanes run with no
+WMI grant and assert the breakaway route.
 
 ## Signing is not the gate
 

@@ -31,6 +31,10 @@ jobs:
     # faster runner.
     runs-on: blacksmith-6vcpu-macos-15
     timeout-minutes: 60
+    # actions: read fetches the relay addons from the release-cut run.
+    permissions:
+      actions: read
+      contents: write
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     steps:
@@ -129,6 +133,16 @@ jobs:
           echo "identity=$identity" >>"$GITHUB_OUTPUT"
           echo "Classified $TAG as $identity"
 
+      # Only a Windows runner compiles these; release-cut's relay-windows-process-tree
+      # job built them from this tag before dispatching this workflow.
+      - name: Collect the Windows process-table addons for the relay
+        uses: actions/download-artifact@v8
+        with:
+          name: relay-windows-process-tree
+          path: .build/windows-process-tree
+          run-id: ${{ inputs.release_run_id }}
+          github-token: ${{ github.token }}
+
       - name: Build app
         run: pnpm build:release
         env:
@@ -138,6 +152,9 @@ jobs:
           MANTA_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
           MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
           MANTA_POSTHOG_WRITE_KEY: ${{ secrets.MANTA_POSTHOG_WRITE_KEY }}
+          # Fail the release rather than ship a relay that cannot launch outside
+          # sshd's job for a standard user on a Windows SSH host.
+          MANTA_REQUIRE_RELAY_NATIVE_ADDONS: x64,arm64
 
       # Design D2: the parent release-cut run merged it from every node-server lane at this tag.
       - name: Download the mantad deployment template from the release run

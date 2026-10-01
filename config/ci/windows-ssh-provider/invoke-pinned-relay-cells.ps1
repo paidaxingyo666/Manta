@@ -21,7 +21,6 @@ $priorKnown=if($knownExisted){[IO.File]::ReadAllBytes($knownPath)}else{$null}
 $priorBackground=$env:MANTA_BACKGROUND_LAUNCH
 $failed=[Collections.Generic.List[string]]::new()
 $summary=[Collections.Generic.List[hashtable]]::new()
-$wmiOriginalSd=$null
 
 function Invoke-PrivateSsh([string]$Account,[string]$Command) {
   $start=[Diagnostics.ProcessStartInfo]::new($Context.sshExe)
@@ -44,23 +43,14 @@ function Set-PrivateDefaultShell([string]$Shell) {
   }
 }
 
-# The relay launch goes through WMI Win32_Process.Create, which WMI refuses to a standard user's SSH
-# (network) logon without Remote Enable on root\cimv2. Prints ORCA_WMI=<ReturnValue> or ORCA_WMI=denied.
+# Diagnostic only: Manta must launch the relay without WMI, which refuses a standard user's SSH
+# (network) logon unless an administrator grants Remote Enable on root\cimv2. The cells run with no
+# such grant, so a relay launch that still needs WMI fails its cell. Prints ORCA_WMI=<ReturnValue>
+# or ORCA_WMI=denied.
 function Test-PrivateWmiLaunch([string]$Account) {
   $out=Invoke-PrivateSsh $Account 'powershell.exe -NoProfile -NonInteractive -Command "try{$r=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=''cmd.exe /d /c exit 0''} -ErrorAction Stop;''ORCA_WMI=''+$r.ReturnValue}catch{''ORCA_WMI=denied''}"'
   $match=[regex]::Match($out,'ORCA_WMI=(\S+)')
   if($match.Success){return $match.Groups[1].Value}else{return 'no-output'}
-}
-
-function Grant-CellWmiLaunch([string[]]$Sids) {
-  $sd=(Invoke-CimMethod -Namespace root/cimv2 -ClassName __SystemSecurity -MethodName GetSD).SD
-  $script:wmiOriginalSd=[byte[]]$sd
-  $raw=[Security.AccessControl.RawSecurityDescriptor]::new([byte[]]$sd,0)
-  # WBEM_ENABLE | WBEM_METHOD_EXECUTE | WBEM_REMOTE_ACCESS
-  foreach($sid in $Sids){$raw.DiscretionaryAcl.InsertAce(0,[Security.AccessControl.CommonAce]::new([Security.AccessControl.AceFlags]::None,[Security.AccessControl.AceQualifier]::AccessAllowed,0x23,[Security.Principal.SecurityIdentifier]::new($sid),$false,$null))}
-  $bytes=[byte[]]::new($raw.BinaryLength);$raw.GetBinaryForm($bytes,0)
-  $result=Invoke-CimMethod -Namespace root/cimv2 -ClassName __SystemSecurity -MethodName SetSD -Arguments @{SD=$bytes}
-  if($result.ReturnValue -ne 0){throw "WMI namespace grant failed with $($result.ReturnValue)"}
 }
 
 New-Item -ItemType Directory -Force -Path $ReceiptRoot | Out-Null
@@ -73,15 +63,9 @@ try {
   Add-Content -LiteralPath $knownPath -Value ("`n"+[IO.File]::ReadAllText($Context.knownHosts))
   $env:MANTA_BACKGROUND_LAUNCH='1'
   # DefaultShell is still stock cmd here.
-  $wmi=@{beforeGrant=(Test-PrivateWmiLaunch $Context.accounts[0].name);granted=$false}
-  if($wmi.beforeGrant -ne '0'){
-    Write-Host "::warning::Standard SSH user cannot launch through WMI Win32_Process.Create ($($wmi.beforeGrant)); Manta's Windows relay launch needs it. Granting the cell accounts Remote Enable on root\cimv2 so the remaining assertions run."
-    Grant-CellWmiLaunch @($Context.accounts[0..($Cells.Count-1)] | ForEach-Object {(Get-LocalUser -Name $_.name).SID.Value})
-    $wmi.granted=$true
-    $wmi.afterGrant=Test-PrivateWmiLaunch $Context.accounts[0].name
-    if($wmi.afterGrant -ne '0'){throw "WMI launch still refused after the grant ($($wmi.afterGrant))"}
-  }
-  $summary.Add(@{standardUserWmiLaunch=$wmi})
+  $wmi=Test-PrivateWmiLaunch $Context.accounts[0].name
+  Write-Host "Standard SSH user WMI Win32_Process.Create: $wmi (no grant; the relay launch must not depend on it)"
+  $summary.Add(@{standardUserWmiLaunch=$wmi;granted=$false})
   for($index=0;$index -lt $Cells.Count;$index++){
     $cell=$Cells[$index];$account=$Context.accounts[$index];$shell=$shells[$cell]
     Set-PrivateDefaultShell $shell
@@ -112,7 +96,6 @@ try {
   } while([DateTime]::UtcNow -lt $graceDeadline)
   $summary.Add(@{relayProcessesAfterGrace=@($relays | ForEach-Object {[IO.Path]::GetFileName($_.ExecutablePath)})})
 } finally {
-  if($wmiOriginalSd){$null=Invoke-CimMethod -Namespace root/cimv2 -ClassName __SystemSecurity -MethodName SetSD -Arguments @{SD=$wmiOriginalSd}}
   Set-PrivateDefaultShell 'cmd'
   if($knownExisted){[IO.File]::WriteAllBytes($knownPath,$priorKnown)}else{Remove-Item -LiteralPath $knownPath -Force -ErrorAction SilentlyContinue}
   $env:MANTA_BACKGROUND_LAUNCH=$priorBackground
