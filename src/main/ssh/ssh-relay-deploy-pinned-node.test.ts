@@ -120,10 +120,19 @@ vi.mock('./ssh-relay-host-node-addons', async (importOriginal) => ({
 vi.mock('./ssh-target-registry', () => ({ getSshTargetRegistryStore: vi.fn(() => null) }))
 vi.mock('../telemetry/client', () => ({ track: vi.fn() }))
 
+vi.mock('./remote-node-runtime-store-gc', () => ({
+  gcRemoteNodeRuntimeStore: vi.fn().mockResolvedValue({ state: 'skipped', reason: 'test' })
+}))
+
 import { deployAndLaunchRelay } from './ssh-relay-deploy'
+import { gcRemoteNodeRuntimeStore } from './remote-node-runtime-store-gc'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { resolveRemoteNodePath } from './ssh-remote-node-resolution'
-import { finalizeInstall, isRelayAlreadyInstalled } from './ssh-relay-versioned-install'
+import {
+  finalizeInstall,
+  gcOldRelayVersions,
+  isRelayAlreadyInstalled
+} from './ssh-relay-versioned-install'
 import {
   PinnedRelayFallbackError,
   planPinnedNodeRelay,
@@ -259,6 +268,36 @@ describe('deployAndLaunchRelay on the pinned Node runtime', () => {
     expect(
       vi.mocked(execCommand).mock.calls.some(([, cmd]) => String(cmd).includes('NATIVE-DEPS'))
     ).toBe(false)
+  })
+
+  it('collects the runtime store after a launch, keeping the pin it runs', async () => {
+    const conn = makeConnection('pinned-node')
+    queueInstalledPinnedLaunch()
+
+    await deployAndLaunchRelay(conn, undefined, undefined, 'target-1')
+
+    await vi.waitFor(() => expect(gcRemoteNodeRuntimeStore).toHaveBeenCalledOnce())
+    expect(gcRemoteNodeRuntimeStore).toHaveBeenCalledWith(
+      conn,
+      expect.objectContaining({ os: 'linux' }),
+      '/home/user',
+      { currentPins: [RUNTIME_SHA] }
+    )
+    // Why after: the version pass is what drops the refs that held superseded runtimes.
+    expect(vi.mocked(gcOldRelayVersions).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(gcRemoteNodeRuntimeStore).mock.invocationCallOrder[0]
+    )
+  })
+
+  it('leaves the runtime store alone on the legacy host-Node path', async () => {
+    const conn = makeConnection()
+    queueInstalledLegacyLaunch()
+
+    await deployAndLaunchRelay(conn, undefined, undefined, 'target-1')
+
+    await vi.waitFor(() => expect(gcOldRelayVersions).toHaveBeenCalled())
+    await new Promise((resolve) => setImmediate(resolve))
+    expect(gcRemoteNodeRuntimeStore).not.toHaveBeenCalled()
   })
 
   it('steps down the ladder to the host-npm relay on classified refusals', async () => {

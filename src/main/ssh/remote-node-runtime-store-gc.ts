@@ -8,11 +8,13 @@
  *
  * Legacy `relay-*` / `mantad-*` directories are read for references and reported as
  * diagnostics, never deleted here (design D10 two-step hand-over).
+ *
+ * The pass runs only while it holds the store lock that promotion takes, so a runtime cannot be
+ * published and collected at once; a busy lock skips the pass rather than waiting.
  */
 import { randomInt } from 'node:crypto'
-import { ORCAD_RUNTIMES_DIRNAME } from '../../shared/mantad-artifacts'
 import type { SshConnection } from './ssh-connection'
-import { RELAY_REMOTE_DIR } from './relay-protocol'
+import { RUNTIME_STORE_STAGE_PREFIX } from './mantad-remote-node-runtime'
 import { inventoryRemoteInstallDirs } from './remote-install-model'
 import {
   parseRuntimeStoreInventory,
@@ -22,7 +24,13 @@ import {
   runtimeStoreInventoryCommand,
   type RuntimeStoreInventory
 } from './remote-node-runtime-store-inventory'
+import {
+  remoteNodeRuntimeStoreDir,
+  tryWithRuntimeStoreLock
+} from './remote-node-runtime-store-lock'
+import { shellEscape } from './ssh-connection-utils'
 import { execCommand } from './ssh-relay-deploy-helpers'
+import { INSTALL_LOCK_STALE_MS } from './ssh-relay-install-lock'
 import { isUnconfirmedSshCommandTermination } from './ssh-relay-exec-command'
 import {
   moveRemoteTreeCommand,
@@ -104,7 +112,41 @@ export function planRuntimeStoreGc(
 
 export type RuntimeStoreGcResult =
   | { state: 'skipped'; reason: string }
-  | { state: 'collected'; removed: string[]; kept: string[]; legacyDirs: string[] }
+  | {
+      state: 'collected'
+      removed: string[]
+      kept: string[]
+      legacyDirs: string[]
+      sweptStages: string[]
+    }
+
+const SWEPT_STAGE = 'SWEPT'
+
+/**
+ * Removes upload stages nothing has written to within the install lock's stale rule. Why file
+ * mtimes and not the directory's: an upload in flight keeps rewriting its archive, not the dir.
+ * A `find` that cannot answer keeps the stage.
+ */
+export function sweepStaleRuntimeStagesCommand(storeDir: string): string {
+  const staleMinutes = Math.ceil(INSTALL_LOCK_STALE_MS / 60_000)
+  return [
+    `for s in ${shellEscape(storeDir)}/${RUNTIME_STORE_STAGE_PREFIX}*; do`,
+    '  [ -d "$s" ] && [ ! -L "$s" ] || continue',
+    `  recent=$(find "$s" -mmin -${staleMinutes} -print 2>/dev/null) || continue`,
+    '  [ -z "$recent" ] || continue',
+    `  rm -rf -- "$s" && printf '${SWEPT_STAGE} %s\n' "\${s##*/}"`,
+    'done',
+    'true'
+  ].join('\n')
+}
+
+export function parseSweptRuntimeStages(output: string): string[] {
+  return output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith(`${SWEPT_STAGE} `))
+    .map((line) => line.slice(SWEPT_STAGE.length + 1))
+}
 
 function exec(conn: SshConnection, command: string, signal?: AbortSignal): Promise<string> {
   return execCommand(conn, command, { wrapCommand: true, signal })
@@ -141,6 +183,32 @@ export async function gcRemoteNodeRuntimeStore(
   if (isWindowsRemoteHost(host)) {
     return { state: 'skipped', reason: 'Windows hosts have no managed runtime store yet' }
   }
+  const store = remoteNodeRuntimeStoreDir(host, remoteHome)
+  const locked = await tryWithRuntimeStoreLock(
+    conn,
+    host,
+    store,
+    () => collectHoldingStoreLock(conn, host, remoteHome, store, options),
+    options.signal
+  )
+  return locked?.value ?? { state: 'skipped', reason: 'runtime store lock is held or absent' }
+}
+
+async function collectHoldingStoreLock(
+  conn: SshConnection,
+  host: RemoteHostPlatform,
+  remoteHome: string,
+  store: string,
+  options: { currentPins: readonly string[]; signal?: AbortSignal }
+): Promise<RuntimeStoreGcResult> {
+  const sweptStages = await exec(conn, sweepStaleRuntimeStagesCommand(store), options.signal)
+    .then(parseSweptRuntimeStages)
+    .catch((error: unknown) => {
+      if (isUnconfirmedSshCommandTermination(error)) {
+        throw error
+      }
+      return []
+    })
   const inventory = await readInventory(conn, host, remoteHome, options.signal)
   if (!inventory) {
     return { state: 'skipped', reason: 'runtime store inventory was unverifiable' }
@@ -148,7 +216,6 @@ export async function gcRemoteNodeRuntimeStore(
   const legacy = inventoryRemoteInstallDirs(inventory.dirNames)
   const legacyDirs = [...legacy.relay, ...legacy.mantad]
   const plan = planRuntimeStoreGc(inventory, options.currentPins)
-  const store = joinRemotePath(host, remoteHome, RELAY_REMOTE_DIR, ORCAD_RUNTIMES_DIRNAME)
   const removed: string[] = []
   const kept = [...plan.kept]
   for (const name of plan.purgeTombstones) {
@@ -194,7 +261,10 @@ export async function gcRemoteNodeRuntimeStore(
         : ''
     console.log(`[runtime-store] GC: removed ${removed.join(', ')}${legacyNote}`)
   }
-  return { state: 'collected', removed, kept, legacyDirs }
+  if (sweptStages.length > 0) {
+    console.log(`[runtime-store] GC: swept stale upload stages ${sweptStages.join(', ')}`)
+  }
+  return { state: 'collected', removed, kept, legacyDirs, sweptStages }
 }
 
 async function moveTree(

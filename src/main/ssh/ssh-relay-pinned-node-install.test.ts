@@ -18,6 +18,7 @@ import {
 import { runPinnedRuntimeSelfTest } from './ssh-relay-runtime-self-test'
 import type { HostNodeAddonRelayPlan } from './ssh-relay-host-node-addons'
 import { RelayRuntimeLadderRun } from './ssh-relay-runtime-resolution'
+import { withRuntimeStoreLock } from './remote-node-runtime-store-lock'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import { decodeRemotePowerShellScript } from './ssh-remote-powershell'
 
@@ -25,6 +26,9 @@ vi.mock('./ssh-relay-deploy-helpers', () => ({ execCommand: vi.fn() }))
 vi.mock('./mantad-remote-node-runtime', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
   ensureRemoteOrcadNodeRuntime: vi.fn()
+}))
+vi.mock('./remote-node-runtime-store-lock', () => ({
+  withRuntimeStoreLock: vi.fn((_conn, _host, _store, task: () => Promise<unknown>) => task())
 }))
 vi.mock('./ssh-relay-runtime-self-test', async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
@@ -99,8 +103,31 @@ describe('ensurePinnedRelayRuntime', () => {
 })
 
 describe('verifyPinnedRelayInstall', () => {
+  beforeEach(() => {
+    vi.mocked(execCommand).mockResolvedValue(REMOTE_NODE_RUNTIME_READY)
+  })
+
+  it('confirms the runtime under the store lock once the relay ref is visible', async () => {
+    vi.mocked(runPinnedRuntimeSelfTest).mockResolvedValueOnce({ verdict: 'failed', detail: 'x' })
+    await verifyPinnedRelayInstall(context).catch(() => {})
+    expect(withRuntimeStoreLock).toHaveBeenCalledWith(
+      conn,
+      host,
+      '/home/u/.manta-remote/runtimes',
+      expect.any(Function),
+      undefined
+    )
+    expect(ensureRemoteOrcadNodeRuntime).not.toHaveBeenCalled()
+  })
+
+  it('reinstalls a runtime a store GC collected before the ref existed', async () => {
+    vi.mocked(execCommand).mockResolvedValueOnce(REMOTE_NODE_RUNTIME_MISSING)
+    vi.mocked(runPinnedRuntimeSelfTest).mockResolvedValueOnce({ verdict: 'failed', detail: 'x' })
+    await verifyPinnedRelayInstall(context).catch(() => {})
+    expect(ensureRemoteOrcadNodeRuntime).toHaveBeenCalledOnce()
+  })
+
   it('passes a verified runtime through', async () => {
-    vi.mocked(execCommand).mockResolvedValue('')
     vi.mocked(runPinnedRuntimeSelfTest).mockResolvedValueOnce({
       verdict: 'passed',
       report: {
@@ -123,6 +150,7 @@ describe('verifyPinnedRelayInstall', () => {
   })
 
   it('self-tests rung C on the host Node without the pinned version check or a cached refusal', async () => {
+    vi.mocked(withRuntimeStoreLock).mockClear()
     vi.mocked(execCommand).mockResolvedValue('')
     const run = new RelayRuntimeLadderRun('target-1', null)
     const hostPlan: HostNodeAddonRelayPlan = {
@@ -150,6 +178,8 @@ describe('verifyPinnedRelayInstall', () => {
       { host, expectPinnedVersion: false }
     )
     expect(run.selfTest).toBe('refused')
+    // Rung C runs no managed runtime, so there is nothing to hold under the store lock.
+    expect(withRuntimeStoreLock).not.toHaveBeenCalled()
     // A host Node refusal says nothing about Manta's pinned Node on this host.
     vi.mocked(execCommand).mockResolvedValueOnce('ldd (GNU libc) 2.31')
     const next = await planPinnedNodeRelay({

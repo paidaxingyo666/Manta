@@ -55,6 +55,9 @@ function hostCommandResult(command: string): string {
     }
     return `__MANTA_UPLOAD_STAGE_SLOT__${command.match(/\.sftp-namespace-[0-9a-f]{32}/)?.[0]}:slot-0`
   }
+  if (command.includes("/runtimes/.store-lock' 2>/dev/null")) {
+    return 'OK'
+  }
   if (command.includes('SELECT 1 AS ready')) {
     return frame('unsupported')
   }
@@ -397,7 +400,8 @@ describe('SSH OpenCode runtime setup', () => {
     expect(await ensureRemoteOpenCodeRuntime(connection(), host, remoteHome, options())).toBe(
       'failed'
     )
-    expect(mocks.exec).toHaveBeenCalledTimes(7)
+    // Includes the store-lock round trips (mkdir, acquire, re-probe, release) around promotion.
+    expect(mocks.exec).toHaveBeenCalledTimes(11)
     expect(mocks.write).not.toHaveBeenCalled()
   })
 

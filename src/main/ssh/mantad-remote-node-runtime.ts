@@ -4,8 +4,8 @@
  * The OpenCode vault reader uses the same store on SSH and WSL hosts (design D4a).
  *
  * The official archive is uploaded as published and extracted on the host; the executable's
- * hash is checked there before it is published. Store-wide GC and the fallback ladder are
- * Phase 2: nothing here deletes a runtime.
+ * hash is checked there before it is published. Promotion runs under the store lock that
+ * store GC also takes (design D5); nothing here deletes a runtime.
  */
 import { randomBytes } from 'node:crypto'
 import { copyFile, link, mkdtemp, rm } from 'node:fs/promises'
@@ -34,6 +34,7 @@ import {
   type RemoteHostPlatform
 } from './ssh-remote-platform'
 import { assertPosixOrcadHost } from './mantad-remote-host-support'
+import { withRuntimeStoreLock } from './remote-node-runtime-store-lock'
 import {
   assertRemoteNodeRuntimePromoted,
   REMOTE_NODE_RUNTIME_EXIT_PREFIX,
@@ -61,6 +62,8 @@ export {
   RemoteNodeRuntimeSelfTestError
 } from './mantad-remote-node-runtime-report'
 const VERIFIED_MARKER = REMOTE_NODE_RUNTIME_VERIFIED_MARKER
+/** Upload stages sit in the store beside the runtimes they become; store GC sweeps stale ones. */
+export const RUNTIME_STORE_STAGE_PREFIX = '.stage-'
 
 /** `<storeParent>/runtimes/node-<executableSha256>`, the one host layout (design D5). */
 export function nodeRuntimeStoreDir(
@@ -102,7 +105,7 @@ export function nodeRuntimeStageDir(
   return joinRemotePath(
     host,
     remoteDirname(runtimeDir, host),
-    `.stage-${basename(runtimeDir)}-${token}`
+    `${RUNTIME_STORE_STAGE_PREFIX}${basename(runtimeDir)}-${token}`
   )
 }
 
@@ -271,12 +274,38 @@ export async function ensureRemoteOrcadNodeRuntime(options: {
       await exec(`mkdir -p ${shellEscape(stageDir)}`, { signal })
     }
     await remoteStep(() => uploadRelayDirectory(conn, uploadDir, stageDir, host, { signal }))
-    const promoted = await exec(
-      windows
-        ? windowsNodeRuntimePromoteCommand({ stageDir, archive, runtimeDir, target })
-        : promoteRemoteNodeRuntimeCommand(host, { stageDir, archive, runtimeDir, target, token }),
-      { signal, ...(windows ? { timeoutMs: WINDOWS_NODE_RUNTIME_PROMOTE_TIMEOUT_MS } : {}) }
-    )
+    const promoted = windows
+      ? await exec(windowsNodeRuntimePromoteCommand({ stageDir, archive, runtimeDir, target }), {
+          signal,
+          timeoutMs: WINDOWS_NODE_RUNTIME_PROMOTE_TIMEOUT_MS
+        })
+      : // Why re-probe under the lock: a sibling installer may have published this pin while we uploaded.
+        await remoteStep(() =>
+          withRuntimeStoreLock(
+            conn,
+            host,
+            remoteDirname(runtimeDir, host),
+            async () =>
+              (
+                await execCommand(conn, probeRemoteNodeRuntimeCommand(host, runtimeDir, target), {
+                  signal
+                })
+              ).trim() === REMOTE_NODE_RUNTIME_READY
+                ? REMOTE_NODE_RUNTIME_READY
+                : execCommand(
+                    conn,
+                    promoteRemoteNodeRuntimeCommand(host, {
+                      stageDir,
+                      archive,
+                      runtimeDir,
+                      target,
+                      token
+                    }),
+                    { signal }
+                  ),
+            signal
+          )
+        )
     // Why: the Windows promote script removes its stage on every path; skip a second powershell.exe.
     hostRemovedStage = windows
     assertRemoteNodeRuntimePromoted(promoted)
