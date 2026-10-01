@@ -472,8 +472,14 @@ drained. Then read the cell's live runtime image from
 3. The job classifies the cell itself and needs no extra input:
    - serving the **rollback** image and draining, it is `stranded`. The wave stopped before
      or during its template apply. The job re-isolates, re-drains, applies the reviewed
-     template, and rolls the MIG explicitly if that template was already in place. The cell
-     comes back on a new instance, so the drain clears, and it is restored to its entry class.
+     template, and, if that template was already in place, recreates the cell's one instance
+     with `recreate-instances`. The cell comes back on a new instance, so the drain clears, and
+     it is restored to its entry class. The recovery does not use a rolling action: that
+     rewrites the MIG's version name outside Terraform. The plan validator does accept a MIG
+     moving back to the version name and update policy `relay-gce-cells.tf` declares, so a cell
+     an older rolling action left relabelled reconciles on its next apply, roll, or stranded
+     rollback. The recreate refuses a MIG that does not hold exactly one instance, such as a
+     fenced cell; that failure is the guard, not a fault, so unfence before dispatching.
    - serving the **target** image, it is `roll`, the ordinary rollback. The template applied
      and the instance was replaced.
    - serving the **rollback** image and not draining, it is `resume`: a rollback that failed

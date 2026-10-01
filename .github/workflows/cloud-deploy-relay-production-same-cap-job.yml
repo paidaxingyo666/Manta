@@ -709,15 +709,20 @@ jobs:
             --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" --timeout 900
           # A stranded cell already runs the reviewed template, so the apply above replaces
           # no instance and the drain flag, which only a restart clears, would survive the
-          # whole wave. Roll the MIG explicitly on exactly the policy a template change uses.
-          # Every field is passed: gcloud persists these into the MIG's update policy, and it
-          # defaults the method to substitute on a group with no stateful config, so omitting
-          # one drifts the policy off the reviewed one and fails every later targeted plan.
+          # whole wave. Fewer than the template-and-MIG pair means the template stayed put,
+          # including a MIG-only reconciliation. Recreate its one instance from the MIG's
+          # current template; a rolling action would rewrite the MIG's version name outside
+          # Terraform, and every later targeted plan would carry that revert.
           if test "${ROLLBACK_STAGE}" = stranded \
-            && test "$(jq -er '.changes' <<< "${PLAN_REVIEW}")" = 0; then
-            gcloud compute instance-groups managed rolling-action replace "${MIG_NAME}" \
-              --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" \
-              --replacement-method recreate --max-surge 0 --max-unavailable 1
+            && jq -e '.changes < 2' <<< "${PLAN_REVIEW}" >/dev/null; then
+            STRANDED_INSTANCE="$(gcloud compute instance-groups managed list-instances \
+              "${MIG_NAME}" --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" \
+              --format=json \
+              | jq -er 'if length == 1 then .[0].instance | split("/") | last
+                  else error("stranded cell MIG does not have exactly one instance") end')"
+            gcloud compute instance-groups managed recreate-instances "${MIG_NAME}" \
+              --instances "${STRANDED_INSTANCE}" \
+              --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" --quiet
             gcloud compute instance-groups managed wait-until "${MIG_NAME}" --stable \
               --project "${GCP_PROJECT_ID}" --zone "${TARGET_ZONE}" --timeout 900
           fi
