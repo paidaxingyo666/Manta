@@ -3,6 +3,97 @@
 The [September 28 demand rollout](ci-demand-rollout.md) documents staged checks,
 unit-selection evidence, headless runtime qualification, review cancellation and daily occupancy reports.
 
+## October 1 Windows and dependency cache follow-up
+
+[PR #24355](https://github.com/stablyai/orca/pull/24355) merged at `197ea3a3`.
+The [next hosted trial](https://github.com/stablyai/orca/actions/runs/36917210453)
+ran four alternating pairs on each Windows architecture and both Mac
+architectures. All six jobs passed. The exact temporary workflow and drivers
+remain available at `ab24952ab5af0f7d8e53a544896ac2486edfb244`; completed trial
+tooling is removed from ordinary PR CI.
+
+### Windows server slots
+
+The existing dependency-native cache and the server's N-API 8 slot serve different
+consumers. Cache the small server slot separately, using the exact compiler image,
+architecture, dependency/patch/runtime inputs and compilation/validation source.
+Only PR qualification restores it. Main qualification still compiles freshly and
+saves after persistence/lifecycle tests and the existing x64 Node 18 handoff.
+Templates and explicit-ref calls continue to compile freshly.
+
+| Hosted runner    | Fresh build median | Restore median | Difference |
+| ---------------- | ------------------ | -------------- | ---------- |
+| Windows 2022 x64 | 18.624s            | 4.677s         | 13.947s    |
+| Windows 11 ARM64 | 72.002s            | 6.111s         | 65.891s    |
+
+Both used Node 24.21.0. Each comparison includes actual GitHub cache restoration,
+inter-step time, payload validation, required-slot checks and pinned-Node load/spawn
+smoke. Every fresh build uses the builder's freshly cleared compilation directory.
+Dependency installation, initial seed work, shared download warmup, full qualification
+tests and queues are outside these timing intervals. The x64 payload was 2,935,529
+bytes and ARM64 3,533,557 bytes. These are conditional warm-hit gains, rather than a
+whole-workflow improvement or the roughly 95–117 seconds seen in earlier cold samples.
+
+Restored bytes must match current module/version/headers/N-API/host metadata,
+the complete inventory and hashes, and current vendored ConPTY files. Existing
+patch, PE architecture, post-baseline N-API and MSYS breakaway checks are reused.
+Failed or partial restoration and invalid payloads clear only `out/mantad-prebuilds`
+and fall back to normal compilation. Both fresh seeds and fresh restored consumers
+passed the full existing Windows qualification; x64 also passed Node 18 handoff.
+The final key additionally includes the ten transitive process-wrapper sources.
+
+A bounded sample of 50 first-parent main commits through `197ea3a3` had 45 of 49
+adjacent transitions with identical source inputs, including those ten files.
+This one-day sample holds the new validator and runner image constant. Actual
+image rotation, seed availability and changed PR inputs can reduce reuse.
+
+Keep the original Windows native dependency preparation: artifact-mode tests still
+import checkout `node-pty`, registry and process-reader addons, and the Windows
+artifact builder stages the patched process reader. The cached server slot does
+not replace those dependencies.
+
+### pnpm verification records
+
+Reuse pnpm's existing policy-checked record on Windows x64/ARM64 and Mac Intel,
+while retaining Linux's existing behavior. The exact OS/architecture/pnpm/policy
+key, explicit opt-out, frozen installs and main-only production writes remain.
+Each treatment resets links and registry metadata, retains the identical warm
+download store, and checks unchanged manifests, installed versions and installed
+lockfile bytes. Every platform passed real missing/corrupt-record fallback and
+changed-policy/changed-integrity rejection controls, plus authentic cross-path reuse.
+
+| Platform               | Baseline install | Cached install | Baseline interval | Cached interval |
+| ---------------------- | ---------------- | -------------- | ----------------- | --------------- |
+| Windows x64            | 13.105s          | 9.767s         | 17.717s           | 15.146s         |
+| Windows ARM64          | 96.723s          | 88.443s        | 164.620s          | 157.877s        |
+| Mac Intel              | 31.368s          | 21.042s        | 47.727s           | 41.302s         |
+| Mac ARM, kept disabled | 11.419s          | 8.086s         | 17.905s           | 15.787s         |
+
+Install columns time pnpm alone. Interval columns also include link reset,
+path validation, real cache restoration and inter-step overhead; they exclude
+seed setup, parity checks and queues. Key-resolution overhead is outside the paired
+trial; the real Windows ARM production-shaped step took 0.296s. Windows ARM's first
+pair was slower with the record, while the next three improved, so its median is
+not a guaranteed per-job saving. Macs used their hosted Node 24.19.0 Intel and
+24.20.0 ARM toolchains; Windows used 24.21.0, and all used pnpm 12.0.0.
+
+An earlier complete Mac ARM trial saved only 0.681s in its interval median.
+That small, variable margin does not justify enabling the extra lookup there.
+Only the tiny pnpm-owned record is restored; registry metadata and download-store
+policy are unchanged. Changing the shared action also produces a one-time cold
+native dependency cache key, whose existing hash includes the action bytes.
+
+### Further local screens rejected
+
+A fixed 256-file, 2,471-case cohort preserved every result in twelve invocations.
+Lazy per-file user data showed a noisy 2.0% wall difference with no setup-time
+improvement; combining DOM setup was 1.8% slower. A separate seven-file leaf-import
+screen preserved all 50 assertions and public/hook controls, saving only 0.903
+worker-seconds while elapsed time rose 2.55%. All experiments were reverted.
+Documentation-result reuse also lacked positive eligible demand in the bounded
+sample, and the apparent example changed the actual tested merge/base inputs.
+These results do not justify adding a new coverage-selection or result-reuse policy.
+
 ## October 1 PR concurrency follow-up
 
 ### Where the next gains are

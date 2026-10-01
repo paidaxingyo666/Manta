@@ -3,7 +3,7 @@ description: Installs the Node toolchain and repository dependencies for CI jobs
 
 inputs:
   cache-pnpm-verification:
-    description: Restore pnpm's policy-checked lockfile verification record on Linux.
+    description: Restore pnpm's policy-checked lockfile verification record.
     required: false
     default: 'true'
   native-runtime:
@@ -106,7 +106,11 @@ runs:
 
     - name: Resolve pnpm verification cache
       id: verification-cache
-      if: runner.os == 'Linux' && inputs.cache-pnpm-verification == 'true'
+      if: >-
+        inputs.cache-pnpm-verification == 'true' &&
+        (runner.os == 'Linux' ||
+        (runner.os == 'Windows' && (runner.arch == 'X64' || runner.arch == 'ARM64')) ||
+        (runner.os == 'macOS' && runner.arch == 'X64'))
       shell: bash
       env:
         POLICY_HASH: ${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc') }}

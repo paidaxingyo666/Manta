@@ -114,13 +114,46 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: ${{ runner.os == 'Windows' && 'node' || 'none' }}
+      - name: Resolve this Windows server prebuild cache
+        id: orcad-prebuild-cache-identity
+        if: >-
+          runner.os == 'Windows' && (runner.arch == 'X64' || runner.arch == 'ARM64') &&
+          !inputs.build_template && inputs.ref == '' &&
+          (github.event_name == 'pull_request' ||
+          (github.ref == 'refs/heads/main' && contains(fromJSON('["push","schedule","workflow_dispatch"]'), github.event_name)))
+        continue-on-error: true
+        shell: bash
+        run: node config/scripts/mantad-windows-prebuild-cache.mjs --fingerprint
+      - name: Restore the exact Windows server prebuild for this pull request
+        id: orcad-prebuild-cache-restore
+        if: >-
+          github.event_name == 'pull_request' &&
+          steps.orcad-prebuild-cache-identity.outcome == 'success' &&
+          steps.orcad-prebuild-cache-identity.outputs.key != ''
+        continue-on-error: true
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ steps.orcad-prebuild-cache-identity.outputs.path }}
+          key: ${{ steps.orcad-prebuild-cache-identity.outputs.key }}
       # Before setup-node 18: the scripts import the TypeScript runtime pin.
       # Linux release slots come from the Ubuntu 20.04 and Alpine lanes below, where their libc
       # floors live; this runner's slot only packages mantad for its own tests.
       - name: Build and smoke this runner's node-pty prebuild slot under the pinned Node
         shell: bash
+        env:
+          WINDOWS_PREBUILD_CACHE_HIT: ${{ steps.orcad-prebuild-cache-restore.outputs.cache-hit }}
+          WINDOWS_PREBUILD_CACHE_RESTORE_OUTCOME: ${{ steps.orcad-prebuild-cache-restore.outcome }}
         run: |
-          pnpm build:mantad-prebuilds
+          if [ "$RUNNER_OS" = Windows ] && [ "$WINDOWS_PREBUILD_CACHE_HIT" = true ] &&
+             [ "$WINDOWS_PREBUILD_CACHE_RESTORE_OUTCOME" = success ] &&
+             node config/scripts/mantad-windows-prebuild-cache.mjs --validate; then
+            echo 'Using the validated Windows server prebuild'
+          else
+            if [ "$RUNNER_OS" = Windows ]; then
+              rm -rf -- out/mantad-prebuilds
+            fi
+            pnpm build:mantad-prebuilds
+          fi
           pnpm build:mantad-prebuilds --require-slots "$(node config/scripts/build-mantad-prebuilds.mjs --print-slot)"
           pnpm build:mantad-prebuilds --smoke
       - run: pnpm build:mantad
@@ -173,6 +206,18 @@ jobs:
           node out/mantad/mantad.js --mantad-smoke-load-check
           node out/mantad/mantad.js --mantad-profile-state-preflight 00000000-0000-4000-8000-000000000018 | tee "$RUNNER_TEMP/preflight.json"
           node -e "const r=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));if(r.runtime!=='node'||!/^24\./.test(r.runtimeVersion))process.exit(1)" "$RUNNER_TEMP/preflight.json"
+      - name: Save the freshly qualified Windows server prebuild on main
+        if: >-
+          success() && runner.os == 'Windows' && (runner.arch == 'X64' || runner.arch == 'ARM64') &&
+          !inputs.build_template && inputs.ref == '' && github.ref == 'refs/heads/main' &&
+          contains(fromJSON('["push","schedule","workflow_dispatch"]'), github.event_name) &&
+          steps.orcad-prebuild-cache-identity.outcome == 'success' &&
+          steps.orcad-prebuild-cache-identity.outputs.key != ''
+        continue-on-error: true
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ steps.orcad-prebuild-cache-identity.outputs.path }}
+          key: ${{ steps.orcad-prebuild-cache-identity.outputs.key }}
       # Linux release slots come from the floor and Alpine lanes; these runners own the rest.
       - name: Keep this runner's qualified slot for the desktop template
         if: inputs.build_template && runner.os != 'Linux'
