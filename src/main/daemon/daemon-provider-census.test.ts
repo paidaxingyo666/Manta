@@ -7,6 +7,7 @@ import { createAdapter } from './daemon-pty-router-test-fixture'
 import {
   disconnectDaemon,
   listLiveDaemonSessions,
+  listLiveDaemonSessionsWithProtocol,
   replaceDaemonProvider,
   requestIdleDaemonRetirement
 } from './daemon-provider-state'
@@ -28,6 +29,17 @@ it('reads a census with an unanswered generation as unverifiable', async () => {
   replaceDaemonProvider(new DaemonPtyRouter({ current, legacy: [legacy] }))
 
   await expect(listLiveDaemonSessions()).resolves.toBeNull()
+})
+
+it('labels each live session with the protocol of the generation that owns it', async () => {
+  const current = createAdapter('current', ['live-1'], undefined, PROTOCOL_VERSION)
+  const legacy = createAdapter('legacy', ['live-2'], undefined, PROTOCOL_VERSION - 1)
+  replaceDaemonProvider(new DaemonPtyRouter({ current, legacy: [legacy] }))
+
+  await expect(listLiveDaemonSessionsWithProtocol()).resolves.toEqual([
+    { sessionId: 'live-1', isAlive: true, protocolVersion: PROTOCOL_VERSION },
+    { sessionId: 'live-2', isAlive: true, protocolVersion: PROTOCOL_VERSION - 1 }
+  ])
 })
 
 it('lists every generation when each one answers', async () => {

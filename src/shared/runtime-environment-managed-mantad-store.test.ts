@@ -9,7 +9,11 @@ import {
   removeEnvironment,
   updateEnvironmentFromPairingCode
 } from './runtime-environment-store'
-import { addManagedOrcadEnvironment } from './runtime-environment-managed-orcad-store'
+import {
+  addManagedOrcadEnvironment,
+  refreshManagedOrcadPairing,
+  removeManagedOrcadEnvironment
+} from './runtime-environment-managed-orcad-store'
 import { getRuntimeEnvironmentSidecarPath } from './runtime-environment-sidecar'
 import { getRuntimeSshAccess } from './runtime-environments'
 import { shippedBuildRewrite } from './runtime-environment-shipped-store-fixture'
@@ -96,5 +100,34 @@ describe('managed mantad environment store', () => {
       updateEnvironmentFromPairingCode(userDataPath, 'Managed', { pairingCode: pairingCode() })
     ).toThrow('managed by Manta over SSH')
     expect(listEnvironments(userDataPath)).toHaveLength(1)
+  })
+
+  it('removes the server and its deployment record together once it is unlinked', () => {
+    add()
+    removeManagedOrcadEnvironment(userDataPath, 'environment-1')
+    expect(listEnvironments(userDataPath)).toEqual([])
+    expect(readFileSync(getRuntimeEnvironmentSidecarPath(userDataPath), 'utf8')).not.toContain(
+      'environment-1'
+    )
+  })
+
+  it('leaves an unchanged pairing alone and re-binds the link when the offer rotates', () => {
+    const environment = add()
+    expect(refreshManagedOrcadPairing(userDataPath, 'environment-1', pairingCode())).toEqual(
+      environment
+    )
+    const rotated = encodePairingOffer({
+      v: 2,
+      endpoint: 'ws://127.0.0.1:46768',
+      deviceToken: 'rotated-token',
+      publicKeyB64: Buffer.alloc(32, 1).toString('base64')
+    })
+    const refreshed = refreshManagedOrcadPairing(userDataPath, 'environment-1', rotated, 500)
+    expect(refreshed.endpoints[0]?.deviceToken).toBe('rotated-token')
+    expect(refreshed.pairingRevision).toBe(500)
+    expect(refreshed.orcadDeployment).toEqual(deployment)
+    expect(() =>
+      refreshManagedOrcadPairing(userDataPath, 'environment-1', pairingCode('ws://127.0.0.1:1'))
+    ).toThrow('does not point at its SSH tunnel')
   })
 })

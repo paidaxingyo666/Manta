@@ -161,6 +161,11 @@ describe('registerRuntimeEnvironmentHandlers', () => {
       'runtimeEnvironments:listPendingOrcadSshProvisioning',
       'runtimeEnvironments:deployOrcad',
       'runtimeEnvironments:getOrcadStatus',
+      'runtimeEnvironments:updateOrcad',
+      'runtimeEnvironments:rollbackOrcad',
+      'runtimeEnvironments:recoverOrcad',
+      'runtimeEnvironments:stopOrcad',
+      'runtimeEnvironments:cancelOrcadStop',
       'runtimeEnvironments:subscribe',
       'runtimeEnvironments:unsubscribe'
     ])
@@ -191,6 +196,11 @@ describe('registerRuntimeEnvironmentHandlers', () => {
       'runtimeEnvironments:unlinkSshAccess',
       'runtimeEnvironments:deployOrcad',
       'runtimeEnvironments:getOrcadStatus',
+      'runtimeEnvironments:updateOrcad',
+      'runtimeEnvironments:rollbackOrcad',
+      'runtimeEnvironments:recoverOrcad',
+      'runtimeEnvironments:stopOrcad',
+      'runtimeEnvironments:cancelOrcadStop',
       'runtimeEnvironments:createOrcadSshHost',
       'runtimeEnvironments:resumeOrcadSshHost',
       'runtimeEnvironments:listPendingOrcadSshProvisioning',

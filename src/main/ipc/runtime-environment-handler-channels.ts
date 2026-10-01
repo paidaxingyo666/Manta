@@ -17,6 +17,11 @@ export const RUNTIME_ENVIRONMENT_HANDLER_CHANNELS = [
   'runtimeEnvironments:unlinkSshAccess',
   'runtimeEnvironments:deployOrcad',
   'runtimeEnvironments:getOrcadStatus',
+  'runtimeEnvironments:updateOrcad',
+  'runtimeEnvironments:rollbackOrcad',
+  'runtimeEnvironments:recoverOrcad',
+  'runtimeEnvironments:stopOrcad',
+  'runtimeEnvironments:cancelOrcadStop',
   'runtimeEnvironments:createOrcadSshHost',
   'runtimeEnvironments:resumeOrcadSshHost',
   'runtimeEnvironments:listPendingOrcadSshProvisioning'

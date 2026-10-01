@@ -65,6 +65,20 @@ export async function resolveLinkedOrcadContext(
   return resolveOrcadRemoteContext(target, connection, signal)
 }
 
+/** The slot options every remote lifecycle step takes for this managed server. */
+export function managedOrcadSlot(context: OrcadRemoteContext, port: number, signal?: AbortSignal) {
+  return {
+    conn: context.connection,
+    host: context.host,
+    remoteHome: context.remoteHome,
+    nodePath: MANAGED_ORCAD_LEGACY_NODE_PATH,
+    userDataDir: context.userDataDir,
+    bindHost: ORCAD_BIND_HOST,
+    port,
+    signal
+  }
+}
+
 export function managedOrcadInstallDir(context: OrcadRemoteContext, version: string): string {
   return computeRemoteInstallDir(
     MANTAD_INSTALL_MODEL,

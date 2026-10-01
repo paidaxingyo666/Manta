@@ -1,7 +1,8 @@
-import { parsePairingCode } from './pairing'
+import { parsePairingCode, type PairingOffer } from './pairing'
 import {
   createEnvironmentFromPairingOffer,
   getPreferredLoopbackRuntimePort,
+  getPreferredPairingOffer,
   PersistedRuntimeEnvironmentSchema,
   type KnownRuntimeEnvironment,
   type OrcadDeploymentLink
@@ -12,7 +13,11 @@ import {
   RuntimeEnvironmentStoreError,
   writeEnvironmentStore
 } from './runtime-environment-store-file'
-import { writeRuntimeEnvironmentSidecarEntry } from './runtime-environment-sidecar'
+import {
+  readCurrentRuntimeEnvironmentSidecarEntry,
+  writeRuntimeEnvironmentSidecarEntry
+} from './runtime-environment-sidecar'
+import { resolveEnvironmentFromStore } from './runtime-environment-store'
 
 /** Registers a server Manta deployed over SSH, paired through its own loopback tunnel. */
 export function addManagedOrcadEnvironment(
@@ -77,4 +82,80 @@ export function addManagedOrcadEnvironment(
     )
   }
   return registered
+}
+
+/**
+ * Unlinks a managed server once its mantad is proven to have exited: drops the persisted entry
+ * and the sidecar record that held its deployment link.
+ */
+export function removeManagedOrcadEnvironment(userDataPath: string, environmentId: string): void {
+  const store = readPersistedEnvironmentStore(userDataPath)
+  const persisted = resolveEnvironmentFromStore(store, environmentId)
+  const remaining = store.environments.filter((entry) => entry.id !== persisted.id)
+  writeEnvironmentStore(userDataPath, { version: 1, environments: remaining })
+  writeRuntimeEnvironmentSidecarEntry(userDataPath, remaining, persisted, null)
+}
+
+/** Keeps a managed server's pairing current after its mantad changed versions. */
+export function refreshManagedOrcadPairing(
+  userDataPath: string,
+  environmentId: string,
+  pairingCode: string,
+  now = Date.now()
+): KnownRuntimeEnvironment {
+  const offer = parsePairingCode(pairingCode)
+  if (!offer) {
+    throw new RuntimeEnvironmentStoreError('invalid_argument', 'Invalid managed pairing code.')
+  }
+  const current = resolveEnvironmentFromStore(readEnvironmentStore(userDataPath), environmentId)
+  const deployment = current.orcadDeployment
+  if (!deployment) {
+    throw new RuntimeEnvironmentStoreError('invalid_argument', 'This server is not managed.')
+  }
+  // Why skip: mantad keeps its pairing state across versions, so an unchanged offer needs no
+  // rewrite, and every rewrite re-binds the sidecar entry.
+  if (samePairing(getPreferredPairingOffer(current), offer)) {
+    return current
+  }
+  const store = readPersistedEnvironmentStore(userDataPath)
+  const existing = resolveEnvironmentFromStore(store, environmentId)
+  const entry = readCurrentRuntimeEnvironmentSidecarEntry(userDataPath, existing)
+  const next = PersistedRuntimeEnvironmentSchema.parse({
+    ...createEnvironmentFromPairingOffer({
+      id: existing.id,
+      name: existing.name,
+      now: existing.createdAt,
+      offer,
+      runtimeId: existing.runtimeId,
+      connectionDependency: 'ssh-tunnel'
+    }),
+    updatedAt: now,
+    pairingRevision: Math.max(now, (existing.pairingRevision ?? existing.createdAt) + 1),
+    lastUsedAt: existing.lastUsedAt
+  })
+  if (getPreferredLoopbackRuntimePort(next) !== deployment.localPort) {
+    throw new RuntimeEnvironmentStoreError(
+      'invalid_argument',
+      'The managed pairing does not point at its SSH tunnel.'
+    )
+  }
+  const environments = store.environments.map((candidate) =>
+    candidate.id === existing.id ? next : candidate
+  )
+  const { binding: _binding, ...state } = entry ?? {}
+  writeRuntimeEnvironmentSidecarEntry(userDataPath, environments, next, {
+    ...state,
+    orcadDeployment: deployment
+  })
+  writeEnvironmentStore(userDataPath, { version: 1, environments })
+  return resolveEnvironmentFromStore(readEnvironmentStore(userDataPath), environmentId)
+}
+
+function samePairing(left: PairingOffer, right: PairingOffer): boolean {
+  return (
+    left.endpoint === right.endpoint &&
+    left.deviceToken === right.deviceToken &&
+    left.publicKeyB64 === right.publicKeyB64 &&
+    left.pairedDeviceId === right.pairedDeviceId
+  )
 }
