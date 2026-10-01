@@ -39,6 +39,37 @@ export async function isMainAgentWorkingOnceFlushed(
   )
 }
 
+/**
+ * After an interrupt that failed: whether the session still runs what the Stop was sent for. One at
+ * rest, or running a different turn, is not the Stop's to end. A child that exited reads at rest:
+ * its exit ends its turn, and the host's own exit handling waits behind this step.
+ */
+async function stillRunsStoppedTurn(
+  ctx: Pick<AgentSessionTurnContext, 'journal' | 'fence' | 'flushStreamedEvents'>,
+  stoppedTurnId: string | null
+): Promise<boolean> {
+  if (!(await isMainAgentWorkingOnceFlushed(ctx))) {
+    return false
+  }
+  // Working with no turn open after the Stop's turn is a later send whose turn has not opened.
+  return stoppedTurnId === null || ctx.journal.activeTurnId() === stoppedTurnId
+}
+
+/** The row for a Stop the provider declined, in its words when it gave any. */
+function stopRefusedNote(
+  ctx: Pick<AgentSessionTurnContext, 'failureTextContext'>,
+  refusal: AgentSessionCancelOutcome['refusal']
+): AgentJournalStatusItem {
+  const detail = refusal?.detail
+  return {
+    kind: 'status',
+    ...agentSessionFailureWords(agentSessionFailureFact('stopRefused', detail ? { detail } : {}), {
+      ...ctx.failureTextContext,
+      surface: 'row'
+    })
+  }
+}
+
 /** What a Stop that ends the provider's session leaves its next serialized step: whether the
  *  provider took the interrupt, so its wind-down is worth waiting on, and when the interrupt went
  *  out. No turn id: that step runs right behind the Stop, so no later turn can slip in between. */
@@ -75,8 +106,14 @@ export async function performCancel(
     scope?: 'background-tasks'
     taskId?: string
     prompt?: { itemId: string; expectedRevision: number }
-    /** Ends the provider child, for a running command the provider did not take the Stop on. */
+    /** Ends the provider child, for a running command the provider did not take the Stop on, or a
+     *  turn whose interrupt failed. */
     stopChild?: () => Promise<void>
+    /** A child end after a failed interrupt that threw. */
+    onStopChildError?: (error: unknown) => void
+    /** After that throw: whether the host let go of the child, its exit proven before a later
+     *  cleanup step failed. */
+    childReleased?: () => boolean
     /** Hands the child's end to the Stop's next serialized step, for a provider whose Stop ends
      *  its session. */
     endSession?: (windDown: StructuredAgentSessionStopWindDown) => void
@@ -119,6 +156,9 @@ export async function performCancel(
   const stoppedAt = Date.now()
   // The provider's own answer; unset when its cancel threw, leaving the effect unknown.
   let taken: boolean | undefined
+  // The provider could not interrupt the turn, or its cancel threw: the turn may run on.
+  let interruptFailed = false
+  let refusal: AgentSessionCancelOutcome['refusal']
   try {
     const dispatchStatus = latestJournalDispatchObservation(ctx.journal, ctx.fence)
     const outcome: AgentSessionCancelOutcome = stoppedBefore
@@ -145,6 +185,8 @@ export async function performCancel(
           })
     taken = outcome.cancelled
     cancelled = outcome.cancelled
+    refusal = outcome.refusal
+    interruptFailed = refusal !== undefined && refusal.turnNotRunning !== true
     if (!cancelled && input.withdrewQueued && !(await isMainAgentWorkingOnceFlushed(ctx))) {
       // A Stop that withdrew what was queued and left nothing working ended what it was sent for,
       // named or not. The journal judges it: providers differ on refusing a turn that has ended.
@@ -154,19 +196,13 @@ export async function performCancel(
       note = null
     } else if (!cancelled && input.turnId === undefined) {
       // Sent only while the chat reads working, so a Stop that ended nothing must say why.
-      const detail = outcome.refusal?.detail
-      note = {
-        kind: 'status',
-        ...agentSessionFailureWords(
-          agentSessionFailureFact('stopRefused', detail ? { detail } : {}),
-          { ...ctx.failureTextContext, surface: 'row' }
-        )
-      }
+      note = stopRefusedNote(ctx, refusal)
     }
   } catch (error) {
     if (input.prompt) {
       throw error
     }
+    interruptFailed = true
     // The adapter's error is Manta's; the row says only that the stop is unconfirmed.
     note = {
       kind: 'status',
@@ -191,8 +227,31 @@ export async function performCancel(
     await input.stopChild?.()
     cancelled = true
     note = { kind: 'status', text: STOP_NOTE_CANCELLATION_REQUESTED }
-  }
-  if (!cancelled && taken === false && input.turnId !== undefined) {
+  } else if (
+    !cancelled &&
+    interruptFailed &&
+    input.stopChild &&
+    // An unnamed Stop meant the turn the journal showed when it was sent.
+    (await stillRunsStoppedTurn(ctx, input.turnId ?? liveTurnId))
+  ) {
+    // The interrupt failed and the turn runs on: only the child's end stops it.
+    let ended: boolean
+    try {
+      await input.stopChild()
+      ended = true
+    } catch (error) {
+      input.onStopChildError?.(error)
+      // Unless the exit was proven, the child may still run the turn and the failed row stays true.
+      ended = input.childReleased?.() === true
+    }
+    if (ended) {
+      cancelled = true
+      note = { kind: 'status', text: STOP_NOTE_CANCELLATION_REQUESTED }
+    } else if (taken !== undefined) {
+      // The turn was just read running, so a named Stop says it was refused rather than nothing.
+      note = stopRefusedNote(ctx, refusal)
+    }
+  } else if (!cancelled && taken === false && input.turnId !== undefined) {
     // Nothing was left of the turn it named and nothing else ended: a Stop that ends nothing writes no row.
     note = null
   }

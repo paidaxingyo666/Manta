@@ -1,7 +1,9 @@
 // The chat's Stop, however a client reached it: the Stop button or a question card's Cancel. One
 // body and one order: withdraw what is queued, record where the Stop took effect, interrupt, then
-// end the child in the next step on the session's lane. The body is reachable only through
-// `mutateWithChatStop`, which queues that step in the same synchronous call as the mutation.
+// end the child: in this step when the interrupt failed with the turn still running, else in the
+// next step on the session's lane for a provider whose Stop ends its session. The body is
+// reachable only through `mutateWithChatStop`, which queues that step in the same synchronous call
+// as the mutation.
 
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
@@ -83,6 +85,9 @@ export function mutateWithChatStop<TValue>(
           clientOperationId: envelope.clientOperationId,
           ...named,
           stopChild: () => context.stopAgent(sessionId),
+          onStopChildError: (error) => context.deps.onEventSinkError?.({ sessionId, error }),
+          // The host drops its child only once the exit is proven, and nothing else runs meanwhile.
+          childReleased: () => context.sessions.get(sessionId)?.child !== child,
           endSession: (owed) => {
             windDown = owed
           },
