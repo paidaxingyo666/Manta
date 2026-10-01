@@ -476,6 +476,38 @@ describe('startup restore of chats still in their per-chat files', () => {
     expect(importCount()).toBe(1)
   })
 
+  it("copies a chat before a Stop's event, which lands before the turn's end and the kill after it", async () => {
+    const rows = await seedLegacyChat('chat-a')
+    const { sessions } = await restore(['chat-a'])
+    const journal = sessions.get('chat-a')!.journal
+    expect(journal.importPending).toBe(true)
+    const scope = { fence: 1, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
+
+    // In the Stop's order: its event, then the stopped turn's end, then a row the kill writes.
+    const [stopped, ended, killed] = await Promise.all([
+      journal.appendStopEvent({ reason: 'user-stop' }, 1),
+      journal.appendItem(
+        { provider: 'codex', threadId: 'thread-chat-a', turnId: 't', ordinal: 9 },
+        { kind: 'turn', turnId: 't', state: 'interrupted', startedAt: 1 },
+        scope
+      ),
+      journal.appendItem(
+        { provider: 'codex', threadId: 'thread-chat-a', turnId: 't', ordinal: 10 },
+        { kind: 'status', text: 'the agent ended' },
+        scope
+      )
+    ])
+
+    expect(readTestJournalRows(hostDb(), 'chat-a', rows[0]!.epoch).slice(0, rows.length)).toEqual(
+      rows
+    )
+    expect([stopped.sequence, ended.cursor.sequence, killed.cursor.sequence]).toEqual([
+      rows.length + 1,
+      rows.length + 2,
+      rows.length + 3
+    ])
+  })
+
   it("copies a chat before its first queued message, which lands as that chat's draft", async () => {
     const rows = await seedLegacyChat('chat-a')
     const { sessions } = await restore(['chat-a'])

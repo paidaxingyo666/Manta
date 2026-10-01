@@ -9,7 +9,7 @@ import type {
 } from './structured-agent-session-host-types'
 import { structuredAgentSessionConversationFence } from './structured-agent-session-provider-child'
 import { StructuredAgentSessionQueuedMessageDrain } from './structured-agent-session-queued-messages'
-import { retireEndedQueuePause } from './structured-agent-session-queued-pause'
+import { adoptEndedRestartPause } from './structured-agent-session-queued-pause'
 import {
   deleteQueuedStructuredAgentMessage,
   resumeStructuredAgentQueue,
@@ -41,12 +41,12 @@ export function wireStructuredAgentSessionQueuedMessages(
     drain,
     /** Every journal publish: turn, submission, prompt, command and Stop
      *  settlements are all commits, and each re-derives the drain's gates —
-     *  and retires a queue pause a person's started turn already ended. */
+     *  and adopts a restart's cards once a person's turn started. */
     onJournalActivity: (sessionId: string) => {
       sessions.touch(sessionId)
       const journal = sessions.get(sessionId)?.journal
       if (journal && !journal.isReadOnly) {
-        void retireEndedQueuePause(sessionId, journal, context().deps.logger)
+        void adoptEndedRestartPause(sessionId, journal, context().deps.logger)
       }
       drain.schedule(sessionId)
     },

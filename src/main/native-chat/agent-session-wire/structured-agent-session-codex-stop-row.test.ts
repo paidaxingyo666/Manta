@@ -380,6 +380,53 @@ describe('a Codex Stop whose interrupt failed', () => {
     expect((await journalRows()).turns).toEqual(['completed', 'running'])
   })
 
+  it('holds a card queued before it while the child it ends goes, its event written first', async () => {
+    await runningTurn()
+    const body = hostTestMessage('queued before the Stop')
+    const delivery = 'queue-if-active' as const
+    const queued = await host.send(CALLER, {
+      envelope: {
+        sessionId: SESSION,
+        clientOperationId: hostTestOperationId(),
+        expectedRuntimeFence: 1,
+        payloadFingerprint: computeAgentSessionPayloadFingerprint({
+          method: 'agentSession.send',
+          sessionId: SESSION,
+          fields: { body, delivery }
+        })
+      },
+      body,
+      delivery
+    })
+    if (!queued.ok || !('queued' in queued.value)) {
+      throw new Error(`expected a queued receipt: ${JSON.stringify(queued)}`)
+    }
+    const cardId = queued.value.queued.messageId
+    codex.routes['turn/interrupt'] = () => {
+      throw interruptFailure('internal error')
+    }
+
+    expect(await stop()).toMatchObject({ ok: true, value: { cancelled: true } })
+    await host.flushStreamedEvents(SESSION)
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    expect(childEndedByStop()).toBe(true)
+    const page = await host.history({ sessionId: SESSION, direction: 'tail' })
+    expect(page.ok && page.page.queuePause).toEqual({ reason: 'stopped' })
+    expect(
+      (await host.journalSnapshot(SESSION)).submissions.filter(
+        (entry) => entry.queuedMessageId === cardId
+      )
+    ).toEqual([])
+    const journal = host['sessions'].get(SESSION)!.journal
+    const since = journal.readSince({ epoch: journal.epoch, sequence: 0 })
+    const rows = since.ok ? since.rows : []
+    const stopAt = rows.find((row) => row.kind === 'tombstone' && row.stopEvent)?.seq
+    // The turn's end, from the child's end or Codex's own frame, in whatever row carries it.
+    const endAt = rows.find((row) => JSON.stringify(row).includes('"state":"interrupted"'))?.seq
+    expect(stopAt).toBeLessThan(endAt ?? 0)
+  })
+
   it('leaves a child that exited during the interrupt to its exit', async () => {
     await runningTurn()
     codex.routes['turn/interrupt'] = () => {

@@ -18,7 +18,7 @@ import {
 } from './structured-agent-session-mutation-context'
 import type { StructuredAgentSessionCaller } from './structured-agent-session-host-types'
 import type { MutationPlan } from './structured-agent-session-mutation-plans'
-import { runStopWithQueuePause } from './structured-agent-session-queued-stop'
+import { runRecordedStop, stopReachesUnrecordedWork } from './structured-agent-session-queued-stop'
 import {
   openForWrite,
   structuredAgentSessionFailureWordsContext
@@ -52,10 +52,11 @@ export function mutateWithChatStop<TValue>(
   // Set by the Stop's step only when its provider's session ends; a replay leaves it unset.
   let windDown: StructuredAgentSessionStopWindDown | undefined
   const named = turnId !== undefined ? { turnId } : {}
-  // Stop's queue step, the same for every client: once the Stop takes effect the queue is paused.
-  // The cards stay published; nothing is withdrawn and no text ever rides the answer.
+  const stopEvent = { reason: 'user-stop' as const, caller: caller.callerKey, ...named }
+  // The same for every client: once the Stop takes effect its event is written, and the queue's
+  // pause follows from it. The cards stay published; no text rides the answer.
   const stop = (ctx: AgentSessionTurnContext): Promise<ChatStopOutcome> =>
-    runStopWithQueuePause(ctx, async (tookEffect) => {
+    runRecordedStop(ctx, stopEvent, async (tookEffect) => {
       // Stop withdraws every queued SUBMISSION first, whatever the start or the child is doing.
       const withdrawn = await ctx.journal.rejectQueuedSubmissions(
         ctx.fence,
@@ -78,7 +79,10 @@ export function mutateWithChatStop<TValue>(
         }
         return { ok: true, value: { ...named, cancelled: withdrawn.length > 0 } }
       }
-      await tookEffect()
+      // Awaited until journal appends are synchronous; then issued here, and a `finally` awaits it.
+      if (withdrawn.length > 0 || (await stopReachesUnrecordedWork(ctx, turnId))) {
+        await tookEffect()
+      }
       return performCancel(
         { ...ctx, failureTextContext: structuredAgentSessionFailureWordsContext(record) },
         {
