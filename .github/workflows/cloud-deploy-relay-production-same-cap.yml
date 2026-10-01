@@ -205,13 +205,43 @@ jobs:
         run: |
           [[ "${MONITOR_RUN_ID}" =~ ^[1-9][0-9]*$ ]]
           [[ "${MONITOR_RUN_ATTEMPT}" =~ ^[1-9][0-9]*$ ]]
+          # Cell jobs refuse a re-run attempt, so a re-run gate must not burn the evidence.
+          test "${GITHUB_RUN_ATTEMPT}" = 1
           MARKER_NAME="relay-same-cap-monitor-consumed-${MONITOR_RUN_ID}-${MONITOR_RUN_ATTEMPT}"
           COUNT="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${MARKER_NAME}&per_page=1" \
             --jq '.total_count')"
           test "${COUNT}" = 0
+
+      - name: Download private aggregate monitor evidence
+        if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: relay-monitor-dry-run-${{ inputs.monitor-run-id }}-${{ inputs.monitor-run-attempt }}
+          path: ${{ runner.temp }}/relay-monitor-evidence
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.monitor-run-id }}
+
+      # Freshness is decided here, where the run is authorized; cell jobs verify against this
+      # recorded instant so their own startup cannot age the evidence out.
+      - name: Authorize this run on fresh monitor evidence
+        if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}
+        env:
+          MONITOR_RUN_ID: ${{ inputs.monitor-run-id }}
+          MONITOR_RUN_ATTEMPT: ${{ inputs.monitor-run-attempt }}
+        run: |
+          MARKER_NAME="relay-same-cap-monitor-consumed-${MONITOR_RUN_ID}-${MONITOR_RUN_ATTEMPT}"
           mkdir -p "${RUNNER_TEMP}/relay-same-cap-monitor-authority"
-          printf '%s\n' "${GITHUB_RUN_ID}" \
-            > "${RUNNER_TEMP}/relay-same-cap-monitor-authority/${MARKER_NAME}"
+          node dev/scripts/relay-monitor-evidence.mjs verify-authority \
+            --directory "${RUNNER_TEMP}/relay-monitor-evidence" \
+            --incident-id "relay-${MONITOR_RUN_ID}-dry-run" \
+            --run-id "${MONITOR_RUN_ID}" \
+            --run-attempt "${MONITOR_RUN_ATTEMPT}" \
+            --commit-sha "${GITHUB_SHA}" \
+            --mode dry-run \
+            --required-migration-policy strict \
+            --consumer-run-id "${GITHUB_RUN_ID}" \
+            --record-authorization \
+            "${RUNNER_TEMP}/relay-same-cap-monitor-authority/${MARKER_NAME}"
 
       - name: Consume aggregate safety evidence for this exact wave
         if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}

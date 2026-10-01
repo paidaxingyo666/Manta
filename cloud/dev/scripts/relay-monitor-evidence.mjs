@@ -8,6 +8,9 @@ const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$/
 const SHA = /^[a-f0-9]{40}$/
 const JWT = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/
 const EVIDENCE_MAX_AGE_MS = 5 * 60_000
+// Same-cap gate authorization to wave-0 verify measured 1:40-2:01 on 2026-10-01; 5 min keeps the
+// verify-time total (5 + 5) at the live preflight's own 10-minute evidence bound.
+const AUTHORIZATION_STARTUP_ALLOWANCE_MS = 5 * 60_000
 // Matches the same-cap cell job timeout-minutes; bounds each predecessor wave.
 const WAVE_PREDECESSOR_TIMEOUT_MS = 75 * 60_000
 // Widest any wave chain declares (same-cap's cell_1..cell_10); each job workflow
@@ -224,32 +227,108 @@ function validCompletedDryRunState(state, expected, nowMs, maxAgeMs) {
   )
 }
 
+function waveIndexOf(values) {
+  const waveIndex = values['wave-index'] ?? '0'
+  if (!WAVE_INDEX.test(waveIndex)) {
+    throw new Error('relay monitor wave index is invalid')
+  }
+  return Number(waveIndex)
+}
+
+function consumerRunIdOf(values) {
+  const consumerRunId = values['consumer-run-id']
+  if (!/^[1-9][0-9]*$/.test(consumerRunId ?? '')) {
+    throw new Error('relay monitor consumer run is invalid')
+  }
+  return consumerRunId
+}
+
+// The gate's own record of when it authorized this run; only this run's jobs can upload it.
+async function readAuthorization(path, expected, consumerRunId) {
+  const authorization = JSON.parse(await readFile(path, 'utf8'))
+  const authorizedAtMs = Date.parse(authorization.authorizedAt)
+  if (
+    authorization.schemaVersion !== 1 ||
+    authorization.consumerRunId !== consumerRunId ||
+    authorization.monitorRunId !== expected.runId ||
+    authorization.monitorRunAttempt !== expected.runAttempt ||
+    typeof authorization.authorizedAt !== 'string' ||
+    !Number.isFinite(authorizedAtMs) ||
+    new Date(authorizedAtMs).toISOString() !== authorization.authorizedAt
+  ) {
+    throw new Error('relay monitor authorization does not match this run')
+  }
+  return authorizedAtMs
+}
+
+/**
+ * Three shapes. `--record-authorization` (the same-cap gate) holds the evidence to 5 minutes on its
+ * own clock and records that instant. `--authorization` (each same-cap cell job) holds the evidence
+ * to 5 minutes at that recorded instant and bounds its own start after it. Neither (the
+ * single-job rehome enable) holds the evidence to 5 minutes, per predecessor wave, on its own clock.
+ */
 export async function verifyDryRunAuthority(argv, now = Date.now, repositoryRoot) {
   const values = argumentsByName(argv)
   const directory = resolve(values.directory ?? '')
   const expected = provenance(values)
   if (expected.mode !== 'dry-run') throw new Error('relay mutation requires dry-run evidence')
+  const waveIndex = waveIndexOf(values)
+  const recordPath = values['record-authorization']
+  const authorizationPath = values.authorization
+  if (recordPath && authorizationPath) {
+    throw new Error('relay monitor authorization arguments are invalid')
+  }
+  const consumerRunId =
+    recordPath || authorizationPath ? consumerRunIdOf(values) : null
+  if (recordPath && waveIndex !== 0) {
+    throw new Error('relay monitor authorization is recorded before the first wave')
+  }
   const manifest = await readAndVerifyManifest(directory, expected, { repositoryRoot })
   const state = JSON.parse(
     await readFile(join(directory, `${expected.incidentId}.state.json`), 'utf8')
   )
   const requiredMigrationPolicy = values['required-migration-policy']
-  // Later same-cap waves start after sequential predecessor cell rolls, so the
-  // freshness bound grows by one cell-job timeout per predecessor; single-use
-  // consumption, needs-chaining, and each wave's live preflight recheck keep
-  // holding the mutation to current health.
-  const waveIndex = values['wave-index'] ?? '0'
-  if (!WAVE_INDEX.test(waveIndex)) {
-    throw new Error('relay monitor wave index is invalid')
+  const nowMs = now()
+  // Later same-cap waves start after sequential predecessor cell rolls, so each
+  // predecessor adds one cell-job timeout; single-use consumption, needs-chaining,
+  // and each wave's live preflight recheck keep holding the mutation to current health.
+  const predecessorMs = waveIndex * WAVE_PREDECESSOR_TIMEOUT_MS
+  let evidenceCheckedAtMs = nowMs
+  let maxAgeMs = EVIDENCE_MAX_AGE_MS + predecessorMs
+  if (authorizationPath) {
+    evidenceCheckedAtMs = await readAuthorization(
+      resolve(authorizationPath),
+      expected,
+      consumerRunId
+    )
+    maxAgeMs = EVIDENCE_MAX_AGE_MS
+    const sinceAuthorizationMs = nowMs - evidenceCheckedAtMs
+    if (
+      sinceAuthorizationMs < 0 ||
+      sinceAuthorizationMs > AUTHORIZATION_STARTUP_ALLOWANCE_MS + predecessorMs
+    ) {
+      throw new Error('relay monitor dry-run authority is incomplete or stale')
+    }
   }
-  const maxAgeMs =
-    EVIDENCE_MAX_AGE_MS + Number(waveIndex) * WAVE_PREDECESSOR_TIMEOUT_MS
   if (
     !MIGRATION_POLICIES.has(requiredMigrationPolicy) ||
     state.migrationPolicy !== requiredMigrationPolicy ||
-    !validCompletedDryRunState(state, expected, now(), maxAgeMs)
+    !validCompletedDryRunState(state, expected, evidenceCheckedAtMs, maxAgeMs)
   ) {
     throw new Error('relay monitor dry-run authority is incomplete or stale')
+  }
+  if (recordPath) {
+    const authorization = {
+      schemaVersion: 1,
+      consumerRunId,
+      monitorRunId: expected.runId,
+      monitorRunAttempt: expected.runAttempt,
+      authorizedAt: new Date(nowMs).toISOString()
+    }
+    await writeFile(resolve(recordPath), `${JSON.stringify(authorization)}\n`, {
+      mode: 0o600,
+      flag: 'wx'
+    })
   }
   return { manifest, state }
 }

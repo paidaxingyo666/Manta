@@ -489,6 +489,15 @@ drained. Then read the cell's live runtime image from
 A mutating dispatch still needs a fresh aggregate monitor dry-run unless the break-glass
 override below is used.
 
+"Fresh" is short. The dispatch's `gate` job must see the dry-run completed at most 5 minutes
+earlier, on its own clock, and its checkout alone takes about 1.5 minutes, so dispatch within
+about 3 minutes of the monitor finishing. The gate records that authorization instant in the
+single-use consumed marker. Each cell job then checks the evidence was at most 5 minutes old at
+that instant, and that the job itself started within 5 minutes of it, plus 75 minutes per
+predecessor cell. The live preflight in each wave still rejects evidence older than 10 minutes,
+plus the same 75 minutes per predecessor, on its own clock. Evidence the gate rejects as stale
+is not consumed, so a fresh monitor run is the only fix.
+
 ### Gate override (break-glass)
 
 Every mutating same-cap wave normally consumes a fresh 15-minute aggregate monitor dry-run.

@@ -159,19 +159,6 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ inputs.monitor-run-id }}
 
-      - name: Verify monitor evidence provenance
-        if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}
-        run: |
-          node dev/scripts/relay-monitor-evidence.mjs verify-authority \
-            --directory "${OUTPUT_DIRECTORY}" \
-            --incident-id "relay-${MONITOR_RUN_ID}-dry-run" \
-            --run-id "${MONITOR_RUN_ID}" \
-            --run-attempt "${MONITOR_RUN_ATTEMPT}" \
-            --commit-sha "${GITHUB_SHA}" \
-            --mode dry-run \
-            --required-migration-policy strict \
-            --wave-index "${WAVE_INDEX}"
-
       - name: Download this wave's single-use safety authority
         if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}
         uses: actions/download-artifact@v4
@@ -190,9 +177,24 @@ jobs:
           # monitor dry-run and canary-apply dispatch, never by re-running
           # aged evidence.
           test "${GITHUB_RUN_ATTEMPT}" = 1
+
+      # The gate held the evidence to 5 minutes when it authorized this run; this binds the
+      # recorded authorization to this run and bounds how long after it this wave started.
+      - name: Verify monitor evidence provenance
+        if: ${{ inputs.mode != 'verify' && inputs.gate-override-confirmation == '' }}
+        run: |
           MARKER_NAME="relay-same-cap-monitor-consumed-${MONITOR_RUN_ID}-${MONITOR_RUN_ATTEMPT}"
-          test "$(< "${RUNNER_TEMP}/relay-same-cap-monitor-authority/${MARKER_NAME}")" = \
-            "${GITHUB_RUN_ID}"
+          node dev/scripts/relay-monitor-evidence.mjs verify-authority \
+            --directory "${OUTPUT_DIRECTORY}" \
+            --incident-id "relay-${MONITOR_RUN_ID}-dry-run" \
+            --run-id "${MONITOR_RUN_ID}" \
+            --run-attempt "${MONITOR_RUN_ATTEMPT}" \
+            --commit-sha "${GITHUB_SHA}" \
+            --mode dry-run \
+            --required-migration-policy strict \
+            --wave-index "${WAVE_INDEX}" \
+            --consumer-run-id "${GITHUB_RUN_ID}" \
+            --authorization "${RUNNER_TEMP}/relay-same-cap-monitor-authority/${MARKER_NAME}"
 
       - id: deploy-auth
         uses: google-github-actions/auth@v2

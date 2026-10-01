@@ -139,7 +139,7 @@ freezes as before.
 A production candidate or multi-target mutation must download the exact
 dry-run artifact by workflow run ID and attempt. It verifies the artifact
 hashes and provenance, requires a green completed 15-minute state no older
-than ten minutes (plus 75 minutes per predecessor same-cap wave), then
+than five minutes, then
 rechecks the live selector and one complete fresh sample of every safety
 signal immediately before running the mutation command.
 The signed state binds `strict` evidence to ordinary mutations and
@@ -147,6 +147,9 @@ The signed state binds `strict` evidence to ordinary mutations and
 authorize the other.
 The monitor and mutation jobs share one production lock. A passing dry-run is
 durably marked consumed before mutation and cannot authorize another run.
+A same-cap roll applies that five-minute bound once, in its gate job, and records
+the instant; each cell job must start within five minutes of it, plus 75
+minutes per predecessor wave.
 
 ## Freeze thresholds
 
