@@ -9,6 +9,7 @@ import { refuse, type AgentSessionCancelResult } from '../../../shared/agent-ses
 import { AgentSessionPromptUnavailableError } from './structured-agent-session-adapter'
 import type { StructuredAgentSessionChatStopRun } from './structured-agent-session-chat-stop'
 import {
+  answerCancelOfSettledPrompt,
   validatePendingPrompt,
   type PendingPromptValidation
 } from './structured-agent-session-prompt-state'
@@ -27,7 +28,7 @@ export async function cancelStructuredAgentSessionPrompt(
 ): Promise<CancelOutcome> {
   const validated = validatePendingPrompt(ctx, input.prompt)
   if (!validated.ok) {
-    return validated
+    return answerCancelOfSettledPrompt(ctx, input, validated)
   }
   const route = ctx.adapter.routePromptCancel?.({
     sessionId: ctx.sessionId,
@@ -49,7 +50,7 @@ export async function cancelStructuredAgentSessionPrompt(
   await ctx.flushStreamedEvents().catch(() => undefined)
   const current = validatePendingPrompt(ctx, input.prompt)
   if (!current.ok) {
-    return current
+    return answerCancelOfSettledPrompt(ctx, input, current)
   }
   if (!raisedByLiveTurn(ctx, current)) {
     // A request that outlived its turn, such as a background agent's: the turn running now is not

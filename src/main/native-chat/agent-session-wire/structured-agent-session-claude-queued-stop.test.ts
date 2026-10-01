@@ -314,5 +314,5 @@ it('withdraws a host-queued follow-up but leaves a newer turn running when the S
   const rows = (await host.journalSnapshot(SESSION)).items.flatMap((item) =>
     item.body.kind === 'status' ? [item.body.text] : []
   )
-  expect(rows).toContain('The provider had already finished this turn.')
+  expect(rows).not.toContain('The provider had already finished this turn.')
 }, 15_000)

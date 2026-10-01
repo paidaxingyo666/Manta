@@ -11,7 +11,14 @@ import {
   structuredAgentSessionCommandWasStopped,
   structuredAgentSessionStopNoteIdentity
 } from './structured-agent-session-command-turn'
-import { validatePendingPrompt } from './structured-agent-session-prompt-state'
+import {
+  answerCancelOfSettledPrompt,
+  validatePendingPrompt
+} from './structured-agent-session-prompt-state'
+import {
+  STOP_NOTE_CANCELLATION_REQUESTED,
+  structuredAgentSessionNamedTurnScope
+} from './structured-agent-session-turn-stop-notes'
 import { isStructuredAgentSessionMainAgentWorking } from '../../../shared/structured-agent-session-main-agent-working'
 import type { AgentSessionTurnContext, TurnOutcome } from './structured-agent-session-turns'
 
@@ -82,13 +89,19 @@ export async function performCancel(
   if (input.prompt) {
     const validated = validatePendingPrompt(ctx, input.prompt)
     if (!validated.ok) {
-      return validated
+      return answerCancelOfSettledPrompt(ctx, { ...input, prompt: input.prompt }, validated)
     }
   }
   let cancelled = false
-  let note: AgentJournalStatusItem | null = { kind: 'status', text: 'Cancellation requested.' }
+  let note: AgentJournalStatusItem | null = {
+    kind: 'status',
+    text: STOP_NOTE_CANCELLATION_REQUESTED
+  }
   // The turn the Stop names, read before the cancel settles it: the note reports on that turn.
-  const turnScope = ctx.journal.liveTurnScope()
+  const turnScope =
+    (input.turnId !== undefined && !input.scope
+      ? structuredAgentSessionNamedTurnScope(ctx.journal, input.turnId)
+      : null) ?? ctx.journal.liveTurnScope()
   // Only the provider's end or the child's ends a command. A command the provider has not opened a
   // turn for, would not interrupt, or was already asked to stop, ends with its child; that child's
   // dead-generation settlement writes the command's verdict.
@@ -137,11 +150,9 @@ export async function performCancel(
       // named or not. The journal judges it: providers differ on refusing a turn that has ended.
       cancelled = true
       note = null
-    } else if (!cancelled && input.turnId !== undefined) {
-      note = { kind: 'status', text: 'The provider had already finished this turn.' }
     } else if (!cancelled && input.prompt) {
       note = null
-    } else if (!cancelled) {
+    } else if (!cancelled && input.turnId === undefined) {
       // Sent only while the chat reads working, so a Stop that ended nothing must say why.
       const detail = outcome.refusal?.detail
       note = {
@@ -179,7 +190,11 @@ export async function performCancel(
   } else if (runningCommand && !cancelled) {
     await input.stopChild?.()
     cancelled = true
-    note = { kind: 'status', text: 'Cancellation requested.' }
+    note = { kind: 'status', text: STOP_NOTE_CANCELLATION_REQUESTED }
+  }
+  if (!cancelled && taken === false && input.turnId !== undefined) {
+    // Nothing was left of the turn it named and nothing else ended: a Stop that ends nothing writes no row.
+    note = null
   }
   if (cancelled && input.prompt) {
     await ctx.flushStreamedEvents()
@@ -188,9 +203,9 @@ export async function performCancel(
   if (input.scope || note === null) {
     return { ok: true, value }
   }
-  // Keyed by the operation id so a replayed cancel upserts one item, not two.
+  // Keyed by the turn it stopped, so another Stop of that turn rewrites this row, never adds one.
   await ctx.journal.appendItem(
-    structuredAgentSessionStopNoteIdentity(input.clientOperationId),
+    structuredAgentSessionStopNoteIdentity(input.turnId ?? liveTurnId ?? input.clientOperationId),
     note,
     { fence: ctx.fence, turnScope }
   )

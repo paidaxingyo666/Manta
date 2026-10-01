@@ -222,6 +222,45 @@ describe('a chat tab across /clear', () => {
     expect(store.listVisibleSessionIds()).toEqual([current])
   })
 
+  // Each press carries its own operation id, so a later /clear is a new call the host answers.
+  it('answers a /clear pressed again after it committed with that clear, starting nothing', async () => {
+    await createChat(HOST_TEST_SESSION)
+    const replacement = await clear(HOST_TEST_SESSION)
+    const started = acquisitions
+    expect(await clear(HOST_TEST_SESSION)).toBe(replacement)
+    expect(acquisitions).toBe(started)
+    expect((await snapshot()).tabs.map((tab) => tab.id)).toEqual([`agent-session:${replacement}`])
+  })
+
+  it('answers a retyped /clear whose answer was lost with that clear, the tab on its replacement', async () => {
+    await createChat(HOST_TEST_SESSION)
+    const persist = store.recordOperationOutcome.bind(store)
+    let lost = false
+    vi.spyOn(store, 'recordOperationOutcome').mockImplementation(async (input) => {
+      if (!lost && input.outcome.status === 'succeeded' && input.outcome.conversationCommand) {
+        lost = true
+        throw new Error('connection lost')
+      }
+      return persist(input)
+    })
+    const lostAnswer = await call('agentSession.conversationCommand', {
+      command: 'clear',
+      envelope: envelopeFor('agentSession.conversationCommand', HOST_TEST_SESSION, {
+        command: 'clear'
+      })
+    })
+    expect(lostAnswer.result?.ok).not.toBe(true)
+    const started = acquisitions
+    const replacement = await clear(HOST_TEST_SESSION)
+    expect(acquisitions).toBe(started)
+    expect(store.getSessionTabId(replacement)).toBe(SOURCE_TAB)
+    expect((await snapshot()).tabs.map((tab) => tab.id)).toEqual([`agent-session:${replacement}`])
+    expect(await send(replacement, 'after the retry')).toMatchObject({
+      ok: true,
+      result: { ok: true }
+    })
+  })
+
   it('reveals a cleared conversation in its own tab without activating the current chat', async () => {
     await createChat(HOST_TEST_SESSION)
     const replacement = await clear(HOST_TEST_SESSION)
