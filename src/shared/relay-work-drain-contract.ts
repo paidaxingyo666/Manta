@@ -1,0 +1,24 @@
+import { SKILL_SSH_RELAY_CANCEL_UPLOAD_METHOD } from './skill-ssh-relay-contract'
+
+// Why: a drain must still admit the requests and notifications that let in-flight work finish or cancel.
+// Owner-reset (T3) and network-tunnel (T4) methods join these sets when their contracts land.
+const drainRequests = new Set<string>([
+  'relay.status',
+  'fs.unwatchAndWait',
+  'agent.cancelExec',
+  SKILL_SSH_RELAY_CANCEL_UPLOAD_METHOD
+])
+const drainNotifications = new Set<string>([
+  'rpc.cancel',
+  'git.responseAck',
+  'git.cancelResponseStream',
+  'fs.streamAck',
+  'fs.cancelStream',
+  'fs.unwatch',
+  'pty.ackData',
+  'pty.setDeliveryPaused'
+])
+
+export function allowsRelayWorkDuringDrain(method: string, notification = false): boolean {
+  return (notification ? drainNotifications : drainRequests).has(method)
+}
