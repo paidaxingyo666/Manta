@@ -13,7 +13,7 @@ it('warms the same Linux Node runtime the PR shards restore', () => {
   const install = arm.steps.find(
     (step) => step.uses === './.github/actions/install-node-dependencies'
   )
-  const primer = readWorkflow('pr').jobs.test_native_cache
+  const primer = readWorkflow('pr').jobs.static_analysis
   expect(arm['runs-on']).toBe(primer['runs-on'])
   expect(arm.steps.at(-1).run).toBe('node config/scripts/ensure-native-runtime.mjs --check-only')
   expect(install.with).toMatchObject(primer.steps.find((step) => step.uses === install.uses).with)

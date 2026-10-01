@@ -3,6 +3,55 @@
 The [September 28 demand rollout](ci-demand-rollout.md) documents staged checks,
 unit-selection evidence, headless runtime qualification, review cancellation and daily occupancy reports.
 
+## October 1 PR concurrency follow-up
+
+PR planning now shares checkout and dependency setup with typechecking. Planning
+runs in the background, with an explicit failure-propagating join before its
+artifact is published. Static analysis remains on a separate runner. Its existing
+native dependency install is pinned to Node 24 so it also fills the unit matrix's
+native cache, replacing the separate conditional PR primer. Daily Node 24/26
+reference planning and priming remain independent.
+
+The planner also avoids constructing the import graph when global changes or
+missing change evidence already require the full suite. This keeps the same
+fallback reason, discovery list and execution coverage. Five PR unit shards,
+static/type gates, package checks and the shadow-selection policy are retained.
+
+A [three-sample hosted comparison](https://github.com/stablyai/orca/actions/runs/36833782900)
+measured standalone type jobs at 35 / 26 / 42 seconds and planning jobs at
+36 / 25 / 24 seconds. Shared type/planning jobs took 38 / 37 / 27 seconds.
+The sum of the separate job medians fell from 60 to 37 seconds. Using that estimate with
+the 139-second median static job models about 12% less preflight occupancy.
+This is not a measured reduction in total CI time or queue delay. All twelve
+plans matched, and three deliberately fresh native-cache producers were reused
+by three successful consumers with the real native dependency probe.
+
+After updating to the current main branch, a
+[six-pair alternating comparison](https://github.com/stablyai/orca/actions/runs/36840171700)
+reset compiler state before every measurement. Direct compiler/planner command
+time was 11.59 / 11.31 / 10.96 seconds sequentially versus
+6.82 / 6.52 / 6.33 seconds together with restored state. With state deleted,
+it was 67.36 / 67.05 / 61.75 versus 55.52 / 60.06 / 55.68 seconds.
+All commands passed and plans matched within each comparison. These command
+timings exclude setup and queues; compiler variation contributes to the cold
+difference. The retained arrangement showed no cold compiler penalty.
+
+Combining static analysis too was rejected. An
+[alternating same-runner comparison](https://github.com/stablyai/orca/actions/runs/36835091650)
+saved runner occupancy, but cold compilation slowed from 61–64 to 83–89 seconds
+under contention. The combined gate would finish roughly 40 seconds after the
+separate static gate. An
+[earlier-compiler trial](https://github.com/stablyai/orca/actions/runs/36837523594)
+did not remove that penalty. Small localization scheduling changes also lacked
+a repeatable gain. The temporary pilot workflows and benchmark tooling are
+available in those runs' commits, rather than retained in normal PR CI.
+
+Line-count reporting stays separate: it uses a small runner and trusted scripts
+with PR write permissions. Sharing that job's credentials with PR-source checks
+would provide little resource benefit. Reducing unit shards would trade saved
+setup for a longer critical path; enabling selected tests requires the existing
+week of representative shadow evidence.
+
 ## September 27 follow-up
 
 ### Shared E2E CLI output

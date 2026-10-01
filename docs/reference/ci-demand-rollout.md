@@ -37,6 +37,11 @@ slow-test assertions are retained.
 
 ## Unit selection rollout
 
+PR planning runs alongside typechecking after their shared dependency setup; an
+explicit join publishes its artifact before the unit matrix can start. Static
+analysis's Node 24 install also prepares the native cache before matrix fan-out.
+The daily compatibility workflow retains its separate planner and cache primer.
+
 `ci-unit-plan.mjs` discovers the same include/exclude set as Vitest and follows
 static imports, re-exports, literal dynamic imports, CommonJS requires and the
 renderer aliases. Consumers of indirect filesystem/process inputs remain in the
