@@ -19,11 +19,13 @@ export function normalizeSshTarget(t: SshTarget): SshTarget {
   const currentGracePeriodSeconds = target.relayGracePeriodSeconds
   const legacyGracePeriodSeconds = target.remoteWorkspaceSyncGracePeriodSeconds
   const systemSshConnectionReuse = target.systemSshConnectionReuse
+  const remoteRuntime = target.remoteRuntime
   // Why: remote sync now follows the SSH relay lifecycle, so retired per-target sync/grace fields are dropped at disk load.
   delete target.remoteWorkspaceSyncEnabled
   delete target.remoteWorkspaceSyncGracePeriodSeconds
   delete target.relayGracePeriodSeconds
   delete target.systemSshConnectionReuse
+  delete target.remoteRuntime
   delete target.experimentalPtySourceCreditV1
   // Why: prefer the synced grace over stale relayGracePeriodSeconds so a user's "unlimited" (0) survives migration.
   const relayGracePeriodSeconds =
@@ -43,6 +45,10 @@ export function normalizeSshTarget(t: SshTarget): SshTarget {
   }
   if (systemSshConnectionReuse === false) {
     normalized.systemSshConnectionReuse = false
+  }
+  // Only the opt-in survives: an unknown value from a newer build must not change the runtime.
+  if (remoteRuntime === 'pinned-node') {
+    normalized.remoteRuntime = remoteRuntime
   }
   return normalized
 }

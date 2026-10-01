@@ -31,6 +31,8 @@ import { assertPosixOrcadHost } from './mantad-remote-host-support'
 
 export const REMOTE_NODE_RUNTIME_READY = 'ORCA_NODE_RUNTIME_READY'
 export const REMOTE_NODE_RUNTIME_MISSING = 'ORCA_NODE_RUNTIME_MISSING'
+export const REMOTE_NODE_RUNTIME_SELFTEST_FAILED = 'ORCA_NODE_RUNTIME_SELFTEST_FAILED'
+export const REMOTE_NODE_RUNTIME_EXIT_PREFIX = 'ORCA_RUNTIME_EXIT='
 const VERIFIED_MARKER = '.verified'
 
 /** `<storeParent>/runtimes/node-<executableSha256>`, the one host layout (design D5). */
@@ -46,6 +48,40 @@ export function nodeRuntimeStoreDir(
     `${ORCAD_NODE_RUNTIME_DIR_PREFIX}${NODE_RUNTIME_ASSETS[target].executableSha256}`
   )
 }
+
+/** The pinned runtime ran on the host and did not report its version: a host verdict, with evidence. */
+export class RemoteNodeRuntimeSelfTestError extends Error {
+  constructor(
+    readonly exitStatus: number | null,
+    readonly output: string
+  ) {
+    super(
+      `The pinned Node runtime did not run on the host (exit ${exitStatus ?? 'unknown'}): ${output}`
+    )
+    this.name = 'RemoteNodeRuntimeSelfTestError'
+  }
+}
+
+/** Splits `ORCA_RUNTIME_EXIT=<n>` from the output that follows it. */
+export function parseRemoteRuntimeExitReport(text: string): {
+  exitStatus: number | null
+  output: string
+} {
+  const lines = text.split('\n')
+  const index = lines.findIndex((line) => line.startsWith(REMOTE_NODE_RUNTIME_EXIT_PREFIX))
+  if (index === -1) {
+    return { exitStatus: null, output: text.trim() }
+  }
+  const status = Number.parseInt(lines[index].slice(REMOTE_NODE_RUNTIME_EXIT_PREFIX.length), 10)
+  return {
+    exitStatus: Number.isNaN(status) ? null : status,
+    output: lines
+      .slice(index + 1)
+      .join('\n')
+      .trim()
+  }
+}
+
 
 /**
  * The runtime directory beside a version dir (an mantad slot or a relay install); the slot
@@ -98,6 +134,22 @@ export function probeRemoteNodeRuntimeCommand(
   )
 }
 
+/** Cheap warm-path check: a published runtime has its marker and an executable; no re-hash. */
+export function remoteNodeRuntimePresentCommand(
+  host: RemoteHostPlatform,
+  runtimeDir: string
+): string {
+  assertPosixOrcadHost(host)
+  const executable = shellEscape(
+    joinRemotePath(host, runtimeDir, ...ORCAD_NODE_RUNTIME_POSIX_EXECUTABLE.split('/'))
+  )
+  const verified = shellEscape(joinRemotePath(host, runtimeDir, VERIFIED_MARKER))
+  return (
+    `if [ -f ${verified} ] && [ -x ${executable} ]; ` +
+    `then echo ${REMOTE_NODE_RUNTIME_READY}; else echo ${REMOTE_NODE_RUNTIME_MISSING}; fi`
+  )
+}
+
 /**
  * Extract, verify, self-test and publish. The executable is renamed into place file-by-file,
  * so a concurrent installer of the same pin only ever replaces identical verified bytes.
@@ -127,7 +179,11 @@ export function promoteRemoteNodeRuntimeCommand(
     `[ "$(${sha256Of(extracted)})" = ${shellEscape(asset.executableSha256)} ] || { echo ORCA_NODE_RUNTIME_HASH_MISMATCH; exit 1; }`,
     `chmod 755 ${extracted}`,
     // Why run it: executing is the only reliable check for noexec mounts and a wrong libc.
-    `[ "$(${extracted} --version 2>&1)" = ${shellEscape(`v${NODE_RUNTIME_PIN.version}`)} ] || { echo ORCA_NODE_RUNTIME_SELFTEST_FAILED; exit 1; }`,
+    // Exit 0 on refusal so the caller receives the loader's words to classify, not a bare exit 1.
+    `{ orca_rt_out=$(${extracted} --version 2>&1); orca_rt_status=$?; ` +
+      `[ "$orca_rt_out" = ${shellEscape(`v${NODE_RUNTIME_PIN.version}`)} ] || ` +
+      `{ echo ${REMOTE_NODE_RUNTIME_SELFTEST_FAILED}; echo "${REMOTE_NODE_RUNTIME_EXIT_PREFIX}$orca_rt_status"; ` +
+      `printf '%s\\n' "$orca_rt_out" | head -c 4000; exit 0; }; }`,
     `mkdir -p ${binDir}`,
     `mv -f ${extracted} ${temporary}`,
     `mv -f ${temporary} ${executable}`,
@@ -197,6 +253,11 @@ export async function ensureRemoteOrcadNodeRuntime(options: {
       promoteRemoteNodeRuntimeCommand(host, { stageDir, archive, runtimeDir, target, token }),
       signal
     )
+    const selfTestFailure = promoted.indexOf(REMOTE_NODE_RUNTIME_SELFTEST_FAILED)
+    if (selfTestFailure !== -1) {
+      const report = parseRemoteRuntimeExitReport(promoted.slice(selfTestFailure))
+      throw new RemoteNodeRuntimeSelfTestError(report.exitStatus, report.output)
+    }
     if (promoted.trim().split('\n').at(-1) !== REMOTE_NODE_RUNTIME_READY) {
       throw new Error(`The host did not verify the pinned Node runtime: ${promoted.trim()}`)
     }

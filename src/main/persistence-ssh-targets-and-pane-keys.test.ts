@@ -267,6 +267,36 @@ describe('Store', () => {
     expect(updatedTarget).not.toHaveProperty('systemSshConnectionReuse')
   })
 
+  it('persists only the pinned-node relay runtime opt-in', async () => {
+    const store = await createStore()
+    store.addSshTarget({
+      id: 'ssh-runtime-pinned',
+      label: 'Pinned runtime',
+      host: 'pinned.example.com',
+      port: 22,
+      username: 'dev',
+      remoteRuntime: 'pinned-node'
+    })
+    store.addSshTarget({
+      id: 'ssh-runtime-unknown',
+      label: 'Newer build value',
+      host: 'newer.example.com',
+      port: 22,
+      username: 'dev',
+      // A value from a newer build, which this one must not act on.
+      ...JSON.parse('{"remoteRuntime":"auto"}')
+    })
+
+    store.flush()
+    const persisted = readDataFile() as { sshTargets?: Record<string, unknown>[] }
+    expect(persisted.sshTargets?.find((t) => t.id === 'ssh-runtime-pinned')?.remoteRuntime).toBe(
+      'pinned-node'
+    )
+    expect(persisted.sshTargets?.find((t) => t.id === 'ssh-runtime-unknown')).not.toHaveProperty(
+      'remoteRuntime'
+    )
+  })
+
   it('drops retired per-target SSH terminal source-credit selections', async () => {
     const store = await createStore()
     store.addSshTarget({

@@ -16,6 +16,7 @@ import { ORCAD_NODE_RUNTIME_MARKER_FILENAME } from '../../shared/mantad-artifact
 import {
   installNodeRuntimeFromHostArchiveCommand,
   nodeRuntimeStoreDir,
+  parseRemoteRuntimeExitReport,
   probeRemoteNodeRuntimeCommand,
   promoteRemoteNodeRuntimeCommand,
   remoteNodeRuntimeDir,
@@ -76,6 +77,18 @@ describe.skipIf(process.platform === 'win32')('remote pinned-Node runtime store'
     expect(sh(`${orcadNodeSlotRuntimeCommand(host, slotDir)}echo "$orcad_runtime"`)).toBe(
       join(runtimeDir, 'bin', 'node')
     )
+  })
+
+  it('splits the runtime exit status from the loader output it reported', () => {
+    expect(
+      parseRemoteRuntimeExitReport(
+        'ORCA_NODE_RUNTIME_SELFTEST_FAILED\nORCA_RUNTIME_EXIT=126\nsh: node: Permission denied\n'
+      )
+    ).toEqual({ exitStatus: 126, output: 'sh: node: Permission denied' })
+    expect(parseRemoteRuntimeExitReport('no report')).toEqual({
+      exitStatus: null,
+      output: 'no report'
+    })
   })
 
   it('reports a runtime whose bytes do not hash to the pin as missing', () => {

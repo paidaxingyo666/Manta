@@ -8,8 +8,15 @@ import { runRelayMantaCliChannel } from './relay-manta-cli-channel'
 import { runRelayDaemon } from './relay-daemon'
 import { relayLogLine } from './relay-diagnostic-log'
 import { configureRelayBundledRipgrep } from './relay-bundled-ripgrep'
+import { runRelayRuntimeSelfTestCommand } from './relay-runtime-self-test'
+import { RELAY_RUNTIME_SELF_TEST_FLAG } from '../shared/relay-runtime-self-test-report'
 
 async function main(): Promise<void> {
+  const selfTestFlag = process.argv.indexOf(RELAY_RUNTIME_SELF_TEST_FLAG)
+  if (selfTestFlag !== -1) {
+    await runRelayRuntimeSelfTestCommand(process.argv[selfTestFlag + 1] ?? '')
+    return
+  }
   const options = parseRelayLaunchOptions(process.argv)
   if (options.connectMode) {
     runRelayConnectChannel(options.sockPath, readRelayEndpointCredential(options.credentialFile))
