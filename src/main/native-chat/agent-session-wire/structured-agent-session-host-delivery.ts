@@ -12,6 +12,7 @@ import {
   type OpenedStructuredAgentSessionConversation,
   type StructuredAgentSessionConversationOpenOptions
 } from './structured-agent-session-conversation-open'
+import type { StructuredAgentSessionClientDelivery } from './structured-agent-session-client-delivery'
 import { StructuredAgentSessionDeliveryLoop } from './structured-agent-session-delivery-loop'
 import { structuredAgentSessionCommandRunning } from './structured-agent-session-command-turn'
 import type { StructuredAgentSessionResumeOutcome } from './structured-agent-session-agent-start'
@@ -54,7 +55,7 @@ export function createStructuredAgentSessionConversationDelivery(input: {
     startedFor: string
   ) => Promise<StructuredAgentSessionResumeOutcome>
   reset: (sessionId: string, journal: AgentSessionJournal, reset: AgentJournalResetReason) => void
-  publishRestored: (sessionId: string) => void
+  clientDelivery: Pick<StructuredAgentSessionClientDelivery, 'publishRestored' | 'readChildWork'>
   flushStreamedEvents: (sessionId: string) => Promise<void>
 }): StructuredAgentSessionConversationDelivery {
   const { deps, sessions } = input
@@ -79,6 +80,7 @@ export function createStructuredAgentSessionConversationDelivery(input: {
       ),
     onError: (sessionId, error) => deps.onEventSinkError?.({ sessionId, error }),
     record: (sessionId) => deps.store.getRecord(sessionId),
+    readChildWork: input.clientDelivery.readChildWork,
     flushStreamedEvents: input.flushStreamedEvents,
     now: () => deps.now?.() ?? Date.now()
   })
@@ -91,7 +93,7 @@ export function createStructuredAgentSessionConversationDelivery(input: {
     if (reset) {
       input.reset(sessionId, session.journal, reset)
     }
-    input.publishRestored(sessionId)
+    input.clientDelivery.publishRestored(sessionId)
     await settleInterruptedCommands(deps, sessionId, session)
     if (session.journal.submissions().some(isQueuedAgentJournalSubmission)) {
       loop.wake(sessionId)

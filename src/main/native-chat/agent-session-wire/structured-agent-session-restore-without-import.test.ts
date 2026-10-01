@@ -250,7 +250,8 @@ async function restore(sessionIds: readonly string[]) {
       serialize: async (_sessionId, task) => task(),
       open,
       deliveryActive: () => false,
-      closeStatus: () => undefined
+      closeStatus: () => undefined,
+      readChildWork: () => undefined
     })
   const lifetime = lifetimeOver(sessions, async (sessionId) => sessions.get(sessionId) ?? null)
   return { sessions, lifetime, lifetimeOver }

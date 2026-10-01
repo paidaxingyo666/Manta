@@ -142,33 +142,25 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
     })
 
   private emit(session: ClaudeSession | null, event: ClaudeStructuredSessionEvent): void {
+    // The host's child records, fed by the decoder's evidence drained below, are what every surface
+    // and every Stop reads; the tracker's roster is kept only for tests that compare the two.
     if (event.type === 'ended') {
       session?.childWork.clear()
+      session?.backgroundTasks.clear()
     } else if (event.type === 'message') {
       session?.childWork.observe(event.message)
+      session?.backgroundTasks.observe(event.message, event.startsTurn === true)
     }
-    const backgroundTasksChanged =
-      event.type === 'ended'
-        ? (session?.backgroundTasks.clear() ?? false)
-        : event.type === 'message'
-          ? (session?.backgroundTasks.observe(event.message, event.startsTurn === true) ?? false)
-          : false
     if (event.type === 'message' && session?.commands.observe(event.message)) {
       session.events?.publish()
     }
     session?.translator?.handle(event)
     this.deps.onEvent?.(event)
-    if (backgroundTasksChanged) {
-      this.deps.onBackgroundTasksChanged?.(
-        event.sessionId,
-        session ? backgroundTaskState(session) : null
-      )
-    }
     this.publishChildWork(event.sessionId, session, event.type === 'message' ? event.message : null)
   }
 
-  /** After the journal handled the frame and the parent's own row was republished: the host
-   *  never holds a child record ahead of the rows that frame wrote, and never before its parent. */
+  /** After the journal handled the frame, which republished the parent's own row: the host never
+   *  holds a child record ahead of the rows that frame wrote, and never before its parent. */
   private publishChildWork(
     sessionId: string,
     session: ClaudeSession | null | undefined,
@@ -205,28 +197,39 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
         this.deps.onDispatchSettledLate?.({ sessionId: request.sessionId, ...settlement }),
       ...(this.deps.requestTimeoutMs === undefined ? {} : { timeoutMs: this.deps.requestTimeoutMs })
     })
-  stopBackgroundTasks: StructuredAgentSessionAdapter['stopBackgroundTasks'] = (input) => {
+  stopBackgroundTasks: NonNullable<StructuredAgentSessionAdapter['stopBackgroundTasks']> = async (
+    input
+  ) => {
     const session = this.session(input.sessionId)
     const acquisitionGeneration = session.acquisitionGeneration
-    return stopClaudeBackgroundTasks(
-      session,
-      this.deps.requestTimeoutMs,
-      () =>
-        Boolean(
-          this.sessions.get(input.sessionId) === session &&
-          session.fence === input.fence &&
-          session.acquisitionGeneration === acquisitionGeneration &&
-          session.backgroundTasks.state
-        ),
-      input.taskId
-    )
+    const isCurrent = () =>
+      this.sessions.get(input.sessionId) === session &&
+      session.fence === input.fence &&
+      session.acquisitionGeneration === acquisitionGeneration
+    try {
+      return await stopClaudeBackgroundTasks(
+        session,
+        this.deps.requestTimeoutMs,
+        isCurrent,
+        input.taskIds
+      )
+    } finally {
+      if (isCurrent()) {
+        this.publishChildWork(input.sessionId, session)
+      }
+    }
   }
-  backgroundTaskState: NonNullable<StructuredAgentSessionAdapter['backgroundTaskState']> = (
-    sessionId
-  ) => {
+  /** The tracker's own roster, for the tests that compare it with the host's child records. No
+   *  production code reads it: what runs, what a Stop reaches and what blocks a command are all
+   *  read from the host's child records. */
+  backgroundTaskState = (sessionId: string): AgentSessionBackgroundTaskState | null | undefined => {
     const session = this.sessions.get(sessionId)
     return session ? backgroundTaskState(session) : undefined
   }
+  backgroundTaskStops: NonNullable<StructuredAgentSessionAdapter['backgroundTaskStops']> = (
+    sessionId
+  ) =>
+    this.sessions.has(sessionId) ? { supportsTaskStop: true, supportsStopAll: true } : undefined
   readCommands: NonNullable<StructuredAgentSessionAdapter['readCommands']> = (sessionId) =>
     this.sessions.get(sessionId)?.commands.commands
   holdsDispatch = (sessionId: string): boolean => {
@@ -277,9 +280,6 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
       onExitProven: (sessionId, exit) =>
         settleClaudeUnexpectedExit(this.exitLifecycle, sessionId, exit),
       ...(this.deps.persistHandle ? { persistHandle: this.deps.persistHandle } : {}),
-      ...(this.deps.onBackgroundTasksChanged
-        ? { onBackgroundTasksChanged: this.deps.onBackgroundTasksChanged }
-        : {}),
       ...(this.deps.onEvent ? { onEvent: this.deps.onEvent } : {})
     })
 
@@ -310,9 +310,6 @@ export class ClaudeStructuredSessionAdapter implements StructuredAgentSessionAda
       sessions: this.sessions,
       acquisitions: this.acquisitions,
       ...(this.deps.persistHandle ? { persistHandle: this.deps.persistHandle } : {}),
-      ...(this.deps.onBackgroundTasksChanged
-        ? { onBackgroundTasksChanged: this.deps.onBackgroundTasksChanged }
-        : {}),
       ...(this.deps.onEvent ? { onEvent: this.deps.onEvent } : {})
     })
 

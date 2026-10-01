@@ -171,7 +171,6 @@ export async function acquireCodexStructuredSession(input: {
               connection: acquisition.connection,
               error,
               prompts: acquisition.prompts,
-              onBackgroundTasksChanged: deps.onBackgroundTasksChanged,
               ...(deps.onEvent ? { onEvent: deps.onEvent } : {})
             })
           } finally {

@@ -316,6 +316,7 @@ export function NativeChatStructuredSession(
         agentLabel={agentLabel}
         startupPhase={hostExecution.phase}
         startupChildKey={hostExecution.childKey}
+        paneKey={paneKey}
         // Said once: on the pane when the failure took it, else here beside the transcript. A
         // failure that names nothing is only the pane reconnecting.
         error={

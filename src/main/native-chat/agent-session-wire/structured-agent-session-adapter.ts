@@ -10,6 +10,7 @@ import type {
 // take this?" — and it answers `unknown` rather than guessing, because the
 // journal renders that as delivery unconfirmed instead of as failure.
 
+import type { AgentSessionBackgroundTaskStops } from '../../../shared/agent-child-work-stop-targets'
 import type {
   AgentJournalItemIdentity,
   AgentJournalItemBody,
@@ -25,7 +26,6 @@ import type {
   AgentSessionProcessIdentity
 } from '../../../shared/agent-session-record'
 import type {
-  AgentSessionBackgroundTaskState,
   AgentSessionOptionsResult,
   AgentSessionSlashCommand,
   AgentSessionThreadGoalChange
@@ -332,12 +332,15 @@ export type StructuredAgentSessionAdapter = {
   supportsThreadGoal?(sessionId: string, agent?: string): boolean
   /** Whether this session writes context facts to its turn rows; `agent` answers one at rest. */
   recordsContextUsage?(sessionId: string, agent?: string): boolean
+  /** Stops exactly the tasks `taskIds` names, which the host resolves from its child records. */
   stopBackgroundTasks?(input: {
     sessionId: string
     fence: number
-    taskId?: string
+    taskIds: readonly string[]
   }): Promise<{ cancelled: boolean }>
-  backgroundTaskState?(sessionId: string): AgentSessionBackgroundTaskState | null | undefined
+  /** The stops this provider honours for a live session's background work; undefined when the
+   *  adapter holds no live session for it. */
+  backgroundTaskStops?(sessionId: string): AgentSessionBackgroundTaskStops | undefined
   /** The provider reported taking a send it has neither answered nor ended, as a queued follow-up
    *  or a silent retry does. Derived from the live child; false with none. */
   holdsDispatch?(sessionId: string): boolean

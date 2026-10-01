@@ -12,6 +12,7 @@
 
 import type { AgentJournalSubmission } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionRecord } from '../../../shared/agent-session-record'
+import type { AgentChildWorkView } from '../../../shared/agent-status-child-work-view'
 import {
   agentSessionFailureFact,
   type SubmissionRejectionFact
@@ -63,6 +64,7 @@ export type StructuredAgentSessionDeliveryLoopDeps = {
   failureTextContext: (sessionId: string) => AgentSessionFailureWordsContext
   onError: (sessionId: string, error: unknown) => void
   record: (sessionId: string) => AgentSessionRecord | null
+  readChildWork: (sessionId: string) => readonly AgentChildWorkView[] | undefined
   flushStreamedEvents: (sessionId: string) => Promise<void>
   now: () => number
 }
@@ -228,6 +230,7 @@ export class StructuredAgentSessionDeliveryLoop {
         providerChildPhase: () => this.deps.sessions.get(sessionId)?.child?.phase,
         failureTextContext: this.deps.failureTextContext(sessionId),
         record: () => this.deps.record(sessionId),
+        childWork: () => this.deps.readChildWork(sessionId),
         flushStreamedEvents: () => this.deps.flushStreamedEvents(sessionId),
         now: this.deps.now
       },

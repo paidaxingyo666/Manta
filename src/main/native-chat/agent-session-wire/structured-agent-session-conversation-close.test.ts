@@ -311,7 +311,7 @@ describe('the wind-down retry with a message queued (P2-31)', () => {
       now: () => IDLE_MS + 1,
       isDisposed: () => false,
       deliveryActive: () => true,
-      backgroundTaskState: () => undefined,
+      childWork: () => undefined,
       hasOpenDispatch: () => false,
       providerHoldsDispatch: () => false,
       stopAgent,

@@ -6,6 +6,7 @@
 // journal. Send is fail-closed: admission alone cannot prove non-delivery.
 
 import type { AgentJournalMessageItem } from '../../../shared/agent-session-journal-types'
+import type { AgentChildWorkView } from '../../../shared/agent-status-child-work-view'
 import type { AgentSessionOperationOutcome } from '../../../shared/agent-session-operation-ledger'
 import type {
   AgentSessionCancelResult,
@@ -173,6 +174,8 @@ export function cancelPlan(params: {
   taskId?: string
   prompt?: { itemId: string; expectedRevision: number }
   stopChild?: () => Promise<void>
+  /** The session's child records, which name the tasks a background Stop reaches. */
+  childWork?: () => readonly AgentChildWorkView[] | undefined
 }): MutationPlan<AgentSessionCancelResult> {
   return {
     method: 'agentSession.cancel',
@@ -193,7 +196,8 @@ export function cancelPlan(params: {
         ...(params.scope ? { scope: params.scope } : {}),
         ...(params.taskId ? { taskId: params.taskId } : {}),
         ...(params.prompt ? { prompt: params.prompt } : {}),
-        ...(params.stopChild ? { stopChild: params.stopChild } : {})
+        ...(params.stopChild ? { stopChild: params.stopChild } : {}),
+        ...(params.childWork ? { childWork: params.childWork } : {})
       }),
     // Interrupting twice would kill a turn the client never asked to stop, so a
     // replay reports the turn as already handled.

@@ -5,7 +5,6 @@ import {
   cancelCodexAcquisitionAttempt,
   type CodexAcquisitionRegistry,
   type CodexSession,
-  type CodexStructuredSessionAdapterDeps,
   type CodexStructuredSessionEvent
 } from './codex-structured-session-state'
 import type {
@@ -24,7 +23,6 @@ export function handleCodexSessionExit(input: {
   prompts?: CodexSession['prompts']
   allowFailedSettlement?: boolean
   onEvent?: (event: CodexStructuredSessionEvent) => void
-  onBackgroundTasksChanged?: CodexStructuredSessionAdapterDeps['onBackgroundTasksChanged']
 }): boolean {
   const session = input.sessions.get(input.sessionId)
   if (!session || session.connection !== input.connection || session.ended) {
@@ -63,7 +61,6 @@ export function handleCodexSessionExit(input: {
   // recovery is what settles the sends these were armed for.
   session.dispatchEchoes.clear()
   session.backgroundTasks.clear()
-  input.onBackgroundTasksChanged?.(input.sessionId, null)
   // Every close path funnels here, so the session's children end with it on each one.
   session.backgroundTasks.publishChildWork()
   session.unbindReadingControl?.()

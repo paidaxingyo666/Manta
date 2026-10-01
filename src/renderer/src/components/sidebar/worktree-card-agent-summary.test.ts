@@ -50,28 +50,28 @@ function renderCompactAgentRow(props: React.ComponentProps<typeof CompactAgentRo
 }
 
 describe('worktree card agent summary', () => {
-  it('keeps a failed child in the groups and the counts', () => {
-    const failed: DashboardAgentRowData = {
+  // The sidebar lists running children only, so a child row it counts is one that runs.
+  it("counts a running child by its own row's state", () => {
+    const running: DashboardAgentRowData = {
       ...monitoringAgent(),
       paneKey: 'tab-1:leaf-1\u0000subagent:child',
       rowSource: 'subagent',
-      state: 'blocked',
+      state: 'working',
       childRow: {
         id: 'child',
         kind: 'agent',
-        displayState: 'failed',
+        displayState: 'waiting',
         name: 'Fuzz the tokenizer',
         detail: null,
         firstObservedAt: 1,
         recencyAt: 1,
         canStop: false,
-        settled: true,
+        settled: false,
         owned: []
       }
     }
-    expect(getAgentDotState(failed)).toBe('failed')
-    expect(buildSummaryAgentGroups([failed]).map((group) => group.state)).toEqual(['failed'])
-    expect(summarizeAgents([failed], 'Agent')).toBe('Agent failed')
+    expect(getAgentDotState(running)).toBe('waiting')
+    expect(buildSummaryAgentGroups([running]).map((group) => group.state)).toEqual(['waiting'])
   })
 
   it('presents passive working as monitoring', () => {
