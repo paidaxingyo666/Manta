@@ -300,6 +300,9 @@ describe('PR workflow parallelism', () => {
       steps.findIndex((step) => step.name === 'Install dependencies')
     )
     expect(steps[restoreIndex].uses).toBe('actions/cache/restore@v5')
+    expect(steps[restoreIndex].if).toBe(
+      "github.event_name == 'pull_request' && (runner.os != 'Windows' || runner.arch != 'X64' || !contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml'))"
+    )
   })
 
   it('uses the repository package-manager version for every direct pnpm setup', () => {
@@ -359,7 +362,7 @@ describe('PR workflow parallelism', () => {
     expect(dependencyAction.inputs['persist-native-cache'].default).toBe('true')
     expect(
       dependencyAction.runs.steps.find((step) => step.name === 'Use external node-gyp').if
-    ).toBe("runner.os == 'Linux' && inputs.native-runtime != 'none'")
+    ).toBe("runner.os == 'Linux' && inputs.native-runtime == 'node'")
     const dependencyInstall = dependencyAction.runs.steps.find(
       (step) => step.name === 'Install dependencies'
     )

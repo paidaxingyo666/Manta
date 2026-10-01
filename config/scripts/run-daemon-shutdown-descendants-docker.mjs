@@ -43,7 +43,7 @@ if (baselineIndex !== -1 && (!baselineRef || baselineRef.startsWith('-'))) {
   throw new Error('Usage: run-daemon-shutdown-descendants-docker.mjs [--baseline <git-ref>]')
 }
 
-const temp = mkdtempSync(join(tmpdir(), 'orca-daemon-shutdown-descendants-'))
+const temp = mkdtempSync(join(tmpdir(), 'manta-daemon-shutdown-descendants-'))
 const image = `manta-daemon-shutdown-descendants:${process.pid}-${Date.now()}`
 const platform =
   process.env.ORCA_DOCKER_PLATFORM ?? (process.arch === 'arm64' ? 'linux/arm64' : 'linux/amd64')
@@ -115,7 +115,17 @@ try {
     bundles.unshift(['baseline', baseline])
   }
 
-  runDocker(['build', '--platform', platform, '-t', image, dockerDir])
+  runDocker([
+    'build',
+    '--platform',
+    platform,
+    ...(process.env.ORCA_DAEMON_SHUTDOWN_FIXTURE_CACHE_IMAGE
+      ? ['--cache-from', process.env.ORCA_DAEMON_SHUTDOWN_FIXTURE_CACHE_IMAGE]
+      : []),
+    '-t',
+    image,
+    dockerDir
+  ])
   for (const [mode, bundlePath] of bundles) {
     const result = runDocker(
       [
