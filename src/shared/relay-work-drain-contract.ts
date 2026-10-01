@@ -1,9 +1,15 @@
 import { SKILL_SSH_RELAY_CANCEL_UPLOAD_METHOD } from './skill-ssh-relay-contract'
+import {
+  RELAY_OWNER_RESET_METHOD,
+  RELAY_PREPARED_RESET_RECOVERY_METHOD
+} from './relay-owner-reset-contract'
 
 // Why: a drain must still admit the requests and notifications that let in-flight work finish or cancel.
-// Owner-reset (T3) and network-tunnel (T4) methods join these sets when their contracts land.
+// Network-tunnel (T4) methods join these sets when their contract lands.
 const drainRequests = new Set<string>([
   'relay.status',
+  RELAY_OWNER_RESET_METHOD,
+  RELAY_PREPARED_RESET_RECOVERY_METHOD,
   'fs.unwatchAndWait',
   'agent.cancelExec',
   // Why (not in #16741): it only retires an existing delivery and replays its proof on retry;
