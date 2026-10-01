@@ -4,21 +4,24 @@ import { RelayRuntimeServices } from './relay-runtime-services'
 afterEach(() => vi.restoreAllMocks())
 
 function fixture() {
+  const agents = vi.fn(async () => {})
   const skill = vi.fn(async () => {})
   const vault = vi.fn(async () => {})
   const responses = vi.fn(async () => {})
   const fileStreams = vi.fn(async () => {})
+  const watchers = vi.fn(async () => {})
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: disposeOwnedProcesses only reads the owners stubbed here.
   const runtime = Object.assign(Object.create(RelayRuntimeServices.prototype), {
+    agentExecHandler: { dispose: agents },
     skillInstallHandler: { dispose: skill },
     aiVaultService: { dispose: vault },
     responseStreams: { disposeAllAndWait: responses },
-    fsHandler: { disposeFileStreams: fileStreams }
+    fsHandler: { disposeFileStreams: fileStreams, disposeWatchers: watchers }
   }) as RelayRuntimeServices
-  return { runtime, skill, vault, responses, fileStreams }
+  return { runtime, agents, skill, vault, responses, fileStreams, watchers }
 }
 
-it.each(['responses', 'fileStreams'] as const)(
+it.each(['agents', 'responses', 'fileStreams', 'watchers'] as const)(
   'does not acknowledge cleanup before %s have settled',
   async (owner) => {
     const f = fixture()
@@ -69,4 +72,20 @@ it('handles hosts without a vault service', async () => {
   Object.assign(f.runtime, { aiVaultService: null })
   await expect(f.runtime.disposeOwnedProcesses()).resolves.toBeUndefined()
   expect(f.vault).not.toHaveBeenCalled()
+})
+
+it('rejects a failed agent or watcher shutdown after cleaning every other owner', async () => {
+  const f = fixture()
+  const agentError = new Error('agent cleanup failed')
+  const watcherError = new Error('watcher cleanup failed')
+  f.agents.mockRejectedValueOnce(agentError)
+  f.watchers.mockRejectedValueOnce(watcherError)
+  await expect(f.runtime.disposeOwnedProcesses()).rejects.toMatchObject({
+    message: 'relay_owned_process_shutdown_incomplete',
+    errors: [agentError, watcherError]
+  })
+  expect(f.skill).toHaveBeenCalledOnce()
+  expect(f.vault).toHaveBeenCalledOnce()
+  expect(f.fileStreams).toHaveBeenCalledOnce()
+  await expect(f.runtime.disposeOwnedProcesses()).resolves.toBeUndefined()
 })
