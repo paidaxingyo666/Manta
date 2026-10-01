@@ -47,7 +47,31 @@ function gatedReadiness(
       `${label} passed activation without a readiness payload.`
     )
   }
+  const coverage = orcadDaemonCoverageRefusal(readiness)
+  if (coverage) {
+    throw new OrcadActiveReadinessError('rejected', `${label} ${coverage}`)
+  }
   return readiness
+}
+
+/**
+ * A slot proves terminals only when its daemon's self-test spawned a PTY, or completed the
+ * handshake on a platform whose daemon never spawn-probes. A build that predates the coverage
+ * field keeps the identity gate alone, so an older slot is not stranded.
+ */
+export function orcadDaemonCoverageRefusal(readiness: ServeReadiness): string | null {
+  const health = readiness.health
+  const coverage = health?.terminalDaemon?.selfTest?.coverage
+  if (!health || coverage === undefined || coverage === 'pty-spawn') {
+    return null
+  }
+  if (coverage === 'handshake' && health.platform === 'win32') {
+    return null
+  }
+  return (
+    `reported terminal-daemon coverage '${String(coverage)}', which does not prove a PTY can ` +
+    `be created on ${health.platform}.`
+  )
 }
 
 /** Checks a recorded-active slot without starting anything. */

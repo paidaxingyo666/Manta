@@ -23,7 +23,11 @@ import {
 } from './mantad-activation-record-store'
 import { emptyOrcadActivationRecord } from './mantad-activation-record'
 import { readRemoteOrcadBuildHash } from './mantad-remote-build-hash'
-import { OrcadActiveReadinessError, probeActiveOrcadReadiness } from './mantad-active-readiness'
+import {
+  launchOrcadSlotAndAwaitReadiness,
+  OrcadActiveReadinessError,
+  probeActiveOrcadReadiness
+} from './mantad-active-readiness'
 import { parseOrcadReadinessOutput } from './mantad-remote-launch'
 
 const mockExec = vi.mocked(execCommand)
@@ -33,7 +37,11 @@ const conn: SshConnection = Object.create(null)
 const target = { conn, host: linux }
 const BUILD_HASH = 'abc123def4567890'
 
-function readyLine(buildHash = BUILD_HASH): string {
+function readyLine(
+  buildHash = BUILD_HASH,
+  daemon: { coverage?: 'pty-spawn' | 'handshake'; platform?: string } = {}
+): string {
+  const selfTest = { ok: true, verdict: 'healthy', durationMs: 5 }
   return JSON.stringify({
     type: 'manta_server_ready',
     runtimeId: 'r1',
@@ -46,7 +54,7 @@ function readyLine(buildHash = BUILD_HASH): string {
       buildVersion: '0.2.0+bb01',
       nodeVersion: '24.21.0',
       nodeAbi: '137',
-      platform: 'linux',
+      platform: daemon.platform ?? 'linux',
       arch: 'x64',
       pid: 1,
       terminalDaemon: {
@@ -56,7 +64,10 @@ function readyLine(buildHash = BUILD_HASH): string {
         buildVersion: '0.2.0+bb01',
         entryPath: '/x/daemon-entry.js',
         protocolVersion: 38,
-        selfTest: { ok: true, coverage: 'pty-spawn', verdict: 'healthy', durationMs: 5 }
+        selfTest:
+          'coverage' in daemon
+            ? { ...selfTest, ...(daemon.coverage ? { coverage: daemon.coverage } : {}) }
+            : { ...selfTest, coverage: 'pty-spawn' }
       }
     }
   })
@@ -158,6 +169,52 @@ describe('installed build identity and readiness', () => {
     const rejected = probeActiveOrcadReadiness(slot, expectation)
     await expect(rejected).rejects.toBeInstanceOf(OrcadActiveReadinessError)
     await expect(rejected).rejects.toMatchObject({ verdict: 'rejected' })
+  })
+
+  it.each([
+    ['a spawn-probed PTY', { coverage: 'pty-spawn' as const }],
+    [
+      'a handshake on a host whose daemon never spawn-probes',
+      { coverage: 'handshake' as const, platform: 'win32' }
+    ],
+    ['an older build that does not report coverage', { coverage: undefined }]
+  ])('accepts %s', async (_name, daemon) => {
+    mockExec
+      .mockResolvedValueOnce('LIVE')
+      .mockResolvedValueOnce(`${readyLine(BUILD_HASH, daemon)}\n`)
+    await expect(probeActiveOrcadReadiness(slot, expectation)).resolves.toMatchObject({
+      runtimeId: 'r1'
+    })
+  })
+
+  it('rejects handshake-only coverage on a host whose daemon should spawn a PTY', async () => {
+    mockExec
+      .mockResolvedValueOnce('LIVE')
+      .mockResolvedValueOnce(`${readyLine(BUILD_HASH, { coverage: 'handshake' })}\n`)
+    await expect(probeActiveOrcadReadiness(slot, expectation)).rejects.toMatchObject({
+      verdict: 'rejected',
+      message: expect.stringContaining("coverage 'handshake'")
+    })
+  })
+
+  it('applies the same coverage rule to a slot it launches', async () => {
+    mockExec
+      .mockResolvedValueOnce('4242')
+      .mockResolvedValueOnce(`${readyLine(BUILD_HASH, { coverage: 'handshake' })}\n`)
+    await expect(
+      launchOrcadSlotAndAwaitReadiness(
+        { ...target, readinessTimeoutMs: 1_000, sleep: async () => {} },
+        {
+          remoteInstallDir: slot.remoteInstallDir,
+          nodePath: '/usr/bin/node',
+          fullVersion: '0.2.0+bb01',
+          userDataDir: '/home/u/.manta',
+          bindHost: '127.0.0.1',
+          port: 7777
+        },
+        expectation
+      )
+    ).rejects.toMatchObject({ verdict: 'rejected' })
   })
 })
 

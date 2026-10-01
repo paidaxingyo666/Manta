@@ -11,7 +11,7 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
-import { checkDaemonHealth, type DaemonHealth } from '../daemon/daemon-health'
+import { checkDaemonHealthWithCoverage, type DaemonHealth } from '../daemon/daemon-health'
 import {
   daemonOwnsFreshPersistentPtys,
   getDaemonEndpointFacts,
@@ -106,14 +106,18 @@ export async function runTerminalDaemonSelfTest(
   now: () => number = () => Date.now()
 ): Promise<PtySelfTest> {
   const startedAt = now()
-  // Why: `checkPtySpawnHealth` returns immediately on win32 without spawning anything, so a
-  // green verdict there covers the handshake only. Say so instead of overclaiming.
-  const coverage: PtySelfTestCoverage = process.platform === 'win32' ? 'handshake' : 'pty-spawn'
   const facts = getDaemonEndpointFacts()
   if (!facts) {
+    // Why: `checkPtySpawnHealth` returns immediately on win32 without spawning anything, so a
+    // green verdict there covers the handshake only. Say so instead of overclaiming.
+    const coverage: PtySelfTestCoverage = process.platform === 'win32' ? 'handshake' : 'pty-spawn'
     return { ok: false, coverage, verdict: 'no-daemon', durationMs: now() - startedAt }
   }
-  const verdict = await checkDaemonHealth(facts.socketPath, facts.tokenPath)
+  // The daemon reports what its probe actually did; an older daemon falls back by platform.
+  const { verdict, coverage } = await checkDaemonHealthWithCoverage(
+    facts.socketPath,
+    facts.tokenPath
+  )
   return { ok: verdict === 'healthy', coverage, verdict, durationMs: now() - startedAt }
 }
 
