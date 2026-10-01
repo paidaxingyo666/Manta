@@ -26,6 +26,8 @@ import { selectOrcadSlotRuntimeCommand } from './mantad-remote-runtime'
 export const MANTAD_READINESS_FILENAME = '.mantad-readiness'
 /** Stderr, including the bind-exposure line and every supervision message. */
 export const MANTAD_LOG_FILENAME = 'mantad.log'
+// Why a cap: the readiness file is candidate-written stdout, and a runaway writer must not be read whole.
+const ORCAD_READINESS_MAX_BYTES = 256 * 1024
 export { MANTAD_PID_FILENAME, OrcadRemoteLaunchUnsupportedError } from './mantad-remote-host-support'
 
 export type OrcadLaunchSpec = {
@@ -78,7 +80,8 @@ export function readOrcadReadinessCommand(
 ): string {
   assertPosixHost(host)
   const readiness = shellEscape(joinRemotePath(host, remoteInstallDir, MANTAD_READINESS_FILENAME))
-  return `cat ${readiness} 2>/dev/null || true`
+  // One byte over the cap is enough to tell an oversized payload from a full one.
+  return `head -c ${ORCAD_READINESS_MAX_BYTES + 1} ${readiness} 2>/dev/null || true`
 }
 
 /**
@@ -134,19 +137,23 @@ export type OrcadReadinessParse =
  * not `malformed` — reporting a parse failure for a race would fail deploys that were fine.
  */
 export function parseOrcadReadinessOutput(raw: string): OrcadReadinessParse {
+  if (Buffer.byteLength(raw, 'utf8') > ORCAD_READINESS_MAX_BYTES) {
+    return { state: 'malformed', reason: 'readiness payload exceeds the 256 KiB limit' }
+  }
   const lines = raw.split('\n')
-  let sawCandidate = false
-  for (const line of lines) {
+  for (const [index, line] of lines.entries()) {
     const trimmed = line.trim()
     if (!trimmed.startsWith('{')) {
       continue
     }
-    sawCandidate = true
     let parsed: unknown
     try {
       parsed = JSON.parse(trimmed)
     } catch {
-      continue
+      // Only the unterminated last line can still be mid-write; a finished bad line will stay bad.
+      return index === lines.length - 1
+        ? { state: 'pending' }
+        : { state: 'malformed', reason: 'readiness line is not valid JSON' }
     }
     if (typeof parsed !== 'object' || parsed === null) {
       continue
@@ -160,7 +167,7 @@ export function parseOrcadReadinessOutput(raw: string): OrcadReadinessParse {
     }
     return { state: 'ready', readiness: toServeReadiness(payload as Record<string, unknown>) }
   }
-  return sawCandidate ? { state: 'pending' } : { state: 'pending' }
+  return { state: 'pending' }
 }
 
 function toServeReadiness(payload: Record<string, unknown>): ServeReadiness {

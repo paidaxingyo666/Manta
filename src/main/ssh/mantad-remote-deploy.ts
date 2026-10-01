@@ -4,28 +4,24 @@
  * preserve current state and the prelaunch snapshot for explicit recovery.
  */
 import type { SshConnection } from './ssh-connection'
-import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/mantad-profile-preflight'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { MANTAD_INSTALL_MODEL } from './remote-install-model'
-import { writeRelayFile } from './ssh-relay-install-transfers'
 import { computeRemoteInstallDir, readLocalFullVersion } from './ssh-relay-versioned-install'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import {
   MANTAD_STATE_SNAPSHOT_DIR,
-  serializeOrcadActivationRecord,
   withActivatedVersion,
   type OrcadActivationRecord,
   type OrcadStateSnapshot
 } from './mantad-activation-record'
-import { orcadActivationPath, readOrcadActivationRecord } from './mantad-activation-record-store'
+import {
+  readOrcadActivationRecord,
+  writeOrcadActivationRecord
+} from './mantad-activation-record-store'
 import { evaluateOrcadActivation, type OrcadActivationVerdict } from './mantad-activation-gate'
 import { planOrcadUpdate, type OrcadTerminalCensus } from './mantad-update-plan'
-import {
-  MANTAD_LOG_FILENAME,
-  orcadLaunchCommand,
-  parseOrcadReadinessOutput,
-  readOrcadReadinessCommand
-} from './mantad-remote-launch'
+import { MANTAD_LOG_FILENAME } from './mantad-remote-launch'
+import { launchOrcadAndAwaitReadiness } from './mantad-remote-runtime-control'
 import { rejectedOrcadStateRecoveryRefusal, stopOutgoingOrcad } from './mantad-remote-deploy-stop'
 import {
   captureOrcadStateSnapshotCommand,
@@ -81,7 +77,6 @@ export type OrcadDeployResult =
   | { outcome: 'already-active'; fullVersion: string }
   | { outcome: 'installed-not-activated'; fullVersion: string; code: string; reason: string }
 
-const READINESS_POLL_MS = 500
 const STOP_WAIT_SECONDS = 20
 
 function exec(options: OrcadDeployOptions, command: string): Promise<string> {
@@ -135,29 +130,12 @@ async function captureSnapshot(
   }
 }
 
-async function launchAndAwaitReadiness(
+function launchAndAwaitReadiness(
   options: OrcadDeployOptions,
   remoteInstallDir: string,
   fullVersion: string
-): Promise<ReturnType<typeof parseOrcadReadinessOutput>> {
-  await exec(
-    options,
-    orcadLaunchCommand(options.host, { ...options, remoteInstallDir, fullVersion })
-  )
-  const deadline = Date.now() + (options.readinessTimeoutMs ?? ORCAD_STARTUP_READINESS_TIMEOUT_MS)
-  const sleep = options.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)))
-  let last = parseOrcadReadinessOutput('')
-  while (Date.now() < deadline) {
-    options.signal?.throwIfAborted()
-    last = parseOrcadReadinessOutput(
-      await exec(options, readOrcadReadinessCommand(options.host, remoteInstallDir))
-    )
-    if (last.state !== 'pending') {
-      return last
-    }
-    await sleep(READINESS_POLL_MS)
-  }
-  return last
+): ReturnType<typeof launchOrcadAndAwaitReadiness> {
+  return launchOrcadAndAwaitReadiness(options, { ...options, remoteInstallDir, fullVersion })
 }
 
 /** Restart the incumbent only when the candidate left shared state unchanged. */
@@ -320,12 +298,9 @@ export async function deployOrcad(input: OrcadDeployOptions): Promise<OrcadDeplo
     }
   }
 
-  await writeRelayFile(
-    options.conn,
-    options.host,
-    orcadActivationPath(options.host, options.remoteHome),
-    serializeOrcadActivationRecord(withActivatedVersion(record, fullVersion, snapshot, now())),
-    { signal: options.signal }
+  await writeOrcadActivationRecord(
+    options,
+    withActivatedVersion(record, fullVersion, snapshot, now())
   )
   return { outcome: 'installed-and-activated', fullVersion, verdict }
 }
