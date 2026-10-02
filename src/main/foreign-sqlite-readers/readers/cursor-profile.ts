@@ -1,24 +1,16 @@
 import { existsSync } from 'node:fs'
 import { z } from 'zod'
-import SyncDatabase from '../sqlite/sync-database'
+import SyncDatabase from '../../sqlite/sync-database'
+import {
+  cursorProfileReadFailure,
+  type CursorDesktopProfileReadResult
+} from '../cursor-profile-result'
 
 const TOKEN_KEY = 'cursorAuth/accessToken'
 const EMAIL_KEY = 'cursorAuth/cachedEmail'
 const MEMBERSHIP_KEY = 'cursorAuth/stripeMembershipType'
 const SUBSCRIPTION_KEY = 'cursorAuth/stripeSubscriptionStatus'
 const OPEN_TIMEOUT_MS = 250
-
-export type CursorDesktopProfile = {
-  accessToken: string | null
-  email: string | null
-  membershipType: string | null
-  subscriptionStatus: string | null
-}
-
-export type CursorDesktopProfileReadResult =
-  | { status: 'missing' }
-  | { status: 'error'; error: string }
-  | { status: 'ok'; profile: CursorDesktopProfile }
 
 const rowsSchema = z.array(z.object({ key: z.unknown(), value: z.unknown() }).partial())
 
@@ -32,8 +24,11 @@ function valueAsString(value: unknown): string | null {
   return null
 }
 
-/** Reads the Cursor IDE's stored session. Opens read-only in place; state.vscdb can be multi-GB. */
-export function readCursorDesktopProfile(dbPath: string): CursorDesktopProfileReadResult {
+/**
+ * Reads the Cursor IDE's stored session. Opens read-only in place; state.vscdb can be multi-GB
+ * and its -wal can be too, so this runs only on the foreign SQLite reader worker.
+ */
+export function readCursorProfile(dbPath: string): CursorDesktopProfileReadResult {
   if (!existsSync(dbPath)) {
     return { status: 'missing' }
   }
@@ -66,7 +61,7 @@ export function readCursorDesktopProfile(dbPath: string): CursorDesktopProfileRe
       }
     }
   } catch {
-    return { status: 'error', error: 'Unable to read the Cursor desktop login' }
+    return cursorProfileReadFailure()
   } finally {
     db?.close()
   }

@@ -143,8 +143,8 @@ export abstract class RateLimitServiceFullCyclePreparation extends RateLimitServ
       zcode: this.withFetchingStatus(previousState.zcode, 'zcode')
     })
 
-    // Why: the Cursor probe reads the macOS Keychain, so it is awaited inside the
-    // provider's own promise instead of blocking the rest of the cycle on it.
+    // Why its own promise: the keychain read and the desktop state.vscdb read
+    // (on its worker thread) are both async and must not delay other providers.
     const cursorResultPromise = readCursorAuthSession()
       .then((authReadResult) => {
         this.cursorAuthConfigured = authReadResult.status === 'ok'
