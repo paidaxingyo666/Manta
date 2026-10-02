@@ -18416,6 +18416,11 @@
     },
     "fileLoad": {
       "hostUnresolved": "호스트가 이 파일의 워크스페이스를 찾을 수 없습니다. 삭제되었거나 호스트가 아직 이에 대해 알지 못할 수도 있습니다. 다시 시도하거나 탭 표시줄에서 이 탭을 닫으세요."
+    },
+    "markdownPreview": {
+      "tooLarge": "파일이 미리보기 한도 {{limit}}보다 큽니다. 소스를 보려면 파일을 여세요.",
+      "tooLargeInDiff": "파일이 미리보기 한도 {{limit}}보다 큽니다. 차이를 보려면 소스 모드로 전환하세요.",
+      "renderAnyway": "그래도 렌더링"
     }
   },
   "featureTips": {

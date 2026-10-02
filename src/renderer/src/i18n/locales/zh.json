@@ -18416,6 +18416,11 @@
     },
     "fileLoad": {
       "hostUnresolved": "主机找不到该文件的工作区。它可能已被删除，或者主机可能还不知道。重试，或从选项卡栏中关闭此选项卡。"
+    },
+    "markdownPreview": {
+      "tooLarge": "文件超过 {{limit}} 预览限制。请打开文件查看源代码。",
+      "tooLargeInDiff": "文件超过 {{limit}} 预览限制。请切换到源代码模式查看差异。",
+      "renderAnyway": "仍然渲染"
     }
   },
   "featureTips": {
