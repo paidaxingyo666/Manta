@@ -83,6 +83,7 @@ it.each([
   'config/patches/node-pty@1.1.0.patch',
   'native/windows-registry/src/addon.cc',
   '.github/actions/install-node-dependencies/action.yml',
+  '.github/actions/prepare-native-runtime/action.yml',
   '.github/workflows/node-server-tests.yml',
   'src/main/persistence/profile-state/new-worker.ts'
 ])('always selects build, native and dynamically opened inputs: %s', async (file) => {

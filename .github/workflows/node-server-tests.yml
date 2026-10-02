@@ -16,6 +16,7 @@ on:
       - '.npmrc'
       - '.pnpmfile.cjs'
       - '.github/actions/install-node-dependencies/**'
+      - '.github/actions/prepare-native-runtime/**'
       - '.github/workflows/node-server-tests.yml'
   # The pull request qualifies one platform for an unflavoured change; this is where all six
   # are re-qualified, so a platform break surfaces minutes after merge instead of next cron.
@@ -34,6 +35,7 @@ on:
       - '.npmrc'
       - '.pnpmfile.cjs'
       - '.github/actions/install-node-dependencies/**'
+      - '.github/actions/prepare-native-runtime/**'
       - '.github/workflows/node-server-tests.yml'
   workflow_dispatch:
     inputs:

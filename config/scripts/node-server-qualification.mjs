@@ -14,6 +14,7 @@ const PLATFORM_PREFIXES = [
   'native/',
   'config/patches/',
   '.github/actions/install-node-dependencies/',
+  '.github/actions/prepare-native-runtime/',
   'src/main/persistence/',
   'src/main/sqlite/',
   'src/main/mantad/',

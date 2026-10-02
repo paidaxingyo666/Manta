@@ -27,6 +27,7 @@ it.each([
   'native/windows-registry/src/addon.cc',
   'config/patches/node-pty.patch',
   '.github/actions/install-node-dependencies/action.yml',
+  '.github/actions/prepare-native-runtime/action.yml',
   'src/main/ssh/ssh-provider.ts',
   'src/main/providers/local-pty-provider.ts',
   'src/shared/child-process/run-process.ts',

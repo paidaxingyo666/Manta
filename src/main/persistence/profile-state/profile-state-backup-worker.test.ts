@@ -181,11 +181,12 @@ describe('profile state backup worker', () => {
       const cancellation = new AbortController()
       const pending = runProfileStateBackupWorker(job, {
         workerPath: worker,
-        timeoutMs: 500,
+        // Worker startup must not race the cancellation assertion.
+        timeoutMs: mode === 'cancel' ? 10_000 : 500,
         signal: cancellation.signal
       })
       const failed = expect(pending).rejects.toThrow(mode === 'cancel' ? 'cancelled' : 'timed out')
-      await vi.waitFor(() => expect(existsSync(ready)).toBe(true))
+      await vi.waitFor(() => expect(existsSync(ready)).toBe(true), { timeout: 5_000 })
       expect(readdirSync(directory).filter((name) => name.startsWith('backup.db.'))).toHaveLength(4)
       if (mode === 'cancel') {
         cancellation.abort()

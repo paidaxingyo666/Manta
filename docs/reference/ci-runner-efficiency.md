@@ -1060,3 +1060,138 @@ warnings remained non-fatal. Every full-repository scan passed cleanly.
 
 Keep the existing production waves. The temporary workflow and 601-line
 benchmark driver were removed after recording this rejected result.
+
+## Native cache ownership: retain the extraction
+
+Native restoration, toolchain recovery, and preparation now belong to
+`.github/actions/prepare-native-runtime/action.yml`. The installer forwards
+its requested key and three build paths; Windows packaging saves the Node
+build before calling the same action for Electron. Existing native load,
+patched-build, Windows job-ownership, registry, and process-table probes remain
+unchanged on restored consumers. Exact keys still separate OS/image or Linux
+container libc, architecture, runtime, resolved Node version, and actual pnpm
+version, without partial-key restoration.
+
+The source hash covers the dedicated action, `pnpm-lock.yaml`,
+`pnpm-workspace.yaml`, `.npmrc`, `.pnpmfile.cjs`, both native dependency patches,
+and these complete build/probe inputs:
+
+- `config/scripts/ensure-native-runtime.mjs`, `rebuild-native-deps.mjs`,
+  `node-pty-job-ownership.cjs`, `windows-pe-machine.cjs`,
+  `windows-process-tree-gyp-rebuild.mjs`, and
+  `windows-process-tree-creation-time.cjs`;
+- `config/scripts/install-electron-package-binary.mjs`,
+  `electron-platform-path.mjs`, `zip-extractor-command.mjs`,
+  `shared-electron-dist-cache.mjs`, `space-sharing-copy.mjs`, and
+  `src/shared/zip-extractor-command.ts`;
+- `native/windows-registry/src/addon.cc`, `binding.gyp`, `package.json`, and
+  `index.js`.
+
+The patches are `config/patches/node-pty@1.1.0.patch` and
+`config/patches/@vscode__windows-process-tree@0.8.0.patch`. Root app version and
+script metadata are excluded; installed package versions remain owned by the
+full lockfile, and the external node-gyp pin belongs to the native action.
+A negative control changing only the installer's
+pnpm verification condition preserves the native key and paths. Every declared
+native input mutation changes the key, and main warming watches those inputs.
+
+This policy creates one cold namespace. The bounded 50-head main sample has
+49 adjacent transitions and three native-key changes under both the old and
+expanded policies: the added node-pty helper export still invalidates #24448.
+There is no measured historical net saving.
+
+The [cold warming run](https://github.com/stablyai/orca/actions/runs/36945655208/attempts/1)
+published all four exact Node keys, and its
+[warm rerun](https://github.com/stablyai/orca/actions/runs/36945655208/attempts/2)
+restored them on fresh runners with the same frozen inputs, Node 24.21.0, and
+pnpm 12.0.0. All five jobs passed in both attempts. These times cover the entire
+native action: runtime validation, key resolution, restore, any toolchain
+recovery, and the unchanged native preparation probes.
+
+| Native Node lane | Cold action | Warm action | Cold post-job save |
+| ---------------- | ----------- | ----------- | ------------------ |
+| Linux x64        | 18.288 s    | 0.993 s     | 0.387 s            |
+| Linux ARM64      | 11.540 s    | 1.062 s     | 1.113 s            |
+| Windows x64      | 104.482 s   | 1.381 s     | 2.424 s            |
+| Windows ARM64    | 256.662 s   | 3.832 s     | 1.243 s            |
+
+Cold Windows jobs rebuilt all three native addons. Warm jobs loaded and probed
+the restored builds; Linux also ran the existing check-only probe before
+skipping the external node-gyp installation. Warm post-job steps recognized
+their primary keys and did not save again. An earlier trial exposed unavailable
+nested composite outputs during post-job saving; both cache variants now use
+the same literal path inventory as the requested output, and the fixed cold
+jobs published their caches without missing-path warnings.
+
+Both [PR package jobs](https://github.com/stablyai/orca/actions/runs/36945659474)
+passed. Windows packaging consumed the same-run Node seed in 1.374 seconds
+before its Node tests and Electron transition. Its Electron cache initially
+missed while the modules were already healthy, so that stage does not establish
+an avoided compilation. Linux's Electron cache was also published, and all 19
+bundled native binaries passed the existing glibc floor check.
+
+The [first six-platform headless run](https://github.com/stablyai/orca/actions/runs/36945658897)
+ran every persistence lane: five passed, while Mac Intel failed waiting for a
+cancel-test worker's ready file before its 500 ms timeout. That lane deliberately
+uses `native-runtime: none`; its separate slot build and smoke passed. The failure
+blocked the five downstream Linux glibc/musl qualifications, so this run does not
+establish complete headless qualification. All six persistence lanes, Node 18
+handoffs, and Linux floor/musl gates remain; final qualification is tracked in
+the [PR's latest checks](https://github.com/stablyai/orca/pull/24476/checks).
+
+These are single cold/warm observations, not paired medians or a measured
+whole-workflow saving. They demonstrate usable exact-key reuse after publication;
+future savings depend on cache availability and unchanged native inputs. The
+trial seeds belong to this PR's merge ref. Other PRs require a main-branch seed
+after merging this new namespace; the existing main push and hourly warming
+jobs provide that seed.
+
+## Separate mobile install verification: retain the current policy
+
+Three local paired pnpm 12 mobile installs reduced the median from 17.155 to
+15.871 seconds, a 1.284-second difference before cache transfer and postinstall
+scripts. That narrow margin does not establish a net hosted saving, so the
+separate mobile verification record was not adopted.
+
+## Unit shard weights: retain the current allocation
+
+The latest five shard wall times were 526/495/503/508/510 seconds. Reweighting
+projected roughly a 4% reduction in the slowest shard without reducing total
+CPU work; the evidence across runs was weak. That estimate does not justify
+changing allocation, so the current weights remain.
+
+## Serializer oracle allocations: retain the change
+
+The serializer round-trip oracle now reloads one xterm cell per buffer traversal
+and writes flag digits directly, avoiding fresh cell objects and flag arrays for
+every comparison. Independent replay terminals, cell descriptors, transcript
+fixtures, resize schedules, ConPTY modes and seeds remain unchanged.
+
+The [hosted comparison](https://github.com/stablyai/orca/actions/runs/36944080887)
+used one Ubuntu 24.04 ARM64 runner, image 20260927.135.1, Node 24.21.0 and one
+isolated fork. The baseline formatter was frozen from f69052e. Byte-parity capture
+ran separately; these three alternating pairs had no payload instrumentation.
+Times cover the complete Vitest invocation, including startup and shutdown.
+
+| Pair/order         | Baseline | Candidate | Change |
+| ------------------ | -------- | --------- | ------ |
+| 1: baseline first  | 70.631 s | 61.661 s  | -12.7% |
+| 2: candidate first | 70.619 s | 62.284 s  | -11.8% |
+| 3: baseline first  | 70.750 s | 62.091 s  | -12.2% |
+| Median             | 70.631 s | 62.091 s  | -12.1% |
+
+Median test-body time fell from 69.519 to 60.953 seconds. All eight full-cohort
+invocations preserved the same 89 passes and two existing conditional skips
+across three files. Separate baseline/candidate captures produced identical
+95,017,559-byte payloads for all 1,435 scenarios and 7,649 checkpoints, with zero
+source crashes; both SHA256 hashes matched the local captures.
+
+Seven focused controls compare against the original allocating oracle, including
+all 128 text-flag combinations, styled blanks, wide cells, cell reuse and immutable
+snapshots. Five deliberate faults were detected: stale cell contents, a missing
+bold flag, changed empty-cell policy, removed scratch reuse and a source-parser
+crash. The last control also proved that crash returns enter the capture.
+
+This measures the three-file oracle cohort. Whole-shard timings include other
+test bodies, imports and transforms, so a whole-suite saving needs separate
+measurement.

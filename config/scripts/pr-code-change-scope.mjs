@@ -38,6 +38,7 @@ const ALWAYS_ON_CODE_JOBS = new Set(['static_analysis', 'typecheck', 'test'])
 const GLOBAL_FORCE_PREFIXES = [
   '.github/workflows/pr.yml',
   '.github/actions/install-node-dependencies/',
+  '.github/actions/prepare-native-runtime/',
   'config/scripts/pr-code-change-scope'
 ]
 
@@ -222,8 +223,26 @@ const NATIVE_CACHE_FILES = new Set([
   'package.json',
   'pnpm-lock.yaml',
   '.github/actions/install-node-dependencies/action.yml',
+  '.github/actions/prepare-native-runtime/action.yml',
+  'pnpm-workspace.yaml',
+  '.npmrc',
+  '.pnpmfile.cjs',
   'config/scripts/ensure-native-runtime.mjs',
-  'config/scripts/rebuild-native-deps.mjs'
+  'config/scripts/rebuild-native-deps.mjs',
+  'config/scripts/node-pty-job-ownership.cjs',
+  'config/scripts/windows-pe-machine.cjs',
+  'config/scripts/windows-process-tree-gyp-rebuild.mjs',
+  'config/scripts/windows-process-tree-creation-time.cjs',
+  'config/scripts/install-electron-package-binary.mjs',
+  'config/scripts/electron-platform-path.mjs',
+  'config/scripts/zip-extractor-command.mjs',
+  'src/shared/zip-extractor-command.ts',
+  'config/scripts/shared-electron-dist-cache.mjs',
+  'config/scripts/space-sharing-copy.mjs',
+  'native/windows-registry/src/addon.cc',
+  'native/windows-registry/binding.gyp',
+  'native/windows-registry/package.json',
+  'native/windows-registry/index.js'
 ])
 
 const NATIVE_CACHE_PREFIXES = [

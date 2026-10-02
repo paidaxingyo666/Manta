@@ -8,6 +8,21 @@ const readWorkflow = (name) =>
 const workflow = readWorkflow('ci-cache-warmup')
 const steps = workflow.jobs.warm.steps
 
+it('seeds new native keys on main when any declared build or probe input changes', () => {
+  const native = parse(readFileSync('.github/actions/prepare-native-runtime/action.yml', 'utf8'))
+  const hash = native.runs.steps.find((step) => step.id === 'native-cache-scope').env
+    .NATIVE_SOURCE_HASH
+  const files = [...hash.matchAll(/'([^']+)'/g)].map((match) => match[1])
+  for (const file of files) {
+    expect(
+      workflow.on.push.paths.some((pattern) =>
+        pattern.endsWith('/**') ? file.startsWith(pattern.slice(0, -2)) : file === pattern
+      ),
+      file
+    ).toBe(true)
+  }
+})
+
 it('warms the same Linux Node runtime the PR shards restore', () => {
   const arm = workflow.jobs['warm-linux-arm']
   const install = arm.steps.find(
@@ -56,6 +71,7 @@ it('bounds warming to the required platforms and validates changes without grant
   expect(workflow.jobs.warm['timeout-minutes']).toBeLessThanOrEqual(10)
   expect(workflow.permissions).toEqual({ contents: 'read' })
   expect(workflow.on.push.branches).toEqual(['main'])
+  expect(workflow.on.push.paths).toContain('.github/actions/prepare-native-runtime/**')
   expect(workflow.on.schedule).toEqual([{ cron: '41 * * * *' }])
   expect(workflow.on.pull_request.paths).toContain('.github/workflows/ci-cache-warmup.yml')
   expect(workflow.concurrency['cancel-in-progress']).toBe(true)
