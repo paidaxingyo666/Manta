@@ -8,7 +8,7 @@ import {
   replayTranscript,
   type TranscriptReplayFrame
 } from './agent-transcript-replay-test-harness'
-import { isCodexComposerReadyScreen } from './codex-terminal-readiness'
+import { isCodexComposerReadyScreen } from './agent-state-rules/codex-screen-predicates'
 import {
   detectTerminalWaitBlockedReason,
   isKnownReadyPromptBody,

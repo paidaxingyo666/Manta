@@ -1,3 +1,5 @@
+import { isUnblockedAfter } from './blocked-text-layer'
+
 // Why both shapes: 0.150-0.157 paint `model: loading` in a box, 0.158 a bare `loading` under the title.
 const CODEX_HEADER_LOADING_RE = /(?:model|directory):\s+loading|^\s*loading\s*$/m
 // Why a line cap: 0.158 draws no box, so nothing else ends its header before the chat.
@@ -23,45 +25,29 @@ function findCodexHeader(screen: string): { index: number; text: string } | null
   return { index, text }
 }
 
-/** The 0.150-0.157 header, which only a grid reassembles (see isCodexScreenHeaderReady). */
-export function findCodexScreenReadyPromptIndex(screen: string): number | null {
+/**
+ * The named screen predicate `codex-header-ready`: the 0.150-0.157 header, loaded, with no blocker
+ * painted below it. Why the screen: Codex repaints that header by cell diff (`ESC[5;3Hdir
+ * ESC[5;7Hctory:`), which only a grid reassembles; the line-folded wait text reads `dirctory:`.
+ */
+export function isCodexHeaderReadyScreen(screen: string): boolean {
   const header = findCodexHeader(screen)
-  return header !== null &&
+  return (
+    header !== null &&
     header.text.includes('model:') &&
     header.text.includes('directory:') &&
-    !CODEX_HEADER_LOADING_RE.test(header.text)
-    ? header.index
-    : null
-}
-
-// Why the text copy: 0.157 leaves its alternate screen while it starts its daemon, so the live
-// screen shows no header then, while the text copy keeps the provisional one until the live chat
-// paints its footer after it (a later model repaint rewrites only the value, never the label).
-// Why `·`: every live footer row draws one (status row, `← for agents · ?`, `⚠ N warning · f2`);
-// startup dialogs draw one too, which is why startup-dialog-blocked-signals.ts matches them first.
-export function isCodexProvisionalStartupText(normalized: string): boolean {
-  const headerIndex = normalized.lastIndexOf('openai codex')
-  if (headerIndex === -1) {
-    return false
-  }
-  const loading = /model:\s+loading/.exec(normalized.slice(headerIndex))
-  return loading !== null && !normalized.includes('·', headerIndex + loading.index)
-}
-
-// Why: Codex repaints its whole screen, header included, once a startup dialog closes, and the
-// dialog never draws the header; 0.158's header has no labels, so the header alone marks it answered.
-export function findCodexHeaderIndex(normalized: string): number | null {
-  const index = normalized.lastIndexOf('openai codex (v')
-  return index === -1 ? null : index
+    !CODEX_HEADER_LOADING_RE.test(header.text) &&
+    isUnblockedAfter(screen, header.index)
+  )
 }
 
 /**
- * Tier 1b, codex panes only: the empty composer with no busy status row just above it and no
- * header load. Codex 0.158 dropped `model:`/`directory:`, and a long session scrolls the header
- * away, so this is its only version-stable rest body. No dialog check: every Codex dialog
- * replaces the composer, while an answer ending "Would you like to…?" must not block the lane.
- * The mid-turn guard is the caller's quiescence, fed by the ~100 ms title spinner and status
- * timer; `tui.animations=false` (set by a screen reader), `tui.effects.progress=false`, or a
+ * The named screen predicate `codex-composer-ready`: the empty composer with no busy status row
+ * just above it and no header load. Codex 0.158 dropped `model:`/`directory:`, and a long session
+ * scrolls the header away, so this is its only version-stable rest body. No dialog check: every
+ * Codex dialog replaces the composer, while an answer ending "Would you like to…?" must not block
+ * the lane. The mid-turn guard is quiescence, fed by the ~100 ms title spinner and status timer;
+ * `tui.animations=false` (set by a screen reader), `tui.effects.progress=false`, or a
  * `tui.terminal_title` without activity/spinner removes it.
  */
 export function isCodexComposerReadyScreen(screen: string): boolean {

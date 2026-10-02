@@ -7,7 +7,10 @@ import type {
   OrcadManagedStopResult
 } from '../../shared/orcad-managed-runtime'
 import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
-import type { KnownRuntimeEnvironment, OrcadDeploymentLink } from '../../shared/runtime-environments'
+import type {
+  KnownRuntimeEnvironment,
+  OrcadDeploymentLink
+} from '../../shared/runtime-environments'
 import { recoverInterruptedOrcadActivation } from './mantad-activation-recovery'
 import { withStaleOrcadActivationRecoveryLock } from './mantad-activation-lock'
 import { readOrcadActivationTransaction } from './mantad-activation-transaction-store'

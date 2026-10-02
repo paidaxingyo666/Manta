@@ -6,7 +6,7 @@ import { getTuiAgentRestSignal } from '../../shared/tui-agent-rest-signal'
 import { isKnownReadyPromptBody } from './terminal-wait-detection'
 import {
   evaluateAgentStateRules,
-  hasScreenRules
+  readsTrustedScreen
 } from './agent-state-rules/agent-state-rules-engine'
 import {
   evaluateTuiIdle,
@@ -212,7 +212,7 @@ describe('rest signal agrees with the lanes that can settle a wait', () => {
     )
     const quietScreenBody = hasQuietReadyScreen(record(), agent, () => true, QUIESCENCE_MS)
     // Why a screen-ruled `none` is sound: its screen shuts the quiet lane whenever one is readable.
-    if (hasScreenRules(agent)) {
+    if (readsTrustedScreen(agent)) {
       const refused = ['> not an idle composer']
       const ruled = (screen: readonly string[] | null) =>
         evaluateAgentStateRules(agent, { readScreenLines: () => screen })

@@ -15,10 +15,17 @@ function anchor(when: Record<string, unknown>, answer: Record<string, unknown>) 
   return { id: 'anchor', why: 'test', when, answer }
 }
 
-type RuleFileOverrides = { rules?: unknown[]; textAnchors?: unknown[] } & Record<string, unknown>
+type RuleFileOverrides = { rules?: unknown[]; anchors?: unknown[] } & Record<string, unknown>
 
 function ruleFile(overrides: RuleFileOverrides = {}): Record<string, unknown> {
-  return { id: 'cline', engineVersion: 1, textAnchors: [], rules: [], ...overrides }
+  return {
+    id: 'cline',
+    engineVersion: 1,
+    profile: { screenSource: 'trusted' },
+    anchors: [],
+    rules: [],
+    ...overrides
+  }
 }
 
 const SCREEN = { region: 'screen' }
@@ -62,9 +69,9 @@ describe('agent state rules schema', () => {
     [
       'a codex-only blocked reason',
       ruleFile({
-        textAnchors: [
+        anchors: [
           anchor(
-            { find: { lastOf: 'update' } },
+            { region: 'text', find: { lastOf: 'update' } },
             { state: 'blocked', reason: 'codex-update-prompt' }
           )
         ]
@@ -72,14 +79,16 @@ describe('agent state rules schema', () => {
     ],
     [
       'an unregistered named anchor',
-      ruleFile({ textAnchors: [anchor({ find: { predicate: 'nope' } }, { state: 'idle' })] })
+      ruleFile({
+        anchors: [anchor({ region: 'text', find: { predicate: 'nope' } }, { state: 'idle' })]
+      })
     ],
     [
       'a blocked anchor the prefilter cannot key on',
       ruleFile({
-        textAnchors: [
+        anchors: [
           anchor(
-            { find: { predicate: 'antigravity-text-composer' } },
+            { region: 'text', find: { predicate: 'antigravity-text-composer' } },
             { state: 'blocked', reason: 'agent-approval-prompt' }
           )
         ]
@@ -87,13 +96,18 @@ describe('agent state rules schema', () => {
     ],
     [
       'an uppercase anchor literal, which the lowercased tail never contains',
-      ruleFile({ textAnchors: [anchor({ find: { lastOf: 'Cursor' } }, { state: 'idle' })] })
+      ruleFile({
+        anchors: [anchor({ region: 'text', find: { lastOf: 'Cursor' } }, { state: 'idle' })]
+      })
     ],
     [
       'an uppercase anchor contains term',
       ruleFile({
-        textAnchors: [
-          anchor({ find: { lastOf: 'x' }, after: { contains: 'Run' } }, { state: 'idle' })
+        anchors: [
+          anchor(
+            { region: 'text', find: { lastOf: 'x' }, after: { contains: 'Run' } },
+            { state: 'idle' }
+          )
         ]
       })
     ]

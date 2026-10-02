@@ -14,7 +14,7 @@ import {
   isKnownReadyPromptBody,
   isKnownReadyPromptSettled
 } from './terminal-wait-detection'
-import { hasScreenRules } from './agent-state-rules/agent-state-rules-engine'
+import { readsTrustedScreen } from './agent-state-rules/agent-state-rules-engine'
 import { restoreProjectedComposerDraft } from './manta-runtime-terminal-projection'
 import type {
   RuntimeTerminalWait,
@@ -55,7 +55,7 @@ export class MantaRuntimeWithStartTuiIdleVisibleReadProbe extends MantaRuntimeWi
     if (providerTimeoutMs < 1) {
       return
     }
-    const screenRule = hasScreenRules(agent)
+    const screenRule = readsTrustedScreen(agent)
     void withTimeout(
       this.readTerminal(waiter.handle, screenRule ? { screen: true } : {}, {
         timeoutMs: providerTimeoutMs,

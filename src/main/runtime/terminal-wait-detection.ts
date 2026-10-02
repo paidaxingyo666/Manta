@@ -1,48 +1,31 @@
 import { isQoderComposerReady } from './qoder-terminal-readiness'
 import { memoizeTitleClassification } from '../../shared/terminal-title-classification-memo'
-import {
-  detectAgentStatusFromTitle,
-  isOpenCodeNativeTitle,
-  type AgentStatus
-} from '../../shared/agent-detection'
+import { detectAgentStatusFromTitle, type AgentStatus } from '../../shared/agent-detection'
 import type { RuntimeTerminalWaitBlockedReason } from '../../shared/runtime-types'
 import type { TuiAgent } from '../../shared/tui-agent'
 import {
   evaluateAgentStateRules,
+  hasQuietReadyRules,
+  holdsReadyTextToQuiet,
   type AgentStateVerdict
 } from './agent-state-rules/agent-state-rules-engine'
 import { findPromptAnchorIndexes } from './agent-state-rules/agent-state-text-anchors'
-import { findTerminalWaitBlockedSignal } from './agent-state-rules/blocked-text-layer'
+import { showsIdleTitleAnchor } from './agent-state-rules/agent-state-title-anchors'
 import {
-  findCodexHeaderIndex,
-  findCodexScreenReadyPromptIndex,
-  isCodexComposerReadyScreen,
-  isCodexProvisionalStartupText
-} from './codex-terminal-readiness'
+  findTerminalWaitBlockedSignal,
+  isSettledAfter,
+  isUnblockedAfter
+} from './agent-state-rules/blocked-text-layer'
 
+// Why agent-agnostic: Manta's own `<Agent> ready` titles, and any agent title stating rest in words.
 const EXPLICIT_IDLE_TITLE_RE = /(^|\s)(ready|idle|done)(\s|$|[.!?])/i
-const CLAUDE_IDLE_PREFIX = '\u2733'
-const GEMINI_IDLE_PREFIX = '\u25c7'
-const PI_IDLE_PREFIX = '\u03c0 - '
 
 function computeExplicitIdleStatusFromTitle(title: string): AgentStatus | null {
   const status = detectAgentStatusFromTitle(title)
-  if (status !== 'idle') {
-    return null
-  }
   // Why: launch titles like "Codex YOLO" contain an agent name but aren't readiness signals; terminal.wait needs explicit idle evidence.
-  if (
-    EXPLICIT_IDLE_TITLE_RE.test(title) ||
-    // Why: unblock hookless remote waits; guarded writes corroborate this marker.
-    isOpenCodeNativeTitle(title) ||
-    title.startsWith(CLAUDE_IDLE_PREFIX) ||
-    title.startsWith('* ') ||
-    title.includes(GEMINI_IDLE_PREFIX) ||
-    title.startsWith(PI_IDLE_PREFIX)
-  ) {
-    return 'idle'
-  }
-  return null
+  return status === 'idle' && (EXPLICIT_IDLE_TITLE_RE.test(title) || showsIdleTitleAnchor(title))
+    ? 'idle'
+    : null
 }
 
 /**
@@ -55,32 +38,27 @@ export const detectExplicitIdleStatusFromTitle: (title: string) => AgentStatus |
 
 export function isKnownReadyPromptPreview(preview: string): boolean {
   const normalized = preview.toLowerCase()
-  return isReadyPromptUnblocked(normalized, findKnownReadyPromptIndex(normalized))
+  return isUnblockedAfter(normalized, findPromptAnchorIndexes(normalized).ready)
 }
 
 /**
  * The ready-prompt text rules for a pane about to take input. Unlike isKnownReadyPromptPreview
- * (agent presence), Codex's provisional startup header does not count: 0.157 discards input typed
- * behind it while its daemon starts.
+ * (agent presence), nothing counts while a hold anchor shows (Codex's provisional startup header):
+ * 0.157 discards input typed behind it while its daemon starts.
  */
 export function isKnownReadyPromptSettled(preview: string): boolean {
   const normalized = preview.toLowerCase()
-  return isReadyPromptSettled(normalized, findKnownReadyPromptIndex(normalized))
-}
-
-function isReadyPromptSettled(normalized: string, readyIndex: number | null): boolean {
-  return (
-    isReadyPromptUnblocked(normalized, readyIndex) && !isCodexProvisionalStartupText(normalized)
-  )
+  return isSettledAfter(normalized, findPromptAnchorIndexes(normalized).ready)
 }
 
 /**
- * Tier 1 body evidence for every tui-idle site. `readScreenLines` yields the live emulator's
- * visible grid, or null when the runtime has no trustworthy one.
+ * Tier 1 body evidence for every tui-idle site. `readScreenLines` yields the screen the agent's
+ * rules read, or null when the runtime has no trustworthy one.
  *
- * Why not for a clocked Codex or screen-ruled pane: its header or composer is also painted
- * mid-turn, so isQuietReadyScreenBody holds it to quiescence instead.
- * Why a clockless pane keeps it: quiescence needs an output clock, which a restored pane lacks.
+ * Why the agent's own answer is final: a screen refusal must shut the shared text lane too.
+ * A strong rule held to quiet counts here only on a clockless pane, which cannot measure quiet;
+ * on a clocked one isQuietReadyScreenBody holds it to quiescence instead, and an agent whose
+ * own ready text is held to quiet takes no shared text either.
  */
 export function isKnownReadyPromptBody(
   waitText: string,
@@ -91,49 +69,37 @@ export function isKnownReadyPromptBody(
   if (agent === 'qoder') {
     return isQoderComposerReady(readScreenLines())
   }
-  const ruled = evaluateAgentStateRules(agent, { readScreenLines })
+  // Why before the rules: such an agent settles only on the quiet lane while it has a clock.
+  if (hasOutputClock && holdsReadyTextToQuiet(agent)) {
+    return false
+  }
+  const ruled = evaluateAgentStateRules(agent, {
+    readScreenLines,
+    readText: () => waitText.toLowerCase(),
+    hasOutputClock
+  })
   if (ruled !== null) {
     return isStrongIdle(ruled) && (!ruled.requiresQuiet || !hasOutputClock)
   }
-  if (agent === 'codex' && hasOutputClock) {
-    return false
-  }
-  if (isKnownReadyPromptSettled(waitText)) {
-    return true
-  }
-  // Why the agent gate: another agent's screen can merely mention "OpenAI Codex".
-  if (agent !== null && agent !== 'codex') {
-    return false
-  }
-  const screen = readScreen(readScreenLines)
-  return screen !== null && isCodexScreenHeaderReady(screen)
+  return isKnownReadyPromptSettled(waitText)
 }
 
 /**
- * Tier 1b body evidence: a ready screen from an agent with no title rest signal. Unlike tier 1
- * it only proves the TUI is up, so the ranking holds it to quiescence.
- * Why identified panes only: a `cat`ed transcript or pager in an unknown pane can show the composer.
+ * Tier 1b body evidence: a ready screen or text the agent also paints mid-turn, so the ranking
+ * holds it to quiescence. Why identified panes only for Muse: a `cat`ed transcript or pager in an
+ * unknown pane can show the composer.
  */
 export function isQuietReadyScreenBody(
   waitText: string,
   agent: TuiAgent | null,
   readScreenLines: () => readonly string[] | null
 ): boolean {
-  if (agent === 'codex') {
-    const screen = readScreen(readScreenLines)
-    if (
-      screen !== null &&
-      (isCodexComposerReadyScreen(screen) || isCodexScreenHeaderReady(screen))
-    ) {
-      return true
-    }
-    // Why the provisional veto here too: a daemon start can stay quiet past the quiescence window.
-    const normalized = waitText.toLowerCase()
-    return isReadyPromptSettled(normalized, findCodexReadyPromptIndex(normalized))
-  }
-  const ruled = evaluateAgentStateRules(agent, { readScreenLines })
-  if (ruled !== null && isStrongIdle(ruled) && ruled.requiresQuiet) {
-    return true
+  if (hasQuietReadyRules(agent)) {
+    const ruled = evaluateAgentStateRules(agent, {
+      readScreenLines,
+      readText: () => waitText.toLowerCase()
+    })
+    return ruled !== null && isStrongIdle(ruled) && ruled.requiresQuiet
   }
   return (agent === null || agent === 'muse') && isMuseReadyPromptPreview(waitText)
 }
@@ -144,31 +110,9 @@ function isStrongIdle(
   return verdict.state === 'idle' && verdict.strength === 'strong'
 }
 
-/**
- * Why the screen: Codex repaints its 0.150-0.157 header by cell diff (`ESC[5;3Hdir
- * ESC[5;7Hctory:`), which only a grid reassembles — the line-folded wait text reads `dirctory:`.
- * Why it can only add readiness: a grid out of step with the PTY (size mismatch, resize
- * mid-paint) garbles the header, so the text rule keeps every verdict it gives on its own.
- */
-function isCodexScreenHeaderReady(screen: string): boolean {
-  return isReadyPromptUnblocked(screen, findCodexScreenReadyPromptIndex(screen))
-}
-
-function readScreen(readScreenLines: () => readonly string[] | null): string | null {
-  return readScreenLines()?.join('\n').toLowerCase() ?? null
-}
-
-function isReadyPromptUnblocked(normalized: string, readyIndex: number | null): boolean {
-  if (readyIndex === null) {
-    return false
-  }
-  const blockedSignal = findTerminalWaitBlockedSignal(normalized)
-  return blockedSignal === null || blockedSignal.index <= readyIndex
-}
-
 export function isMuseReadyPromptPreview(preview: string): boolean {
   const normalized = preview.toLowerCase()
-  return isReadyPromptUnblocked(normalized, findMuseReadyPromptIndex(normalized))
+  return isUnblockedAfter(normalized, findMuseReadyPromptIndex(normalized))
 }
 
 export function detectTerminalWaitBlockedReason(
@@ -193,26 +137,11 @@ export function findActionableTerminalWaitBlockedSignal(
 }
 
 // Why: a live prompt (idle OR busy) proves the startup modal was dismissed, so a mid-run Cursor lane stops reporting stale trust hits.
-// Why rule-file anchors beside Codex and Muse: those two have not moved to agent-state-rules/ yet.
+// Why Muse beside the rule-file anchors: Muse has not moved to agent-state-rules/ yet.
 function findDismissedStartupModalIndex(normalized: string): number | null {
-  return latestIndex([
-    findCodexReadyPromptIndex(normalized),
-    findCodexHeaderIndex(normalized),
-    findPromptAnchorIndexes(normalized).live,
-    findMuseReadyPromptIndex(normalized)
-  ])
-}
-
-function findKnownReadyPromptIndex(normalized: string): number | null {
-  return latestIndex([
-    findCodexReadyPromptIndex(normalized),
-    findPromptAnchorIndexes(normalized).ready
-  ])
-}
-
-function latestIndex(indexes: readonly (number | null)[]): number | null {
-  const found = indexes.filter((index): index is number => index !== null)
-  return found.length > 0 ? Math.max(...found) : null
+  const live = findPromptAnchorIndexes(normalized).live
+  const muse = findMuseReadyPromptIndex(normalized)
+  return live === null || muse === null ? (live ?? muse) : Math.max(live, muse)
 }
 
 // Why: Muse titles its OSC with the bare cwd and never updates it, so only the body can
@@ -226,14 +155,4 @@ function findMuseReadyPromptIndex(normalized: string): number | null {
   return segment.includes('voice') && segment.includes('input') && segment.includes('❯')
     ? headerIndex
     : null
-}
-
-function findCodexReadyPromptIndex(normalized: string): number | null {
-  const headerIndex = normalized.lastIndexOf('openai codex')
-  if (headerIndex === -1) {
-    return null
-  }
-  const readySegment = normalized.slice(headerIndex)
-  // Why: Codex prints permissions only in YOLO mode; the stable ready header is OpenAI Codex + model + directory.
-  return readySegment.includes('model:') && readySegment.includes('directory:') ? headerIndex : null
 }

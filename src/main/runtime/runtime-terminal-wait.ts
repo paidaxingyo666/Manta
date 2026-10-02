@@ -9,7 +9,7 @@ import {
   buildTerminalWaitResult,
   getTerminalState
 } from './terminal-wait-results'
-import { hasScreenRules } from './agent-state-rules/agent-state-rules-engine'
+import { readsTrustedScreen } from './agent-state-rules/agent-state-rules-engine'
 import { showsScreenProbeBanner } from './agent-state-rules/agent-state-text-anchors'
 import { buildTerminalWaitText } from './terminal-wait-tail-state'
 import {
@@ -28,8 +28,8 @@ import type { RuntimeTerminalWaiterRegistry } from './runtime-terminal-waiter-re
 /**
  * A pane with no retained bytes and no status has only its provider's screen to read, and one
  * whose tail shows a rule file's `profile.screenProbeBanner` is probed as before screen rules. So
- * is a clockless pane with screen rules whatever its status: a re-attached pane's own model can be
- * untrusted. A clocked one settles through the poll, once quiet.
+ * is a clockless pane whose rules read the trusted screen, whatever its status: a re-attached
+ * pane's own model can be untrusted. A clocked one settles through the poll, once quiet.
  */
 function shouldProbeVisibleScreen(
   paneAgent: TuiAgent | null,
@@ -39,7 +39,7 @@ function shouldProbeVisibleScreen(
   return (
     (record.lastAgentStatus === null && waitText.length === 0) ||
     showsScreenProbeBanner(waitText) ||
-    (hasScreenRules(paneAgent) && record.lastOutputAt === null)
+    (readsTrustedScreen(paneAgent) && record.lastOutputAt === null)
   )
 }
 

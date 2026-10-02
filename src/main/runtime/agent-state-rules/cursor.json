@@ -1,11 +1,12 @@
 {
   "id": "cursor",
   "engineVersion": 1,
-  "textAnchors": [
+  "anchors": [
     {
       "id": "approval_menu",
       "why": "cursor-agent has no approval hook, so its key-bound menu is the only authority. Bounded to the last 8 lines because an answered menu stays in scrollback, and each choice must end in a selectable key because narration can repeat the menu's wording.",
       "when": {
+        "region": "text",
         "find": { "lastOf": "run this command?" },
         "withinLastLines": 8,
         "lines": {
@@ -32,15 +33,17 @@
       "id": "prompt_busy",
       "why": "The banner's last occurrence skips the trust dialog's own `Cursor Agent` text; `→` is the persistent input prompt. cursor-agent emits no idle title, so a braille spinner after the banner is the only busy sign; a busy prompt still proves an earlier dialog was answered.",
       "when": {
+        "region": "text",
         "find": { "lastOf": "cursor agent" },
         "after": { "all": [{ "contains": "→" }, { "regex": "[⠁-⣿]" }] }
       },
-      "answer": { "state": "working" }
+      "answer": { "state": "live" }
     },
     {
       "id": "prompt_idle",
       "why": "The same prompt with no spinner after the banner.",
       "when": {
+        "region": "text",
         "find": { "lastOf": "cursor agent" },
         "after": { "all": [{ "contains": "→" }], "none": [{ "regex": "[⠁-⣿]" }] }
       },

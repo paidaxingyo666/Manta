@@ -1,12 +1,12 @@
 {
   "id": "antigravity",
   "engineVersion": 1,
-  "profile": { "screenProbeBanner": "antigravity cli" },
-  "textAnchors": [
+  "profile": { "screenProbeBanner": "antigravity cli", "screenSource": "trusted" },
+  "anchors": [
     {
       "id": "text_composer",
       "why": "Without a trusted grid, the folded text tail is all there is; a trailing caret there also belongs to trust, sign-in and model menus, which the named scan rules out.",
-      "when": { "find": { "predicate": "antigravity-text-composer" } },
+      "when": { "region": "text", "find": { "predicate": "antigravity-text-composer" } },
       "answer": { "state": "idle" }
     }
   ],

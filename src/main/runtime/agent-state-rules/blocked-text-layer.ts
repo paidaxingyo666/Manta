@@ -4,6 +4,7 @@ import { startOfLastNonBlankLines } from '../terminal-wait-tail-window'
 import {
   BLOCKED_ANCHOR_LITERALS,
   findBlockedAnchorSignals,
+  showsHoldAnchor,
   type BlockedTextSignal
 } from './agent-state-text-anchors'
 
@@ -37,6 +38,20 @@ export function findTerminalWaitBlockedSignal(fullTail: string): BlockedTextSign
   const signal = findBlockedSignalInLiveWindow(normalized)
   // Why: callers compare this index against ready-header indexes found over the full tail.
   return signal === null ? null : { reason: signal.reason, index: signal.index + windowStart }
+}
+
+/** Whether a ready sign at `readyIndex` still owns the text: no blocker was painted after it. */
+export function isUnblockedAfter(normalized: string, readyIndex: number | null): boolean {
+  if (readyIndex === null) {
+    return false
+  }
+  const blockedSignal = findTerminalWaitBlockedSignal(normalized)
+  return blockedSignal === null || blockedSignal.index <= readyIndex
+}
+
+/** Unblocked, and no hold anchor says the agent behind it is still starting: input would land. */
+export function isSettledAfter(normalized: string, readyIndex: number | null): boolean {
+  return isUnblockedAfter(normalized, readyIndex) && !showsHoldAnchor(normalized)
 }
 
 function findBlockedSignalInLiveWindow(normalized: string): BlockedTextSignal | null {
