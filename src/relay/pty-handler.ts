@@ -128,7 +128,10 @@ import {
   injectRelayHistoryEnv
 } from './terminal-history'
 import { isFlattenedNodePtyLoaderMessage } from '../main/mantad/node-pty-loader-diagnosis'
-import { collectNodePtyUnavailableDiagnosis } from './node-pty-binding-survey'
+import {
+  collectNodePtyUnavailableDiagnosis,
+  resolveNodePtyInstallDir
+} from './node-pty-binding-survey'
 import { describeRelayRuntime } from './relay-runtime-identity'
 import { relayConptyDllSpawnOptions } from './relay-windows-conpty'
 import {
@@ -670,9 +673,10 @@ export class PtyHandler {
    * healthy relay never pays for them.
    */
   private async nodePtyUnavailableError(spawnError?: unknown): Promise<Error> {
-    const nodePtyDir = this.relayNodePtyDir()
+    // Why: diagnose the install the bare import loaded; the bundle's own dir is only the fallback.
+    const nodePtyDir = resolveNodePtyInstallDir(__dirname) ?? this.relayNodePtyDir()
     const diagnosis = await collectNodePtyUnavailableDiagnosis({
-      nodePtyDir: existsSync(nodePtyDir) ? nodePtyDir : null,
+      nodePtyDir,
       error: spawnError ?? this.lastPtyLoadError
     })
     return Object.assign(new Error(formatNodePtyUnavailableMessage(diagnosis)), {
