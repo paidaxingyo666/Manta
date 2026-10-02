@@ -86,7 +86,7 @@ async function measureRemoteTyping(
   const latencies: number[] = []
   for (let index = 0; index < KEY_LATENCY_SAMPLES.length; index += 1) {
     const char = KEY_LATENCY_SAMPLES[index]
-    const marker = `REMOTE_KEY_${runId}_${index + 1}_${char}`
+    const marker = `KEY_${runId}_${index + 1}_${char}`
     const started = performance.now()
     await page.evaluate(({ ptyId, char }) => window.api.pty.write(ptyId, char, 'driving'), {
       ptyId,

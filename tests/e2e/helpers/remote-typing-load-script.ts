@@ -15,7 +15,7 @@ export function remoteTypingLoadScript(runId: string): string {
     '  for (const char of chunk) {',
     "    if (char === '\\r' || char === '\\n') continue",
     '    seq += 1',
-    `    process.stdout.write('\\x1b[' + statusRow + ';2H\\x1b[2KREMOTE_KEY_${runId}_' + seq + '_' + char)`,
+    `    process.stdout.write('\\x1b[' + statusRow + ';2H\\x1b[2KKEY_${runId}_' + seq + '_' + char)`,
     '  }',
     '})'
   ].join(';')
