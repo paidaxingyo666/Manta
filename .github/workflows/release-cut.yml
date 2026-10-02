@@ -79,6 +79,7 @@ jobs:
       source_ref: ${{ steps.resolve.outputs.ref }}
       source_sha: ${{ steps.resolve.outputs.sha }}
       source_short_sha: ${{ steps.resolve.outputs.short_sha }}
+      ships_orcad_template: ${{ steps.mantad-template-support.outputs.ships }}
     steps:
       # Why inlined (not m-s-abeer/update-gha-summary-with-workflow-inputs):
       # this job runs with contents:write and secret scope, so avoid executing
@@ -783,6 +784,21 @@ jobs:
             git push origin "$TAG"
           fi
 
+      # Why: a patch cut from a base older than #24155 has no mantad template to build or ship.
+      - name: Detect whether the tag ships the mantad template
+        id: mantad-template-support
+        if: steps.tag.outputs.tag != '' || steps.version.outputs.recovered_tag != ''
+        env:
+          TAG: ${{ steps.tag.outputs.tag || steps.version.outputs.recovered_tag }}
+        run: |
+          set -euo pipefail
+          if git cat-file -e "refs/tags/${TAG}^{commit}:config/scripts/packaged-orcad-template.cjs" 2>/dev/null; then
+            echo "ships=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "ships=false" >>"$GITHUB_OUTPUT"
+            echo "::notice::$TAG predates the mantad template; skipping its build and download."
+          fi
+
       - name: Release E2E signal summary
         if: always()
         run: |
@@ -1154,7 +1170,7 @@ jobs:
   # signing quota, so it runs beside the release gates instead of behind them.
   mantad-template:
     needs: cut
-    if: needs.cut.outputs.should_release == 'true'
+    if: needs.cut.outputs.should_release == 'true' && needs.cut.outputs.ships_orcad_template == 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/node-server-tests.yml
@@ -1203,7 +1219,16 @@ jobs:
       - mantad-template
       - release-preflight
       - relay-windows-process-tree
-    if: needs.cut.outputs.should_release == 'true'
+    # Why not the implicit success(): a tag without the mantad template skips that job on purpose.
+    if: >-
+      !cancelled() &&
+      needs.cut.result == 'success' &&
+      needs.cut.outputs.should_release == 'true' &&
+      needs.create-release.result == 'success' &&
+      needs.release-preflight.result == 'success' &&
+      needs.relay-windows-process-tree.result == 'success' &&
+      (needs.mantad-template.result == 'success' ||
+        (needs.mantad-template.result == 'skipped' && needs.cut.outputs.ships_orcad_template == 'false'))
     env:
       # beforePack and afterPack fail the package when the template is absent.
       ORCA_REQUIRE_ORCAD_TEMPLATE: '1'
@@ -1463,6 +1488,7 @@ jobs:
 
       # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
       - name: Download the mantad deployment template
+        if: needs.cut.outputs.ships_orcad_template == 'true'
         uses: actions/download-artifact@v8
         with:
           name: mantad-template
@@ -1806,7 +1832,7 @@ jobs:
       # each file against the template manifest, so it must record the signed bytes.
       - name: Reseal the mantad template over its signed binaries
         id: reseal-orcad-template
-        if: matrix.platform == 'win' && github.run_attempt == 1 && steps.restore-signed-inner.outcome == 'success'
+        if: matrix.platform == 'win' && github.run_attempt == 1 && steps.restore-signed-inner.outcome == 'success' && needs.cut.outputs.ships_orcad_template == 'true'
         run: node config/scripts/packaged-orcad-template.cjs --reseal-signed dist/win-unpacked inner-signing-list.txt
 
       # The uninstaller must return signed before rebuilding the installer.
@@ -2306,7 +2332,16 @@ jobs:
       - release-preflight
       # release-mac-build.yml downloads the relay addons from this run.
       - relay-windows-process-tree
-    if: needs.cut.outputs.should_release == 'true'
+    # Why not the implicit success(): a tag without the mantad template skips that job on purpose.
+    if: >-
+      !cancelled() &&
+      needs.cut.result == 'success' &&
+      needs.cut.outputs.should_release == 'true' &&
+      needs.create-release.result == 'success' &&
+      needs.release-preflight.result == 'success' &&
+      needs.relay-windows-process-tree.result == 'success' &&
+      (needs.mantad-template.result == 'success' ||
+        (needs.mantad-template.result == 'skipped' && needs.cut.outputs.ships_orcad_template == 'false'))
     # Why: SignPath requires every job in this signing workflow to be
     # GitHub-hosted. The actual mac build runs in release-mac-build.yml so
     # Blacksmith stays outside Windows artifact provenance.
