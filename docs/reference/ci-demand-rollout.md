@@ -45,6 +45,15 @@ PRs pay the extra stage latency. Existing per-PR cancellation remains in place.
 Package assertions, native boundaries, SSH/folder coverage, cache warming and
 slow-test assertions are retained.
 
+The daemon running-work test imports the shared probe directly, with the daemon's
+process inspector supplied as its callback. The renderer keeps its existing
+adapter and forwarding tests. This removes a mocked renderer dependency from the
+headless graph without changing the probe algorithm or skipping backend tests.
+At validation, the graph fell from 6,018 inputs (1,070 renderer inputs) to 4,879
+inputs (no renderer inputs), including nine added shared-probe cases. Renderer
+adapter changes no longer qualify the headless matrix; shared probe and daemon
+test changes still do. Future actual renderer imports remain discoverable.
+
 ## Unit selection rollout
 
 PR planning runs alongside typechecking after their shared dependency setup; an
