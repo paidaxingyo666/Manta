@@ -38,6 +38,7 @@ const ALWAYS_ON_CODE_JOBS = new Set(['static_analysis', 'typecheck', 'test'])
 const GLOBAL_FORCE_PREFIXES = [
   '.github/workflows/pr.yml',
   '.github/actions/install-node-dependencies/',
+  '.github/actions/restore-pnpm-verification/',
   '.github/actions/prepare-native-runtime/',
   'config/scripts/pr-code-change-scope'
 ]

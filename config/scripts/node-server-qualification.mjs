@@ -12,6 +12,7 @@ const BUILD_PREFIXES = [
   'native/',
   'config/patches/',
   '.github/actions/install-node-dependencies/',
+  '.github/actions/restore-pnpm-verification/',
   '.github/actions/prepare-native-runtime/',
   '.github/actions/prepare-orcad-prebuilds/'
 ]

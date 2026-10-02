@@ -9,6 +9,7 @@ on:
     paths:
       - '.github/workflows/ci-cache-warmup.yml'
       - '.github/actions/install-node-dependencies/**'
+      - '.github/actions/restore-pnpm-verification/**'
       - '.github/actions/prepare-native-runtime/**'
       - '.github/actions/prepare-git-compatibility/**'
       - '.github/actions/prepare-linux-package-fixture/**'

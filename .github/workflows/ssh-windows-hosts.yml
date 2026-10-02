@@ -36,6 +36,7 @@ on:
       - 'config/ci/windows-ssh-provider/**'
       - '.github/workflows/ssh-windows-hosts.yml'
       - '.github/actions/prepare-orcad-prebuilds/**'
+      - '.github/actions/restore-pnpm-verification/**'
       - 'config/scripts/mantad-windows-prebuild-cache.mjs'
   workflow_dispatch:
     inputs:

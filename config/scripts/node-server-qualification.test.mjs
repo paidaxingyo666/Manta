@@ -27,6 +27,7 @@ it.each([
   'native/windows-registry/src/addon.cc',
   'config/patches/node-pty.patch',
   '.github/actions/install-node-dependencies/action.yml',
+  '.github/actions/restore-pnpm-verification/action.yml',
   '.github/actions/prepare-native-runtime/action.yml',
   '.github/actions/prepare-orcad-prebuilds/action.yml',
   'src/main/ssh/ssh-provider.ts',

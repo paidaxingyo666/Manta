@@ -30,7 +30,7 @@ inputs:
 outputs:
   verification-cache-hit:
     description: Whether pnpm's verification record was restored.
-    value: ${{ steps.verification-cache-restore.outputs.cache-hit }}
+    value: ${{ steps.verification-cache.outputs.cache-hit }}
   verification-cache-path:
     description: The small pnpm-owned verification record, without registry metadata.
     value: ${{ steps.verification-cache.outputs.path }}
@@ -110,28 +110,11 @@ runs:
         path: ${{ steps.pnpm-store.outputs.path }}
         key: node-cache-${{ runner.os }}-${{ steps.pnpm-store.outputs.arch }}-pnpm-${{ hashFiles(inputs.cache-dependency-path) }}
 
-    - name: Resolve pnpm verification cache
-      id: verification-cache
-      if: >-
-        inputs.cache-pnpm-verification == 'true' &&
-        (runner.os == 'Linux' ||
-        (runner.os == 'Windows' && (runner.arch == 'X64' || runner.arch == 'ARM64')) ||
-        (runner.os == 'macOS' && runner.arch == 'X64'))
-      shell: bash
-      env:
-        POLICY_HASH: ${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc') }}
-      run: |
-        printf 'path=%s/lockfile-verified.jsonl\n' "$(pnpm cache path)" >> "$GITHUB_OUTPUT"
-        printf 'key=pnpm-verification-v1-%s-%s-%s-%s\n' "$RUNNER_OS" "$RUNNER_ARCH" "$(pnpm --version)" "$POLICY_HASH" >> "$GITHUB_OUTPUT"
-
     - name: Restore pnpm verification record
-      id: verification-cache-restore
-      if: steps.verification-cache.outputs.key != ''
-      continue-on-error: true
-      uses: actions/cache/restore@v5
+      id: verification-cache
+      uses: ./.github/actions/restore-pnpm-verification
       with:
-        path: ${{ steps.verification-cache.outputs.path }}
-        key: ${{ steps.verification-cache.outputs.key }}
+        enabled: ${{ inputs.cache-pnpm-verification }}
 
     - name: Validate native runtime
       shell: bash
@@ -169,7 +152,7 @@ runs:
 
     # pnpm checks the cached record's policy and validity; never bypass verification.
     - name: Save pnpm verification record on main
-      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.verification-cache.outputs.key != '' && steps.verification-cache-restore.outputs.cache-hit != 'true'
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && steps.verification-cache.outputs.key != '' && steps.verification-cache.outputs.cache-hit != 'true'
       continue-on-error: true
       uses: actions/cache/save@v5
       with:

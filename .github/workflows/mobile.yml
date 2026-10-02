@@ -26,6 +26,7 @@ on:
       # it or to the release workflow it guards must re-run them.
       - '.github/workflows/mobile.yml'
       - '.github/actions/install-node-dependencies/**'
+      - '.github/actions/restore-pnpm-verification/**'
       - '.github/workflows/mobile-ios-release.yml'
       - 'config/scripts/mobile-release-check-scope*'
       - 'config/scripts/mobile-test-change-scope*'
