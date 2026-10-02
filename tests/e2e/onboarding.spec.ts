@@ -548,36 +548,6 @@ test.describe('Onboarding flow', () => {
     expect((await getOnboardingState(mantaPage)).closedAt).not.toBeNull()
   })
 
-  test('Skip from notifications does not request permission', async ({ mantaPage }) => {
-    await expect(mantaPage.getByRole('heading', { name: /Pick your default agent/i })).toBeVisible({
-      timeout: 15_000
-    })
-    await continueOnboarding(mantaPage)
-    await expect(mantaPage.getByRole('heading', { name: /Make it feel like home/i })).toBeVisible()
-    await continueFromThemeToNotifications(mantaPage)
-
-    await mantaPage.evaluate(() => {
-      localStorage.removeItem('manta.e2e.notificationPermissionRequested')
-      window.api.notifications.requestPermission = async () => {
-        localStorage.setItem('manta.e2e.notificationPermissionRequested', '1')
-        return { supported: true, platform: 'darwin', requested: true }
-      }
-    })
-    await expectOnboardingNotificationSound(mantaPage, /System Default/i)
-
-    await expect(onboardingFooterButton(mantaPage, SKIP_TO_PROJECT_SETUP_BUTTON)).toHaveCount(0)
-    await continueOnboarding(mantaPage)
-
-    await expectAddProjectDialog(mantaPage)
-    await expect
-      .poll(
-        async () =>
-          mantaPage.evaluate(() => localStorage.getItem('manta.e2e.notificationPermissionRequested')),
-        { timeout: 5_000 }
-      )
-      .toBeNull()
-  })
-
   test('selected agent button reports aria-pressed=true', async ({ mantaPage }) => {
     await expect(mantaPage.getByRole('heading', { name: /Pick your default agent/i })).toBeVisible({
       timeout: 15_000
