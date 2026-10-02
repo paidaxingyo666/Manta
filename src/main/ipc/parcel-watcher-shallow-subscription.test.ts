@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
-import { mkdir, mkdtemp, rm } from 'node:fs/promises'
+import { watch } from 'node:fs'
+import { mkdir, mkdtemp, rename, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -103,6 +104,29 @@ describe('shallow watcher subscription', () => {
     }
   })
 
+  it.skipIf(process.platform === 'win32')(
+    'preserves a literal backslash in an included filename',
+    async () => {
+      const root = await mkdtemp(join(tmpdir(), 'orca-shallow-watcher-'))
+      const events: string[] = []
+      const subscription = startShallowWatcher(
+        root,
+        ['plugin\\name'],
+        (nextEvents) => events.push(...nextEvents.map((event) => event.path)),
+        (error) => {
+          throw error
+        }
+      )
+      try {
+        emit(root, 'plugin\\name')
+        expect(events).toEqual([join(root, 'plugin\\name')])
+      } finally {
+        await subscription.unsubscribe()
+        await rm(root, { recursive: true, force: true })
+      }
+    }
+  )
+
   it('rebinds a nested directory that is replaced, which leaves fs.watch deaf', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-shallow-watcher-'))
     try {
@@ -149,6 +173,81 @@ describe('shallow watcher subscription', () => {
       expect(watcherState.get(join(root, 'logs'))?.watcher).toBe(firstNested)
       await subscription.unsubscribe()
     } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('retries a failed replacement binding and resyncs after recovery', async () => {
+    vi.useFakeTimers()
+    const root = await mkdtemp(join(tmpdir(), 'orca-shallow-watcher-'))
+    const logs = join(root, 'logs')
+    let subscription: ReturnType<typeof startShallowWatcher> | undefined
+    try {
+      await mkdir(logs)
+      const events: string[] = []
+      subscription = startShallowWatcher(
+        root,
+        ['HEAD', 'logs/HEAD'],
+        (nextEvents) => events.push(...nextEvents.map((event) => event.path)),
+        (error) => {
+          throw error
+        }
+      )
+      const initialAttempts = vi.mocked(watch).mock.calls.length
+      await rename(logs, join(root, 'old-logs'))
+      await mkdir(logs)
+      vi.mocked(watch).mockImplementationOnce(() => {
+        throw new Error('ENOSPC: watch limit reached')
+      })
+
+      await vi.advanceTimersByTimeAsync(30_000)
+      await vi.waitFor(() => expect(watch).toHaveBeenCalledTimes(initialAttempts + 1))
+      await vi.advanceTimersByTimeAsync(30_000)
+      await vi.waitFor(() => expect(watch).toHaveBeenCalledTimes(initialAttempts + 2))
+
+      expect(events).toContain(join(logs, 'HEAD'))
+      events.length = 0
+      emit(logs, 'HEAD')
+      expect(events).toEqual([join(logs, 'HEAD')])
+    } finally {
+      await subscription?.unsubscribe()
+      vi.useRealTimers()
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it('resyncs included files when an initially missing directory becomes watchable', async () => {
+    vi.useFakeTimers()
+    const root = await mkdtemp(join(tmpdir(), 'orca-shallow-watcher-'))
+    let subscription: ReturnType<typeof startShallowWatcher> | undefined
+    try {
+      const defaultWatch = vi.mocked(watch).getMockImplementation()
+      if (!defaultWatch) {
+        throw new Error('Missing watcher test implementation')
+      }
+      vi.mocked(watch)
+        .mockImplementationOnce(defaultWatch)
+        .mockImplementationOnce(() => {
+          throw new Error('ENOENT: logs directory does not exist')
+        })
+      const events: string[] = []
+      subscription = startShallowWatcher(
+        root,
+        ['HEAD', 'logs/HEAD'],
+        (nextEvents) => events.push(...nextEvents.map((event) => event.path)),
+        (error) => {
+          throw error
+        }
+      )
+      const logs = join(root, 'logs')
+      await mkdir(logs)
+      await vi.advanceTimersByTimeAsync(30_000)
+      await vi.waitFor(() => expect(watcherState.has(logs)).toBe(true))
+
+      expect(events).toContain(join(logs, 'HEAD'))
+    } finally {
+      await subscription?.unsubscribe()
+      vi.useRealTimers()
       await rm(root, { recursive: true, force: true })
     }
   })
