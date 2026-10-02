@@ -2375,6 +2375,15 @@ jobs:
       - skill-sharing-linux-floor-release-gate
       - skill-sharing-release-gate
       - terminal-rendering-golden
+    # Why explicit: a skipped mantad-template (tags that predate it) would skip every job after it.
+    if: >-
+      !cancelled() &&
+      needs.cut.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.build-mac.result == 'success' &&
+      needs.skill-sharing-linux-floor-release-gate.result == 'success' &&
+      needs.skill-sharing-release-gate.result == 'success' &&
+      needs.terminal-rendering-golden.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -2443,7 +2452,8 @@ jobs:
     needs:
       - cut
       - publish-release
-    if: ${{ needs.cut.outputs.tag != '' }}
+    # Why explicit: a skipped mantad-template (tags that predate it) would skip every job after it.
+    if: ${{ !cancelled() && needs.publish-release.result == 'success' && needs.cut.outputs.tag != '' }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -2472,7 +2482,8 @@ jobs:
     # A release created with GITHUB_TOKEN does not reliably emit a release
     # event to other workflows. Dispatch the trusted default-branch workflow;
     # it validates and checks out the released tag before deploying.
-    if: ${{ needs.cut.outputs.tag != '' }}
+    # Why explicit: a skipped mantad-template (tags that predate it) would skip every job after it.
+    if: ${{ !cancelled() && needs.publish-release.result == 'success' && needs.cut.outputs.tag != '' }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -2516,7 +2527,8 @@ jobs:
     needs:
       - cut
       - publish-release
-    if: ${{ needs.cut.outputs.tag != '' && startsWith(needs.cut.outputs.tag, 'v') }}
+    # Why explicit: a skipped mantad-template (tags that predate it) would skip every job after it.
+    if: ${{ !cancelled() && needs.publish-release.result == 'success' && needs.cut.outputs.tag != '' && startsWith(needs.cut.outputs.tag, 'v') }}
     uses: ./.github/workflows/homebrew-bump.yml
     with:
       tag: ${{ needs.cut.outputs.tag }}

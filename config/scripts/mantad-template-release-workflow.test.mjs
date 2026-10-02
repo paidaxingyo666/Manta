@@ -161,6 +161,27 @@ describe('mantad template release wiring (design D2)', () => {
     expect(macDownload.if).toBe("hashFiles('config/scripts/packaged-orcad-template.cjs') != ''")
   })
 
+  it('keeps every job downstream of the template from inheriting its skip', () => {
+    const needsOf = (name) => [releaseCut.jobs[name].needs ?? []].flat()
+    const dependsOnTemplate = (name) =>
+      needsOf(name).some((need) => need === 'mantad-template' || dependsOnTemplate(need))
+    const downstream = Object.keys(releaseCut.jobs).filter(dependsOnTemplate)
+    expect(downstream).toEqual(
+      expect.arrayContaining(['build', 'build-mac', 'publish-release', 'homebrew-bump'])
+    )
+    for (const name of downstream) {
+      // A skipped ancestor skips the job under the implicit success() that any `if` without a
+      // status function gets, so each one must override it and check its own needs instead.
+      const condition = releaseCut.jobs[name].if
+      expect(condition, name).toContain('!cancelled()')
+      for (const need of needsOf(name).filter(
+        (need) => need !== 'mantad-template' && need !== 'cut'
+      )) {
+        expect(condition, `${name} -> ${need}`).toContain(`needs.${need}.result == 'success'`)
+      }
+    }
+  })
+
   it('signs only Windows template binaries and reseals the manifest before the installer rebuild', () => {
     const steps = releaseCut.jobs.build.steps
     const stage = steps.find((step) => step.id === 'stage-inner')
