@@ -305,7 +305,7 @@ describe('PR workflow parallelism', () => {
     )
     expect(steps[restoreIndex].uses).toBe('actions/cache/restore@v5')
     expect(steps[restoreIndex].if).toBe(
-      "github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' && (runner.os != 'Windows' || !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) && !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))"
+      "github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' && !(runner.os == 'Linux' && (runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml') && (runner.os != 'Windows' || !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) && !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))"
     )
   })
 

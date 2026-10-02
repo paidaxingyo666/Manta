@@ -111,6 +111,39 @@ qualification check remain. Other lockfile sets and platforms keep their
 existing policy. Default non-PR writers, including the warmer, still seed stores
 for direct setup-node consumers and workflows that run package scripts.
 
+## October 2 Linux root store comparison
+
+A [six-job hosted comparison](https://github.com/stablyai/orca/actions/runs/37073978443)
+measured the actual main root-store archive against direct registry installation,
+with three fresh-runner pairs on each Linux architecture. All six jobs passed.
+The middle sample on each architecture reversed treatment order. Between treatments,
+the driver removed the dependency tree, store and pnpm metadata, then restored the
+same policy-checked verification record before timing. Frozen, script-free installs
+preserved policy files and produced identical installed lockfile digests in each pair.
+
+| Architecture/sample | Store restore + install | Direct registry install | Paired saving |
+| ------------------- | ----------------------- | ----------------------- | ------------- |
+| x64 / 1             | 6.516s                  | 5.372s                  | 1.144s        |
+| x64 / 2             | 6.743s                  | 3.950s                  | 2.793s        |
+| x64 / 3             | 6.600s                  | 3.985s                  | 2.615s        |
+| ARM64 / 1           | 7.632s                  | 3.346s                  | 4.286s        |
+| ARM64 / 2           | 5.504s                  | 3.575s                  | 1.929s        |
+| ARM64 / 3           | 5.450s                  | 3.364s                  | 2.086s        |
+
+Median paired savings are 2.615 seconds on x64 and 2.086 seconds on ARM64; means
+are 2.184 and 2.767 seconds. Both used Node 24.21.0 and pnpm 12.8.1. Actual store
+lookup/transfer/restore, inter-step overhead and installation are timed. Checkout,
+initial toolchain/dependency setup, preparing the existing process wrapper,
+dependency resets, verification-record restores, native work, tests, post-job cache
+saves and queues are excluded. Package services have already been used by initial
+setup. These are warm-policy setup measurements, not workflow or billing savings.
+
+The shared installer consequently skips root-only Linux x64/ARM64 store restores
+on PRs. It still installs and checks every package through pnpm. Mixed mobile and
+custom lockfile sets, other architectures, Mac behavior, verification/native caches,
+main store writers and release installation policies keep their existing behavior.
+The measured Windows exceptions remain. No new periodic job or cache is added.
+
 ## October 1 Windows and dependency cache follow-up
 
 [PR #24355](https://github.com/stablyai/orca/pull/24355) merged at `197ea3a3`.
