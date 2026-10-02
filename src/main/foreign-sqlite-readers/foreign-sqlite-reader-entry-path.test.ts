@@ -4,6 +4,7 @@ import {
   FOREIGN_SQLITE_READER_ENTRY_FILENAME as ENTRY,
   resolveForeignSqliteReaderEntryPath
 } from './foreign-sqlite-reader-entry-path'
+import { ORCAD_FOREIGN_SQLITE_READER_ENTRY } from '../../shared/mantad-artifacts'
 
 const unpackaged = (moduleDir: string) => ({
   isPackaged: false,
@@ -12,6 +13,10 @@ const unpackaged = (moduleDir: string) => ({
 })
 
 describe('resolveForeignSqliteReaderEntryPath', () => {
+  it('looks for the file name the mantad build emits', () => {
+    expect(ENTRY).toBe(ORCAD_FOREIGN_SQLITE_READER_ENTRY)
+  })
+
   it('resolves the entry beside a dev bundle', () => {
     const expected = join('out', 'main', ENTRY)
     expect(

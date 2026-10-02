@@ -5,6 +5,12 @@ import {
   parseCursorProfileReadResult,
   type CursorDesktopProfileReadResult
 } from './cursor-profile-result'
+import {
+  openCodeBinderSessionsFailure,
+  parseOpenCodeBinderSessions,
+  type BinderSessionRow,
+  type OpenCodeSessionCursor
+} from './opencode-binder-sessions-result'
 import type {
   ForeignSqliteReaderKind,
   ForeignSqliteReaderRequest,
@@ -18,9 +24,15 @@ import type {
 // Limits from the dedicated Cursor worker this replaces (#24572).
 const READ_TIMEOUT_MS: Record<ForeignSqliteReaderKind, number> = {
   // Covers the 4-6 s WAL-index rebuild reported in #24360 with margin.
-  cursorProfile: 10_000
+  cursorProfile: 10_000,
+  openCodeBinderSessions: 60_000
 }
-const IDLE_TEARDOWN_MS = 30_000
+// Why per reader: a thread torn down between a poller's rounds is respawned every round.
+const DEFAULT_IDLE_TEARDOWN_MS: Record<ForeignSqliteReaderKind, number> = {
+  cursorProfile: 30_000,
+  // The OpenCode binder polls every 60 s.
+  openCodeBinderSessions: 120_000
+}
 const MAX_CONSECUTIVE_DEATHS = 2
 // Reads are deduped per key, so a backlog past this is pile-up, not demand.
 const MAX_QUEUED_READS = 8
@@ -113,24 +125,31 @@ export class ForeignSqliteReaderLane<T> {
 
 export class ForeignSqliteReaderClient {
   private readonly cursorProfile: ForeignSqliteReaderLane<CursorDesktopProfileReadResult>
+  private readonly openCodeBinderSessions: ForeignSqliteReaderLane<BinderSessionRow[]>
 
   constructor(options: {
     workerFactory: WorkerThreadFactory
     log?: (message: string) => void
     timeoutMs?: number
-    idleTeardownMs?: number
+    idleTeardownMs?: Partial<Record<ForeignSqliteReaderKind, number>>
   }) {
     const settings = (kind: ForeignSqliteReaderKind): LaneSettings => ({
       workerFactory: options.workerFactory,
       log: options.log ?? ((message: string) => console.warn(message)),
       timeoutMs: options.timeoutMs ?? READ_TIMEOUT_MS[kind],
-      idleTeardownMs: options.idleTeardownMs ?? IDLE_TEARDOWN_MS
+      idleTeardownMs: options.idleTeardownMs?.[kind] ?? DEFAULT_IDLE_TEARDOWN_MS[kind]
     })
     this.cursorProfile = new ForeignSqliteReaderLane(
       'cursorProfile',
       parseCursorProfileReadResult,
       cursorProfileReadFailure,
       settings('cursorProfile')
+    )
+    this.openCodeBinderSessions = new ForeignSqliteReaderLane(
+      'openCodeBinderSessions',
+      parseOpenCodeBinderSessions,
+      openCodeBinderSessionsFailure,
+      settings('openCodeBinderSessions')
     )
   }
 
@@ -144,8 +163,30 @@ export class ForeignSqliteReaderClient {
     return this.cursorProfile.read(dbPath, (id) => ({ id, kind: 'cursorProfile', dbPath }))
   }
 
+  /**
+   * List OpenCode 1 sessions newer than `cursor` off the main thread.
+   * @param dbPath - The shared server's opencode.db.
+   * @param cursor - Store position the binder has handled up to.
+   * @returns Rows oldest first; `[]` when the store or the worker cannot answer.
+   */
+  readOpenCodeBinderSessions(
+    dbPath: string,
+    cursor: OpenCodeSessionCursor
+  ): Promise<BinderSessionRow[]> {
+    // Why the cursor in the key: a round from before a stop can still be in flight
+    // with an older cursor, and its rows are not the answer for a restarted round.
+    const key = JSON.stringify([dbPath, cursor.ms, cursor.id])
+    return this.openCodeBinderSessions.read(key, (id) => ({
+      id,
+      kind: 'openCodeBinderSessions',
+      dbPath,
+      cursor: { ms: cursor.ms, id: cursor.id }
+    }))
+  }
+
   dispose(): void {
     this.cursorProfile.dispose()
+    this.openCodeBinderSessions.dispose()
   }
 }
 

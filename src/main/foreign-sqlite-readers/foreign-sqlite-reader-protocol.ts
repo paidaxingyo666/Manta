@@ -1,12 +1,21 @@
 // Type-only and electron-free: the worker entry and the main-process client both import it.
 
+import type { OpenCodeSessionCursor } from './opencode-binder-sessions-result'
+
 type CursorProfileRequest = {
   id: number
   kind: 'cursorProfile'
   dbPath: string
 }
 
-export type ForeignSqliteReaderRequest = CursorProfileRequest
+type OpenCodeBinderSessionsRequest = {
+  id: number
+  kind: 'openCodeBinderSessions'
+  dbPath: string
+  cursor: OpenCodeSessionCursor
+}
+
+export type ForeignSqliteReaderRequest = CursorProfileRequest | OpenCodeBinderSessionsRequest
 
 export type ForeignSqliteReaderKind = ForeignSqliteReaderRequest['kind']
 

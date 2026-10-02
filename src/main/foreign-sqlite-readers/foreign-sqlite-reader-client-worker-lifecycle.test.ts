@@ -78,41 +78,60 @@ describe('ForeignSqliteReaderClient worker lifecycle', () => {
     expect(workers).toHaveLength(2)
   })
 
-  it('refuses new native workers until the retired worker positively terminates', async () => {
-    let spawns = 0
-    let finishRetirement: (code: number) => void = () => {}
-    const retirement = new Promise<number>((resolve) => {
-      finishRetirement = resolve
-    })
-    const events = new EventEmitter()
-    const client = makeClient(() => {
-      spawns++
-      return {
-        on: (...args) => events.on(...args),
-        off: (...args) => events.off(...args),
-        removeAllListeners: () => events.removeAllListeners(),
-        unref: () => undefined,
-        terminate: () => retirement,
-        postMessage: (request: { id: number }) => {
-          if (spawns > 1) {
-            queueMicrotask(() =>
-              events.emit('message', { id: request.id, ok: true, value: MISSING })
-            )
+  // Every reader shares the lane, so each must keep the retirement gate.
+  it.each([
+    {
+      reader: 'cursorProfile',
+      read: (client: ForeignSqliteReaderClient) =>
+        client.readCursorProfile('/synthetic/state.vscdb'),
+      failure: FAILURE,
+      answer: MISSING
+    },
+    {
+      reader: 'openCodeBinderSessions',
+      read: (client: ForeignSqliteReaderClient) =>
+        client.readOpenCodeBinderSessions('/synthetic/opencode.db', { ms: 0, id: '' }),
+      failure: [],
+      answer: [{ id: 'ses_a', directory: '/w', createdAtMs: 1, parentId: null }]
+    }
+  ])(
+    '$reader refuses new native workers until the retired worker positively terminates',
+    async ({ read, failure, answer }) => {
+      let spawns = 0
+      let finishRetirement: (code: number) => void = () => {}
+      const retirement = new Promise<number>((resolve) => {
+        finishRetirement = resolve
+      })
+      const events = new EventEmitter()
+      const client = makeClient(() => {
+        spawns++
+        return {
+          on: (...args) => events.on(...args),
+          off: (...args) => events.off(...args),
+          removeAllListeners: () => events.removeAllListeners(),
+          unref: () => undefined,
+          terminate: () => retirement,
+          postMessage: (request: { id: number }) => {
+            if (spawns > 1) {
+              queueMicrotask(() =>
+                events.emit('message', { id: request.id, ok: true, value: answer })
+              )
+            }
           }
         }
+      }, 20)
+      expect(await read(client)).toEqual(failure)
+      for (let i = 0; i < 3; i++) {
+        expect(await read(client)).toEqual(failure)
       }
-    }, 20)
-    expect(await client.readCursorProfile('/synthetic/state.vscdb')).toEqual(FAILURE)
-    for (let i = 0; i < 3; i++) {
-      expect(await client.readCursorProfile('/synthetic/state.vscdb')).toEqual(FAILURE)
+      expect(spawns).toBe(1)
+      finishRetirement(1)
+      await retirement
+      await afterRetirement()
+      expect(await read(client)).toEqual(answer)
+      expect(spawns).toBe(2)
     }
-    expect(spawns).toBe(1)
-    finishRetirement(1)
-    await retirement
-    await afterRetirement()
-    expect(await client.readCursorProfile('/synthetic/state.vscdb')).toEqual(MISSING)
-    expect(spawns).toBe(2)
-  })
+  )
 
   it('settles pending reads when disposed', async () => {
     const client = makeClient(() => new Worker('setInterval(() => {}, 1000)', { eval: true }))

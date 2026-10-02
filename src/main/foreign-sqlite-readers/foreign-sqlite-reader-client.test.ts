@@ -252,3 +252,129 @@ describe('ForeignSqliteReaderLane', () => {
     lane.dispose()
   })
 })
+
+describe('ForeignSqliteReaderClient OpenCode binder sessions', () => {
+  const START = { ms: 0, id: '' }
+  const ROW = { id: 'ses_a', directory: '/w', createdAtMs: 100, parentId: null }
+
+  it('returns the rows the worker posts', async () => {
+    const workers: FakeWorker[] = []
+    const client = new ForeignSqliteReaderClient({ workerFactory: fakeFactory(workers), log() {} })
+    const read = client.readOpenCodeBinderSessions('/o/opencode.db', { ms: 5, id: 'x' })
+    expect(workers[0]?.posted[0]).toMatchObject({
+      kind: 'openCodeBinderSessions',
+      dbPath: '/o/opencode.db',
+      cursor: { ms: 5, id: 'x' }
+    })
+    workers[0]?.reply([ROW])
+    await expect(read).resolves.toEqual([ROW])
+    client.dispose()
+  })
+
+  it('returns no sessions once the 60 s read deadline elapses', async () => {
+    vi.useFakeTimers()
+    try {
+      const workers: FakeWorker[] = []
+      const client = new ForeignSqliteReaderClient({
+        workerFactory: fakeFactory(workers),
+        log() {}
+      })
+      let result: unknown
+      void client.readOpenCodeBinderSessions('/o/opencode.db', START).then((value) => {
+        result = value
+      })
+      await vi.advanceTimersByTimeAsync(59_999)
+      expect(result).toBeUndefined()
+      await vi.advanceTimersByTimeAsync(1)
+      expect(result).toEqual([])
+      expect(workers[0]?.terminated).toBe(true)
+      client.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('returns no sessions on a worker error, a malformed reply or a crash', async () => {
+    const workers: FakeWorker[] = []
+    const client = new ForeignSqliteReaderClient({
+      workerFactory: fakeFactory(workers),
+      log() {}
+    })
+    const errored = client.readOpenCodeBinderSessions('/o/opencode.db', START)
+    workers[0]?.emit('message', { id: workers[0].posted[0]?.id, ok: false, error: 'busy' })
+    await expect(errored).resolves.toEqual([])
+    const malformed = client.readOpenCodeBinderSessions('/o/opencode.db', START)
+    workers[0]?.reply([{ id: 'ses_a' }])
+    await expect(malformed).resolves.toEqual([])
+    const crashed = client.readOpenCodeBinderSessions('/o/opencode.db', START)
+    workers[0]?.emit('exit', 1)
+    await expect(crashed).resolves.toEqual([])
+    client.dispose()
+  })
+
+  it('does not share an in-flight read across cursors', async () => {
+    const workers: FakeWorker[] = []
+    const client = new ForeignSqliteReaderClient({ workerFactory: fakeFactory(workers), log() {} })
+    const stale = client.readOpenCodeBinderSessions('/o/opencode.db', { ms: 100, id: 'ses_a' })
+    const restarted = client.readOpenCodeBinderSessions('/o/opencode.db', START)
+    expect(restarted).not.toBe(stale)
+    expect(client.readOpenCodeBinderSessions('/o/opencode.db', START)).toBe(restarted)
+    client.dispose()
+  })
+
+  it('runs on its own thread, apart from the Cursor reader', () => {
+    const workers: FakeWorker[] = []
+    const client = new ForeignSqliteReaderClient({ workerFactory: fakeFactory(workers), log() {} })
+    void client.readCursorProfile('/a/state.vscdb')
+    void client.readOpenCodeBinderSessions('/o/opencode.db', START)
+    expect(workers).toHaveLength(2)
+    expect(workers[1]?.posted[0]?.kind).toBe('openCodeBinderSessions')
+    client.dispose()
+  })
+})
+
+describe('ForeignSqliteReaderClient idle teardown', () => {
+  it('keeps the binder thread alive across its 60 s poll and tears the Cursor one down', async () => {
+    vi.useFakeTimers()
+    try {
+      const workers: FakeWorker[] = []
+      const client = new ForeignSqliteReaderClient({
+        workerFactory: fakeFactory(workers),
+        log() {}
+      })
+      const cursor = client.readCursorProfile('/a/state.vscdb')
+      const binder = client.readOpenCodeBinderSessions('/o/opencode.db', { ms: 0, id: '' })
+      workers[0]?.reply(OK)
+      workers[1]?.reply([])
+      await Promise.all([cursor, binder])
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(workers[0]?.terminated).toBe(true)
+      expect(workers[1]?.terminated).toBe(false)
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(workers[1]?.terminated).toBe(true)
+      client.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('takes a per-reader override', async () => {
+    vi.useFakeTimers()
+    try {
+      const workers: FakeWorker[] = []
+      const client = new ForeignSqliteReaderClient({
+        workerFactory: fakeFactory(workers),
+        log() {},
+        idleTeardownMs: { openCodeBinderSessions: 1_000 }
+      })
+      const binder = client.readOpenCodeBinderSessions('/o/opencode.db', { ms: 0, id: '' })
+      workers[0]?.reply([])
+      await binder
+      await vi.advanceTimersByTimeAsync(1_000)
+      expect(workers[0]?.terminated).toBe(true)
+      client.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})

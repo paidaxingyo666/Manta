@@ -4,6 +4,7 @@ import { currentWorkerEntryLayout } from '../worker-thread-entry-path'
 import type { CursorDesktopProfileReadResult } from './cursor-profile-result'
 import { ForeignSqliteReaderClient } from './foreign-sqlite-reader-client'
 import { resolveForeignSqliteReaderEntryPath } from './foreign-sqlite-reader-entry-path'
+import type { BinderSessionRow, OpenCodeSessionCursor } from './opencode-binder-sessions-result'
 
 // Why: owns the process-wide client and the real worker factory, so the client
 // class stays testable with a fake factory and callers see only plain functions.
@@ -31,4 +32,17 @@ function getSharedClient(): ForeignSqliteReaderClient {
  */
 export function readCursorDesktopProfile(dbPath: string): Promise<CursorDesktopProfileReadResult> {
   return getSharedClient().readCursorProfile(dbPath)
+}
+
+/**
+ * List OpenCode 1 sessions newer than `cursor` on the foreign SQLite reader worker.
+ * @param dbPath - The shared server's opencode.db.
+ * @param cursor - Store position the binder has handled up to.
+ * @returns Rows oldest first; `[]` when the store or the worker cannot answer.
+ */
+export function readOpenCodeBinderSessions(
+  dbPath: string,
+  cursor: OpenCodeSessionCursor
+): Promise<BinderSessionRow[]> {
+  return getSharedClient().readOpenCodeBinderSessions(dbPath, cursor)
 }

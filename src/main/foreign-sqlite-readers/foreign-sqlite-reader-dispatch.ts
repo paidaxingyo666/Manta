@@ -3,6 +3,7 @@ import type {
   ForeignSqliteReaderResponse
 } from './foreign-sqlite-reader-protocol'
 import { readCursorProfile } from './readers/cursor-profile'
+import { readOpenCodeBinderSessions } from './readers/opencode-binder-sessions'
 
 /**
  * Run one foreign-app SQLite read on the worker thread.
@@ -12,14 +13,19 @@ import { readCursorProfile } from './readers/cursor-profile'
 export function handleForeignSqliteReaderRequest(
   request: ForeignSqliteReaderRequest
 ): ForeignSqliteReaderResponse {
+  // Destructured from the parameter so `kind` narrows `request` and ends as `never`.
+  const { id, kind } = request
   try {
-    if (request.kind === 'cursorProfile') {
-      return { id: request.id, ok: true, value: readCursorProfile(request.dbPath) }
+    switch (kind) {
+      case 'cursorProfile':
+        return { id, ok: true, value: readCursorProfile(request.dbPath) }
+      case 'openCodeBinderSessions':
+        return { id, ok: true, value: readOpenCodeBinderSessions(request.dbPath, request.cursor) }
     }
     // A structured clone can carry any kind; one without a reader is refused, not guessed at.
-    return unknownKind(request.id, request.kind)
+    return unknownKind(id, kind)
   } catch (err) {
-    return { id: request.id, ok: false, error: err instanceof Error ? err.message : String(err) }
+    return { id, ok: false, error: err instanceof Error ? err.message : String(err) }
   }
 }
 
