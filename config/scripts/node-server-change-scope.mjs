@@ -1,12 +1,6 @@
-import { build } from 'esbuild'
 import { appendFileSync, globSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import {
-  externalNativeAddons,
-  ORCAD_CHILD_ENTRY_POINTS,
-  ORCAD_ENTRY_POINT
-} from './mantad-entry-build.mjs'
 import { nodeServerTestPaths } from './node-server-test-paths.mjs'
 import { nodeServerQualification } from './node-server-qualification.mjs'
 
@@ -68,6 +62,8 @@ export function discoverNodeServerTests(root = ROOT) {
 }
 
 export async function collectNodeServerInputs({ root = ROOT, entryPoints } = {}) {
+  const [{ build }, { externalNativeAddons, ORCAD_CHILD_ENTRY_POINTS, ORCAD_ENTRY_POINT }] =
+    await Promise.all([import('esbuild'), import('./mantad-entry-build.mjs')])
   const entries = entryPoints ?? [
     ORCAD_ENTRY_POINT,
     ...Object.values(ORCAD_CHILD_ENTRY_POINTS),
@@ -99,7 +95,11 @@ export async function collectNodeServerInputs({ root = ROOT, entryPoints } = {})
   )
 }
 
-export async function classifyNodeServerChanges(changedFiles, collect = collectNodeServerInputs) {
+export async function classifyNodeServerChanges(
+  changedFiles,
+  collect = collectNodeServerInputs,
+  { deferGraph = false } = {}
+) {
   if (changedFiles.length === 0) {
     return { shouldRun: true, reason: 'No complete changed-file evidence' }
   }
@@ -112,6 +112,9 @@ export async function classifyNodeServerChanges(changedFiles, collect = collectN
   )
   if (forced) {
     return { shouldRun: true, reason: `Build or CI input changed: ${forced}` }
+  }
+  if (deferGraph) {
+    return { graphRequired: true, reason: 'Installed dependencies are needed to check imports' }
   }
   try {
     const inputs = await collect()
@@ -133,12 +136,16 @@ export async function classifyNodeServerChanges(changedFiles, collect = collectN
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const changedFiles = readFileSync(process.argv[2], 'utf8').split('\0').filter(Boolean)
-  const result = await classifyNodeServerChanges(changedFiles)
+  const result = await classifyNodeServerChanges(changedFiles, collectNodeServerInputs, {
+    deferGraph: process.argv.includes('--defer-graph')
+  })
   console.log(result.reason)
   const policy = nodeServerQualification(changedFiles, result, {
     fullQualification: process.argv.includes('--full-qualification')
   })
-  const output = `should_run=${result.shouldRun}\nqualification=${policy.qualification}\nrunners=${JSON.stringify(policy.runners)}\n`
+  const output = result.graphRequired
+    ? 'graph_required=true\n'
+    : `should_run=${result.shouldRun}\nqualification=${policy.qualification}\nrunners=${JSON.stringify(policy.runners)}\n`
   if (process.env.GITHUB_OUTPUT) {
     appendFileSync(process.env.GITHUB_OUTPUT, output)
   } else {

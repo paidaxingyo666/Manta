@@ -74,15 +74,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      should_run: ${{ steps.scope.outputs.should_run }}
-      qualification: ${{ steps.scope.outputs.qualification }}
-      runners: ${{ steps.scope.outputs.runners }}
+      should_run: ${{ steps.scope.outputs.should_run || steps.graph.outputs.should_run }}
+      qualification: ${{ steps.scope.outputs.qualification || steps.graph.outputs.qualification }}
+      runners: ${{ steps.scope.outputs.runners || steps.graph.outputs.runners }}
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2
           persist-credentials: false
-      - uses: ./.github/actions/install-node-dependencies
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          package-manager-cache: false
       - name: Detect headless-server build and test inputs
         id: scope
         shell: bash
@@ -94,7 +97,7 @@ jobs:
             # Compare the entire push, including multi-commit pushes and removed files.
             if git fetch --no-tags --depth=1 origin "$PUSH_BASE" &&
                git diff --name-only --no-renames -z "$PUSH_BASE" HEAD > "$RUNNER_TEMP/node-server-changes"; then
-              node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes" --full-qualification
+              node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes" --defer-graph --full-qualification
             else
               echo 'should_run=true' >> "$GITHUB_OUTPUT"
             fi
@@ -102,9 +105,24 @@ jobs:
           fi
           # Compare the tested merge with its base, retaining both sides of renames.
           if git diff --name-only --no-renames -z HEAD^1 HEAD > "$RUNNER_TEMP/node-server-changes"; then
-            node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes"
+            node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes" --defer-graph
           else
             echo 'should_run=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: ./.github/actions/install-node-dependencies
+        if: steps.scope.outputs.graph_required == 'true'
+      - name: Check the headless import graph
+        id: graph
+        if: steps.scope.outputs.graph_required == 'true'
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = push ]; then
+            node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes" --full-qualification
+          else
+            node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes"
           fi
 
   persistence:
