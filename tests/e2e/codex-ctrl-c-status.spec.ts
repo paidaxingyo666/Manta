@@ -1,11 +1,19 @@
 import { appendFileSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import {
+  buildShellCommandFromArgv,
+  resolveStartupShell
+} from '../../src/shared/tui-agent-startup-shell'
+import { resolveLocalWindowsAgentStartupShell } from '../../src/shared/windows-terminal-shell'
 import { test, expect } from './helpers/manta-app'
 import { emitCodexHookStatus, readHookEndpoint } from './helpers/agent-hook-endpoint'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
   focusActiveTerminalInput,
+  execInTerminal,
+  waitForActivePanePtyId,
+  waitForTerminalOutput,
   waitForActivePaneHookDescriptor,
   waitForActiveTerminalManager
 } from './helpers/terminal'
@@ -34,6 +42,36 @@ test('Codex Ctrl+C preserves working status until a confirmed interruption', asy
     `${JSON.stringify({ type: 'event_msg', payload: { type: 'task_started', turn_id: 'turn-1' } })}\n`
   )
   try {
+    const inputScript = join(dir, 'codex-input.cjs')
+    writeFileSync(
+      inputScript,
+      `
+process.stdin.setRawMode(true)
+process.stdin.resume()
+process.stdin.on('data', (chunk) => {
+  if (chunk.includes(3)) process.stdout.write('ORCA_CTRL_C_RECEIVED\\n')
+})
+process.stdout.write('ORCA_CODEX_INPUT_READY\\n')
+`
+    )
+    const terminalWindowsShell = await mantaPage.evaluate(
+      () => window.__store?.getState().settings.terminalWindowsShell
+    )
+    const shell = resolveStartupShell(
+      process.platform,
+      resolveLocalWindowsAgentStartupShell({
+        platform: process.platform,
+        isRemote: false,
+        terminalWindowsShell
+      })
+    )
+    const ptyId = await waitForActivePanePtyId(mantaPage)
+    await execInTerminal(
+      mantaPage,
+      ptyId,
+      buildShellCommandFromArgv([process.execPath, inputScript], shell)
+    )
+    await waitForTerminalOutput(mantaPage, 'ORCA_CODEX_INPUT_READY')
     await emitCodexHookStatus(endpoint, {
       ...descriptor,
       transcriptPath,
@@ -54,6 +92,7 @@ test('Codex Ctrl+C preserves working status until a confirmed interruption', asy
     await expect(mantaPage.getByText('Main task continues', { exact: true })).toBeVisible()
     await focusActiveTerminalInput(mantaPage)
     await mantaPage.keyboard.press('Control+c')
+    await waitForTerminalOutput(mantaPage, 'ORCA_CTRL_C_RECEIVED')
     // Allow the old 500 ms inference timer to fire before recording the rendered result.
     await mantaPage.waitForTimeout(1_000)
     await mantaPage.screenshot({
