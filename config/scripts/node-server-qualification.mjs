@@ -1,7 +1,7 @@
 export const NODE_SERVER_RUNNERS = [
   'ubuntu-22.04',
   'ubuntu-24.04-arm',
-  'macos-14',
+  'macos-15',
   'macos-15-intel',
   'windows-2022',
   'windows-11-arm'
