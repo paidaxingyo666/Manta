@@ -296,7 +296,10 @@ describe('cross-version structured agent sessions', () => {
         error: { message: expect.stringContaining('structured_agent_session_unsupported') }
       })
       if (baseline.methodNames.includes('agentSession.createSupport')) {
-        expect(replies[0]?.error).toEqual((await createSupport(baseline, released()))[0]?.error)
+        // Older clients read the existing refusal fields and ignore additive error metadata.
+        expect(replies[0]).toMatchObject({
+          error: (await createSupport(baseline, released()))[0]?.error
+        })
       }
     })
 

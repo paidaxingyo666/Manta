@@ -54,6 +54,7 @@ type OldReplay = {
   truncateFrom?: number
 }
 
+// Both downgrade probes load real old builds, including cold extraction and transforms.
 test("an older build keeps every row around a Stop's event and a Resume, and folds the rows after them", async () => {
   const directory = mkdtempSync(join(tmpdir(), 'orca-stop-event-downgrade-'))
   const journals = createTrackedJournalOpener()
@@ -147,7 +148,7 @@ test("an older build keeps every row around a Stop's event and a Resume, and fol
     await journals.closeAll()
     rmSync(directory, { recursive: true, force: true })
   }
-})
+}, 120_000)
 
 type OlderJournal = {
   isReadOnly: boolean
