@@ -34,11 +34,47 @@ The [DNF command reference](https://dnf.readthedocs.io/en/stable/command_ref.htm
 defines `--disablerepo` as a temporary command-level filter, so later commands
 retain the image's repository configuration.
 
+The [PR qualification run](https://github.com/stablyai/orca/actions/runs/36972824276/job/110734327685)
+passed the x64 floor native smoke and persistence suite. Its prerequisite step
+finished within GitHub's one-second timing resolution, compared with 5 minutes
+37 seconds in the baseline job; the supplied tools needed no package install.
+This measures that step, not the complete workflow or its queue time.
+
 A [completed main run](https://github.com/stablyai/orca/actions/runs/36962172614)
 used 42 aggregate runner-minutes across 11 test jobs. The
 [latest daily demand report](https://github.com/stablyai/orca/actions/runs/36965354205)
 estimates 34.9 headless runner-hours, including 23.4 in cancelled runs. These are
 baseline observations; post-merge savings have not yet been measured.
+
+## SSH Windows slot reuse
+
+The SSH Windows host workflow uses the same server-slot preparation action as
+headless qualification. Its four PR jobs can restore the exact slot published by
+fully qualified main runs, then validate its inventory and hashes and run the
+required-slot and pinned-Node smoke checks. Misses or invalid payloads compile
+freshly. Only main headless qualification publishes; manual SSH qualification
+still builds freshly. Both sshd versions, both architectures, all three host
+cells, the process-table addon build, and the template/relay builds remain.
+
+The action is part of the cache fingerprint, so this extraction starts a new
+namespace that needs a successful main seed. The existing hosted measurements
+below suggest about 160 aggregate runner-seconds saved across four warm SSH jobs;
+that is a conditional estimate, not a measured improvement of this consumer.
+Private sshd installation and host execution still dominate this workflow.
+
+## Prepared relay addon reuse
+
+A [completed SSH Windows run](https://github.com/stablyai/orca/actions/runs/36972043877)
+rebuilt the process-table relay addon after native dependency preparation. From
+its builder's start message to the validated staged artifact, x64 took 85.5 seconds
+and ARM64 took 135.6 seconds. These are single-run observations, not medians.
+
+An opt-in reuse path checks the same binary architecture, patched reader and
+launcher exports as staging, then runs the existing native-load and CreationTime
+probe. Repaired source or incomplete evidence requires a fresh build. SSH PRs
+request reuse only following an exact prepared native-cache hit; manual SSH and
+all release builders retain fresh compilation. Subsequent staging checks still
+run. Hosted validation and the reuse interval remain to be measured.
 
 ## October 1 Windows and dependency cache follow-up
 

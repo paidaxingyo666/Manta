@@ -28,12 +28,15 @@ on:
       - 'config/patches/@vscode__windows-process-tree*'
       - 'config/scripts/build-windows-process-tree-relay-addon.mjs'
       - 'config/scripts/relay-windows-process-tree-staging.mjs'
+      - 'config/scripts/relay-windows-process-tree-prepared-addon*.mjs'
       - 'config/scripts/windows-process-tree-gyp-rebuild.mjs'
       - 'src/shared/relay-windows-breakaway-launch.ts'
       - '!src/**/*.test.ts'
       - 'src/main/ssh/ssh-relay-windows-host-lane.test.ts'
       - 'config/ci/windows-ssh-provider/**'
       - '.github/workflows/ssh-windows-hosts.yml'
+      - '.github/actions/prepare-orcad-prebuilds/**'
+      - 'config/scripts/mantad-windows-prebuild-cache.mjs'
   workflow_dispatch:
     inputs:
       cells:
@@ -81,6 +84,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/install-node-dependencies
+        id: dependencies
         with:
           native-runtime: node
       - name: Self-test the provisioning scripts before touching the machine
@@ -95,15 +99,26 @@ jobs:
       # The deploy materializes rung A from this template; only this runner's slot exists here.
       # The process-tree addon carries the launcher that starts the relay outside sshd's job; the
       # mantad slot and the relay both stage it, and a standard-user host has no other launch route.
-      - name: Build this runner's mantad slot, the win32 template and the relay
+      - name: Build this runner's Windows process-table addon
+        shell: bash
+        env:
+          REUSE_PREPARED_RUNTIME: ${{ github.event_name == 'pull_request' && steps.dependencies.outputs.native-cache-hit == 'true' }}
+        run: |
+          reuse_args=()
+          if [ "$REUSE_PREPARED_RUNTIME" = true ]; then
+            reuse_args+=(--reuse-prepared-runtime)
+          fi
+          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=${{ matrix.arch }} "${reuse_args[@]}"
+      - uses: ./.github/actions/prepare-orcad-prebuilds
+        with:
+          resolve-windows-cache: ${{ github.event_name == 'pull_request' }}
+          restore-windows-cache: ${{ github.event_name == 'pull_request' }}
+      - name: Build the win32 template and the relay
         shell: bash
         env:
           MANTA_REQUIRE_RELAY_NATIVE_ADDONS: ${{ matrix.arch }}
         run: |
-          node config/scripts/build-windows-process-tree-relay-addon.mjs --arch=${{ matrix.arch }}
-          pnpm build:mantad-prebuilds
           pnpm build:mantad-prebuilds --require-slots "win32-${{ matrix.arch }}"
-          pnpm build:mantad-prebuilds --smoke
           node config/scripts/build-mantad-template.mjs --targets "win32-${{ matrix.arch }}"
           pnpm run build:relay
       - name: Run the Windows host cells against a private ${{ matrix.server }} sshd

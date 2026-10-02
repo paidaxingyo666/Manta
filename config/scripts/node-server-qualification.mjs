@@ -12,7 +12,8 @@ const BUILD_PREFIXES = [
   'native/',
   'config/patches/',
   '.github/actions/install-node-dependencies/',
-  '.github/actions/prepare-native-runtime/'
+  '.github/actions/prepare-native-runtime/',
+  '.github/actions/prepare-orcad-prebuilds/'
 ]
 // A remote target's OS does not identify the client platform that builds its commands.
 const CROSS_HOST_PREFIXES = ['src/main/ssh/', 'src/main/providers/', 'src/relay/']

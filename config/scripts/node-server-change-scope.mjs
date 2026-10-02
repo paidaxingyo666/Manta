@@ -43,6 +43,7 @@ const ALWAYS_FILES = new Set([
 const ALWAYS_PREFIXES = [
   '.github/actions/install-node-dependencies/',
   '.github/actions/prepare-native-runtime/',
+  '.github/actions/prepare-orcad-prebuilds/',
   // These areas also contain worker paths and fixtures opened without an import.
   'src/main/persistence/',
   'src/main/sqlite/',

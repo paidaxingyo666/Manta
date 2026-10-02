@@ -84,6 +84,7 @@ it.each([
   'native/windows-registry/src/addon.cc',
   '.github/actions/install-node-dependencies/action.yml',
   '.github/actions/prepare-native-runtime/action.yml',
+  '.github/actions/prepare-orcad-prebuilds/action.yml',
   '.github/workflows/node-server-tests.yml',
   'src/main/persistence/profile-state/new-worker.ts'
 ])('always selects build, native and dynamically opened inputs: %s', async (file) => {
@@ -113,6 +114,7 @@ describe('the actual Bun build and profile-test dependency graph', () => {
     'src/main/worker-thread-entry-path.ts',
     'config/scripts/zip-extractor-command.mjs',
     'config/scripts/windows-process-tree-gyp-rebuild.mjs',
+    'config/scripts/relay-windows-process-tree-prepared-addon.mjs',
     'config/scripts/mantad-windows-prebuild-cache.mjs',
     'config/scripts/profile-state-worker-smoke.mjs',
     'config/scripts/vitest-host-ports-setup.ts',
