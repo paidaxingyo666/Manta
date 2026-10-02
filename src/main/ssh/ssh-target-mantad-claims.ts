@@ -107,6 +107,17 @@ export class SshTargetOrcadClaims {
 }
 
 function collectEmptyTargetBlockers(store: ClaimStore, target: SshTarget): OrcadMigrationBlocker[] {
+  return [
+    ...collectTargetCatalogBlockers(store, target),
+    ...collectDependentStateBlockers(store, target.id)
+  ]
+}
+
+/** Ownership, the catalog rows the target owns, and its saved port forwards. */
+export function collectTargetCatalogBlockers(
+  store: Pick<Store, 'getFolderWorkspaces' | 'getRepos'>,
+  target: SshTarget
+): OrcadMigrationBlocker[] {
   const blockers: OrcadMigrationBlocker[] = []
   if (target.owner) {
     blockers.push({
@@ -144,7 +155,6 @@ function collectEmptyTargetBlockers(store: ClaimStore, target: SshTarget): Orcad
       portForwards: target.portForwards.map((portForward) => ({ ...portForward }))
     })
   }
-  blockers.push(...collectDependentStateBlockers(store, target.id))
   return blockers
 }
 

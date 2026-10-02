@@ -5,11 +5,13 @@
 import type { Store } from '../persistence'
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import { toSshExecutionHostId } from '../../shared/execution-host'
-import type {
-  OrcadMigrationBlocker,
-  OrcadMigrationDependency,
-  OrcadMigrationDependencyKind
+import {
+  ORCAD_MIGRATION_DEPENDENCY_KINDS,
+  type OrcadMigrationBlocker,
+  type OrcadMigrationDependency,
+  type OrcadMigrationDependencyKind
 } from '../../shared/orcad-migration-preflight'
+import type { OrcadMigrationManifest } from '../../shared/orcad-migration-manifest'
 
 export type DependentStateStore = Pick<
   Store,
@@ -74,6 +76,40 @@ export function collectDependentStateBlockers(
     })
   }
   return blockers
+}
+
+/** Kinds with their own blockers (port forwards, terminal leases) are counted elsewhere. */
+const CENSUS_DEPENDENCY_KINDS = ORCAD_MIGRATION_DEPENDENCY_KINDS.filter(
+  (kind) => kind !== 'saved-port-forward' && kind !== 'terminal-lease'
+)
+
+/**
+ * The export-aware census: only state that references the target and that this manifest cannot
+ * carry blocks. A census the store could not take is unverifiable, never an empty one.
+ */
+export function collectUntransferredDependentBlockers(
+  store: Pick<Store, 'inspectOrcadMigrationUntransferredDependencies'>,
+  manifest: OrcadMigrationManifest
+): OrcadMigrationBlocker[] {
+  let counts: Record<OrcadMigrationDependencyKind, number>
+  try {
+    counts = store.inspectOrcadMigrationUntransferredDependencies(manifest).counts
+  } catch {
+    return [
+      {
+        code: 'orcad_migration_dependency_unverifiable',
+        category: 'live-or-unverifiable',
+        sources: [...CENSUS_DEPENDENCY_KINDS]
+      }
+    ]
+  }
+  const dependencies = CENSUS_DEPENDENCY_KINDS.filter((kind) => counts[kind] > 0).map((kind) => ({
+    kind,
+    count: counts[kind]
+  }))
+  return dependencies.length > 0
+    ? [{ code: 'orcad_migration_dependent_state', category: 'client-owned-state', dependencies }]
+    : []
 }
 
 /** Non-default fields of the host's session partition, plus a local session pointed at the host. */
