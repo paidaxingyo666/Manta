@@ -44,6 +44,7 @@ import {
   stopSyntheticTitleSpinnerTimer
 } from './synthetic-title-runtime'
 import { requireMainWindowServices } from './main-window-service-readiness'
+import { recordRendererLaunchFailureProbe } from '../window/renderer-launch-failure-probe'
 
 const TRAY_CREATE_FALLBACK_MS = 12_000
 const AGENT_STATE_CRASH_BREADCRUMB_MIN_INTERVAL_MS = 30_000
@@ -100,7 +101,7 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
       state.isQuitting = false
       clearExpectedRendererReload()
     },
-    onRendererProcessGone: (details, webContentsId) =>
+    onRendererProcessGone: (details, webContentsId) => {
       recordProcessGoneCrash(
         'renderer',
         'renderer',
@@ -108,7 +109,12 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
         details.exitCode ?? null,
         { processType: 'renderer' },
         webContentsId
-      ),
+      )
+      // Why: launch-failed only says a spawn failed; the probe's errno (EAGAIN = process limit) names the cause.
+      if (details.reason === 'launch-failed' && !state.isQuitting) {
+        void recordRendererLaunchFailureProbe(details)
+      }
+    },
     shouldRecoverRenderer: (details, webContentsId) =>
       shouldRecoverRendererAfterProcessGone({
         reason: details.reason,
@@ -119,9 +125,11 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
       recordDurableCrashBreadcrumb(
         cause === 'reload-stalled'
           ? 'renderer_recovery_reload_exhausted'
-          : cause === 'low-commit'
-            ? 'renderer_recovery_low_commit_prompt'
-            : 'renderer_recovery_circuit_breaker_open',
+          : cause === 'launch-failed'
+            ? 'renderer_recovery_launch_backoff_exhausted'
+            : cause === 'low-commit'
+              ? 'renderer_recovery_low_commit_prompt'
+              : 'renderer_recovery_circuit_breaker_open',
         {
           reason: details.reason,
           exitCode: details.exitCode ?? null,

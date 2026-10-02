@@ -18508,7 +18508,12 @@
     "genericDetail": "Il s'agit souvent d'un problème de pilote graphique ou d'installation. Rechargez pour réessayer, ou quittez et relancez Manta.",
     "title": "Manta ne parvient toujours pas à charger",
     "stalledMessage": "La fenêtre de l'application a cessé de répondre lors du rechargement après un crash.",
-    "crashLoopMessage": "La fenêtre de l'application s'est écrasée à plusieurs reprises et a cessé de se recharger automatiquement."
+    "crashLoopMessage": "La fenêtre de l'application s'est écrasée à plusieurs reprises et a cessé de se recharger automatiquement.",
+    "tryAgain": "Réessayer",
+    "launchFailedMessage": "Manta n'a pas pu démarrer le processus qui affiche sa fenêtre.",
+    "launchFailedDetail": "Manta a réessayé {{recoveryCount}} fois sans succès.",
+    "processLimitDetail": "Le système a refusé de créer un nouveau processus, car votre compte utilisateur a atteint sa limite de processus. Cela vient souvent de terminaux, de serveurs de développement ou d'agents emballés. Fermez-en quelques-uns, puis cliquez sur Réessayer.",
+    "launchFailedGenericDetail": "Le système a refusé de le démarrer. Libérez de la mémoire ou fermez d'autres applications, puis cliquez sur Réessayer. Si le problème persiste, réinstallez Manta."
   },
   "sessionSearch": {
     "panel": {

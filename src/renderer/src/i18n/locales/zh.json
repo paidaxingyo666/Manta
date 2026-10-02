@@ -18508,7 +18508,12 @@
     "genericDetail": "这通常是图形驱动程序或安装问题。重新加载以重试，或退出并重新启动 Manta。",
     "title": "Manta 一直无法加载",
     "stalledMessage": "崩溃后重新加载时应用程序窗口停止响应。",
-    "crashLoopMessage": "应用程序窗口反复崩溃并自动停止重新加载。"
+    "crashLoopMessage": "应用程序窗口反复崩溃并自动停止重新加载。",
+    "tryAgain": "重试",
+    "launchFailedMessage": "Manta 无法启动绘制其窗口的进程。",
+    "launchFailedDetail": "Manta 重试了 {{recoveryCount}} 次，但未成功。",
+    "processLimitDetail": "由于你的用户帐户已达到进程数上限，系统拒绝创建新进程。这通常由失控的终端、开发服务器或代理导致。请关闭其中一些，然后点击“重试”。",
+    "launchFailedGenericDetail": "系统拒绝启动它。请释放内存或关闭其他应用，然后点击“重试”。如果问题持续出现，请重新安装 Manta。"
   },
   "sessionSearch": {
     "panel": {

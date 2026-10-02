@@ -18508,7 +18508,12 @@
     "genericDetail": "이는 종종 그래픽 드라이버 또는 설치 문제입니다. 새로고침하여 다시 시도하거나 Manta를 종료하고 다시 시작하세요.",
     "title": "Manta가 계속 로드되지 않습니다.",
     "stalledMessage": "충돌 후 다시 로드하는 동안 앱 창이 응답을 멈췄습니다.",
-    "crashLoopMessage": "앱 창이 반복적으로 충돌하고 자동으로 다시 로드되지 않았습니다."
+    "crashLoopMessage": "앱 창이 반복적으로 충돌하고 자동으로 다시 로드되지 않았습니다.",
+    "tryAgain": "다시 시도",
+    "launchFailedMessage": "Manta가 창을 그리는 프로세스를 시작하지 못했습니다.",
+    "launchFailedDetail": "Manta가 {{recoveryCount}}번 다시 시도했지만 성공하지 못했습니다.",
+    "processLimitDetail": "사용자 계정이 프로세스 수 한도에 도달하여 시스템이 새 프로세스 생성을 거부했습니다. 폭주한 터미널, 개발 서버 또는 에이전트가 원인인 경우가 많습니다. 일부를 종료한 다음 다시 시도를 클릭하세요.",
+    "launchFailedGenericDetail": "시스템이 시작을 거부했습니다. 메모리를 확보하거나 다른 앱을 종료한 다음 다시 시도를 클릭하세요. 계속 발생하면 Manta를 다시 설치하세요."
   },
   "sessionSearch": {
     "panel": {
