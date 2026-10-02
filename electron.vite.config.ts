@@ -239,9 +239,6 @@ export const electronViteConfig: UserConfig = {
           'foreign-sqlite-reader-entry': resolve(
             'src/main/foreign-sqlite-readers/foreign-sqlite-reader-entry.ts'
           ),
-          'session-scanner-worker-entry': resolve(
-            'src/main/ai-vault/session-scanner-worker-entry.ts'
-          ),
           'session-scanner-service-entry': resolve(
             'src/main/ai-vault/session-scanner-service-entry.ts'
           ),

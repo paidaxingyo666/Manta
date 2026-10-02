@@ -56,7 +56,6 @@ const WORKER_THREAD_ENTRY_NAMES = [
   'stt-worker',
   'warp-theme-parser-worker',
   'foreign-sqlite-reader-entry',
-  'session-scanner-worker-entry',
   'main-thread-hang-watchdog-entry',
   'port-scan-command-worker-entry',
   'usage-scan-worker-entry',
