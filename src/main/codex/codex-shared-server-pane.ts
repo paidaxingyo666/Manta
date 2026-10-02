@@ -1,3 +1,4 @@
+import { win32 as pathWin32 } from 'node:path'
 import { recognizeAgentProcessFromCommandLine } from '../../shared/agent-process-recognition'
 import { codexCommandLineJoinsSharedServer } from '../../shared/codex-shared-server-command'
 import {
@@ -8,23 +9,41 @@ import {
 import { getProcessTableSnapshot } from '../../shared/process-table-snapshot-reader'
 import { readWindowsProcessTable } from '../windows/windows-process-table'
 import { isShellStartupEnvProbeSupported } from '../pty/shell-startup-env'
+import { fishArgsSkipConfig } from '../fish-xdg-data-dirs-handoff'
 import { getSystemCodexHomePath, resolveMantaManagedCodexHomePath } from './codex-home-paths'
 import { getCodexPaneAccount } from './codex-pane-account-registry'
 import { probeCodexSharedServer } from './codex-shared-server-probe'
 
-type CommandRow = ProcessIdentityRow & { command: string }
+type CommandRow = ProcessIdentityRow & { command: string; name?: string }
+
+export type PaneCodexProcess = {
+  command: string
+  /** Lowercase name of the process that launched Codex, e.g. `zsh` or `pwsh`; null when absent. */
+  shell: string | null
+}
+
+// Why name first: Windows rows carry the image name, and their command line may be empty.
+function executableName(row: CommandRow): string {
+  const executable = row.name || row.command.trim().split(/\s+/)[0] || ''
+  return pathWin32
+    .basename(executable)
+    .replace(/^-/, '')
+    .replace(/\.exe$/i, '')
+    .toLowerCase()
+}
 
 /**
- * The outermost Codex under the pane's shell. Outermost because a launcher
- * (`node …/codex.js`) carries the argv, and on Windows the shared server it
- * starts is its own child.
+ * The outermost Codex under the pane's shell, and the shell it was typed into.
+ * Outermost because a launcher (`node …/codex.js`) carries the argv, and on
+ * Windows the shared server it starts is its own child.
  */
-export function findPaneCodexCommandLine(
+export function findPaneCodex(
   rows: readonly CommandRow[],
   rootPid: number
-): string | null {
+): PaneCodexProcess | null {
+  const index = getProcessTableIndex(rows)
   let outermost: (CommandRow & { depth: number }) | null = null
-  for (const row of collectDescendantsFromIndex(getProcessTableIndex(rows), rootPid)) {
+  for (const row of collectDescendantsFromIndex(index, rootPid)) {
     if (
       (!outermost || row.depth < outermost.depth) &&
       recognizeAgentProcessFromCommandLine(row.command, { includeHeadlessOneShot: true })?.agent ===
@@ -33,7 +52,15 @@ export function findPaneCodexCommandLine(
       outermost = row
     }
   }
-  return outermost?.command ?? null
+  if (!outermost) {
+    return null
+  }
+  const parent = index.byPid.get(outermost.ppid)
+  const shell = parent ? executableName(parent) : null
+  // Why: fish without config never loads Manta's codex function, so it counts as unwrapped.
+  const unwrappedFish =
+    shell === 'fish' && fishArgsSkipConfig(parent?.command.trim().split(/\s+/).slice(1) ?? [])
+  return { command: outermost.command, shell: unwrappedFish ? null : shell }
 }
 
 /**
@@ -70,18 +97,21 @@ export function isCodexPaneOnOrcaMirrorHome(ptyId: string): boolean {
   )
 }
 
-/** Whether the Codex running in this local pane is a client of Codex's shared server. */
-export async function isPaneCodexOnSharedServer(ptyId: string, rootPid: number): Promise<boolean> {
+/** This local pane's Codex when it is a client of Codex's shared server; otherwise null. */
+export async function findPaneCodexOnSharedServer(
+  ptyId: string,
+  rootPid: number
+): Promise<PaneCodexProcess | null> {
   const codexHome = resolveCodexPaneHome(ptyId)
   if (!codexHome) {
-    return false
+    return null
   }
   const rows: readonly CommandRow[] =
     process.platform === 'win32' ? await readWindowsProcessTable() : await getProcessTableSnapshot()
-  const commandLine = findPaneCodexCommandLine(rows, rootPid)
-  return (
-    commandLine !== null &&
-    codexCommandLineJoinsSharedServer(commandLine) &&
+  const codex = findPaneCodex(rows, rootPid)
+  return codex &&
+    codexCommandLineJoinsSharedServer(codex.command) &&
     (await probeCodexSharedServer(codexHome)) === 'live'
-  )
+    ? codex
+    : null
 }

@@ -18657,7 +18657,12 @@
     "codexSharedServerBanner": {
       "title": "This Codex is sharing a server with your other Codex tabs",
       "body": "Sessions may end unexpectedly, and agent status may be wrong.",
+      "openedBeforeUpdateBody": "This terminal was opened before Manta started giving each Codex its own server.",
+      "oldTerminalDialogTitle": "Why this Codex shares a server",
+      "oldTerminalDialogRisk": "Codex sessions that share a server can end together, and agent status can be wrong.",
+      "oldTerminalDialogCause": "Older terminals still share a Codex server. Open a new terminal to run Codex on a separate server.",
       "fix": "Fix",
+      "openNewTerminal": "Open new terminal",
       "dontShowAgain": "Don't show again",
       "dismiss": "Dismiss",
       "dialogTitle": "Give each Codex tab its own server",

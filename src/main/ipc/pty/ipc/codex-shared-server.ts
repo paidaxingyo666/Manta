@@ -1,8 +1,8 @@
 import { getPtyIpc } from '../../pty-host-bindings'
 import { parseAppSshPtyId } from '../../../providers/ssh-pty-id'
 import {
+  findPaneCodexOnSharedServer,
   isCodexPaneOnOrcaMirrorHome,
-  isPaneCodexOnSharedServer,
   resolveCodexPaneHome
 } from '../../../codex/codex-shared-server-pane'
 import {
@@ -10,8 +10,24 @@ import {
   disableCodexSharedServerAutoStartOnOrcaMirror,
   stopCodexSharedServer
 } from '../../../codex/codex-shared-server-fix'
+import { getLegacyDaemonAdapters } from '../../../daemon/daemon-provider-routing'
+import {
+  CODEX_FISH_SHELL_FUNCTION_DAEMON_PROTOCOL_VERSION,
+  CODEX_NO_DAEMON_SHELL_LAUNCH_DAEMON_PROTOCOL_VERSION
+} from '../../../daemon/daemon-protocol-version'
+import type { CodexSharedServerStatus } from '../../../../shared/codex-shared-server-command'
 import { ptyOwnership } from '../provider/ownership-state'
 import { getProviderForPty, hasPtyProviderForInspection } from '../provider/registry'
+
+// Why per shell: a new terminal fixes Codex only where this build's daemon gives that shell Manta's
+// codex function; cmd.exe and unrecognized shells never get one.
+const CODEX_SHELL_FUNCTION_PROTOCOL_BY_SHELL: ReadonlyMap<string, number> = new Map([
+  ['zsh', CODEX_NO_DAEMON_SHELL_LAUNCH_DAEMON_PROTOCOL_VERSION],
+  ['bash', CODEX_NO_DAEMON_SHELL_LAUNCH_DAEMON_PROTOCOL_VERSION],
+  ['powershell', CODEX_NO_DAEMON_SHELL_LAUNCH_DAEMON_PROTOCOL_VERSION],
+  ['pwsh', CODEX_NO_DAEMON_SHELL_LAUNCH_DAEMON_PROTOCOL_VERSION],
+  ['fish', CODEX_FISH_SHELL_FUNCTION_DAEMON_PROTOCOL_VERSION]
+])
 
 type Deps = { getLocalPtyProviderStartupPromise: () => Promise<void> | undefined }
 
@@ -37,19 +53,38 @@ async function findLocalPaneRootPid(deps: Deps, id: unknown): Promise<number | n
   return session?.rootProcessId !== undefined && !session.wslDistro ? session.rootProcessId : null
 }
 
-function handleLocalPane(
+function handleLocalPane<T>(
   deps: Deps,
   channel: string,
-  run: (id: string, rootPid: number) => Promise<boolean>
+  run: (id: string, rootPid: number) => Promise<T>,
+  refused: T
 ): void {
-  getPtyIpc().handle(channel, async (_event, args: { id: string }): Promise<boolean> => {
+  getPtyIpc().handle(channel, async (_event, args: { id: string }): Promise<T> => {
     try {
       const rootPid = await findLocalPaneRootPid(deps, args?.id)
-      return rootPid === null ? false : await run(args.id, rootPid)
+      return rootPid === null ? refused : await run(args.id, rootPid)
     } catch {
-      return false
+      return refused
     }
   })
+}
+
+async function readPaneSharedServerStatus(
+  id: string,
+  rootPid: number
+): Promise<CodexSharedServerStatus> {
+  const codex = await findPaneCodexOnSharedServer(id, rootPid)
+  if (!codex) {
+    return { joined: false }
+  }
+  // Why: the pane's own daemon predates its shell's codex function, which a new terminal has.
+  const shellFunctionProtocol = CODEX_SHELL_FUNCTION_PROTOCOL_BY_SHELL.get(codex.shell ?? '')
+  const openedBeforeWrapper =
+    shellFunctionProtocol !== undefined &&
+    getLegacyDaemonAdapters(getProviderForPty(id)).some(
+      (adapter) => adapter.hasPty(id) && adapter.protocolVersion < shellFunctionProtocol
+    )
+  return { joined: true, openedBeforeWrapper }
 }
 
 /** Runs a fix command against the pane's own CODEX_HOME, never a guessed one. */
@@ -71,7 +106,7 @@ function disableForPane(id: string): Promise<boolean> {
 
 // Why its own read: only a pane already showing Codex asks, so no cadence poll pays for argv.
 export function installPtyCodexSharedServerIpcHandler(deps: Deps): void {
-  handleLocalPane(deps, 'pty:isCodexOnSharedServer', isPaneCodexOnSharedServer)
-  handleLocalPane(deps, 'pty:disableCodexSharedServerAutoStart', disableForPane)
-  handleLocalPane(deps, 'pty:stopCodexSharedServer', runForPaneHome(stopCodexSharedServer))
+  handleLocalPane(deps, 'pty:isCodexOnSharedServer', readPaneSharedServerStatus, { joined: false })
+  handleLocalPane(deps, 'pty:disableCodexSharedServerAutoStart', disableForPane, false)
+  handleLocalPane(deps, 'pty:stopCodexSharedServer', runForPaneHome(stopCodexSharedServer), false)
 }

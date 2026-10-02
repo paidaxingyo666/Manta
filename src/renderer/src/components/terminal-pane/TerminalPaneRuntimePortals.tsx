@@ -1,7 +1,6 @@
 import { createPortal } from 'react-dom'
 import CodexRestartChip from '../CodexRestartChip'
 import { CodexSharedServerBanner } from './CodexSharedServerBanner'
-import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { TerminalSshReconnectOverlay } from './TerminalSshReconnectOverlay'
 import { TerminalRemoteRuntimeReconnectBanner } from './TerminalRemoteRuntimeReconnectBanner'
 import { TerminalProcessExitOverlay } from './TerminalProcessExitOverlay'
@@ -40,7 +39,8 @@ export function TerminalPaneCodexRestartPortals({
             <CodexSharedServerBanner
               key={`codex-shared-server-${pane.id}-${ptyId}`}
               ptyId={ptyId}
-              paneKey={makePaneKey(tabId, pane.leafId)}
+              tabId={tabId}
+              leafId={pane.leafId}
             />
           </>,
           pane.container,

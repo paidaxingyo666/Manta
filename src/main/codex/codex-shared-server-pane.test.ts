@@ -29,9 +29,9 @@ vi.mock('../pty/shell-startup-env', () => ({
 }))
 
 import {
-  findPaneCodexCommandLine,
+  findPaneCodex,
+  findPaneCodexOnSharedServer,
   isCodexPaneOnOrcaMirrorHome,
-  isPaneCodexOnSharedServer,
   resolveCodexPaneHome
 } from './codex-shared-server-pane'
 
@@ -46,16 +46,17 @@ beforeEach(() => {
   mocks.isShellStartupEnvProbeSupported.mockReturnValue(true)
 })
 
-describe('findPaneCodexCommandLine', () => {
+describe('findPaneCodex', () => {
   it('takes the launcher line, which carries the argv, over its native child', () => {
     const rows = [
       row(SHELL, 1, '-bash'),
       row(101, SHELL, 'node /usr/lib/node_modules/@openai/codex/bin/codex.js --no-daemon'),
       row(102, 101, '/usr/lib/node_modules/@openai/codex/vendor/codex --no-daemon')
     ]
-    expect(findPaneCodexCommandLine(rows, SHELL)).toBe(
-      'node /usr/lib/node_modules/@openai/codex/bin/codex.js --no-daemon'
-    )
+    expect(findPaneCodex(rows, SHELL)).toEqual({
+      command: 'node /usr/lib/node_modules/@openai/codex/bin/codex.js --no-daemon',
+      shell: 'bash'
+    })
   })
 
   it('ignores the shared server a Windows Codex spawns as its own child', () => {
@@ -65,12 +66,29 @@ describe('findPaneCodexCommandLine', () => {
       row(102, 101, '"C:\\h\\codex.exe" app-server --listen unix:// --managed-daemon'),
       row(103, 101, '"C:\\h\\codex.exe" app-server daemon pid-update-loop')
     ]
-    expect(findPaneCodexCommandLine(rows, SHELL)).toBe('C:\\npm\\codex.exe')
+    expect(findPaneCodex(rows, SHELL)).toEqual({ command: 'C:\\npm\\codex.exe', shell: 'cmd' })
+  })
+
+  it.each([
+    ['a login shell', row(SHELL, 1, '-zsh'), 'zsh'],
+    ['a shell path', row(SHELL, 1, '/opt/homebrew/bin/fish -l'), 'fish'],
+    [
+      'a Windows image name over its command line',
+      { ...row(SHELL, 1, ''), name: 'pwsh.exe' },
+      'pwsh'
+    ]
+  ])('names the shell Codex was typed into from %s', (_label, shell, name) => {
+    expect(findPaneCodex([shell, row(101, SHELL, 'codex')], SHELL)?.shell).toBe(name)
+  })
+
+  it('leaves fish without config unnamed, since it never loads the codex function', () => {
+    const fish = row(SHELL, 1, '/opt/homebrew/bin/fish -l -N')
+    expect(findPaneCodex([fish, row(101, SHELL, 'codex')], SHELL)?.shell).toBeNull()
   })
 
   it('ignores Codex outside this pane and non-Codex children', () => {
     const rows = [row(SHELL, 1, '-zsh'), row(101, SHELL, 'vim'), row(201, 1, 'codex')]
-    expect(findPaneCodexCommandLine(rows, SHELL)).toBeNull()
+    expect(findPaneCodex(rows, SHELL)).toBeNull()
   })
 })
 
@@ -148,7 +166,7 @@ describe('isCodexPaneOnOrcaMirrorHome', () => {
   })
 })
 
-describe('isPaneCodexOnSharedServer', () => {
+describe('findPaneCodexOnSharedServer', () => {
   beforeEach(() => {
     mocks.getCodexPaneAccount.mockReturnValue({
       selectionKey: 'host',
@@ -161,20 +179,23 @@ describe('isPaneCodexOnSharedServer', () => {
     mocks.readWindowsProcessTable.mockResolvedValue(rows)
   })
 
-  it('is true for a typed codex while its home has a live server', async () => {
-    await expect(isPaneCodexOnSharedServer('pty', SHELL)).resolves.toBe(true)
+  it('finds a typed codex while its home has a live server', async () => {
+    await expect(findPaneCodexOnSharedServer('pty', SHELL)).resolves.toEqual({
+      command: 'codex',
+      shell: 'bash'
+    })
     expect(mocks.probeCodexSharedServer).toHaveBeenCalledWith('/home/me/.codex')
   })
 
   it.each(['absent', 'unknown'] as const)(
-    'is false when the pane home server is %s',
+    'finds none when the pane home server is %s',
     async (state) => {
       mocks.probeCodexSharedServer.mockResolvedValue(state)
-      await expect(isPaneCodexOnSharedServer('pty', SHELL)).resolves.toBe(false)
+      await expect(findPaneCodexOnSharedServer('pty', SHELL)).resolves.toBeNull()
     }
   )
 
-  it('is false when Codex runs with --no-daemon, without probing', async () => {
+  it('finds none when Codex runs with --no-daemon, without probing', async () => {
     mocks.getProcessTableSnapshot.mockResolvedValue([
       row(SHELL, 1, '-bash'),
       row(101, SHELL, 'codex --no-daemon')
@@ -183,13 +204,13 @@ describe('isPaneCodexOnSharedServer', () => {
       row(SHELL, 1, 'cmd.exe'),
       row(101, SHELL, 'codex --no-daemon')
     ])
-    await expect(isPaneCodexOnSharedServer('pty', SHELL)).resolves.toBe(false)
+    await expect(findPaneCodexOnSharedServer('pty', SHELL)).resolves.toBeNull()
     expect(mocks.probeCodexSharedServer).not.toHaveBeenCalled()
   })
 
-  it('is false when the pane home cannot be named, without reading processes', async () => {
+  it('finds none when the pane home cannot be named, without reading processes', async () => {
     mocks.getCodexPaneAccount.mockReturnValue(null)
-    await expect(isPaneCodexOnSharedServer('pty', SHELL)).resolves.toBe(false)
+    await expect(findPaneCodexOnSharedServer('pty', SHELL)).resolves.toBeNull()
     expect(mocks.getProcessTableSnapshot).not.toHaveBeenCalled()
     expect(mocks.readWindowsProcessTable).not.toHaveBeenCalled()
   })

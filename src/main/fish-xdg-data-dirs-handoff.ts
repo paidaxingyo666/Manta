@@ -22,7 +22,7 @@ export function getFishVendorConfSnippetPath(wrapperRoot: string): string {
 
 // Why: -N/--no-config (also abbreviated or in a flag cluster) skips vendor_conf.d,
 // so the snippet could never undo the env. Over-matching only costs the codex hook.
-function fishArgsSkipConfig(fishArgs: readonly string[]): boolean {
+export function fishArgsSkipConfig(fishArgs: readonly string[]): boolean {
   return fishArgs.some(
     (arg) => /^-[^-]*N/.test(arg) || (arg.length > 5 && '--no-config'.startsWith(arg))
   )
