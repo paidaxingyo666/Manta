@@ -56,7 +56,17 @@ jobs:
       PYTHON: /opt/python/cp312-cp312/bin/python3
     steps:
       - name: Install glibc 2.28 prerequisites
-        run: dnf install -y git procps-ng unzip which xz
+        run: |
+          missing_tool=false
+          for tool in git ps unzip which xz; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              missing_tool=true
+            fi
+          done
+          if [ "$missing_tool" = true ]; then
+            # The image's source-built Git needs no RPM; missing tools come from AlmaLinux.
+            dnf --disablerepo='epel*' install -y git procps-ng unzip which xz
+          fi
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
