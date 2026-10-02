@@ -110,6 +110,12 @@
     "retrying": "Nouvelle tentative…"
   },
   "settings": {
+    "terminal": {
+      "optionLayoutAlt": "ABC ou U.S. — Option envoie des séquences Alt/Esc",
+      "optionLayoutCompose": "la disposition utilise Option pour composer des caractères comme @, €, [, ]",
+      "optionLayoutUnknown": "disposition inconnue — Option compose des caractères (choix sûr par défaut)",
+      "optionShortcutHint": "Choisissez Les deux pour les raccourcis Option, Désactivé pour les accents et les symboles, ou Gauche/Droite pour attribuer un usage à chaque touche Option."
+    },
     "appearance": {
       "language": {
         "title": "Langue",

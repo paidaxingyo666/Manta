@@ -11,6 +11,12 @@
     "retrying": "再試行中…"
   },
   "settings": {
+    "terminal": {
+      "optionLayoutAlt": "ABCまたはU.S. — OptionはAlt/Escシーケンスを送信します",
+      "optionLayoutCompose": "この配列ではOptionで@、€、[、]などの文字を入力します",
+      "optionLayoutUnknown": "不明な配列 — Optionで文字を入力します（安全な既定値）",
+      "optionShortcutHint": "Optionショートカットには「両方」、アクセント付き文字や記号には「オフ」、用途を左右のOptionキーに分けるには「左」または「右」を選んでください。"
+    },
     "appearance": {
       "language": {
         "title": "言語",

@@ -127,6 +127,12 @@
     "retrying": "Retrying…"
   },
   "settings": {
+    "terminal": {
+      "optionLayoutAlt": "ABC or U.S. — Option sends Alt/Esc sequences",
+      "optionLayoutCompose": "layout uses Option to compose characters like @, €, [, ]",
+      "optionLayoutUnknown": "unknown layout — Option composes characters (safe default)",
+      "optionShortcutHint": "Choose Both for Option shortcuts, Off for accents and symbols, or Left/Right to use one Option key for each."
+    },
     "appearance": {
       "language": {
         "title": "Language",

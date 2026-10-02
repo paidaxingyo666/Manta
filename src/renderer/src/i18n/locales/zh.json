@@ -11,6 +11,12 @@
     "retrying": "正在重试..."
   },
   "settings": {
+    "terminal": {
+      "optionLayoutAlt": "ABC 或 U.S. — Option 键发送 Alt/Esc 序列",
+      "optionLayoutCompose": "此布局使用 Option 键输入 @、€、[、] 等字符",
+      "optionLayoutUnknown": "未知布局 — Option 键输入字符（安全的默认设置）",
+      "optionShortcutHint": "选择“两个都”使用 Option 快捷键，选择“关”输入重音字符和符号，或选择“左边”/“右边”让两个 Option 键各司其职。"
+    },
     "appearance": {
       "language": {
         "title": "语言",
@@ -8549,7 +8555,7 @@
           "19f4935159": "JIS 日元 (¥) 至 反斜杠 (\\\\)",
           "1c337bef4a": "控制按 JIS 日元 (¥) 键是否发送反斜杠 (\\\\)。",
           "3fe1c5bfe0": "关",
-          "c73d510938": "正确的",
+          "c73d510938": "右边",
           "e7aec1fd60": "左边",
           "badb1219fc": "两个都",
           "43c2ff7b0e": "自动",

@@ -11,6 +11,12 @@
     "retrying": "Reintentando…"
   },
   "settings": {
+    "terminal": {
+      "optionLayoutAlt": "ABC o EE. UU. — Option envía secuencias Alt/Esc",
+      "optionLayoutCompose": "la distribución usa Option para escribir caracteres como @, €, [, ]",
+      "optionLayoutUnknown": "distribución desconocida — Option escribe caracteres (opción predeterminada segura)",
+      "optionShortcutHint": "Elige Ambos para los atajos con Option, Desactivado para acentos y símbolos, o Izquierda/Derecha para dedicar una tecla Option a cada uso."
+    },
     "appearance": {
       "language": {
         "title": "Idioma",
