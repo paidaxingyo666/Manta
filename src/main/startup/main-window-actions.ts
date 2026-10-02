@@ -153,11 +153,13 @@ export function sendOpenCrashReport(targetWindow?: BrowserWindow | null): void {
 export async function showRendererRecoveryPrompt(
   recentRecoveryCount: number,
   failure?: RendererRecoveryPromptFailure,
-  retry?: () => void
+  retry?: () => void,
+  availableCommitMB?: number
 ): Promise<void> {
   await presentRendererRecoveryPrompt({
     recentRecoveryCount,
     ...(failure ? { failure } : {}),
+    ...(availableCommitMB === undefined ? {} : { availableCommitMB }),
     isQuitting: () => state.isQuitting,
     diagnose: describeInstallDirAclPoison,
     showMessageBox: (options) => {

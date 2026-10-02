@@ -100,6 +100,34 @@ describe('presentRendererRecoveryPrompt', () => {
     expect(shown[0].detail).not.toContain('times in a row')
   })
 
+  it('says Windows is out of memory with the commit left, instead of blaming drivers', async () => {
+    const { run, shown, reload } = harness({
+      failure: 'low-commit',
+      availableCommitMB: 60,
+      responses: [0]
+    })
+    await run()
+    expect(shown[0].message).toBe('Windows is out of memory.')
+    expect(shown[0].detail).toContain('only 60 MB of memory left')
+    expect(shown[0].detail).toContain('increase the Windows page file size')
+    expect(shown[0].detail).not.toContain('graphics')
+    expect(shown[0].buttons).toEqual(['Reload', 'Quit'])
+    expect(reload).toHaveBeenCalledOnce()
+  })
+
+  it('omits Copy Commands on low commit, since its detail would not be shown', async () => {
+    const { run, shown, quit, copied } = harness({
+      failure: 'low-commit',
+      availableCommitMB: 60,
+      diagnose: () => POISON,
+      responses: [1]
+    })
+    await run()
+    expect(shown[0].buttons).toEqual(['Reload', 'Quit'])
+    expect(copied).toEqual([])
+    expect(quit).toHaveBeenCalledOnce()
+  })
+
   it('quits on the last button', async () => {
     const { run, reload, quit } = harness({ responses: [1] })
     await run()

@@ -9,6 +9,7 @@ import {
   DEFAULT_RENDERER_RECOVERY_WINDOW_MS,
   RendererRecoveryCircuitBreaker
 } from '../crash-reporting/renderer-recovery-circuit-breaker'
+import { createLowCommitOomRecoveryGate } from '../crash-reporting/low-commit-oom-recovery-gate'
 import {
   buildEditableContextMenuTemplate,
   matchingRichMarkdownContextMenuTableTarget,
@@ -159,6 +160,7 @@ export function installMainWindowFocusLifecycle(args: {
     windowMs: DEFAULT_RENDERER_RECOVERY_WINDOW_MS,
     maxRecoveries: DEFAULT_RENDERER_RECOVERY_MAX_RECOVERIES
   })
+  const lowCommitOomGate = createLowCommitOomRecoveryGate()
   const clearRendererRecoveryTimer = (): void => {
     if (rendererRecoveryTimer) {
       clearTimeout(rendererRecoveryTimer)
@@ -187,6 +189,9 @@ export function installMainWindowFocusLifecycle(args: {
     ) {
       return
     }
+    const goneAt = Date.now()
+    // Why read at gone time: the sampler's next tick would see commit the corpse just released.
+    const lowCommit = lowCommitOomGate.assess(details, goneAt)
     rendererRecoveryTimer = setTimeout(() => {
       rendererRecoveryTimer = null
       if (
@@ -195,6 +200,19 @@ export function installMainWindowFocusLifecycle(args: {
         opts?.shouldRecoverRenderer?.(details, rendererWebContentsId) === false ||
         mainWindow.isDestroyed()
       ) {
+        return
+      }
+      lowCommitOomGate.recordRecoveredDeath(details, goneAt)
+      if (lowCommit) {
+        // Why: a reload would OOM again on the starved host; only the user can free commit.
+        recoveryReloadWatchdog.escalate(
+          {
+            details,
+            recentRecoveryCount: rendererRecoveryCircuitBreaker.recentRecoveryCount(Date.now())
+          },
+          'low-commit',
+          lowCommit
+        )
         return
       }
       const recovery = rendererRecoveryCircuitBreaker.registerRecoveryAttempt(Date.now())

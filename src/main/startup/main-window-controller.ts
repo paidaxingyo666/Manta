@@ -114,19 +114,27 @@ export function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}
         reason: details.reason,
         expectedTeardown: getExpectedTeardownScope(webContentsId, false)
       }),
-    onRendererRecoveryExhausted: ({ details, recentRecoveryCount, cause, retry }) => {
-      // Why two names: a stalled reload never opened the breaker, and a bundle that says it did misreads the failure.
+    onRendererRecoveryExhausted: ({ details, recentRecoveryCount, cause, lowCommit, retry }) => {
+      // Why distinct names: a stalled reload or a low-commit hold never opened the breaker, and a bundle that says it did misreads the failure.
       recordDurableCrashBreadcrumb(
         cause === 'reload-stalled'
           ? 'renderer_recovery_reload_exhausted'
-          : 'renderer_recovery_circuit_breaker_open',
+          : cause === 'low-commit'
+            ? 'renderer_recovery_low_commit_prompt'
+            : 'renderer_recovery_circuit_breaker_open',
         {
           reason: details.reason,
           exitCode: details.exitCode ?? null,
-          recentRecoveryCount
+          recentRecoveryCount,
+          ...lowCommit
         }
       )
-      void showRendererRecoveryPrompt(recentRecoveryCount, cause, retry)
+      void showRendererRecoveryPrompt(
+        recentRecoveryCount,
+        cause,
+        retry,
+        lowCommit?.availableCommitMB
+      )
     },
     deferLoad: true,
     ...(options.revealOnDidFinishLoad === true ? { revealOnDidFinishLoad: true } : {}),
