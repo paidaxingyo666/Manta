@@ -6,6 +6,7 @@ import type {
   RuntimeTerminalInteractiveWait
 } from '../../shared/runtime-types'
 import type { RuntimeTerminalAgentStatusSnapshot } from './runtime-terminal-agent-status-query'
+import type { AgentStatus } from '../../shared/agent-detection'
 import { withTimeout } from './runtime-async-boundaries'
 import { TERMINAL_INTERACTIVE_WAIT_PROBE_TIMEOUT_MS } from './manta-runtime-core'
 import { parsePaneKey } from '../../shared/stable-pane-id'
@@ -20,18 +21,22 @@ export class MantaRuntimeWithGetTerminalInteractiveWait extends MantaRuntimeWith
     handle: string
   ): Promise<RuntimeTerminalInteractiveWait | null | undefined> {
     let ptyId: string
-    let terminal: RuntimeTerminalAgentStatusSnapshot
+    let inputs: {
+      terminal: RuntimeTerminalAgentStatusSnapshot
+      lifecycle: { status: AgentStatus | null; updatedAt: number } | null | undefined
+    }
     try {
       ptyId = this.getTerminalAgentStatusPtyId(handle)
-      terminal = this.getTerminalAgentStatusSnapshot(handle, ptyId)
+      inputs = this.getTerminalWaitPermissionInputs(handle, ptyId)
     } catch {
       return undefined
     }
+    const { terminal, lifecycle } = inputs
     const explicitStatus = this.getFreshExplicitAgentStatusForHandle(handle)
     const promptReason = this.resolveAuthoritativeTerminalWaitPermission(
       terminal,
       explicitStatus,
-      this.agentPromptLifecycleByPtyId.get(ptyId)
+      lifecycle
     )
     if (promptReason) {
       return {

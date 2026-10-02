@@ -12,6 +12,7 @@ import {
 } from './manta-runtime-postlude'
 import { projectTerminalVisibleLines } from './manta-runtime-terminal-projection'
 import { visibleNonBlankTerminalLines } from './terminal-tail-read'
+import type { RuledScreen } from './screen-input-veto'
 import { HeadlessEmulator } from '../daemon/headless-emulator'
 import { withTimeout } from './runtime-async-boundaries'
 
@@ -152,8 +153,8 @@ export class MantaRuntimeWithVisibleSnapshotPreview extends MantaRuntimeWithCapt
     return state ? projectTerminalVisibleLines(state.emulator).lines : null
   }
 
-  /** The rows a screen-ruled agent's rule reads: as painted, and only on the PTY's own grid. */
-  protected readScreenRuledLines(ptyId: string | null | undefined): string[] | null {
+  /** The grid a screen-ruled agent's rule reads: as painted, and only on the PTY's own size. */
+  protected readRuledScreen(ptyId: string | null | undefined): RuledScreen | null {
     const state = this.readWholeScreenModel(ptyId)
     if (!ptyId || !state || state.unrepaintedReflowGrid !== undefined) {
       return null
@@ -166,7 +167,10 @@ export class MantaRuntimeWithVisibleSnapshotPreview extends MantaRuntimeWithCapt
     }
     // Why raw rows, not the read projection: it blanks a composer it takes for a draft, and Cline's
     // placeholder reads as one, so a typed draft and an empty composer would look the same.
-    return visibleNonBlankTerminalLines(state.emulator.getVisibleLines())
+    return {
+      lines: visibleNonBlankTerminalLines(state.emulator.getVisibleLines()),
+      alternateScreen: state.emulator.isAlternateScreen
+    }
   }
 
   protected readWholeScreenModel(ptyId: string | null | undefined): RuntimeHeadlessTerminal | null {

@@ -11,7 +11,7 @@ import { visibleNonBlankTerminalLines } from './terminal-tail-read'
 
 const DEFAULT_CHUNK_CHARS = 64
 
-/** `screenLines` are readLiveTerminalScreenLines' rows; `ruledScreenLines` readScreenRuledLines'. */
+/** `screenLines` are readLiveTerminalScreenLines' rows; `ruledScreenLines` readRuledScreen's. */
 export type TranscriptReplayFrame = {
   screenLines: string[]
   ruledScreenLines: string[]

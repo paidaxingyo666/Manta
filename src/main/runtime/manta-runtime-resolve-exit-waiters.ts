@@ -11,13 +11,8 @@ import {
 import type { AgentStatus } from '../../shared/agent-detection'
 import { detectExplicitIdleStatusFromTitle } from './terminal-wait-detection'
 import { buildTerminalWaitText } from './terminal-wait-tail-state'
-import {
-  evaluateTuiIdle,
-  isTuiIdleReadyVerdict,
-  leafTuiIdleEvidence,
-  ptyTuiIdleEvidence,
-  type TuiIdleVerdict
-} from './tui-idle-evidence'
+import { evaluateTuiIdle, isTuiIdleReadyVerdict, type TuiIdleVerdict } from './tui-idle-evidence'
+import { leafTuiIdleEvidence, ptyTuiIdleEvidence } from './tui-idle-evidence-source'
 import { TUI_IDLE_QUIESCENCE_MS } from './manta-runtime-postlude'
 
 export class MantaRuntimeWithResolveExitWaiters extends MantaRuntimeWithBindPtyIncarnationHandle {
@@ -218,7 +213,7 @@ export class MantaRuntimeWithResolveExitWaiters extends MantaRuntimeWithBindPtyI
   }
 
   protected getAdoptedPtyExplicitIdleStatus(pty: RuntimePtyWorktreeRecord): AgentStatus | null {
-    const title = this.getAdoptedPtyTitle(pty)
+    const title = pty.lastOscTitle ?? this.getAdoptedPtyTitle(pty)
     return title ? detectExplicitIdleStatusFromTitle(title) : null
   }
 
