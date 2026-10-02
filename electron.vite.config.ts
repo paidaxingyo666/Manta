@@ -1,3 +1,4 @@
+import { markdownParserAliases } from './config/build-plugins/markdown-parser-exports'
 import { isBuiltin } from 'node:module'
 import { resolve } from 'node:path'
 import { defineConfig, type UserConfig } from 'electron-vite'
@@ -316,6 +317,7 @@ export const electronViteConfig: UserConfig = {
   renderer: {
     resolve: {
       alias: {
+        ...markdownParserAliases,
         '@renderer': resolve('src/renderer/src'),
         '@': resolve('src/renderer/src')
       }

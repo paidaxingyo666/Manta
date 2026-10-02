@@ -15548,7 +15548,13 @@
     "markdownPreview": {
       "tooLarge": "El archivo supera el límite de vista previa de {{limit}}. Abre el archivo para ver su código fuente.",
       "tooLargeInDiff": "El archivo supera el límite de vista previa de {{limit}}. Cambia al modo fuente para ver las diferencias.",
-      "renderAnyway": "Renderizar de todos modos"
+      "blockTooLarge": "Este bloque es demasiado grande para renderizarlo. Abre la vista de código fuente para leerlo.",
+      "largeNotice": "Vista previa grande. Usa la vista de código fuente para copiar el documento completo. La exportación a PDF no está disponible.",
+      "processingFailed": "Este documento supera los límites de la vista previa. Abre la vista de código fuente para leer el archivo completo.",
+      "preparing": "Preparando vista previa…",
+      "searching": "Buscando…",
+      "searchFailed": "La búsqueda no pudo finalizar. Inténtalo de nuevo.",
+      "refreshFailed": "No se pudo actualizar la vista previa. Se muestra la versión anterior; abre la vista de código para ver el contenido actual."
     }
   }
 }

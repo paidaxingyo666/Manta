@@ -122,7 +122,13 @@
     "markdownPreview": {
       "tooLarge": "File is larger than the {{limit}} preview limit. Open the file to view its source.",
       "tooLargeInDiff": "File is larger than the {{limit}} preview limit. Switch to source mode to view the diff.",
-      "renderAnyway": "Render anyway"
+      "blockTooLarge": "This block is too large to render. Open source view to read it.",
+      "largeNotice": "Large preview. Use source view to copy the complete document. PDF export is unavailable.",
+      "processingFailed": "This document cannot be rendered within the preview limits. Open source view to read the complete file.",
+      "preparing": "Preparing preview…",
+      "searching": "Searching…",
+      "searchFailed": "Search could not finish. Try again.",
+      "refreshFailed": "Preview update failed. Showing the previous version; open source view for current content."
     },
     "fileLoad": {
       "hostUnresolved": "The host couldn't find this file's workspace. It may have been removed, or the host may not know about it yet. Retry, or close this tab from the tab strip."

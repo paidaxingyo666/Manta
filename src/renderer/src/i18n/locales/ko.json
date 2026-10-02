@@ -18420,7 +18420,13 @@
     "markdownPreview": {
       "tooLarge": "파일이 미리보기 한도 {{limit}}보다 큽니다. 소스를 보려면 파일을 여세요.",
       "tooLargeInDiff": "파일이 미리보기 한도 {{limit}}보다 큽니다. 차이를 보려면 소스 모드로 전환하세요.",
-      "renderAnyway": "그래도 렌더링"
+      "blockTooLarge": "이 블록은 너무 커서 렌더링할 수 없습니다. 소스 보기에서 읽으세요.",
+      "largeNotice": "큰 미리보기입니다. 전체 문서를 복사하려면 소스 보기를 사용하세요. PDF 내보내기는 사용할 수 없습니다.",
+      "processingFailed": "이 문서는 미리보기 제한을 초과합니다. 전체 파일을 읽으려면 소스 보기를 여세요.",
+      "preparing": "미리보기 준비 중…",
+      "searching": "검색 중…",
+      "searchFailed": "검색을 완료하지 못했습니다. 다시 시도하세요.",
+      "refreshFailed": "미리보기 업데이트에 실패했습니다. 이전 버전을 표시합니다. 현재 내용은 소스 보기에서 확인하세요."
     }
   },
   "featureTips": {

@@ -18468,7 +18468,13 @@
     "markdownPreview": {
       "tooLarge": "Le fichier dépasse la limite d'aperçu de {{limit}}. Ouvrez le fichier pour afficher sa source.",
       "tooLargeInDiff": "Le fichier dépasse la limite d'aperçu de {{limit}}. Passez en mode source pour afficher les différences.",
-      "renderAnyway": "Afficher quand même"
+      "blockTooLarge": "Ce bloc est trop volumineux pour être affiché. Ouvrez la vue source pour le lire.",
+      "largeNotice": "Aperçu volumineux. Utilisez la vue source pour copier le document complet. L’exportation PDF est indisponible.",
+      "processingFailed": "Ce document dépasse les limites de l’aperçu. Ouvrez la vue source pour lire le fichier complet.",
+      "preparing": "Préparation de l’aperçu…",
+      "searching": "Recherche…",
+      "searchFailed": "La recherche n’a pas pu aboutir. Réessayez.",
+      "refreshFailed": "La mise à jour de l’aperçu a échoué. La version précédente est affichée ; ouvrez la source pour voir le contenu actuel."
     }
   },
   "checksPanel": {

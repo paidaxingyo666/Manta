@@ -1,0 +1,119 @@
+diff --git a/dev/lib/edit-map.js b/dev/lib/edit-map.js
+index 983d0556e2713dc92982faa6a09b1093ef4d02db..818e702f5de8a1a8b1d35b25b5f6a0568989b152 100644
+--- a/dev/lib/edit-map.js
++++ b/dev/lib/edit-map.js
+@@ -34,6 +34,7 @@ export class EditMap {
+      * @type {Array<Change>}
+      */
+     this.map = []
++    this.indexByOffset = new Map()
+   }
+ 
+   /**
+@@ -124,6 +125,7 @@ export class EditMap {
+ 
+     // Truncate everything.
+     this.map.length = 0
++    this.indexByOffset.clear()
+   }
+ }
+ 
+@@ -137,32 +139,16 @@ export class EditMap {
+  * @returns {undefined}
+  */
+ function addImplementation(editMap, at, remove, add) {
+-  let index = 0
+-
+-  /* c8 ignore next 3 -- `resolve` is never called without tables, so without edits. */
+-  if (remove === 0 && add.length === 0) {
++  if (remove === 0 && add.length === 0) return
++  const existing = editMap.indexByOffset.get(at)
++  if (existing) {
++    existing[1] += remove
++    existing[2].push(...add)
+     return
+   }
+-
+-  while (index < editMap.map.length) {
+-    if (editMap.map[index][0] === at) {
+-      editMap.map[index][1] += remove
+-
+-      // To do: before not used by tables, use when moving to micromark.
+-      // if (before) {
+-      //   add.push(...editMap.map[index][2])
+-      //   editMap.map[index][2] = add
+-      // } else {
+-      editMap.map[index][2].push(...add)
+-      // }
+-
+-      return
+-    }
+-
+-    index += 1
+-  }
+-
+-  editMap.map.push([at, remove, add])
++  const change = [at, remove, add]
++  editMap.map.push(change)
++  editMap.indexByOffset.set(at, change)
+ }
+ 
+ // /**
+diff --git a/lib/edit-map.js b/lib/edit-map.js
+index ecc8bce784d29a48e0869be1c4a2dd5ccf1d3d01..8cb2282f2669f978f1ae60ab23f65f1e6523864a 100644
+--- a/lib/edit-map.js
++++ b/lib/edit-map.js
+@@ -34,6 +34,7 @@ export class EditMap {
+      * @type {Array<Change>}
+      */
+     this.map = [];
++    this.indexByOffset = new Map();
+   }
+ 
+   /**
+@@ -117,6 +118,7 @@ export class EditMap {
+ 
+     // Truncate everything.
+     this.map.length = 0;
++    this.indexByOffset.clear();
+   }
+ }
+ 
+@@ -130,29 +132,16 @@ export class EditMap {
+  * @returns {undefined}
+  */
+ function addImplementation(editMap, at, remove, add) {
+-  let index = 0;
+-
+-  /* c8 ignore next 3 -- `resolve` is never called without tables, so without edits. */
+-  if (remove === 0 && add.length === 0) {
++  if (remove === 0 && add.length === 0) return;
++  const existing = editMap.indexByOffset.get(at);
++  if (existing) {
++    existing[1] += remove;
++    existing[2].push(...add);
+     return;
+   }
+-  while (index < editMap.map.length) {
+-    if (editMap.map[index][0] === at) {
+-      editMap.map[index][1] += remove;
+-
+-      // To do: before not used by tables, use when moving to micromark.
+-      // if (before) {
+-      //   add.push(...editMap.map[index][2])
+-      //   editMap.map[index][2] = add
+-      // } else {
+-      editMap.map[index][2].push(...add);
+-      // }
+-
+-      return;
+-    }
+-    index += 1;
+-  }
+-  editMap.map.push([at, remove, add]);
++  const change = [at, remove, add];
++  editMap.map.push(change);
++  editMap.indexByOffset.set(at, change);
+ }
+ 
+ // /**

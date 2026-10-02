@@ -63,3 +63,4 @@ patchedDependencies:
   lint-staged@16.4.0: config/patches/lint-staged@16.4.0.patch
   '@vscode/windows-process-tree@0.8.0': config/patches/@vscode__windows-process-tree@0.8.0.patch
   i18next-cli@1.74.2: config/patches/i18next-cli@1.74.2.patch
+  micromark-extension-gfm-table@2.1.1: config/patches/micromark-extension-gfm-table@2.1.1.patch

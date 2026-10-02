@@ -18420,7 +18420,13 @@
     "markdownPreview": {
       "tooLarge": "文件超过 {{limit}} 预览限制。请打开文件查看源代码。",
       "tooLargeInDiff": "文件超过 {{limit}} 预览限制。请切换到源代码模式查看差异。",
-      "renderAnyway": "仍然渲染"
+      "blockTooLarge": "此区块过大，无法渲染。请打开源代码视图阅读。",
+      "largeNotice": "大型预览。请使用源代码视图复制完整文档。PDF 导出不可用。",
+      "processingFailed": "此文档超出了预览限制。请打开源代码视图阅读完整文件。",
+      "preparing": "正在准备预览…",
+      "searching": "正在搜索…",
+      "searchFailed": "搜索未能完成，请重试。",
+      "refreshFailed": "预览更新失败，正在显示上一版本。请打开源码视图查看当前内容。"
     }
   },
   "featureTips": {

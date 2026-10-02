@@ -175,6 +175,7 @@ patchedDependencies:
   '@xterm/xterm@6.1.0-beta.303': dd0ccc59cd1ccf99f4d76e5aa2456da165fa0804dce19a833d7638bd07ffa393
   i18next-cli@1.74.2: 7955b89d3aa229f477408608d331f78c85148a85a85913729f89fac65ad8b207
   lint-staged@16.4.0: 7333b3837f80a7fbd045964db6d76ba4fc118e49134bdbabb00585b6b7b60673
+  micromark-extension-gfm-table@2.1.1: 97cbc5201c0dcf03d72f5d4e3617e28723268fd058ab05fd48fb11b46aa6e5ed
   node-pty@1.1.0: 92c95cffab383d86b3b13a460c75a08074468ebf1f3911db8e874e083201f192
 
 importers:
@@ -356,6 +357,12 @@ importers:
       '@tiptap/starter-kit':
         specifier: 3.31.3
         version: 3.31.3
+      '@types/hast':
+        specifier: ^3.0.4
+        version: 3.0.4
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
       '@types/node':
         specifier: ^25.6.0
         version: 25.9.5
@@ -446,6 +453,9 @@ importers:
       happy-dom:
         specifier: ^20.14.5
         version: 20.14.5
+      hast-util-to-jsx-runtime:
+        specifier: 2.3.6
+        version: 2.3.6(supports-color@7.2.0)
       html-to-image:
         specifier: ^1.11.13
         version: 1.11.13
@@ -551,6 +561,9 @@ importers:
       remark-parse:
         specifier: ^11.0.0
         version: 11.0.0(supports-color@7.2.0)
+      remark-rehype:
+        specifier: 11.1.2
+        version: 11.1.2
       shadcn:
         specifier: ^4.13.1
         version: 4.13.1(supports-color@7.2.0)(typescript@7.0.2)
@@ -13495,7 +13508,7 @@ snapshots:
       micromark-util-symbol: 2.0.1
       micromark-util-types: 2.0.2
 
-  micromark-extension-gfm-table@2.1.1:
+  micromark-extension-gfm-table@2.1.1(patch_hash=97cbc5201c0dcf03d72f5d4e3617e28723268fd058ab05fd48fb11b46aa6e5ed):
     dependencies:
       devlop: 1.1.0
       micromark-factory-space: 2.0.1
@@ -13520,7 +13533,7 @@ snapshots:
       micromark-extension-gfm-autolink-literal: 2.1.0
       micromark-extension-gfm-footnote: 2.1.0
       micromark-extension-gfm-strikethrough: 2.1.0
-      micromark-extension-gfm-table: 2.1.1
+      micromark-extension-gfm-table: 2.1.1(patch_hash=97cbc5201c0dcf03d72f5d4e3617e28723268fd058ab05fd48fb11b46aa6e5ed)
       micromark-extension-gfm-tagfilter: 2.0.0
       micromark-extension-gfm-task-list-item: 2.1.0
       micromark-util-combine-extensions: 2.0.1
