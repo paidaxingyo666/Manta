@@ -1,3 +1,4 @@
+import { remoteTypingLoadScript } from './helpers/remote-typing-load-script'
 import type { Page } from '@stablyai/playwright-test'
 import { test, expect } from './helpers/manta-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
@@ -54,27 +55,6 @@ function shellQuote(value: string): string {
 function encodedRemoteNodeCommand(script: string): string {
   const encoded = Buffer.from(script, 'utf8').toString('base64')
   return `node -e ${shellQuote(`eval(Buffer.from('${encoded}', 'base64').toString('utf8'))`)}`
-}
-
-function remoteTypingLoadScript(runId: string): string {
-  return [
-    "process.stdin.setEncoding('utf8')",
-    'if (process.stdin.isTTY) process.stdin.setRawMode(true)',
-    'process.stdin.resume()',
-    'let seq = 0',
-    'let frame = 0',
-    'let bg = null',
-    `process.stdout.write('REMOTE_TUI_READY_${runId}\\n')`,
-    "setTimeout(() => { bg = setInterval(() => { frame += 1; process.stdout.write('BG_' + frame + '_' + 'x'.repeat(4096) + '\\n') }, 8) }, 500)",
-    "process.stdin.on('data', (chunk) => {",
-    '  if (chunk.includes(String.fromCharCode(3))) { if (bg) clearInterval(bg); process.exit(0) }',
-    '  for (const char of chunk) {',
-    "    if (char === '\\r' || char === '\\n') continue",
-    '    seq += 1',
-    `    process.stdout.write('\\x1b[20;2HREMOTE_KEY_${runId}_' + seq + '_' + char + '\\n')`,
-    '  }',
-    '})'
-  ].join(';')
 }
 
 function remoteBackgroundFloodScript(runId: string): string {
@@ -167,7 +147,7 @@ test.describe('Docker SSH relay perf', () => {
       const ptyId = await waitForActivePanePtyId(mantaPage, 60_000)
 
       const runId = String(Date.now())
-      await execInTerminal(mantaPage, ptyId, `node -e ${shellQuote(remoteTypingLoadScript(runId))}`)
+      await execInTerminal(mantaPage, ptyId, encodedRemoteNodeCommand(remoteTypingLoadScript(runId)))
       await waitForTerminalOutput(mantaPage, `REMOTE_TUI_READY_${runId}`, 30_000, 80_000)
       const measurement = await measureRemoteTyping(mantaPage, ptyId, runId)
       const summary = `median=${measurement.medianLatencyMs.toFixed(
@@ -208,7 +188,7 @@ test.describe('Docker SSH relay perf', () => {
       await execInTerminal(
         mantaPage,
         backgroundPtyId,
-        `node -e ${shellQuote(remoteBackgroundFloodScript(runId))}`
+        encodedRemoteNodeCommand(remoteBackgroundFloodScript(runId))
       )
       await waitForTerminalOutput(mantaPage, `REMOTE_ACK_FLOOD_READY_${runId}`, 30_000, 80_000)
       await holdSshPtyAckGate(mantaPage, [backgroundPtyId])
@@ -226,7 +206,7 @@ test.describe('Docker SSH relay perf', () => {
       await execInTerminal(
         mantaPage,
         activePtyId,
-        `node -e ${shellQuote(remoteTypingLoadScript(activeRunId))}`
+        encodedRemoteNodeCommand(remoteTypingLoadScript(activeRunId))
       )
       await waitForTerminalOutput(mantaPage, `REMOTE_TUI_READY_${activeRunId}`, 30_000, 80_000)
       const heldAckPressure = expect.poll(
@@ -294,11 +274,11 @@ test.describe('Docker SSH relay perf', () => {
         mantaPage,
         ptyId,
         `dd if=/dev/urandom of=${shellQuote(loadFile)} bs=1M count=8 status=none && ` +
-          `echo LOAD_FILES_READY_${runId}`
+          `echo LOAD_FILES_READY_'${runId}'`
       )
       await waitForTerminalOutput(mantaPage, `LOAD_FILES_READY_${runId}`, 60_000, 80_000)
 
-      await execInTerminal(mantaPage, ptyId, `node -e ${shellQuote(remoteTypingLoadScript(runId))}`)
+      await execInTerminal(mantaPage, ptyId, encodedRemoteNodeCommand(remoteTypingLoadScript(runId)))
       await waitForTerminalOutput(mantaPage, `REMOTE_TUI_READY_${runId}`, 30_000, 80_000)
 
       // Background relay pressure: continuous large file reads plus git status
