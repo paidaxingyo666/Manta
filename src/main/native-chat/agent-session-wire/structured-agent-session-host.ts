@@ -216,27 +216,21 @@ export class StructuredAgentSessionHost {
   supportsCreate = (location: AgentSessionExecutionLocation, agent: string): boolean =>
     providerSupport.adapterSupportsCreate(this.deps.adapter, location, agent)
 
-  listSessionTabs = () => sessionTabs.listStructuredAgentSessionTabs(this.sessions)
-  getPersistedVisibleSessionTabIndex = () => this.deps.store.getVisibleSessionTabIndex()
-  getSessionTabId = (sessionId: string): string | null => this.deps.store.getSessionTabId(sessionId)
-  showSessionTabs = (sessionIds: readonly string[]) => this.deps.store.showSessionTabs(sessionIds)
+  private readonly tabs = sessionTabs.createStructuredAgentSessionTabSurface(
+    this,
+    this.sessions,
+    (sessionId) => this.clientDelivery.forgetStatus(sessionId)
+  )
+  listSessionTabs = this.tabs.listSessionTabs
+  getPersistedVisibleSessionTabIndex = this.tabs.getPersistedVisibleSessionTabIndex
+  getSessionTabId = this.tabs.getSessionTabId
+  showSessionTabs = this.tabs.showSessionTabs
+  setSessionTabVisibility = this.tabs.setSessionTabVisibility
   /** The records file could not be read this launch, so chats it holds are not listed yet. */
   legacyRecordImportOwed = (): boolean => this.deps.journalDatabase.legacyRecordImportOwed === true
   /** This runtime holds a chat: a record, or the records file's chats still owed their copy. */
   holdsSessions = (): boolean => this.deps.store.holdsRecords() || this.legacyRecordImportOwed()
   onSessionsHeld = (listener: () => void): (() => void) => this.deps.store.onFirstRecord(listener)
-
-  setSessionTabVisibility = async (
-    sessionId: string,
-    visible: boolean,
-    tabId?: string
-  ): Promise<void> => {
-    await sessionTabs.setStructuredAgentSessionTabVisibility(this, sessionId, visible, tabId)
-    // The tab edge of the row's lifetime; the handle close is the other.
-    if (!visible && !this.sessions.get(sessionId)?.child) {
-      this.clientDelivery.forgetStatus(sessionId)
-    }
-  }
 
   reconcileRestartLeases = (): Promise<void> => this.restore.reconcileRestartLeases()
 
