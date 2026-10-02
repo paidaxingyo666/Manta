@@ -1392,3 +1392,94 @@ one CI failure does not establish a failure-rate reduction.
 The bounded 50-head main sample ending at 8ff6296 contained no root package
 metadata changes. Removing app-version metadata from the Windows server cache
 key would not improve reuse in that sample, so the key remains unchanged.
+
+## Windows ARM SSH: prepare the inbox capability during independent builds
+
+The ARM inbox lane starts guarded Windows capability preparation after the pure
+provisioning self-test and waits for it before any private SSH server or host cell
+runs. Dependency installation and the unchanged native artifacts can run during
+that preparation. Preview and x64 lanes keep their existing serial provisioning;
+the registered background step completes without mutation in those lanes.
+
+The preparation and the foreground provider use the same installer and isolation
+guards. The receipt must match the source, run, attempt, runner, image and native
+architecture. The foreground provider still reads the installed capability and
+verifies every native binary and Microsoft signature. Account ownership, ACLs,
+DefaultShell, private service identity, host cells and cleanup remain independent
+checks. A background failure propagates through the unconditional native wait.
+
+Two full four-lane pairs used frozen source refs and the same dependency and
+native-install policy. The [first baseline](https://github.com/stablyai/orca/actions/runs/36986929163)
+ran before the [first candidate](https://github.com/stablyai/orca/actions/runs/36986970976);
+the [second candidate](https://github.com/stablyai/orca/actions/runs/36991232037)
+was dispatched before the [second baseline](https://github.com/stablyai/orca/actions/runs/36991234729).
+Runner image versions matched within each platform in both pairs.
+
+| Active job, seconds | First baseline | First candidate | Second baseline | Second candidate |
+| ------------------- | -------------: | --------------: | --------------: | ---------------: |
+| ARM inbox           |          2,403 |           1,644 |           2,353 |            1,667 |
+| ARM preview         |          1,002 |             935 |             886 |              872 |
+| x64 inbox           |            636 |             732 |             616 |              620 |
+| x64 preview         |            562 |             561 |             623 |              566 |
+
+The ARM inbox observations improved by 759 and 686 seconds. Baseline dependency
+installation and artifact builds consumed 501 and 498 seconds before capability
+installation could start. Candidate capability installation ran during that
+work, but also took about 261 and 232 seconds less than the baseline. Candidate
+dependency installation was slower, particularly in the second pair. These
+observations support overlap on ARM; they do not establish a guaranteed 11–13
+minute saving, a reduction in queue time, or the cause of installer variability.
+The x64 lane showed no repeatable gain, so it keeps serial preparation.
+
+All 16 actual Windows providers and 48 host-cell verdicts passed across the two
+pairs. Receipts verify native machine identity, private service absence, owned
+process exit, account removal and key removal. Loaded profile disposition remains
+separate from those required cleanup checks. Hosted execution also verified the
+native background/wait syntax; older actionlint versions do not recognize it.
+
+### Overlap the private profile observation budgets
+
+After service deletion and owned process exit, profile cleanup polls each owned
+SID with its own full 30-second monotonic budget. Independent budgets now run
+together. Every deletion follows a fresh targeted read; loaded profiles remain
+for disposable VM destruction. Service identity, PID ownership, process exit,
+account removal and key removal still fail the complete provider on error.
+
+The maintained diagnostics self-test executes the actual cleanup try/catch with
+scoped Windows API and clock controls. Eight positive cases cover full windows,
+late unload, reload, query overhead, mixed states and missing SIDs; ten specific
+failure cases cover foreign profiles and the required cleanup gates. Disposable
+shortened-deadline and stale-snapshot mutations fail those controls. A separate
+mocked real-clock observation took 30.179 seconds for three loaded profiles,
+compared with about 90 seconds for serial full budgets. This measures polling,
+not an actual Windows provider or the entire job.
+
+The third profile no longer gains incidental extra time while earlier profiles
+consume their budgets. A profile unloading at 45 seconds may therefore remain
+where serial cleanup removed it. This uses the existing disposable-VM fallback;
+it does not remove a loaded profile or relax mandatory account/key cleanup.
+Hosted qualification of the combined workflow remains pending.
+
+## Coordinator mail tests: advance observation windows without removing them
+
+Six cases advance their original six 1,500 ms and ten 100 ms observation windows
+with a scoped clock. Real filesystem, SQLite, journal, RPC and runtime work still
+finishes asynchronously. The original journal-read gate and all counter and
+operation assertions remain. Cancellation during delayed startup and the
+Date-only age case retain real timers. Teardown stops the host and closes the
+database before advancing the known 2,000 ms orphan repair, then asserts no fake
+timers remain and restores the clock in `finally`.
+
+Two opposite-order local pairs passed the same 23 cases and unchanged source
+hashes. Selected-case totals fell from 13.674 to 3.318 seconds and from 13.276 to
+6.323 seconds. Whole-file test totals fell from 24.845 to 10.829 seconds and from
+21.500 to 19.410 seconds. Process wall times were 41.488/37.810 seconds and
+42.140/78.450 seconds; the reverse candidate spent 56.31 seconds importing under
+unrelated local load. Overall wall-time savings remain inconclusive.
+
+Injected extra deliveries at 1,499 ms and 99 ms still fail the original assertions
+in both clock modes. The latter candidate fails the unchanged journal-read gate
+with the same extra provider start. A separate control confirms the orphan repair
+actually executes against the closed database and leaves no fake timers. The
+change retains all 121 original expectation sites and adds one teardown check;
+it does not shorten the runtime's observation interval or claim a whole-PR gain.
