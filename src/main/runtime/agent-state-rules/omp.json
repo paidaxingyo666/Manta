@@ -1,6 +1,7 @@
 {
   "id": "omp",
   "engineVersion": 1,
+  "profile": { "hooks": "authoritative" },
   "anchors": [],
   "rules": [
     {

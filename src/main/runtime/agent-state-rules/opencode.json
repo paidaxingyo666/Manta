@@ -1,6 +1,7 @@
 {
   "id": "opencode",
   "engineVersion": 1,
+  "profile": { "hooks": "authoritative" },
   "anchors": [
     {
       "id": "native_title",

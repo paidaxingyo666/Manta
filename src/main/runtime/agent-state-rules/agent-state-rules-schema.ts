@@ -218,9 +218,18 @@ const AnchorSchema = z
     'a title anchor answers idle'
   )
 
+/**
+ * How far readiness may trust the agent's hooks. `authoritative`: they report every way the main
+ * agent's turn ends (done, cancelled, an approval granted or denied), so a fresh hook row decides
+ * ahead of the rules. `identity-only` (the default): some end sends no event (Claude's denied
+ * approval and Esc mid-tool), so hooks only name the agent and the rules decide.
+ */
+const HOOK_AUTHORITIES = ['authoritative', 'identity-only'] as const
+
 /** Facts about the agent that are not detection rules. */
 const ProfileSchema = z
   .object({
+    hooks: z.enum(HOOK_AUTHORITIES).optional(),
     /** Text whose presence in a pane's tail makes a tui-idle wait read its visible screen once. */
     screenProbeBanner: TailLiteral.optional(),
     /** The screen the rules read: the PTY's own grid, trusted only while the PTY still has that
@@ -279,4 +288,5 @@ export type TitleAnchorCondition = z.infer<typeof TitleAnchorConditionSchema>
 export type NamedTextAnchor = (typeof NAMED_TEXT_ANCHORS)[number]
 export type NamedScreenPredicate = (typeof NAMED_SCREEN_PREDICATES)[number]
 export type NamedTitlePredicate = (typeof NAMED_TITLE_PREDICATES)[number]
+export type HookAuthority = (typeof HOOK_AUTHORITIES)[number]
 export type AgentStateRulesFile = z.infer<typeof AgentStateRulesFileSchema>

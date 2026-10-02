@@ -7,6 +7,7 @@ import {
   type AgentStateRuleAnswer,
   type AgentStateRuleCondition,
   type AgentStateRulesFile,
+  type HookAuthority,
   type NamedScreenPredicate
 } from './agent-state-rules-schema'
 import { compileTextAnchor } from './agent-state-text-anchors'
@@ -102,14 +103,15 @@ export function compileAgentRules(file: AgentStateRulesFile): CompiledRule[] {
 
 type RulesKey = TuiAgent | typeof UNKNOWN_PANE_RULES_ID
 
-type CompiledFile = { rules: CompiledRule[]; readsTrustedScreen: boolean }
+type CompiledFile = { rules: CompiledRule[]; readsTrustedScreen: boolean; hooks: HookAuthority }
 
 const FILES_BY_KEY: ReadonlyMap<RulesKey, CompiledFile> = new Map(
   BUNDLED_AGENT_STATE_RULE_FILES.map((file) => [
     file.id,
     {
       rules: compileAgentRules(file),
-      readsTrustedScreen: file.profile?.screenSource === 'trusted'
+      readsTrustedScreen: file.profile?.screenSource === 'trusted',
+      hooks: file.profile?.hooks ?? 'identity-only'
     }
   ])
 )
@@ -126,6 +128,11 @@ function compiledFileFor(agent: TuiAgent | null | undefined): CompiledFile | und
  */
 export function readsTrustedScreen(agent: TuiAgent | null | undefined): boolean {
   return compiledFileFor(agent)?.readsTrustedScreen ?? false
+}
+
+/** Whether a fresh hook row for the agent's main turn decides readiness ahead of its rules. */
+export function hooksAreAuthoritative(agent: TuiAgent | null | undefined): boolean {
+  return compiledFileFor(agent)?.hooks === 'authoritative'
 }
 
 function someRule(

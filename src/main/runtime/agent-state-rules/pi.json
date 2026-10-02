@@ -1,6 +1,7 @@
 {
   "id": "pi",
   "engineVersion": 1,
+  "profile": { "hooks": "authoritative" },
   "anchors": [
     {
       "id": "idle_title",

@@ -1,6 +1,7 @@
 {
   "id": "opencode2",
   "engineVersion": 1,
+  "profile": { "hooks": "authoritative" },
   "anchors": [],
   "rules": [
     {

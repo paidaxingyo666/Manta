@@ -23,6 +23,7 @@ import {
   readsTrustedScreen,
   type AgentStateVerdict
 } from './agent-state-rules/agent-state-rules-engine'
+import { evaluateHookTurn, type TuiIdleHookTurn } from './tui-idle-hook-lane'
 
 /**
  * Ranking the evidence that a `tui-idle` wait may settle on.
@@ -33,7 +34,10 @@ import {
  * stale spinner (#1437) — so a busy Codex/Devin pane is routinely titled idle, and
  * accepting it satisfied a wait in ~0s mid-turn (#6011).
  *
- *   0. BLOCKED — the tail shows a prompt waiting on the user.
+ *   0. HOOKS — for an agent whose hooks are authoritative (agent-state-rules/ profile), a fresh
+ *      hook row for the main agent's turn: done, working, or a permission wait, with the tail's
+ *      blocked text judged by the permission arbiter against it (tui-idle-hook-lane.ts).
+ *   0b. BLOCKED — otherwise, the tail shows a prompt waiting on the user.
  *   1. STRONG READY — the agent states it is ready: an explicit idle marker in its own
  *      title, or a known ready-prompt body.
  *   1b. QUIET READY SCREEN — Muse titles no rest signal, and agents whose rules
@@ -209,6 +213,8 @@ export type TuiIdleEvaluationInput = {
   readAgentRuleVerdict: () => AgentStateVerdict | null
   agent: TuiAgent | null | undefined
   firstPartyStatus: FirstPartyAgentStatus
+  /** Tier 0: the hook server's fresh row for the pane, read only for an authoritative agent. */
+  readHookTurn?: () => TuiIdleHookTurn | null
   quiescenceMs: number
 }
 
@@ -256,6 +262,10 @@ export function hasQuietReadyScreen(
 
 /** The one place the tiers are combined; every settle site branches only on the verdict. */
 export function evaluateTuiIdle(input: TuiIdleEvaluationInput): TuiIdleVerdict {
+  const hookVerdict = input.readHookTurn ? evaluateHookTurn(input.agent, input.readHookTurn) : null
+  if (hookVerdict) {
+    return hookVerdict
+  }
   const blockedReason = input.readTailBlockedReason()
   if (blockedReason) {
     return { kind: 'blocked', reason: blockedReason }
@@ -346,6 +356,8 @@ export type TuiIdleEvidenceSource = {
   getAdoptedPtyIdleStatus(pty: RuntimePtyWorktreeRecord): AgentStatus | null
   getPaneAgent(ptyId: string | null | undefined): TuiAgent | null
   getFirstPartyAgentStatus(ptyId: string | null | undefined): FirstPartyAgentStatus
+  /** The hook server's fresh row for the pane's main agent; absent on a host with no store. */
+  getHookTurn?(ptyId: string, agent: TuiAgent): TuiIdleHookTurn | null
   readScreenLines(ptyId: string | null | undefined): readonly string[] | null
   /** The painted rows on the PTY's own grid, which only agents whose rules read the trusted
    *  screen use. Absent, they have no trustworthy screen. */
@@ -380,6 +392,16 @@ function readAgentRuleVerdict(
   })
 }
 
+function hookTurnReader(
+  source: TuiIdleEvidenceSource,
+  agent: TuiAgent | null,
+  ptyId: string | null | undefined
+): (() => TuiIdleHookTurn | null) | undefined {
+  return source.getHookTurn && agent && ptyId
+    ? () => source.getHookTurn?.(ptyId, agent) ?? null
+    : undefined
+}
+
 function lazyWaitText(readWaitText: () => string): () => string {
   let waitText: string | null = null
   return () => (waitText ??= readWaitText())
@@ -403,6 +425,7 @@ export function leafTuiIdleEvidence(
     readAgentRuleVerdict: () => readAgentRuleVerdict(agent, leaf, readScreen, waitText),
     agent,
     firstPartyStatus: source.getFirstPartyAgentStatus(leaf.ptyId),
+    readHookTurn: hookTurnReader(source, agent, leaf.ptyId),
     quiescenceMs: source.quiescenceMs
   }
 }
@@ -425,6 +448,7 @@ export function ptyTuiIdleEvidence(
     readAgentRuleVerdict: () => readAgentRuleVerdict(agent, pty, readScreen, waitText),
     agent,
     firstPartyStatus: source.getFirstPartyAgentStatus(pty.ptyId),
+    readHookTurn: hookTurnReader(source, agent, pty.ptyId),
     quiescenceMs: source.quiescenceMs
   }
 }

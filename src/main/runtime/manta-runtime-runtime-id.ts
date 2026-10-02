@@ -348,6 +348,7 @@ export class MantaRuntimeWithRuntimeId {
     getPaneAgent: (ptyId) => this.getPaneAgentForTuiIdle(ptyId),
     getFirstPartyAgentStatus: (ptyId) =>
       (ptyId ? this.ptysById.get(ptyId)?.lastExplicitAgentStatus : null) ?? null,
+    getHookTurn: (ptyId, agent) => this.readTuiIdleHookTurnForPty(ptyId, agent),
     readScreenLines: (ptyId) => this.readLiveTerminalScreenLines(ptyId),
     readScreenRuledLines: (ptyId) => this.readScreenRuledLines(ptyId)
   }
