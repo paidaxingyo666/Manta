@@ -13,6 +13,8 @@ on:
       - '.github/actions/restore-pnpm-verification/**'
       - '.github/actions/prepare-native-runtime/**'
       - '.github/actions/prepare-git-compatibility/**'
+      - '.github/actions/prepare-headless-compiler/**'
+      - 'config/scripts/headless-detector-compiler-cache*'
       - '.github/actions/prepare-linux-package-fixture/**'
       - 'config/docker/headless-serve-shutdown/**'
       - 'config/docker/cli-launch-contract/**'
@@ -35,13 +37,14 @@ on:
       - 'src/shared/zip-extractor-command.ts'
       - 'config/scripts/shared-electron-dist-cache.mjs'
       - 'config/scripts/space-sharing-copy.mjs'
-      - 'config/patches/node-pty@1.1.0.patch'
-      - 'config/patches/@vscode__windows-process-tree@0.8.0.patch'
+      - 'config/patches/**'
       - 'native/windows-registry/**'
   pull_request:
     paths:
       - '.github/workflows/ci-cache-warmup.yml'
       - '.github/actions/prepare-git-compatibility/**'
+      - '.github/actions/prepare-headless-compiler/**'
+      - 'config/scripts/headless-detector-compiler-cache*'
       - '.github/actions/prepare-linux-package-fixture/**'
       - 'config/docker/headless-serve-shutdown/**'
       - 'config/docker/cli-launch-contract/**'
@@ -73,6 +76,10 @@ jobs:
           native-runtime: node
           node-version: '24'
           cache-electron-package: 'true'
+
+      - uses: ./.github/actions/prepare-headless-compiler
+        with:
+          seed: 'true'
 
       - name: Populate shared Electron archive
         run: node config/scripts/install-electron-package-binary.mjs

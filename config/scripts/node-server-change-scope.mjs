@@ -31,12 +31,14 @@ const ALWAYS_FILES = new Set([
   '.github/workflows/node-server-tests.yml',
   'config/scripts/node-server-change-scope.mjs',
   'config/scripts/node-server-change-scope.test.mjs',
+  'config/scripts/headless-detector-compiler-cache.mjs',
   'config/scripts/node-server-qualification.mjs',
   'config/scripts/node-server-qualification.test.mjs'
 ])
 const ALWAYS_PREFIXES = [
   '.github/actions/install-node-dependencies/',
   '.github/actions/restore-pnpm-verification/',
+  '.github/actions/prepare-headless-compiler/',
   '.github/actions/prepare-native-runtime/',
   '.github/actions/prepare-orcad-prebuilds/',
   // These areas also contain worker paths and fixtures opened without an import.

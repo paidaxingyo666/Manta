@@ -46,6 +46,40 @@ used 42 aggregate runner-minutes across 11 test jobs. The
 estimates 34.9 headless runner-hours, including 23.4 in cancelled runs. These are
 baseline observations; post-merge savings have not yet been measured.
 
+## October 2 headless detector compiler cache
+
+The deferred detector already avoids dependency setup for known build inputs.
+For changes that need import analysis, the collector marks package imports external;
+only esbuild and its platform binary are needed. A small compiler archive can replace
+root dependency setup for this analysis, while qualification jobs still install normally.
+
+The existing Linux x64 warmer packs these two packages after its frozen,
+script-free, policy-checked install. Only main publishes. Readers use an exact key
+covering Node/platform/architecture, manifests, install policy, patches and the cache
+implementation. The producer and reader use the same archive path. File hashes,
+identity and a compiler smoke are checked before availability is reported; missing,
+invalid or failed restores use the original full installer. Graph analysis retains
+its existing conservative full-qualification verdict on errors.
+
+A [three-pair hosted comparison](https://github.com/stablyai/orca/actions/runs/37071724200)
+passed on Ubuntu x64 with Node 24.21.0 and esbuild 0.28.2. Every pair produced the
+same 6,018 source inputs. Sample 2 ran the compiler-only treatment first; samples 1
+and 3 ran the existing installer first. Each used a fresh dependency tree, and the
+compiler treatment required a real cache hit and validated its bytes and smoke.
+
+| Sample | Full installer + graph | Compiler restore + graph | Paired saving |
+| ------ | ---------------------- | ------------------------ | ------------- |
+| 1      | 11.730s                | 2.805s                   | 8.925s        |
+| 2      | 14.702s                | 4.706s                   | 9.996s        |
+| 3      | 14.666s                | 3.750s                   | 10.916s       |
+
+The median paired saving is 9.996 seconds. Inter-step overhead, archive transfer,
+validation and the real graph are included. Checkout, initial Node setup, dependency
+resets, seed work, post-job cache saves, tests and queues are excluded. These are
+warm detector measurements, not whole-workflow or billing savings. The trial uses
+the same package layout and validation as the production helper; production also
+resolves its policy fingerprint. Cold or changed identities still install fully.
+
 ## SSH Windows slot reuse
 
 The SSH Windows host workflow uses the same server-slot preparation action as

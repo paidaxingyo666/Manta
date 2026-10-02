@@ -17,6 +17,7 @@ on:
       - '.pnpmfile.cjs'
       - '.github/actions/install-node-dependencies/**'
       - '.github/actions/restore-pnpm-verification/**'
+      - '.github/actions/prepare-headless-compiler/**'
       - '.github/actions/prepare-native-runtime/**'
       - '.github/actions/prepare-orcad-prebuilds/**'
       - '.github/workflows/node-server-tests.yml'
@@ -37,6 +38,7 @@ on:
       - '.pnpmfile.cjs'
       - '.github/actions/install-node-dependencies/**'
       - '.github/actions/restore-pnpm-verification/**'
+      - '.github/actions/prepare-headless-compiler/**'
       - '.github/actions/prepare-native-runtime/**'
       - '.github/actions/prepare-orcad-prebuilds/**'
       - '.github/workflows/node-server-tests.yml'
@@ -112,8 +114,12 @@ jobs:
             echo 'should_run=true' >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: ./.github/actions/install-node-dependencies
+      - uses: ./.github/actions/prepare-headless-compiler
+        id: compiler
         if: steps.scope.outputs.graph_required == 'true'
+        continue-on-error: true
+      - uses: ./.github/actions/install-node-dependencies
+        if: steps.scope.outputs.graph_required == 'true' && steps.compiler.outputs.available != 'true'
       - name: Check the headless import graph
         id: graph
         if: steps.scope.outputs.graph_required == 'true'

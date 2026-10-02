@@ -86,6 +86,8 @@ it.each([
   'native/windows-registry/src/addon.cc',
   '.github/actions/install-node-dependencies/action.yml',
   '.github/actions/restore-pnpm-verification/action.yml',
+  '.github/actions/prepare-headless-compiler/action.yml',
+  'config/scripts/headless-detector-compiler-cache.mjs',
   '.github/actions/prepare-native-runtime/action.yml',
   '.github/actions/prepare-orcad-prebuilds/action.yml',
   '.github/workflows/node-server-tests.yml',
