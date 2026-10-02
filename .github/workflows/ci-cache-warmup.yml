@@ -51,7 +51,8 @@ permissions:
 
 concurrency:
   group: ci-cache-warmup-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  # Hourly retries must let an active warmer finish publishing its caches.
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   warm:

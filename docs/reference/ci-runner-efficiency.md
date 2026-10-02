@@ -1232,3 +1232,127 @@ crash. The last control also proved that crash returns enter the capture.
 This measures the three-file oracle cohort. Whole-shard timings include other
 test bodies, imports and transforms, so a whole-suite saving needs separate
 measurement.
+
+## Cache warming: let hourly ticks wait for active work
+
+The hourly warmer previously cancelled an active warmer, even when both used
+the same source. On October 2, the [merge-triggered run](https://github.com/stablyai/orca/actions/runs/36965832780)
+at 8ff6296 was interrupted by the [hourly run](https://github.com/stablyai/orca/actions/runs/36966367896)
+at the same commit. The Windows ARM dependency installation had run for 356
+seconds before cancellation; its native verification was skipped. The other
+four lanes had already succeeded.
+
+Scheduled events now wait in the existing concurrency group. Push, PR and manual
+events still replace active work. This keeps one active workflow and the default
+single pending slot, using GitHub's documented
+[conditional cancellation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+All cache probes, platforms and publication rules remain.
+
+This avoids the observed discarded installation. It does not remove the next
+scheduled run or its repeated successful lanes, and pending replacement still
+applies regardless of the cancellation expression. The bounded 20-run sample
+contains this collision; it does not establish a recurring or whole-CI saving.
+
+## Daemon shutdown fixture: remove build tools after compilation
+
+The fixture now removes compiler and Python build dependencies, plus npm and
+node-gyp caches, in the same Docker layer that installs node-pty. It restores the base image's manual
+package marks, keeps procps and util-linux, and retains the packages owning the
+shared libraries used by Node and the actually loaded PTY addon. This extends
+the [official Node image's package-ownership approach](https://github.com/nodejs/docker-node/blob/main/22/bookworm-slim/Dockerfile)
+to native addons. Dependency checks and a real PTY spawn fail the build if cleanup
+breaks the runtime.
+
+The [hosted comparison](https://github.com/stablyai/orca/actions/runs/36969120786)
+used Ubuntu x64, Docker 28.0.4 and the same resolved Node 22.23.3 base digest for
+both images. All 3,418 common entries under `/usr/local` retained their bytes,
+modes and symlink targets; all seven resolved runtime libraries matched. Only
+two directory-only Python paths disappeared. The 52 removed Debian packages
+were build dependencies; retained package versions stayed identical.
+
+| Image payload      | Baseline      | Candidate     | Reduction |
+| ------------------ | ------------- | ------------- | --------- |
+| Docker archive     | 714,643,456 B | 329,967,616 B | 53.8%     |
+| Compressed archive | 205,819,558 B | 91,888,840 B  | 55.4%     |
+
+Each timed arm started a separate Docker daemon with an empty image store,
+decompressed the archive, loaded it, rebuilt from its inline cache and ran the
+unchanged descendant/canary shutdown check. Every provisioning layer was cached.
+
+| Pair/order         | Baseline | Candidate | Saving  |
+| ------------------ | -------- | --------- | ------- |
+| 1: baseline first  | 16.320 s | 10.198 s  | 6.122 s |
+| 2: candidate first | 16.389 s | 10.141 s  | 6.248 s |
+| 3: baseline first  | 16.351 s | 10.223 s  | 6.129 s |
+| Median             | 16.351 s | 10.198 s  | 6.153 s |
+
+Median decompression fell from 1.059 to 0.493 seconds and loading from 10.723 to
+5.125 seconds. Cached rebuild and shutdown times stayed close. Both seed images
+and all six restored consumers passed the original shutdown/canary assertions;
+both deliberate no-op disposal controls failed with the descendant still live.
+Byte and retained-directory mode faults also failed the inventory comparator.
+All six owned daemons stopped gracefully without a forced kill.
+
+These private daemons used separate classic overlay2 stores and the untouched
+host containerd service. Production storage settings were not captured, the
+filesystem cache was not flushed, and network transfer is excluded. Production
+restores overlap dependency installation, so this 37.6% fixture-sequence saving
+does not establish a six-second PR wall-time improvement. Single cold image
+builds took 19.313 and 22.623 seconds. The Dockerfile change creates one new
+fixture key; the existing main warmer seeds it after merge.
+
+## WebRTC egress fixture: avoid GPU initialization for the data channel
+
+The Linux-only probe disables hardware acceleration before Electron readiness.
+It still creates two independent processes/profiles, a real data channel, offer
+and local description, and checks the exact proxy and UDP policy. The three-second
+host observation, 500 ms drain and 20/30/45-second deadlines remain unchanged.
+
+Two fresh Ubuntu x64 runners compared three alternating pairs each, with identical
+phase instrumentation. The [first trial](https://github.com/stablyai/orca/actions/runs/36967511524)
+started with the baseline; the [second trial](https://github.com/stablyai/orca/actions/runs/36969120786)
+started with the candidate. Their first baseline peer constructors took 4.059
+and 2.546 seconds and logged the GPU command-buffer error seen in an earlier
+package timeout. In the second trial, that baseline delay followed the cold
+candidate's 2.3 ms constructor. Every candidate constructor took 2.0–2.6 ms.
+
+Typical process time stayed near 8.3 seconds: baseline/candidate medians were
+8.288/8.273 seconds in the first trial and 8.298/8.380 in the reverse trial.
+The evidence supports removing an avoidable startup delay, without a measured
+typical throughput gain or an estimate of future timeout frequency.
+
+All 12 full case invocations preserved actual unprotected UDP and zero protected
+UDP. Both trials rejected seven faults: missing policy, a packet at 2.9 seconds,
+a packet during the drain, a missing peer factory or local description, a broken
+packet counter and a hung renderer. The original assertions and deadlines caught
+each fault. The normal package gate runs the uninstrumented fixture.
+
+## Remote resync fixture: keep coalesced frames in one decoder pass
+
+The first [full PR run](https://github.com/stablyai/orca/actions/runs/36971375340)
+passed both package jobs but failed one remote-workspace ordering assertion:
+it observed revisions `[2, 3]` where the fixture expected `[3]`. The decoder can
+yield between two frames after its four-millisecond work budget. Under slow
+scheduling, the first response's promise can publish revision 2 before the
+second frame's revision 3 notification is dispatched.
+
+The fixture now holds its delivery clock at the actual timestamp from multiplexer
+construction through the first coalesced-buffer delivery, following the existing
+decoder test pattern. It restores the clock before asynchronous assertions and
+again before disposal. All four source/order cases retain their exact cache,
+publication, client-identity and follow-up-read assertions. Production decoding,
+its fairness budget and remote messages are unchanged.
+
+Normal focused runs passed all 18 tests. Advancing the clock by four milliseconds
+per call reproduced `[2, 3]` in both original response-first cases; the fixed
+fixture passed all 18 under the same control. Removing the freeze reproduced both
+failures. Bypassing the production read-safety guard still caused `[3, 2]` rollback
+in all four ordering cases and eight failing tests overall. All controls preserved
+the same 18 test identities. This corrects a reproducible fixture assumption;
+one CI failure does not establish a failure-rate reduction.
+
+## Windows server cache metadata: retain the current key
+
+The bounded 50-head main sample ending at 8ff6296 contained no root package
+metadata changes. Removing app-version metadata from the Windows server cache
+key would not improve reuse in that sample, so the key remains unchanged.
