@@ -27,6 +27,15 @@ const OPENCODE_PERMISSION_DIALOG = [
   ' Allow once   Allow always   Reject     ctrl+f fullscreen  ⇆ select  enter confirm',
   ''
 ].join('\r\n')
+// OpenCode 1.18's question tool, which paints no dialog wording the blocked layer knows.
+const OPENCODE_QUESTION = [
+  '  ┃  Which color do you prefer?',
+  '  ┃  1. Red',
+  '  ┃  2. Blue',
+  '  ┃  3. Type your own answer',
+  '  ┃  ↑↓ select  enter submit  esc dismiss',
+  ''
+].join('\r\n')
 // Shorter than the 2 s poll, so only the synchronous verdict can settle a wait.
 const WAIT_MS = 150
 
@@ -181,6 +190,23 @@ describe('tui-idle hook lane through the runtime', () => {
     expect(await waitOutcome({ ...options, rows: () => [] })).toBe(
       'blocked:agent-interactive-prompt'
     )
+    expect(
+      await waitOutcome({
+        ...options,
+        rows: () => [row({ agentType: 'opencode', state: 'waiting', receivedAt: Date.now() + 1 })]
+      })
+    ).toBe('blocked:agent-interactive-prompt')
+    expect(
+      await waitOutcome({
+        ...options,
+        rows: () => [row({ agentType: 'opencode', receivedAt: Date.now() + 1 })]
+      })
+    ).toBe('ready')
+  })
+
+  it('blocks on an open question the hook reports, and settles once it is answered', async () => {
+    const options = { launchAgent: 'opencode' as const, data: OPENCODE_QUESTION }
+    expect(await waitOutcome({ ...options, rows: () => [] })).toBe('timeout')
     expect(
       await waitOutcome({
         ...options,

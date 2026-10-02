@@ -160,6 +160,24 @@ describe('readTuiIdleHookTurn', () => {
     ).toEqual(WORKING)
   })
 
+  it('blocks on a wait the hook reports with no dialog text the arbiter knows (a question)', () => {
+    const receivedAt = Date.now() - 1000
+    for (const state of ['waiting', 'blocked'] as const) {
+      expect(readTuiIdleHookTurn({ ...base, hookRows: [row({ receivedAt, state })] })).toEqual({
+        state: 'permission',
+        blockedReason: 'agent-interactive-prompt'
+      })
+    }
+    // Input since the wait opened may have answered it before the next hook arrived.
+    expect(
+      readTuiIdleHookTurn({
+        ...base,
+        hookRows: [row({ receivedAt, state: 'waiting' })],
+        lastInputAt: receivedAt + 1
+      })
+    ).toEqual({ state: 'permission', blockedReason: null })
+  })
+
   it('takes the newest joined row', () => {
     const now = Date.now()
     expect(

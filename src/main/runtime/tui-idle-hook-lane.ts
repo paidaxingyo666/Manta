@@ -8,7 +8,8 @@ type HookTurnState = 'done' | 'working' | 'permission'
 
 /**
  * The main agent's turn as the hook server's store last saw it for one pane, and the permission
- * arbiter's verdict on the pane's blocked text with that turn as its explicit status.
+ * arbiter's verdict on the pane's blocked text with that turn as its explicit status (or, for a
+ * wait the hook reports with no text the arbiter knows, a generic interactive prompt).
  */
 export type TuiIdleHookTurn = {
   state: HookTurnState
@@ -65,10 +66,19 @@ export function readTuiIdleHookTurn(read: TuiIdleHookTurnRead): TuiIdleHookTurn 
     return null
   }
   const state = hookLeadTurnState(row)
-  if (state === null || (state === 'done' && row.receivedAt < (read.lastInputAt ?? -1))) {
+  const predatesInput = row.receivedAt < (read.lastInputAt ?? -1)
+  if (state === null || (state === 'done' && predatesInput)) {
     return null
   }
-  return { state, blockedReason: read.resolveBlockedText(state, row) }
+  const blockedReason = read.resolveBlockedText(state, row)
+  // Why the hook alone blocks: a question or custom modal paints no dialog text the arbiter knows,
+  // and these hooks report its answer. Input since may have answered it before the hook arrived.
+  return {
+    state,
+    blockedReason:
+      blockedReason ??
+      (state === 'permission' && !predatesInput ? 'agent-interactive-prompt' : null)
+  }
 }
 
 /** The tui-idle verdicts the hook lane can reach (a subset of `TuiIdleVerdict`). */
@@ -104,7 +114,7 @@ export function evaluateHookTurn(
     case 'working':
       return { kind: 'working' }
     case 'permission':
-      // Why pending: the arbiter saw no prompt in the tail, so the poll's screen read decides.
+      // Why pending: input after the wait opened may have answered it; the next hook decides.
       return { kind: 'pending', quietForeground: 'closed' }
   }
 }
