@@ -446,8 +446,8 @@ call it.
 `terminal wait --for tui-idle` is a reader too. Before STA-9100 hook state
 reached it only through the `<Agent> ready` titles the window writes, so a
 headless `manta serve` never saw it (#16095). Now an agent whose rule file says
-`profile.hooks: "authoritative"` (OpenCode, OpenCode 2, Pi, OMP) has its
-fresh row read straight from the store, through the same
+`profile.hooks: "authoritative"` (OpenCode, OpenCode 2, Pi, OMP) or
+`"turn-end"` (Codex) has its fresh row read straight from the store, through the same
 `selectFreshExplicitAgentStatusRow` join prompt-receipt verification uses
 (`src/main/runtime/tui-idle-hook-lane.ts`):
 
@@ -469,11 +469,14 @@ fresh row read straight from the store, through the same
   OSC 133 zones itself;
 - every other agent stays `identity-only`: Claude sends no event when an
   approval is denied or Esc stops a tool, so its row can sit at `waiting` or
-  `working` forever, and the rules keep deciding. Codex is identity-only too:
-  before its `Interrupt` hook an Esc mid-turn leaves the row `working`, and an
-  older TUI can hand its hooks to a newer shared app server, so no version
-  check tells which Codex posts it. Current Codex settles fast anyway, since
-  `Interrupt` drives its `Codex ready` title.
+  `working` forever, and the rules keep deciding;
+- Codex is `turn-end`: only a `done` decides (it settles the wait), and a
+  `working` or permission row leaves the decision to the rules. Before its
+  `Interrupt` hook an Esc mid-turn can leave the row `working`, and an older
+  TUI can hand its hooks to a newer shared app server, so no version check
+  tells which Codex posts it. A `done` is a real turn end on every version, so
+  trusting only that one keeps the headless gain (no quiet window after the
+  turn) without letting a missing cancel hang the wait.
 
 The titles stay for display; remote clients read them.
 

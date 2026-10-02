@@ -176,13 +176,14 @@ describe('tui-idle hook lane through the runtime', () => {
     ).toBe('ready')
   })
 
-  // Why: Codex before its Interrupt hook sends nothing for an Esc mid-turn, so its row can stay
-  // working; its title and screen rules decide instead.
-  it('leaves Codex to its screen rules, whatever its hook row says', async () => {
+  // Why: Codex before its Interrupt hook sends nothing for an Esc mid-turn, so only its done
+  // decides; a working row leaves its title and screen rules to decide.
+  it('settles Codex on its done, and leaves a working row to its screen rules', async () => {
     const codex = { launchAgent: 'codex' as const, data: CODEX_BUSY_SCREEN }
-    expect(await waitOutcome({ ...codex, rows: () => [row({ agentType: 'codex' })] })).toBe(
-      'timeout'
-    )
+    expect(await waitOutcome({ ...codex, rows: () => [row({ agentType: 'codex' })] })).toBe('ready')
+    expect(
+      await waitOutcome({ ...codex, rows: () => [row({ agentType: 'codex', state: 'working' })] })
+    ).toBe('timeout')
   })
 
   it("settles past a denied prompt's dialog text once the hook says the turn ended", async () => {

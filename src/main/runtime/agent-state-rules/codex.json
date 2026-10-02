@@ -1,7 +1,7 @@
 {
   "id": "codex",
   "engineVersion": 1,
-  "profile": { "screenSource": "live" },
+  "profile": { "screenSource": "live", "hooks": "turn-end" },
   "anchors": [
     {
       "id": "plan_implement_menu",

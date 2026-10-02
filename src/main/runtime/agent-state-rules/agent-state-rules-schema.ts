@@ -221,10 +221,12 @@ const AnchorSchema = z
 /**
  * How far readiness may trust the agent's hooks. `authoritative`: they report every way the main
  * agent's turn ends (done, cancelled, an approval granted or denied), so a fresh hook row decides
- * ahead of the rules. `identity-only` (the default): some end sends no event (Claude's denied
- * approval and Esc mid-tool), so hooks only name the agent and the rules decide.
+ * ahead of the rules. `turn-end`: a hook `done` is always a real turn end, but some ends may send
+ * nothing (Codex before its `Interrupt` hook), so only a `done` decides and a `working` or
+ * permission row leaves the rules to decide. `identity-only` (the default): hooks only name the
+ * agent and the rules decide (Claude sends no event when an approval is denied or Esc stops a tool).
  */
-const HOOK_AUTHORITIES = ['authoritative', 'identity-only'] as const
+const HOOK_AUTHORITIES = ['authoritative', 'turn-end', 'identity-only'] as const
 
 /** Facts about the agent that are not detection rules. */
 const ProfileSchema = z

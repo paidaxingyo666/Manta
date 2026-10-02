@@ -133,9 +133,9 @@ export function readsTrustedScreen(agent: TuiAgent | null | undefined): boolean 
   return compiledFileFor(agent)?.readsTrustedScreen ?? false
 }
 
-/** Whether a fresh hook row for the agent's main turn decides readiness ahead of its rules. */
-export function hooksAreAuthoritative(agent: TuiAgent | null | undefined): boolean {
-  return compiledFileFor(agent)?.hooks === 'authoritative'
+/** Which fresh hook rows for the agent's main turn decide readiness ahead of its rules. */
+export function hookAuthority(agent: TuiAgent | null | undefined): HookAuthority {
+  return compiledFileFor(agent)?.hooks ?? 'identity-only'
 }
 
 function someRule(

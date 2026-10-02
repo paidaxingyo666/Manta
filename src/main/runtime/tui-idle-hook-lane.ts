@@ -1,7 +1,7 @@
 import type { AgentStatusIpcPayload } from '../../shared/agent-status-types'
 import type { RuntimeTerminalWaitBlockedReason } from '../../shared/runtime-types'
 import type { TuiAgent } from '../../shared/tui-agent'
-import { hooksAreAuthoritative } from './agent-state-rules/agent-state-rules-engine'
+import { hookAuthority } from './agent-state-rules/agent-state-rules-engine'
 import { selectFreshExplicitAgentStatusRow } from './runtime-hook-agent-row-selection'
 
 type HookTurnState = 'done' | 'working' | 'permission'
@@ -89,20 +89,25 @@ export type TuiIdleHookVerdict =
   | { kind: 'pending'; quietForeground: 'closed' }
 
 /**
- * Tier 0 of tui-idle-evidence.ts for an agent whose hooks are authoritative. Why ahead of every
- * rule: its hooks report each way a turn ends, and they reach a headless host, where the
- * `<Agent> ready` titles the window writes never appear (#16095). Why the arbiter judges the blocked
- * text: a denied prompt's dialog lingers in the line tail after the hook says the turn moved on.
- * No fresh row (startup, before the first prompt, or an unjoinable pane) leaves the other tiers.
+ * Tier 0 of tui-idle-evidence.ts for an agent whose hooks are trusted (`profile.hooks`). Why ahead
+ * of every rule: they reach a headless host, where the `<Agent> ready` titles the window writes
+ * never appear (#16095). Why the arbiter judges the blocked text: a denied prompt's dialog lingers
+ * in the line tail after the hook says the turn moved on. No fresh row (startup, before the first
+ * prompt, or an unjoinable pane) leaves the other tiers.
  */
 export function evaluateHookTurn(
   agent: TuiAgent | null | undefined,
   readHookTurn: () => TuiIdleHookTurn | null
 ): TuiIdleHookVerdict | null {
-  if (!hooksAreAuthoritative(agent)) {
+  const authority = hookAuthority(agent)
+  if (authority === 'identity-only') {
     return null
   }
   const turn = readHookTurn()
+  // Why only a done for `turn-end`: an end that posts nothing leaves the row working forever.
+  if (authority === 'turn-end' && turn?.state !== 'done') {
+    return null
+  }
   if (turn?.blockedReason) {
     return { kind: 'blocked', reason: turn.blockedReason }
   }
