@@ -286,6 +286,23 @@ describe('per-job path classification', () => {
     })
   })
 
+  it('runs shell contracts for the structured-session login-shell test, its harness and its subject', () => {
+    expectClassification(
+      ['src/main/runtime/structured-session-cli-login-shell.live-shell.test.ts'],
+      { shell_contracts: true }
+    )
+    for (const file of [
+      'src/main/runtime/structured-session-login-shell-test-harness.ts',
+      'src/main/runtime/structured-session-child-identity-env.ts'
+    ]) {
+      expectClassification([file], {
+        shell_contracts: true,
+        package: true,
+        package_windows: true
+      })
+    }
+  })
+
   it('runs mantad browser when Chrome launch, session, or tab modules change', () => {
     for (const file of [
       'src/main/mantad/external-chromium-browser-session.ts',
@@ -367,7 +384,11 @@ describe('per-job path classification', () => {
       'src/main/runtime/runtime-worktree-agent-rows.ts',
       'src/main/runtime/runtime-worktree-pty-agent-sources.ts',
       'src/shared/runtime-worktree-contracts.ts',
-      'src/renderer/src/runtime/remote-runtime-terminal-multiplexer.ts'
+      'src/renderer/src/runtime/remote-runtime-terminal-multiplexer.ts',
+      'src/shared/structured-agent-session-projection.ts',
+      'src/shared/agent-turn-outcome.ts',
+      'src/main/runtime/orchestration/db.ts',
+      'src/main/runtime/orchestration/orchestration-schema-version-skew.ts'
     ]) {
       expectClassification([file], {
         'cross-version-wire': true,

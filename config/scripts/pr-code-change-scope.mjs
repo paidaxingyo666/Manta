@@ -98,6 +98,9 @@ const SHELL_PREFIXES = [
   'src/main/shell-wrapper-',
   'src/main/terminal-history-fish',
   'src/main/zsh-',
+  'src/main/runtime/structured-session-cli-login-shell',
+  'src/main/runtime/structured-session-login-shell-test-harness',
+  'src/main/runtime/structured-session-child-identity-env',
   'src/renderer/src/components/terminal-pane/fish-color-scheme',
   'src/shared/fish-',
   'src/shared/pty-reply-echo-shapes',
@@ -178,7 +181,19 @@ const CROSS_VERSION_WIRE_PREFIXES = [
   'src/main/runtime/runtime-worktree-agent-',
   'src/main/runtime/runtime-worktree-pty-agent-sources',
   'src/shared/runtime-worktree-contracts',
-  'src/renderer/src/runtime/remote-runtime-terminal-multiplexer'
+  'src/renderer/src/runtime/remote-runtime-terminal-multiplexer',
+  // Turn-end status a newer host publishes and an older desktop reads (cross-version-host-observed-turn-end).
+  'src/shared/agent-turn-outcome',
+  'src/shared/agent-status-types',
+  'src/shared/agent-lead-status-fold',
+  'src/shared/agent-session-turn-record',
+  'src/shared/structured-agent-session-agent-status',
+  'src/shared/structured-agent-session-projection',
+  'src/shared/workspace-session-sleeping-agents',
+  // An older app opening a newer orchestration database (orchestration-delivery-downgrade).
+  'src/main/runtime/orchestration/db.ts',
+  'src/main/runtime/orchestration/db/',
+  'src/main/runtime/orchestration/orchestration-schema-version-skew'
 ]
 
 const MANAGED_HOOK_PREFIXES = [

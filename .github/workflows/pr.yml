@@ -860,21 +860,10 @@ jobs:
           DIFF_BASE="$(node config/scripts/git-pull-request-diff-base.mjs "$BASE_SHA")"
           pnpm run check:runtime-launcher-protocol-ratchet -- --base "$DIFF_BASE"
 
-      # A path filter that matches nothing exits 1 ("No test files found"), so this
-      # lane cannot report success while running zero tests.
+      # Runs the whole directory so a new file there cannot be left out; an empty match
+      # exits 1 ("No test files found"), so this lane cannot pass while running zero tests.
       - name: Old/new client and server compatibility journeys
-        run: >-
-          pnpm exec vitest run --config config/vitest.config.ts
-          tests/e2e/cross-version-wire/release-checkout.unit.test.ts
-          tests/e2e/cross-version-wire/cross-version-browser-placement.unit.test.ts
-          tests/e2e/cross-version-wire/cross-version-terminal-wire.unit.test.ts
-          tests/e2e/cross-version-wire/reported-lossy-initial-snapshot.unit.test.ts
-          tests/e2e/cross-version-wire/cross-version-agent-session-wire.unit.test.ts
-          tests/e2e/cross-version-wire/cross-version-worktree-identity-downgrade.unit.test.ts
-          tests/e2e/cross-version-wire/cross-version-session-tabs-retirement-proof.unit.test.ts
-          tests/e2e/cross-version-wire/agent-session-resume-marker-downgrade.unit.test.ts
-          tests/e2e/cross-version-wire/agent-session-stop-event-downgrade.unit.test.ts
-          tests/e2e/cross-version-wire/cross-version-worktree-ps-verdict.unit.test.ts
+        run: pnpm exec vitest run --config config/vitest.config.ts tests/e2e/cross-version-wire/
 
   managed_hook_node18:
     name: managed hooks on Node 18
