@@ -26,12 +26,14 @@ const FIRST_JOURNAL_SEQUENCE = 1
 
 export type JournalLoad = {
   state: JournalReducerState
-  /** A row from a future schema was met: no writes, no deletion. */
+  /** A row from a future schema, or of a kind this build does not know, was met: no writes, no
+   *  deletion. */
   readOnly: boolean
   /** Set when the surviving prefix is unusable and the caller must roll the epoch. */
   corrupt: boolean
-  /** Rows skipped because their body failed to parse (future-version rows are
-   *  `readOnly`, never counted here). The store discloses these in the timeline. */
+  /** Rows dropped because they failed to parse or name another sequence than their key (an
+   *  unreadable row latches `readOnly`, never counted here). The store discloses these in the
+   *  timeline. */
   malformedRows: number
   /** Directory-internal: the first sequence of an unusable suffix. The store
    *  deletes from here before it accepts a write; a probe leaves it alone. */
@@ -92,10 +94,11 @@ export function startJournalRowFold(input: JournalRowFoldInput): {
 
   const add = (entry: { seq: number; rowJson: string }): boolean => {
     const parsed = parseJournalRow(entry.rowJson)
-    if (!parsed.ok) {
+    // A body naming another sequence than its key is malformed there: writes number past the key.
+    if (!parsed.ok || parsed.row.seq !== entry.seq) {
       truncateFrom = entry.seq
-      latched = parsed.unreadable
-      malformedRows = parsed.unreadable ? 0 : 1
+      latched = !parsed.ok && parsed.unreadable
+      malformedRows = latched ? 0 : 1
       return false
     }
     const row = parsed.row
