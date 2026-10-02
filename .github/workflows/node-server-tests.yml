@@ -154,6 +154,7 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: ${{ runner.os == 'Windows' && 'node' || 'none' }}
+          cache-pnpm-store: ${{ runner.os != 'Windows' }}
       # Linux release slots come from the floor and Alpine lanes; this slot serves local tests.
       - uses: ./.github/actions/prepare-orcad-prebuilds
         id: orcad-prebuild

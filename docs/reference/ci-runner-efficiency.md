@@ -76,6 +76,41 @@ request reuse only following an exact prepared native-cache hit; manual SSH and
 all release builders retain fresh compilation. Subsequent staging checks still
 run. Hosted validation and the reuse interval remain to be measured.
 
+## Windows root download stores: registry installs finish sooner
+
+Three paired samples on each Windows architecture compared the existing exact
+main download-store restore with a fresh registry install. Each treatment used a
+fresh dependency tree, store and pnpm metadata, with registry-first ordering in
+sample 2. Both restored the same policy-checked verification record before timing.
+All six pairs used Node 24.21.0 and pnpm 12.8.1; manifest digests and installed
+lockfile digests matched, and both retained frozen, script-free installation.
+
+| Runner        | Cached totals (seconds)     | Registry totals (seconds)   | Paired median saving |
+| ------------- | --------------------------- | --------------------------- | -------------------- |
+| Windows x64   | 26.820 / 28.885 / 27.751    | 13.644 / 14.126 / 12.908    | 14.759 seconds       |
+| Windows ARM64 | 216.540 / 288.492 / 189.342 | 119.856 / 238.562 / 115.611 | 73.731 seconds       |
+
+The x64 samples are the three successful Windows 2022 jobs in
+[run 37064549378](https://github.com/stablyai/orca/actions/runs/37064549378).
+Its ARM cleanup guard rejected pnpm's setup-owned store path before measurement;
+those incomplete ARM jobs are excluded. The corrected
+[ARM-only run](https://github.com/stablyai/orca/actions/runs/37065220916) passed all
+three samples. Earlier rejected measurements also stopped before installation
+because an optional config file was absent; none count toward these timings.
+
+Intervals include actual store lookup/restore, inter-step overhead and root
+installation. Checkout, toolchain setup, tree/store reset, verification-record
+restoration and native preparation are excluded. ARM variation is substantial;
+these samples do not measure whole-workflow, queue or billing savings.
+
+Root-only Windows x64/ARM64 PR installs now skip the download-store restore.
+The existing x64 mixed-install exception remains. An explicit store opt-out also
+lets Windows headless persistence and SSH jobs avoid the archive on main or
+manual runs. Frozen installs, verification records, native caches and every
+qualification check remain. Other lockfile sets and platforms keep their
+existing policy. Default non-PR writers, including the warmer, still seed stores
+for direct setup-node consumers and workflows that run package scripts.
+
 ## October 1 Windows and dependency cache follow-up
 
 [PR #24355](https://github.com/stablyai/orca/pull/24355) merged at `197ea3a3`.

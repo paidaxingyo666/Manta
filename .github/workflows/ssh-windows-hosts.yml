@@ -109,6 +109,7 @@ jobs:
         id: dependencies
         with:
           native-runtime: node
+          cache-pnpm-store: 'false'
       # The deploy materializes rung A from this template; only this runner's slot exists here.
       # The process-tree addon carries the launcher that starts the relay outside sshd's job; the
       # mantad slot and the relay both stage it, and a standard-user host has no other launch route.

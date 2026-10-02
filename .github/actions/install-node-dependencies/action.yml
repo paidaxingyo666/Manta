@@ -2,6 +2,10 @@ name: Install Node dependencies
 description: Installs the Node toolchain and repository dependencies for CI jobs, with optional Electron archive caching.
 
 inputs:
+  cache-pnpm-store:
+    description: Restore or save the pnpm download store; verification and native caches are independent.
+    required: false
+    default: 'true'
   cache-pnpm-verification:
     description: Restore pnpm's policy-checked lockfile verification record.
     required: false
@@ -69,7 +73,7 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version-file: package.json
-        cache: ${{ github.event_name != 'pull_request' && 'pnpm' || '' }}
+        cache: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }}
         cache-dependency-path: ${{ inputs.cache-dependency-path }}
         package-manager-cache: false
 
@@ -79,7 +83,7 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
-        cache: ${{ github.event_name != 'pull_request' && 'pnpm' || '' }}
+        cache: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }}
         cache-dependency-path: ${{ inputs.cache-dependency-path }}
         package-manager-cache: false
 
@@ -87,8 +91,10 @@ runs:
     - name: Resolve pnpm download store
       id: pnpm-store
       if: >-
-        github.event_name == 'pull_request' &&
-        (runner.os != 'Windows' || runner.arch != 'X64' || !contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml'))
+        github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' &&
+        (runner.os != 'Windows' ||
+        !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) &&
+        !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))
       shell: bash
       env:
         LOCKFILE_HASH: ${{ hashFiles(inputs.cache-dependency-path) }}
@@ -100,11 +106,13 @@ runs:
         printf 'arch=%s\n' "$(node -p 'require("node:os").arch()')" >> "$GITHUB_OUTPUT"
 
     # Match setup-node's key and path so existing default-branch stores remain reusable.
-    # Hosted Windows x64 mixed installs cost less than restoring their root/mobile store.
+    # Measured Windows installs cost less than unpacking their download store.
     - name: Restore pnpm download store without saving
       if: >-
-        github.event_name == 'pull_request' &&
-        (runner.os != 'Windows' || runner.arch != 'X64' || !contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml'))
+        github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' &&
+        (runner.os != 'Windows' ||
+        !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) &&
+        !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))
       uses: actions/cache/restore@v5
       with:
         path: ${{ steps.pnpm-store.outputs.path }}

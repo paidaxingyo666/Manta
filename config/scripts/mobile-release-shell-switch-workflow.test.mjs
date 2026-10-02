@@ -122,7 +122,7 @@ const REVIEWED_COMPUTED_PATHS = [
   '${{ steps.pnpm-store.outputs.path }}',
   // Only pnpm's lockfile-verified.jsonl record, never Metro transforms.
   '${{ steps.verification-cache.outputs.path }}',
-  "${{ github.event_name != 'pull_request' && 'pnpm' || '' }} store"
+  "${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }} store"
 ]
 
 /** Every step a workflow runs, descending into the repository's own composite actions. */
