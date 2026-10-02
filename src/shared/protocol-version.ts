@@ -338,12 +338,7 @@ export const ANTIGRAVITY_CONFIGURED_MODEL_RUNTIME_CAPABILITY =
 export const AGENT_SESSION_CREATE_TAB_ID_RUNTIME_CAPABILITY =
   'agentSession.create.tab-id.v1' as const
 
-// Why: older hosts answer mantad.terminalCensus with method-not-found, so a client asks only when
-// this is advertised and otherwise treats the census as unverifiable, never as zero.
-export const ORCAD_TERMINAL_CENSUS_RUNTIME_CAPABILITY = 'mantad.terminal-census.v1' as const
-
 export const RUNTIME_CAPABILITIES = [
-  ORCAD_TERMINAL_CENSUS_RUNTIME_CAPABILITY,
   ...AGENT_SESSION_STOP_RUNTIME_CAPABILITIES,
   AGENT_SESSION_CREATE_TAB_ID_RUNTIME_CAPABILITY,
   ANTIGRAVITY_CONFIGURED_MODEL_RUNTIME_CAPABILITY,

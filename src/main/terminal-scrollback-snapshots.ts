@@ -3,7 +3,6 @@ import {
   closeSync,
   mkdirSync,
   openSync,
-  readFileSync,
   readSync,
   renameSync,
   rmSync,
@@ -35,9 +34,7 @@ export function getProfileTerminalScrollbackSnapshotRoot(dataFile: string): stri
   return join(dirname(dataFile), SNAPSHOT_DIR_NAME)
 }
 
-export function getTerminalScrollbackSnapshotRoot(
-  storage?: TerminalScrollbackSnapshotStorage
-): string {
+function getSnapshotRoot(storage?: TerminalScrollbackSnapshotStorage): string {
   return storage?.snapshotRoot ?? getLegacySnapshotRoot()
 }
 
@@ -54,7 +51,7 @@ function snapshotPath(ref: string, snapshotRoot: string): string | null {
 }
 
 function snapshotReadPaths(ref: string, storage?: TerminalScrollbackSnapshotStorage): string[] {
-  const primaryRoot = getTerminalScrollbackSnapshotRoot(storage)
+  const primaryRoot = getSnapshotRoot(storage)
   const primaryPath = snapshotPath(ref, primaryRoot)
   if (!primaryPath) {
     return []
@@ -65,32 +62,6 @@ function snapshotReadPaths(ref: string, storage?: TerminalScrollbackSnapshotStor
   }
   const fallbackPath = snapshotPath(ref, fallbackRoot)
   return fallbackPath ? [primaryPath, fallbackPath] : [primaryPath]
-}
-
-export function getTerminalScrollbackSnapshotPath(
-  ref: string,
-  storage?: TerminalScrollbackSnapshotStorage
-): string | null {
-  return snapshotPath(ref, getTerminalScrollbackSnapshotRoot(storage))
-}
-
-/** The stored bytes for `ref`, bounded by the store limit; `null` when absent or out of bounds. */
-export function readTerminalScrollbackStoredBytesSync(
-  ref: string,
-  storage?: TerminalScrollbackSnapshotStorage
-): Buffer | null {
-  for (const path of snapshotReadPaths(ref, storage)) {
-    try {
-      const size = statSync(path).size
-      if (size <= 0 || size > TERMINAL_SCROLLBACK_STORE_BYTE_LIMIT) {
-        return null
-      }
-      return readFileSync(path)
-    } catch {
-      // Try the profile fallback when the primary snapshot is absent.
-    }
-  }
-  return null
 }
 
 function trailingUtf8Bytes(value: string, maxBytes: number): Buffer {
@@ -135,7 +106,7 @@ export function writeTerminalScrollbackSnapshotSync(args: {
     return null
   }
   const ref = makeTerminalScrollbackSnapshotRef(args.tabId, args.leafId)
-  const snapshotRoot = getTerminalScrollbackSnapshotRoot(args.storage)
+  const snapshotRoot = getSnapshotRoot(args.storage)
   const path = snapshotPath(ref, snapshotRoot)
   if (!path) {
     return null
@@ -173,7 +144,7 @@ export async function writeTerminalScrollbackSnapshot(args: {
     return null
   }
   const ref = makeTerminalScrollbackSnapshotRef(args.tabId, args.leafId)
-  const snapshotRoot = getTerminalScrollbackSnapshotRoot(args.storage)
+  const snapshotRoot = getSnapshotRoot(args.storage)
   const path = snapshotPath(ref, snapshotRoot)
   if (!path) {
     return null

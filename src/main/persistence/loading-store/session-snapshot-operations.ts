@@ -24,7 +24,6 @@ type SessionSnapshotOperationsRuntime = Pick<
   | 'quitFlushStarted'
   | 'state'
   | 'terminalScrollbackSnapshotStorage'
-  | 'retainedScrollbackRefsByMigrationId'
   | 'writesFrozen'
 >
 

@@ -247,14 +247,17 @@ export function projectRuntimeMobileSessionTabs(
           }
         : null
     // Why: web/mobile clients hold handles across renderer graph syncs; leaf handles are epoch-bound but PTY handles stay streamable.
-    const terminalPty = liveLeafPtyId
-      ? host.recordPty(liveLeafPtyId, snapshot.worktree, {
-          tabId: tab.parentTabId,
-          paneKey,
-          connected: true
-        })
+    const terminalHandle = liveLeafPtyId
+      ? host.issuePtyHandle(
+          host.recordPty(liveLeafPtyId, snapshot.worktree, {
+            tabId: tab.parentTabId,
+            paneKey,
+            connected: true
+          })
+        )
       : livePty
-    const terminalHandle = terminalPty ? host.issuePtyHandle(terminalPty) : null
+        ? host.issuePtyHandle(livePty)
+        : null
     const projectedAgentStatus =
       agentStatus ??
       host.buildPtyStatus(
@@ -287,8 +290,6 @@ export function projectRuntimeMobileSessionTabs(
       leafId: tab.leafId,
       title,
       ...(tab.ptyId ? { ptyId: tab.ptyId } : {}),
-      // Bind identity to the handle's live owner, never a stale persisted surface.
-      ...(terminalPty?.incarnationId ? { incarnationId: terminalPty.incarnationId } : {}),
       ...(tab.terminalTheme ? { terminalTheme: tab.terminalTheme } : {}),
       ...(launchAgent ? { launchAgent } : {}),
       ...clientAgentStatus,

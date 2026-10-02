@@ -16,7 +16,7 @@ export const MANTAD_ACTIVATION_FILENAME = 'mantad-active.json'
 export const MANTAD_ACTIVATION_SCHEMA_VERSION = 1
 
 /** Where a pre-activation copy of the shared data root lives, relative to `.manta-remote/`. */
-export const MANTAD_STATE_SNAPSHOT_DIR = 'orcad-state-snapshots'
+export const MANTAD_STATE_SNAPSHOT_DIR = 'mantad-state-snapshots'
 
 export type OrcadStateSnapshot = {
   /** Directory name under `MANTAD_STATE_SNAPSHOT_DIR`. */
@@ -150,19 +150,6 @@ export function withRolledBackVersion(
     previous: null,
     activatedAt: now.toISOString(),
     // The snapshot was taken before `active` ran; once restored it has been consumed.
-    snapshot: null
-  }
-}
-
-/** The record after decommissioning `active`: nothing serves; the stopped build stays pinned. */
-export function withDeactivatedVersion(record: OrcadActivationRecord): OrcadActivationRecord {
-  return {
-    schemaVersion: MANTAD_ACTIVATION_SCHEMA_VERSION,
-    active: null,
-    // Kept so GC leaves the slot whose daemon may still own terminals, and a redeploy can find it.
-    previous: record.active,
-    activatedAt: null,
-    // No version is active, so there is nothing a pre-activation snapshot could roll back to.
     snapshot: null
   }
 }

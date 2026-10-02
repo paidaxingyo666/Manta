@@ -8,10 +8,6 @@ import {
 } from '../../shared/mantad-profile-preflight'
 import { preflightBundledOrcadStartup, runOrcadProfilePreflight } from './mantad-profile-preflight'
 import { handoffToBundledOrcad } from './mantad-bundled-runtime'
-import {
-  ORCAD_CANCEL_MANAGED_STOP_FLAG,
-  ORCAD_COMPLETE_MANAGED_STOP_FLAG
-} from '../../shared/orcad-stop-request'
 
 // Why exit before the preflight: reaching this line means the whole module graph resolved
 // under plain Node, which is all the build guard needs to prove. Probing natives or
@@ -34,42 +30,28 @@ function failStartup(error: unknown): void {
   process.exit(resolveMantadExitCode(error))
 }
 
-// Why before the bundled handoff and preflights: completing a stop must not start a runtime.
-if (
-  process.argv[2] === ORCAD_COMPLETE_MANAGED_STOP_FLAG ||
-  process.argv[2] === ORCAD_CANCEL_MANAGED_STOP_FLAG
-) {
-  void import('./orcad-managed-stop-command').then(({ runOrcadManagedStopCommandAndExit }) =>
-    runOrcadManagedStopCommandAndExit(process.argv.slice(2))
-  )
-} else {
-  startOrcadProcess()
-}
-
-function startOrcadProcess(): void {
-  try {
-    if (!handoffToBundledOrcad()) {
-      const flag = process.argv[2]
-      if (
-        (flag === ORCAD_PROFILE_PREFLIGHT_FLAG || flag === ORCAD_STARTUP_PREFLIGHT_FLAG) &&
-        process.argv.length === 4
-      ) {
-        void runOrcadProfilePreflight(process.argv[3], {
-          nativeFeatures: flag === ORCAD_PROFILE_PREFLIGHT_FLAG
+try {
+  if (!handoffToBundledOrcad()) {
+    const flag = process.argv[2]
+    if (
+      (flag === ORCAD_PROFILE_PREFLIGHT_FLAG || flag === ORCAD_STARTUP_PREFLIGHT_FLAG) &&
+      process.argv.length === 4
+    ) {
+      void runOrcadProfilePreflight(process.argv[3], {
+        nativeFeatures: flag === ORCAD_PROFILE_PREFLIGHT_FLAG
+      })
+        // Why exit: the owner reads to EOF, so a lingering native handle must not hold the probe open.
+        .then(() => process.stdout.write('', () => process.exit(0)))
+        .catch(failStartup)
+    } else {
+      void preflightBundledOrcadStartup()
+        .then(() => {
+          runMantadNativePreflight()
+          return main()
         })
-          // Why exit: the owner reads to EOF, so a lingering native handle must not hold the probe open.
-          .then(() => process.stdout.write('', () => process.exit(0)))
-          .catch(failStartup)
-      } else {
-        void preflightBundledOrcadStartup()
-          .then(() => {
-            runMantadNativePreflight()
-            return main()
-          })
-          .catch(failStartup)
-      }
+        .catch(failStartup)
     }
-  } catch (error) {
-    failStartup(error)
   }
+} catch (error) {
+  failStartup(error)
 }

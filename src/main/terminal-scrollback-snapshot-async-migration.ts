@@ -40,8 +40,7 @@ export async function migrateWorkspaceSessionTerminalScrollbackSnapshotsAsync(
 export async function deleteRemovedTerminalScrollbackSnapshotsAsync(
   prior: WorkspaceSessionState | undefined,
   next: WorkspaceSessionState,
-  storage?: TerminalScrollbackSnapshotStorage,
-  retainedRefs: ReadonlySet<string> = new Set()
+  storage?: TerminalScrollbackSnapshotStorage
 ): Promise<void> {
   if (!prior) {
     return
@@ -49,7 +48,7 @@ export async function deleteRemovedTerminalScrollbackSnapshotsAsync(
   const nextRefs = collectTerminalScrollbackSnapshotRefs(next)
   await Promise.all(
     [...collectTerminalScrollbackSnapshotRefs(prior)]
-      .filter((ref) => !nextRefs.has(ref) && !retainedRefs.has(ref))
+      .filter((ref) => !nextRefs.has(ref))
       .map((ref) => deleteTerminalScrollbackSnapshot(ref, storage))
   )
 }

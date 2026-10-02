@@ -23,27 +23,12 @@ export type MantadBrowserProvider = {
 
 export type MantadBrowserProviderOptions = {
   userDataPath: string
-  signal?: AbortSignal
   environment?: NodeJS.ProcessEnv
   resolveInstalledElectronExecutable?: () => Promise<string | null>
   resolveAgentBrowserBinary?: () => string | null
 }
 
 type ExecutableProbe = 'ok' | 'missing' | 'not_executable'
-
-class MantadBrowserCleanupError extends AggregateError {}
-
-async function cleanupFailedProvider(
-  processHandle: { stop(): Promise<void> },
-  startupError: unknown
-): Promise<never> {
-  try {
-    await processHandle.stop()
-  } catch (cleanupError) {
-    throw new MantadBrowserCleanupError([startupError, cleanupError], 'mantad_browser_cleanup_failed')
-  }
-  throw startupError
-}
 
 /** Splits the two failures apart: a wrong path and a forgotten chmod +x need different fixes. */
 async function probeExecutable(path: string): Promise<ExecutableProbe> {
@@ -114,14 +99,14 @@ export async function resolveInstalledElectronExecutable(): Promise<string | nul
 async function startProvider(
   agentBrowserPath: string,
   launch: ExternalChromiumLaunch,
-  userDataPath: string,
-  signal?: AbortSignal
+  userDataPath: string
 ): Promise<MantadBrowserProvider> {
   const processHandle = new ExternalChromiumBrowserProcess(agentBrowserPath, launch, userDataPath)
   try {
-    await processHandle.start(signal)
+    await processHandle.start()
   } catch (error) {
-    return cleanupFailedProvider(processHandle, error)
+    await processHandle.stop()
+    throw error
   }
   return {
     kind: launch.provider,
@@ -131,15 +116,13 @@ async function startProvider(
   }
 }
 
-async function startElectronServeProvider(
-  executablePath: string,
-  signal?: AbortSignal
-): Promise<MantadBrowserProvider> {
+async function startElectronServeProvider(executablePath: string): Promise<MantadBrowserProvider> {
   const processHandle = new ElectronServeBrowserProcess(executablePath)
   try {
-    await processHandle.start(signal)
+    await processHandle.start()
   } catch (error) {
-    return cleanupFailedProvider(processHandle, error)
+    await processHandle.stop()
+    throw error
   }
   return {
     kind: 'electron',
@@ -154,9 +137,6 @@ export async function resolveMantadBrowserProvider(
   options: MantadBrowserProviderOptions
 ): Promise<MantadBrowserProvider | null> {
   const environment = options.environment ?? process.env
-  if (options.signal?.aborted) {
-    return null
-  }
   await mkdir(options.userDataPath, { recursive: true, mode: 0o700 })
 
   const declined = (cause: RuntimeBrowserUnavailableCause): null => {
@@ -167,23 +147,14 @@ export async function resolveMantadBrowserProvider(
   const installedElectronExecutable = await (
     options.resolveInstalledElectronExecutable ?? resolveInstalledElectronExecutable
   )()
-  if (options.signal?.aborted) {
-    return null
-  }
   // Why held rather than reported now: Chromium may still resolve, and if it does not, its
   // own concrete fault is the more actionable one for an operator who set the env var.
   let electronFailure: RuntimeBrowserUnavailableCause | null = null
   if (installedElectronExecutable) {
     try {
       setRuntimeBrowserUnavailableCause(null)
-      return await startElectronServeProvider(installedElectronExecutable, options.signal)
+      return await startElectronServeProvider(installedElectronExecutable)
     } catch (error) {
-      if (error instanceof MantadBrowserCleanupError) {
-        throw error
-      }
-      if (options.signal?.aborted) {
-        return null
-      }
       console.warn('[mantad] Installed Electron browser provider unavailable:', error)
       electronFailure = { reason: 'electron_start_failed', detail: errorDetail(error) }
     }
@@ -203,9 +174,6 @@ export async function resolveMantadBrowserProvider(
   }
 
   const probe = await probeExecutable(chromiumExecutable)
-  if (options.signal?.aborted) {
-    return null
-  }
   if (probe !== 'ok') {
     return declined({
       reason: probe === 'missing' ? 'executable_not_found' : 'executable_not_executable',
@@ -218,16 +186,9 @@ export async function resolveMantadBrowserProvider(
     return await startProvider(
       agentBrowserPath,
       { executablePath: chromiumExecutable, provider: 'chromium' },
-      options.userDataPath,
-      options.signal
+      options.userDataPath
     )
   } catch (error) {
-    if (error instanceof MantadBrowserCleanupError) {
-      throw error
-    }
-    if (options.signal?.aborted) {
-      return null
-    }
     console.warn('[mantad] External Chromium browser provider unavailable:', error)
     return declined({ reason: 'chromium_start_failed', detail: errorDetail(error) })
   }

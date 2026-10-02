@@ -64,18 +64,14 @@ export function isBinaryBuffer(buffer: Buffer): boolean {
   return false
 }
 
-export async function isBinaryFilePrefix(
-  filePath: string,
-  releaseHandle: (handle: Awaited<ReturnType<typeof open>>) => Promise<void> = (handle) =>
-    handle.close()
-): Promise<boolean> {
+export async function isBinaryFilePrefix(filePath: string): Promise<boolean> {
   const handle = await open(filePath, 'r')
   try {
     const probe = Buffer.alloc(BINARY_PROBE_BYTES)
     const { bytesRead } = await handle.read(probe, 0, probe.length, 0)
     return isBinaryBuffer(probe.subarray(0, bytesRead))
   } finally {
-    await releaseHandle(handle)
+    await handle.close()
   }
 }
 

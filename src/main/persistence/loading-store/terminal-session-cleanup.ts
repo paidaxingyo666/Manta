@@ -27,16 +27,14 @@ export function workspaceSessionPatchNeedsFullNormalization(patch: WorkspaceSess
 export function deleteRemovedTerminalScrollbackSnapshots(
   prior: WorkspaceSessionState | undefined,
   next: WorkspaceSessionState,
-  storage?: TerminalScrollbackSnapshotStorage,
-  /** Refs a pending migration export still reads; they outlive the session row. */
-  retainedRefs: ReadonlySet<string> = new Set()
+  storage?: TerminalScrollbackSnapshotStorage
 ): void {
   if (!prior) {
     return
   }
   const nextRefs = collectTerminalScrollbackSnapshotRefs(next)
   for (const ref of collectTerminalScrollbackSnapshotRefs(prior)) {
-    if (!nextRefs.has(ref) && !retainedRefs.has(ref)) {
+    if (!nextRefs.has(ref)) {
       deleteTerminalScrollbackSnapshotSync(ref, storage)
     }
   }

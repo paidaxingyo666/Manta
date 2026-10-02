@@ -1,5 +1,4 @@
 import { STATUS_METHODS } from './status'
-import { ORCAD_TERMINAL_CENSUS_METHODS } from './mantad-terminal-census'
 import { AI_VAULT_METHODS } from './ai-vault'
 import { AUTOMATION_METHODS } from './automations'
 import { REPO_METHODS } from './repo'
@@ -55,7 +54,6 @@ import { AGENT_LAUNCH_METHODS } from './agent-launch'
 // auditing the security boundary or wiring new CLI commands.
 export const ALL_RPC_METHODS = [
   ...STATUS_METHODS,
-  ...ORCAD_TERMINAL_CENSUS_METHODS,
   ...AGENT_HOOK_METHODS,
   ...AI_VAULT_METHODS,
   ...ARTIFACT_METHODS,

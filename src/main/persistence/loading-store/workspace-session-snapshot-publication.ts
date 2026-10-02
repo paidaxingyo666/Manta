@@ -104,8 +104,7 @@ export function setLocalWorkspaceSession(
     deleteRemovedTerminalScrollbackSnapshots(
       prior,
       session,
-      context.runtime.terminalScrollbackSnapshotStorage,
-      retainedScrollbackRefs(context.runtime)
+      context.runtime.terminalScrollbackSnapshotStorage
     )
   }
   context.runtime.state.workspaceSession = session
@@ -141,8 +140,7 @@ export function enqueueTerminalScrollbackSnapshotWork(
           await deleteRemovedTerminalScrollbackSnapshotsAsync(
             prior,
             context.runtime.state.workspaceSession,
-            context.runtime.terminalScrollbackSnapshotStorage,
-            retainedScrollbackRefs(context.runtime)
+            context.runtime.terminalScrollbackSnapshotStorage
           )
         }
         return
@@ -161,16 +159,14 @@ export function enqueueTerminalScrollbackSnapshotWork(
         await deleteRemovedTerminalScrollbackSnapshotsAsync(
           migrated,
           current,
-          context.runtime.terminalScrollbackSnapshotStorage,
-          retainedScrollbackRefs(context.runtime)
+          context.runtime.terminalScrollbackSnapshotStorage
         )
       }
       if (current) {
         await deleteRemovedTerminalScrollbackSnapshotsAsync(
           prior,
           current,
-          context.runtime.terminalScrollbackSnapshotStorage,
-          retainedScrollbackRefs(context.runtime)
+          context.runtime.terminalScrollbackSnapshotStorage
         )
       }
     })
@@ -183,12 +179,4 @@ export function enqueueTerminalScrollbackSnapshotWork(
       }
     })
   context.runtime.pendingSnapshotFileWork = work
-}
-
-function retainedScrollbackRefs(runtime: {
-  retainedScrollbackRefsByMigrationId: ReadonlyMap<string, ReadonlySet<string>>
-}): ReadonlySet<string> {
-  return new Set(
-    [...runtime.retainedScrollbackRefsByMigrationId.values()].flatMap((refs) => [...refs])
-  )
 }

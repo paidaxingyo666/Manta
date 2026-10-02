@@ -91,24 +91,19 @@ export function pruneLocalTerminalScrollbackBuffers(
   repos: readonly RepoConnection[]
 ): WorkspaceSessionState {
   let repoById: Map<string, RepoConnection> | null = null
-  let tabById: Map<string, { worktreeId: string; ptyId: string | null }> | null = null
+  let worktreeIdByTabId: Map<string, string> | null = null
   const tabsByWorktree = session.tabsByWorktree ?? {}
   const preservesScrollback = (tabId: string): boolean => {
     repoById ??= new Map(repos.map((repo) => [repo.id, repo] as const))
-    if (!tabById) {
-      tabById = new Map()
+    if (!worktreeIdByTabId) {
+      worktreeIdByTabId = new Map()
       for (const [worktreeId, tabs] of Object.entries(tabsByWorktree)) {
         for (const tab of tabs) {
-          tabById.set(tab.id, { worktreeId, ptyId: tab.ptyId })
+          worktreeIdByTabId.set(tab.id, worktreeId)
         }
       }
     }
-    const tab = tabById.get(tabId)
-    // A dormant tab has no live PTY to replay from, so its saved buffer is the only copy.
-    return (
-      tab?.ptyId === null ||
-      shouldPreserveTerminalScrollbackBuffersForRepoMap(tab?.worktreeId, repoById)
-    )
+    return shouldPreserveTerminalScrollbackBuffersForRepoMap(worktreeIdByTabId.get(tabId), repoById)
   }
 
   const terminalLayoutsByTabIdForRead = session.terminalLayoutsByTabId ?? {}
