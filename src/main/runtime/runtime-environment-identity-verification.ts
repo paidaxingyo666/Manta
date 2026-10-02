@@ -4,7 +4,7 @@ import {
 } from '../../shared/runtime-environments'
 import { sendRemoteRuntimeRequest } from '../../shared/remote-runtime-client'
 import { verifyRemotePairingRuntimeStatus } from '../../shared/remote-pairing-verification'
-import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/protocol-version'
+import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/electron-remote-runtime-client-capabilities'
 import type { RuntimeStatus } from '../../shared/runtime-types'
 
 export async function verifyRuntimeEnvironmentIdentity(
