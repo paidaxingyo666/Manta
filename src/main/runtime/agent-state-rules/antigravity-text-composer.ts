@@ -1,34 +1,4 @@
-import { isTerminalWaitWhitespace } from './terminal-wait-tail-window'
-
-/**
- * Antigravity paints its chrome with cursor addressing, so model/account rows are not stable
- * line anchors. The idle composer is the only captured marker that survives every ready screen.
- */
-export function findAntigravityReadyPromptIndex(normalized: string): number | null {
-  return findAntigravityComposerIndex(normalized)
-}
-
-const SCREEN_RULE_RE = /^─{8,}$/
-
-/**
- * The live screen's bottom four rows at an idle composer: rule, caret, rule, `? for shortcuts`.
- * Why the hint row decides: the caret stays painted through a turn and behind the `/model`
- * picker, but the hint reads `esc to cancel` mid-turn and in the palette, and the picker covers it.
- */
-export function isAntigravityComposerReadyScreen(screenLines: readonly string[]): boolean {
-  if (screenLines.length < 4) {
-    return false
-  }
-  const [top = '', composer = '', bottom = '', hint = ''] = screenLines
-    .slice(-4)
-    .map((line) => line.trim())
-  return (
-    SCREEN_RULE_RE.test(top) &&
-    isComposerLine(composer) &&
-    SCREEN_RULE_RE.test(bottom) &&
-    hint.toLowerCase().startsWith('? for shortcuts')
-  )
-}
+import { isTerminalWaitWhitespace } from '../terminal-wait-tail-window'
 
 /**
  * The composer is a bare `>` on the captured 3.7 Flash screens, but agy 1.2.7 paints the active
@@ -67,7 +37,12 @@ function isModelRow(line: string): boolean {
   return true
 }
 
-function findAntigravityComposerIndex(normalized: string): number | null {
+/**
+ * The named text anchor `antigravity-text-composer`: the idle composer in the folded text tail.
+ * Why code, not rows: Antigravity paints its chrome with cursor addressing, so model/account rows
+ * are not stable line anchors, and telling them apart takes this whole-tail scan.
+ */
+export function findAntigravityComposerIndex(normalized: string): number | null {
   const contentStart = normalized.lastIndexOf('antigravity cli')
   if (contentStart === -1) {
     return null
@@ -126,8 +101,4 @@ function findAntigravityComposerIndex(normalized: string): number | null {
     return modelAfterComposer ? null : composerStart
   }
   return modelAfterComposer && !workspaceAfterComposer ? null : composerStart
-}
-
-export function hasAntigravityTerminalHeader(text: string): boolean {
-  return text.toLowerCase().includes('antigravity cli')
 }
