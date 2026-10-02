@@ -220,6 +220,13 @@ export function reconcileRemoteCodexState(
     }
   }
 
+  if (!eventName && !agentId && payload.mainAgent && payload.mainAgent.state !== 'blocked') {
+    setCodexMainAgentTurnState(state, paneKey, {
+      ...payload.mainAgent,
+      state: payload.mainAgent.state,
+      model: payload.model ?? state.codexLeadStateByPaneKey.get(paneKey)?.model
+    })
+  }
   const lead = state.codexLeadStateByPaneKey.get(paneKey)
   if (!lead) {
     return payload

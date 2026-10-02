@@ -861,7 +861,7 @@ describe('connectPanePty', () => {
           prompt: 'stop quickly',
           updatedAt: 1_000,
           stateStartedAt: 900,
-          agentType: 'codex',
+          agentType: 'custom-agent',
           terminalTitle: 'Codex',
           stateHistory: []
         }
