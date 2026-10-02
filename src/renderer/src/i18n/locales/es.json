@@ -14929,6 +14929,12 @@
   },
   "components": {
     "native-chat": {
+      "contextMenu": {
+        "copyOrcaSessionId": "Copiar ID de sesión de Manta",
+        "orcaSessionIdCopied": "ID de sesión de Manta copiado",
+        "orcaSessionIdCopyFailed": "No se pudo copiar el ID de sesión de Manta",
+        "orcaSessionIdTooltip": "El ID de Manta para este chat, distinto del ID de sesión propio de la CLI del agente. Los agentes lo usan para referirse entre sí a través de Manta."
+      },
       "failureWords": {
         "theAgent": "El agente",
         "providerStartFailed": "{{agent}} se detuvo antes de terminar de iniciarse.",

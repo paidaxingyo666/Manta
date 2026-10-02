@@ -17331,6 +17331,12 @@
       }
     },
     "native-chat": {
+      "contextMenu": {
+        "copyOrcaSessionId": "Manta セッション ID をコピー",
+        "orcaSessionIdCopied": "Manta セッション ID をコピーしました",
+        "orcaSessionIdCopyFailed": "Manta セッション ID をコピーできませんでした",
+        "orcaSessionIdTooltip": "このチャットに対する Manta の ID です。Agent CLI 独自のセッション ID とは別のものです。Agent は Manta を通じて互いを指すときにこれを使います。"
+      },
       "failureWords": {
         "theAgent": "Agent",
         "providerStartFailed": "{{agent}} は起動が完了する前に停止しました。",

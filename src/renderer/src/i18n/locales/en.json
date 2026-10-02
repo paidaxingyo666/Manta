@@ -17953,6 +17953,12 @@
         "title": "Context",
         "estimated": "Estimated from the last response."
       },
+      "contextMenu": {
+        "copyOrcaSessionId": "Copy Manta Session ID",
+        "orcaSessionIdCopied": "Manta session ID copied",
+        "orcaSessionIdCopyFailed": "Unable to copy Manta session ID",
+        "orcaSessionIdTooltip": "Manta's ID for this chat, separate from the agent CLI's own session ID. Agents use it to refer to each other through Manta."
+      },
       "dismissDeliveryNotice": "Dismiss",
       "messageNotSent": "Message not sent",
       "deliveryUnconfirmed": "Delivery unconfirmed — check chat before retrying",

@@ -116,18 +116,18 @@ export async function resolveOrchestrationSessionCaller(
   const claimed: unknown = evidence?.agentSessionId
   if (route?.pairedDeviceId !== undefined) {
     throw hostBoundary(
-      'This request reached Manta from a paired client, and an agent session id identifies a caller only on the host that runs that session.'
+      'This request reached Manta from a paired client, and a Manta session ID identifies a caller only on the host that runs that session.'
     )
   }
   if (evidence?.host) {
     throw hostBoundary(
-      `This command ran in ${evidence.host.kind === 'ssh' ? 'an SSH' : 'a WSL'} environment, and an agent session id identifies a caller only on the host that runs that session.`
+      `This command ran in ${evidence.host.kind === 'ssh' ? 'an SSH' : 'a WSL'} environment, and a Manta session ID identifies a caller only on the host that runs that session.`
     )
   }
   if (typeof claimed !== 'string' || !isOrcaSessionId(claimed)) {
     throw new OrchestrationError(
       CODES.unknown,
-      'The caller named an agent session id that is not a Manta session id. No effects were applied.',
+      'The caller named an ID that is not a Manta session ID. No effects were applied.',
       NO_EFFECTS
     )
   }
@@ -190,7 +190,7 @@ async function readSessionRecord(
 function assertSessionCanAct(sessionId: string, record: AgentSessionRecord): void {
   if (!structuredWorkerHostScope(record.location)) {
     throw hostBoundary(
-      `Agent session ${sessionId} runs on another host, and an agent session id identifies a caller only on the host that runs that session.`
+      `Agent session ${sessionId} runs on another host, and a Manta session ID identifies a caller only on the host that runs that session.`
     )
   }
   if (agentSessionLeaseAdmitsWriter(record.lease)) {

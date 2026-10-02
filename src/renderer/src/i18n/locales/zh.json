@@ -17296,6 +17296,12 @@
   },
   "components": {
     "native-chat": {
+      "contextMenu": {
+        "copyOrcaSessionId": "复制 Manta 会话 ID",
+        "orcaSessionIdCopied": "已复制 Manta 会话 ID",
+        "orcaSessionIdCopyFailed": "无法复制 Manta 会话 ID",
+        "orcaSessionIdTooltip": "Manta 为此聊天分配的 ID，独立于智能体 CLI 自身的会话 ID。智能体通过 Manta 用它来相互指代。"
+      },
       "failureWords": {
         "theAgent": "智能体",
         "providerStartFailed": "{{agent}} 在完成启动前已停止。",

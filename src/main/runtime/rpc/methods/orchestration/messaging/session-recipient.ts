@@ -25,6 +25,7 @@ import {
 } from '../../../../orchestration/structured-session-mail-address'
 import type { AgentSessionRecordReader } from '../../../../orchestration/structured-session-lineage'
 import type { OrchestrationDb } from '../../../../orchestration/db'
+import { canonicalOrcaSessionId } from '../../../../orchestration/canonical-manta-session-id'
 
 /** `address` is the named session's own spelling; the mailbox mail lands in is its identity address. */
 export type SessionRecipient = { sessionId: OrcaSessionId; address: OrcaSessionAddress }
@@ -59,7 +60,7 @@ export function readSessionRecipient(
   const sessionId = isOrcaSessionId(recipient) ? recipient : null
   const found = sessionId && store ? lookupOrcaAgentSession(store, sessionId) : null
   if (found?.kind === 'provider-id') {
-    return providerIdRefusal(recipient, found.orcaSessionId)
+    return providerIdRefusal(recipient, found.orcaSessionId, store)
   }
   return sessionId && found?.kind === 'found'
     ? { sessionId, address: formatOrcaSessionAddress(sessionId) }
@@ -81,7 +82,7 @@ export function refuseUndeliverableSessionRecipient(
   }
   const found = lookupOrcaAgentSession(store, sessionId)
   if (found.kind === 'provider-id') {
-    return providerIdRefusal(sessionId, found.orcaSessionId)
+    return providerIdRefusal(sessionId, found.orcaSessionId, store)
   }
   if (found.kind === 'unknown') {
     return {
@@ -110,9 +111,18 @@ export function refuseUndeliverableSessionRecipient(
   return null
 }
 
-function providerIdRefusal(id: string, orcaSessionId: string): SessionRecipientRefusal {
+function providerIdRefusal(
+  id: string,
+  orcaSessionId: string,
+  store: AgentSessionRecordReader | null
+): SessionRecipientRefusal {
+  // The conversation's Manta session ID, which a `/clear`ed session keeps; not the live session's.
+  const root = isOrcaSessionId(orcaSessionId)
+    ? canonicalOrcaSessionId(orcaSessionId, store)
+    : orcaSessionId
+  const address = `${ORCA_SESSION_ADDRESS_PREFIX}${root}`
   return {
     code: CODES.providerId,
-    message: `${id} is the provider's own session id, which changes on /clear. This session's Manta session ID is ${ORCA_SESSION_ADDRESS_PREFIX}${orcaSessionId}; address it by that instead. No message was sent.`
+    message: `${id} is the provider's own session id, which changes on /clear. This session's Manta session ID is ${address}; address it by that instead. No message was sent.`
   }
 }

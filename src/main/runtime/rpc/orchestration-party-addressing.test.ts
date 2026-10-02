@@ -105,7 +105,8 @@ describe('every target param resolves both spellings of a party to one canonical
         'orchestration.send',
         'orchestration.ask',
         'orchestration.dispatch',
-        'orchestration.inbox'
+        'orchestration.inbox',
+        'orchestration.sessionAddress'
       ].sort()
     )
   })
@@ -207,6 +208,67 @@ describe('every target param resolves both spellings of a party to one canonical
     await as(undefined, 'orchestration.send', { from: WORKER_HANDLE, to: ADDRESS_Z, subject: 'z' })
     const { messages } = await as(undefined, 'orchestration.inbox', { terminal: ADDRESS_Z })
     expect(messages).toEqual([expect.objectContaining({ subject: 'z' })])
+  })
+
+  it('sessionAddress: any session, a worker too, is its Manta session ID', async () => {
+    expect(await as(undefined, 'orchestration.sessionAddress', { sessionId: SESSION_Z })).toEqual({
+      orcaSessionId: ADDRESS_Z
+    })
+    expect(await as(undefined, 'orchestration.sessionAddress', { sessionId: SESSION_Y })).toEqual({
+      orcaSessionId: ADDRESS_Y
+    })
+  })
+})
+
+describe('a /clear-ed chat is shown the Manta session ID it had before the clear', () => {
+  const PROVIDER_ID_Z = 'd00dfeed-1122-4334-8556-778899aabbcc'
+
+  /** Z continued X after a /clear, so X's address is Z's. */
+  function clearXIntoZ(): void {
+    h.records.set(SESSION_X, {
+      ...sessionRecord(SESSION_X),
+      conversationCommand: {
+        command: 'clear',
+        state: 'completed',
+        replacementSessionId: SESSION_Z,
+        operationId: 'op',
+        callerKey: 'caller',
+        phase: 'committed'
+      }
+    })
+    h.records.set(SESSION_Z, sessionRecord(SESSION_Z, { providerId: PROVIDER_ID_Z }))
+  }
+
+  it('in a dispatch preview its own live Manta session ID would fill in', async () => {
+    clearXIntoZ()
+    const runId = await chatRun(SESSION_Z)
+    const task = h.db.createTask({ runId, spec: 'work' })
+
+    const { preamble } = await as(SESSION_Z, 'orchestration.dispatchShow', {
+      task: task.id,
+      preamble: true,
+      from: ADDRESS_Z
+    })
+
+    expect(preamble).toContain(`Your coordinator's Manta session ID is: ${ADDRESS_X}\n`)
+    expect(preamble).not.toContain(SESSION_Z)
+  })
+
+  it("in the refusal that names it for its provider's id", async () => {
+    clearXIntoZ()
+    const response = await call(undefined, 'orchestration.send', {
+      from: WORKER_HANDLE,
+      to: PROVIDER_ID_Z,
+      subject: 's'
+    })
+
+    expect(response).toMatchObject({
+      ok: false,
+      error: {
+        code: CODES.providerId,
+        message: expect.stringContaining(`This session's Manta session ID is ${ADDRESS_X};`)
+      }
+    })
   })
 })
 

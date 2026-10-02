@@ -19,6 +19,9 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     summary: 'Show app/runtime/graph readiness',
     usage: 'manta status [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
+    notes: [
+      "caller.orcaSessionId is this agent's Manta session ID, as Manta resolved it, when the agent runs as a Manta session; otherwise caller is omitted."
+    ],
     examples: ['manta status', 'manta status --json']
   },
   {

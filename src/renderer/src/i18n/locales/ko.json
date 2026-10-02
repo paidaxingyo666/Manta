@@ -17331,6 +17331,12 @@
       }
     },
     "native-chat": {
+      "contextMenu": {
+        "copyOrcaSessionId": "Manta 세션 ID 복사",
+        "orcaSessionIdCopied": "Manta 세션 ID를 복사했습니다",
+        "orcaSessionIdCopyFailed": "Manta 세션 ID를 복사하지 못했습니다",
+        "orcaSessionIdTooltip": "이 채팅에 대한 Manta의 ID로, 에이전트 CLI 자체의 세션 ID와는 별개입니다. 에이전트는 Manta를 통해 서로를 가리킬 때 이 ID를 사용합니다."
+      },
       "failureWords": {
         "theAgent": "에이전트",
         "providerStartFailed": "{{agent}}이(가) 시작을 마치기 전에 중지되었습니다.",
