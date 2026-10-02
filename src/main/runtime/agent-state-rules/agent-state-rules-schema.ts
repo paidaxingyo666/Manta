@@ -11,7 +11,7 @@ import { findUnsafePatternReason } from './agent-state-rule-pattern-safety'
  * show) plus `answer`. Once a version ships, adding a region, predicate or answer bumps
  * `engineVersion`; until then version 1 is still being defined.
  */
-const AGENT_STATE_RULES_ENGINE_VERSION = 1
+export const AGENT_STATE_RULES_ENGINE_VERSION = 1
 
 const MAX_PATTERN_LENGTH = 200
 const MAX_RULES = 32

@@ -266,6 +266,13 @@ async function startMantadRuntime(
   })
   getAppEnvironment().onWillQuit(() => sessionSearch?.dispose())
 
+  // Why: this host evaluates its own panes, so it keeps its own rules current.
+  const { startAgentStateRulesLiveUpdates } =
+    await import('../runtime/agent-state-rules/agent-state-rules-live-update')
+  startAgentStateRulesLiveUpdates(profileStore, (rules) =>
+    console.info(`[mantad] agent state rules ${rules.version} (${rules.source})`)
+  )
+
   // Why here too and not only on the desktop: nothing else republishes `session.tabs` when a
   // pane's status row changes, and mantad's whole job is serving paired clients.
   uninstallHookStatusRepublish = installHookStatusSessionTabsRepublish(
