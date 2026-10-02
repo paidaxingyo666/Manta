@@ -40,7 +40,7 @@ function context(os, arch, event, ref, template = false) {
 describe('Windows server prebuild cache workflow', () => {
   it.each([
     ['pull_request', 'refs/pull/1/merge', false, true, false],
-    ['push', 'refs/heads/main', false, false, true],
+    ['push', 'refs/heads/main', false, true, true],
     ['schedule', 'refs/heads/main', false, false, true],
     ['workflow_dispatch', 'refs/heads/main', false, false, true],
     ['workflow_call', 'refs/heads/main', false, false, false],

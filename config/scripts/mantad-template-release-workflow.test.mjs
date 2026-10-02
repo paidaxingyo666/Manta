@@ -25,7 +25,9 @@ describe('mantad template release wiring (design D2)', () => {
       build_template: { type: 'boolean', default: false }
     })
     // A release call shares github.ref with main's push runs; neither may cancel the other.
-    expect(nodeServer.concurrency['cancel-in-progress']).toBe('${{ !inputs.build_template }}')
+    expect(nodeServer.concurrency['cancel-in-progress']).toBe(
+      "${{ !inputs.build_template && github.event_name != 'push' }}"
+    )
     expect(nodeServer.concurrency.group).toContain('github.run_id')
     for (const lane of LANES) {
       const steps = nodeServer.jobs[lane].steps

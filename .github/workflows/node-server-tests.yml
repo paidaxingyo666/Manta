@@ -18,8 +18,7 @@ on:
       - '.github/actions/install-node-dependencies/**'
       - '.github/actions/prepare-native-runtime/**'
       - '.github/workflows/node-server-tests.yml'
-  # The pull request qualifies one platform for an unflavoured change; this is where all six
-  # are re-qualified, so a platform break surfaces minutes after merge instead of next cron.
+  # Relevant main pushes qualify every platform after the dependency check.
   push:
     branches: [main]
     paths:
@@ -60,15 +59,16 @@ on:
 permissions:
   contents: read
 
-# Why a run-scoped group for template builds: a release call shares github.ref with main's push
-# runs, and cancelling either would drop a release's template or a main qualification.
+# Main pushes must finish detection before they can supersede relevant qualification.
 concurrency:
-  group: node-server-${{ inputs.build_template && format('template-{0}', github.run_id) || github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ !inputs.build_template }}
+  group: node-server-${{ (inputs.build_template || github.event_name == 'push') && format('run-{0}', github.run_id) || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !inputs.build_template && github.event_name != 'push' }}
 
 jobs:
   changes:
-    if: github.event_name == 'pull_request'
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.draft != true)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -84,7 +84,20 @@ jobs:
       - name: Detect headless-server build and test inputs
         id: scope
         shell: bash
+        env:
+          PUSH_BASE: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
+          if [ "$EVENT_NAME" = push ]; then
+            # Compare the entire push, including multi-commit pushes and removed files.
+            if git fetch --no-tags --depth=1 origin "$PUSH_BASE" &&
+               git diff --name-only --no-renames -z "$PUSH_BASE" HEAD > "$RUNNER_TEMP/node-server-changes"; then
+              node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes" --full-qualification
+            else
+              echo 'should_run=true' >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
           # Compare the tested merge with its base, retaining both sides of renames.
           if git diff --name-only --no-renames -z HEAD^1 HEAD > "$RUNNER_TEMP/node-server-changes"; then
             node config/scripts/node-server-change-scope.mjs "$RUNNER_TEMP/node-server-changes"
@@ -94,6 +107,9 @@ jobs:
 
   persistence:
     needs: changes
+    concurrency:
+      group: node-server-persistence-${{ matrix.os }}-${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' && github.ref || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' }}
     # Missing/failed detection runs the full matrix; manual runs remain unconditional.
     # A draft carries no platform verdict; readiness re-triggers this workflow. Spelled against
     # the event name so the push and schedule paths do not rest on a null property comparison.
@@ -126,10 +142,10 @@ jobs:
         continue-on-error: true
         shell: bash
         run: node config/scripts/mantad-windows-prebuild-cache.mjs --fingerprint
-      - name: Restore the exact Windows server prebuild for this pull request
+      - name: Restore the exact Windows server prebuild
         id: orcad-prebuild-cache-restore
         if: >-
-          github.event_name == 'pull_request' &&
+          (github.event_name == 'pull_request' || github.event_name == 'push') &&
           steps.orcad-prebuild-cache-identity.outcome == 'success' &&
           steps.orcad-prebuild-cache-identity.outputs.key != ''
         continue-on-error: true
@@ -234,6 +250,9 @@ jobs:
 
   linux_glibc_floor:
     needs: [changes, persistence]
+    concurrency:
+      group: node-server-linux_glibc_floor-${{ matrix.os }}-${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' && github.ref || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' }}
     # A failed smoke already blocks qualification; missing scope still selects every platform.
     if: >-
       ${{ !cancelled() && needs.persistence.result == 'success' &&
@@ -262,7 +281,17 @@ jobs:
       PYTHON: /opt/python/cp312-cp312/bin/python3
     steps:
       - name: Install glibc 2.28 prerequisites
-        run: dnf install -y git procps-ng unzip which xz
+        run: |
+          missing_tool=false
+          for tool in git ps unzip which xz; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              missing_tool=true
+            fi
+          done
+          if [ "$missing_tool" = true ]; then
+            # The image's source-built Git needs no RPM; missing tools come from AlmaLinux.
+            dnf --disablerepo='epel*' install -y git procps-ng unzip which xz
+          fi
       - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
@@ -289,6 +318,9 @@ jobs:
 
   linux_glibc217_compat:
     needs: [changes, persistence]
+    concurrency:
+      group: node-server-linux_glibc217_compat-${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' && github.ref || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' }}
     # A failed smoke already blocks qualification; missing scope still selects every platform.
     if: >-
       ${{ !cancelled() && needs.persistence.result == 'success' &&
@@ -341,6 +373,9 @@ jobs:
 
   linux_musl:
     needs: [changes, persistence]
+    concurrency:
+      group: node-server-linux_musl-${{ matrix.os }}-${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' && github.ref || github.run_id }}
+      cancel-in-progress: ${{ github.event_name == 'push' && !inputs.build_template && inputs.ref == '' }}
     # A failed smoke already blocks qualification; missing scope still selects every platform.
     if: >-
       ${{ !cancelled() && needs.persistence.result == 'success' &&
