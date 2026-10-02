@@ -679,8 +679,8 @@ coverage, and release behavior:
   Shard 4 spent 535 worker-seconds importing and 357 executing tests; a uniform
   per-file import estimate misses that cost. See [timing refresh](../../config/scripts/ci-shard-timings.md).
 - Seed Node 24 native modules, the pinned Git compatibility binary, and TypeScript
-  state on the default branch, hourly
-  and when dependency/toolchain inputs change. One ten-minute-bounded hosted job
+  state on the default branch when dependency/toolchain inputs change, with
+  scheduled recovery (originally hourly; now every six hours). One ten-minute-bounded hosted job
   reuses existing cache keys and skips typechecking an already-cached commit.
   New PRs can restore default-branch caches, while caches saved by another PR
   are inaccessible. The audit found 80 entries totaling 10.67 GiB, including
@@ -1216,7 +1216,7 @@ These are single cold/warm observations, not paired medians or a measured
 whole-workflow saving. They demonstrate usable exact-key reuse after publication;
 future savings depend on cache availability and unchanged native inputs. The
 trial seeds belong to this PR's merge ref. Other PRs require a main-branch seed
-after merging this new namespace; the existing main push and hourly warming
+after merging this new namespace; the existing main-push and scheduled warming
 jobs provide that seed.
 
 ## Separate mobile install verification: retain the current policy
@@ -1269,7 +1269,7 @@ This measures the three-file oracle cohort. Whole-shard timings include other
 test bodies, imports and transforms, so a whole-suite saving needs separate
 measurement.
 
-## Cache warming: let hourly ticks wait for active work
+## Cache warming: let scheduled ticks wait for active work
 
 The hourly warmer previously cancelled an active warmer, even when both used
 the same source. On October 2, the [merge-triggered run](https://github.com/stablyai/orca/actions/runs/36965832780)
@@ -1288,6 +1288,27 @@ This avoids the observed discarded installation. It does not remove the next
 scheduled run or its repeated successful lanes, and pending replacement still
 applies regardless of the cancellation expression. The bounded 20-run sample
 contains this collision; it does not establish a recurring or whole-CI saving.
+
+## Cache warming: six-hour recovery interval
+
+Scheduled warming now runs at 00:41, 06:41, 12:41 and 18:41 UTC instead of hourly.
+Main pushes that change cache inputs still seed immediately, and manual dispatch
+remains available. All five jobs, probes, keys and publication rules remain.
+This removes 20 scheduled workflows and 100 scheduled job starts per day (83%).
+
+Four consecutive October 2 scheduled runs used the same source. The
+[18:50 UTC run](https://github.com/stablyai/orca/actions/runs/37050194510) used 474
+aggregate runner-seconds across five jobs, including 242 seconds on Windows ARM.
+That job restored exact package, verification and native caches; package-store
+restore alone took about 70 seconds. Repeating that observed duration twenty
+fewer times would avoid about 158 runner-minutes daily, but this one-run estimate
+is not a billing forecast or measured post-rollout saving.
+
+The longer interval can delay background repair after eviction or runner-image
+changes. Existing consumers retain cold-cache installation/build fallback, and
+normal cache reads update last access. Storage was near the repository limit
+when audited, so retention and unchanged hit rates are not guaranteed. Observe
+misses before reducing the recovery frequency further.
 
 ## Daemon shutdown fixture: remove build tools after compilation
 

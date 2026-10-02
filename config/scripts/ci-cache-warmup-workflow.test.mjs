@@ -72,12 +72,12 @@ it('bounds warming to the required platforms and validates changes without grant
   expect(workflow.permissions).toEqual({ contents: 'read' })
   expect(workflow.on.push.branches).toEqual(['main'])
   expect(workflow.on.push.paths).toContain('.github/actions/prepare-native-runtime/**')
-  expect(workflow.on.schedule).toEqual([{ cron: '41 * * * *' }])
+  expect(workflow.on.schedule).toEqual([{ cron: '41 */6 * * *' }])
   expect(workflow.on.pull_request.paths).toContain('.github/workflows/ci-cache-warmup.yml')
   expect(steps[0].with['persist-credentials']).toBe(false)
 })
 
-it('lets hourly warmers wait while pushes, PR updates, and manual runs can replace active work', () => {
+it('lets scheduled warmers wait while pushes, PR updates, and manual runs can replace active work', () => {
   expect(workflow.concurrency).toEqual({
     group: 'ci-cache-warmup-${{ github.event.pull_request.number || github.ref }}',
     'cancel-in-progress': "${{ github.event_name != 'schedule' }}"

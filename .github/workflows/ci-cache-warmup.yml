@@ -1,8 +1,9 @@
 name: Warm shared CI caches
 
 on:
+  # Cache-input pushes seed immediately; this schedule repairs eviction and image changes.
   schedule:
-    - cron: '41 * * * *'
+    - cron: '41 */6 * * *'
   workflow_dispatch:
   push:
     branches: [main]
@@ -52,7 +53,7 @@ permissions:
 
 concurrency:
   group: ci-cache-warmup-${{ github.event.pull_request.number || github.ref }}
-  # Hourly retries must let an active warmer finish publishing its caches.
+  # Scheduled retries must let an active warmer finish publishing its caches.
   cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
