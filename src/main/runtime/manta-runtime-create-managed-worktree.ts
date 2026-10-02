@@ -241,10 +241,10 @@ export class MantaRuntimeWithCreateManagedWorktree extends MantaRuntimeWithGetWo
       warning,
       ports: {
         canSpawn: Boolean(this.ptyController?.spawn),
-        createTerminal: (selector, options) => this.createTerminal(selector, options),
+        createTerminal: (selector, options) => this.createTerminal(selector, options, worktree),
         pasteDraft: (handle, draft) => this.pasteStartupDraftWhenReady(handle, draft),
         sendFollowup: (handle, followup) => this.sendStartupFollowupWhenReady(handle, followup),
-        provision: (options) => this.provisionManagedWorktreeTerminals(options),
+        provision: (options) => this.provisionManagedWorktreeTerminals(options, worktree),
         activate: (repoId, worktreeId, activationSetup, startup, activationDefaultTabs) =>
           this.notifyActivateWorktree(
             repoId,

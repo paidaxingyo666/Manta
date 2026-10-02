@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { promisify } from 'node:util'
@@ -13,6 +13,7 @@ import { isForEachRefExcludeUnsupportedError } from './git-ref-command-capabilit
 import { isNoWriteFetchHeadUnsupportedError } from './git-fetch-head-capability'
 import {
   hasUnsupportedRevParsePathFormatEcho,
+  isUnsupportedWorktreeAddLockReasonError,
   isUnsupportedWorktreeListZError
 } from './git-worktree-command-capabilities'
 import { gitCredentialPromptGuardEnv } from './git-credential-prompt-env'
@@ -206,15 +207,36 @@ describeBinaryCompatibility('real Git binary compatibility', () => {
 
   it('supports prepared worktree creation and finalization', async () => {
     const head = (await runGit(['rev-parse', 'HEAD'])).stdout.trim()
-    await runGit(['worktree', 'add', '--detach', '--no-checkout', 'compat-prepared', 'HEAD'])
+    const lockPath = join(repoPath, '.git', 'worktrees', 'compat-prepared', 'locked')
+    const lockReason = 'manta-create-preparation:v1:compat\n'
+    try {
+      await runGit([
+        'worktree',
+        'add',
+        '--detach',
+        '--no-checkout',
+        '--lock',
+        '--reason',
+        lockReason.slice(0, -1),
+        'compat-prepared',
+        'HEAD'
+      ])
+      expect(supports(2, 33)).toBe(true)
+    } catch (error) {
+      expect(supports(2, 33)).toBe(false)
+      expect(isUnsupportedWorktreeAddLockReasonError(error)).toBe(true)
+      await runGit(['worktree', 'add', '--detach', '--no-checkout', 'compat-prepared', 'HEAD'])
+      await writeFile(lockPath, lockReason, { flag: 'wx' })
+    }
+    await expect(readFile(lockPath, 'utf8')).resolves.toBe(lockReason)
+    await expect(readFile(join(repoPath, 'compat-prepared', 'tracked.txt'))).rejects.toThrow()
     await runGit(['-C', 'compat-prepared', 'reset', '--hard', 'HEAD'])
-    await runGit([
-      'worktree',
-      'lock',
-      '--reason',
-      'manta-create-preparation:v1:compat',
-      'compat-prepared'
-    ])
+    expect(
+      (await runGit(['-C', 'compat-prepared', 'rev-parse', '--git-path', 'locked'])).stdout.trim()
+    ).toContain('worktrees/compat-prepared/locked')
+    expect(
+      (await runGit(['-C', 'compat-prepared', 'rev-parse', '--git-common-dir'])).stdout.trim()
+    ).toContain('.git')
     // Why: `-f -f` moves a locked preparation while preserving its lock reason (Git >=2.25).
     await runGit(['worktree', 'move', '-f', '-f', 'compat-prepared', 'compat-final'])
     await runGit([
@@ -233,7 +255,8 @@ describeBinaryCompatibility('real Git binary compatibility', () => {
     await expect(runGit(['-C', 'compat-final', 'rev-parse', 'HEAD'])).resolves.toMatchObject({
       stdout: `${head}\n`
     })
-    await runGit(['worktree', 'unlock', 'compat-final'])
+    await expect(readFile(lockPath, 'utf8')).resolves.toBe(lockReason)
+    await unlink(lockPath)
     await runGit(['worktree', 'remove', '--force', 'compat-final'])
     await runGit(['branch', '-D', 'compat-prepared-final'])
   })
@@ -431,6 +454,23 @@ describeBinaryCompatibility('real Git binary compatibility', () => {
       stdout: 'false\n'
     })
     await runGit(['config', '--unset', 'maintenance.auto'])
+  })
+
+  it('writes a multi-pack-index and reads packed objects at the baseline', async () => {
+    const head = (await runGit(['rev-parse', 'HEAD'])).stdout.trim()
+    await runGit(['-c', 'gc.auto=0', 'repack', '-d'])
+    await expect(runGit(['multi-pack-index', 'write'])).resolves.toBeDefined()
+    const midx = await readFile(join(repoPath, '.git', 'objects', 'pack', 'multi-pack-index'))
+    expect(midx.subarray(0, 4).toString()).toBe('MIDX')
+    await expect(runGit(['multi-pack-index', 'verify'])).resolves.toMatchObject({ stderr: '' })
+    await expect(
+      runGit(['-c', 'core.multiPackIndex=true', 'cat-file', '-t', head])
+    ).resolves.toMatchObject({ stdout: 'commit\n' })
+    await runGit(['config', 'core.multiPackIndex', 'false'])
+    await expect(
+      runGit(['config', '--bool', '--get', 'core.multiPackIndex'])
+    ).resolves.toMatchObject({ stdout: 'false\n' })
+    await runGit(['config', '--unset', 'core.multiPackIndex'])
   })
 
   it('fetches hosted review heads into dedicated refs', async () => {

@@ -118,7 +118,8 @@ describe('prefetchManagedWorktreeCreateBase (manta-runtime-get-worktree-terminal
     expect(mocks.prepareWorktreeCreateForRepo).toHaveBeenCalledWith(
       expect.anything(),
       repo,
-      'origin/main'
+      'origin/main',
+      undefined
     )
   })
 })

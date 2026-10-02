@@ -371,7 +371,7 @@ export function recordWorkspaceLineageForCreatedWorktree(
 
 async function spawnLocalStartupAndSetupTerminals(args: {
   runtime: MantaRuntimeService | undefined
-  worktree: Pick<Worktree, 'id' | 'path'>
+  worktree: Worktree
   startup: CreateWorktreeArgs['startup']
   setup: CreateWorktreeResult['setup']
   defaultTabs: CreateWorktreeResult['defaultTabs']
@@ -410,18 +410,22 @@ async function spawnLocalStartupAndSetupTerminals(args: {
 
   try {
     // Why: only after `git worktree add` + metadata registration is the path safe for a runtime PTY to boot the agent while setup runs alongside.
-    const terminal = await runtime.createTerminal(`id:${worktree.id}`, {
-      command: sequencedStartup.command,
-      ...(setup ? { claudeAgentTeamsSourceCommand: startup.command } : {}),
-      env: sequencedStartup.env,
-      ...(sequencedStartup.launchConfig ? { launchConfig: sequencedStartup.launchConfig } : {}),
-      ...(isTuiAgent(createdWithAgent) ? { launchAgent: createdWithAgent } : {}),
-      ...(sequencedStartup.viewMode ? { viewMode: sequencedStartup.viewMode } : {}),
-      startupCommandDelivery: sequencedStartup.startupCommandDelivery,
-      telemetry: sequencedStartup.telemetry,
-      // Why: the submitting renderer decides whether to open the workspace; activating here yanked users who moved on (#9944).
-      surfaceOwner: false
-    })
+    const terminal = await runtime.createTerminal(
+      `id:${worktree.id}`,
+      {
+        command: sequencedStartup.command,
+        ...(setup ? { claudeAgentTeamsSourceCommand: startup.command } : {}),
+        env: sequencedStartup.env,
+        ...(sequencedStartup.launchConfig ? { launchConfig: sequencedStartup.launchConfig } : {}),
+        ...(isTuiAgent(createdWithAgent) ? { launchAgent: createdWithAgent } : {}),
+        ...(sequencedStartup.viewMode ? { viewMode: sequencedStartup.viewMode } : {}),
+        startupCommandDelivery: sequencedStartup.startupCommandDelivery,
+        telemetry: sequencedStartup.telemetry,
+        // Why: the submitting renderer decides whether to open the workspace; activating here yanked users who moved on (#9944).
+        surfaceOwner: false
+      },
+      worktree
+    )
     startupTerminalHandle = terminal.handle
     startupTerminal = {
       spawned: true,
@@ -454,21 +458,29 @@ async function spawnLocalStartupAndSetupTerminals(args: {
         if (!startupTerminalHandle) {
           throw new Error('startup_terminal_missing')
         }
-        await runtime.splitTerminal(startupTerminalHandle, {
-          direction: setupLaunchMode === 'split-horizontal' ? 'horizontal' : 'vertical',
-          command: setupCommand,
-          env: setup.envVars,
-          activate: false,
-          surfaceOwner: false
-        })
+        await runtime.splitTerminal(
+          startupTerminalHandle,
+          {
+            direction: setupLaunchMode === 'split-horizontal' ? 'horizontal' : 'vertical',
+            command: setupCommand,
+            env: setup.envVars,
+            activate: false,
+            surfaceOwner: false
+          },
+          worktree
+        )
       } else {
-        await runtime.createTerminal(`id:${worktree.id}`, {
-          title: 'Setup',
-          command: setupCommand,
-          env: setup.envVars,
-          activate: false,
-          surfaceOwner: false
-        })
+        await runtime.createTerminal(
+          `id:${worktree.id}`,
+          {
+            title: 'Setup',
+            command: setupCommand,
+            env: setup.envVars,
+            activate: false,
+            surfaceOwner: false
+          },
+          worktree
+        )
       }
       didSpawnSetup = true
     } catch (error) {
