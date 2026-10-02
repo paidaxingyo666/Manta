@@ -1,3 +1,4 @@
+import type { Page } from '@stablyai/playwright-test'
 import { test, expect } from './helpers/manta-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import {
@@ -107,7 +108,10 @@ async function measureRemoteTyping(
     const char = KEY_LATENCY_SAMPLES[index]
     const marker = `REMOTE_KEY_${runId}_${index + 1}_${char}`
     const started = performance.now()
-    await page.evaluate(({ ptyId, char }) => window.api.pty.write(ptyId, char), { ptyId, char })
+    await page.evaluate(({ ptyId, char }) => window.api.pty.write(ptyId, char, 'driving'), {
+      ptyId,
+      char
+    })
     await waitForTerminalOutput(page, marker, 10_000, 80_000)
     latencies.push(performance.now() - started)
   }
@@ -141,7 +145,7 @@ async function readSshPtyAckGate(page: Page): Promise<SshPtyAckGateSnapshot | nu
 }
 
 async function stopRemoteLoad(page: Page, ptyId: string): Promise<void> {
-  await page.evaluate((targetPtyId) => window.api.pty.write(targetPtyId, '\x03'), ptyId)
+  await page.evaluate((targetPtyId) => window.api.pty.write(targetPtyId, '\x03', 'driving'), ptyId)
 }
 
 test.describe('Docker SSH relay perf', () => {
@@ -208,7 +212,10 @@ test.describe('Docker SSH relay perf', () => {
       )
       await waitForTerminalOutput(mantaPage, `REMOTE_ACK_FLOOD_READY_${runId}`, 30_000, 80_000)
       await holdSshPtyAckGate(mantaPage, [backgroundPtyId])
-      await mantaPage.evaluate((ptyId) => window.api.pty.write(ptyId, 'g'), backgroundPtyId)
+      await mantaPage.evaluate(
+        (ptyId) => window.api.pty.write(ptyId, 'g', 'driving'),
+        backgroundPtyId
+      )
 
       await splitActiveTerminalPane(mantaPage, 'vertical')
       await focusLastTerminalPane(mantaPage)
