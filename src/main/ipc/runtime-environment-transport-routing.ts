@@ -1,6 +1,6 @@
 import { getRuntimeEnvironmentStatus } from './runtime-environment-status-probe'
 import { getPreferredPairingOffer } from '../../shared/runtime-environments'
-import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/protocol-version'
+import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/electron-remote-runtime-client-capabilities'
 import { resolveEnvironment, markEnvironmentUsed } from '../../shared/runtime-environment-store'
 import { resolveManagedRuntimeEnvironment } from './runtime-environment-managed-tunnel'
 import { recordRuntimeEnvironmentUsage } from './runtime-environment-usage-record'

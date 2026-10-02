@@ -164,6 +164,13 @@ export const AGENT_SESSION_OMP_RESUME_PATH_RUNTIME_CAPABILITY =
 // receive their journal or drive their lifecycle. Mobile may receive a metadata-only placeholder;
 // the host still refuses agentSession.* methods and destructive tab mutations without capability.
 export const STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY = 'agent-session.structured.v1' as const
+// Why: hosts before this gated `agentSession.*` on their own chat setting while still advertising
+// agent-session.structured.v1, so that capability alone cannot tell a client its chat will be
+// admitted. A host advertising this admits by client capability alone; a client advertising it
+// picks each launch's mode itself. A client without it asks `agentSession.createSupport` to pick
+// for it (released phones), so the host keeps answering that with its own setting.
+export const STRUCTURED_AGENT_SESSION_CLIENT_LAUNCH_MODE_CAPABILITY =
+  'agent-session.structured.client-launch-mode.v1' as const
 // Why: older structured clients render durable pending replies as uncertain delivery. Capable
 // clients skip the host's bounded best-effort settlement observation.
 export const AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY =
@@ -323,20 +330,6 @@ export const NATIVE_REMOTE_RUNTIME_CLIENT_CAPABILITIES = [
   AGENT_LAUNCH_RUNTIME_CAPABILITY
 ] as const
 
-// Electron clients can decode client-hosted page placement; becoming a page
-// host still requires the separate authenticated browser-client lease.
-export const ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES = [
-  ...NATIVE_REMOTE_RUNTIME_CLIENT_CAPABILITIES,
-  AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY,
-  AGENT_SESSION_ACCEPTED_SEND_RUNTIME_CAPABILITY,
-  BROWSER_CLIENT_HOST_RUNTIME_CAPABILITY,
-  BROWSER_CLIENT_PAGE_METADATA_RUNTIME_CAPABILITY,
-  // Why: only the renderer runs the retirement-proof ledger; CLI and mobile must keep full lists.
-  SESSION_TABS_RETIREMENT_PROOF_DELTA_RUNTIME_CAPABILITY,
-  // Only the renderer shows Deleting for a `removing` row; CLI and mobile get those rows omitted.
-  WORKTREE_BACKGROUND_REMOVAL_RUNTIME_CAPABILITY
-] as const
-
 export const ANTIGRAVITY_CONFIGURED_MODEL_RUNTIME_CAPABILITY =
   'git.antigravity-configured-model.v1' as const
 
@@ -406,6 +399,7 @@ export const RUNTIME_CAPABILITIES = [
   AGENT_SESSION_OMP_RESUME_PATH_RUNTIME_CAPABILITY,
   AGENT_SESSION_KEYBOARD_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY,
+  STRUCTURED_AGENT_SESSION_CLIENT_LAUNCH_MODE_CAPABILITY,
   AGENT_SESSION_PENDING_SEND_RESULT_RUNTIME_CAPABILITY,
   // The host side: it accepts a send before any agent has it, and a Stop with no writer before a
   // turn starts, so a client may gate on either.

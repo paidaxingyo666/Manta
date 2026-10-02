@@ -152,12 +152,12 @@ describe('the hold surface, for clients that still call it', () => {
     expect(host.hasSession(SESSION)).toBe(true)
   })
 
-  it('refuses a hold once the setting is off, and still answers a release', async () => {
+  it('answers a hold and a release whatever the host structured-chat setting says', async () => {
     structuredNativeChatEnabled = false
 
     expect(
       await call('agentSession.hold', { sessionId: SESSION, holderId: 'chat-1' })
-    ).toMatchObject({ ok: false })
+    ).toMatchObject({ ok: true, result: { held: true } })
     expect(
       await call('agentSession.release', { sessionId: SESSION, holderId: 'chat-1' })
     ).toMatchObject({ ok: true, result: { released: true } })

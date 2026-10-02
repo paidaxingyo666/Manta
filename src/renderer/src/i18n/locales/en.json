@@ -7266,7 +7266,7 @@
             "defaultViewTerminal": "Terminal chat",
             "defaultViewNative": "Chat UI",
             "structuredTitle": "Use updated structured native chat",
-            "structuredCopy": "Opt in to the host-owned structured chat runtime for Codex and Claude. Off keeps the existing terminal-backed chat path.",
+            "structuredCopy": "Open new Codex and Claude agents as structured chats. Off opens them in the terminal-backed chat. Chats that already exist stay as they are.",
             "structuredScope": "Local sessions only for now. WSL and remote execution hosts (including SSH) continue to use terminal chat, and Windows falls back to it unless Manta can read process start times.",
             "structuredToggleLabel": "Toggle updated structured native chat",
             "resumeTitle": "Resume working chats automatically after a restart",

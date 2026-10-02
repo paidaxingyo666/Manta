@@ -218,6 +218,7 @@ export function dispatcher(runtimeOverrides: Record<string, unknown> = {}): RpcD
   reset(runtimeCalls)
   Object.assign(runtimeCalls, {
     getStructuredAgentSessionCreateSupport: vi.fn(async () => ({ supported: true })),
+    structuredAgentSessionLaunchSeedOptions: vi.fn(() => undefined),
     resolveStructuredAgentSessionCreateIntent: vi.fn(async (params) => ({
       envelope: params.envelope,
       location: {

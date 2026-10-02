@@ -7204,7 +7204,7 @@
             "shellEnvCopy": "Les chats Codex et Claude démarrent avec toutes les variables exportées par votre shell de connexion, comme un terminal. Désactivez pour choisir celles qu'ils reçoivent.",
             "shellEnvToggleLabel": "Activer l'utilisation de l'environnement de votre shell",
             "structuredTitle": "Utiliser le chat natif structuré mis à jour",
-            "structuredCopy": "Inscrivez-vous au runtime de chat structuré appartenant à l'hôte pour Codex et Claude. Désactivé conserve le chemin de discussion existant sauvegardé sur le terminal.",
+            "structuredCopy": "Ouvre les nouveaux agents Codex et Claude sous forme de discussions structurées. Désactivé, ils s'ouvrent dans le chat basé sur le terminal. Les discussions existantes restent telles quelles.",
             "structuredScope": "Séances locales uniquement pour l'instant. WSL et les hôtes d'exécution à distance (y compris SSH) continuent d'utiliser le chat du terminal, et Windows y revient à moins qu'Manta ne puisse lire les heures de début des processus.",
             "structuredToggleLabel": "Basculer le chat natif structuré mis à jour",
             "resumeTitle": "Reprendre automatiquement les discussions de travail après un redémarrage",

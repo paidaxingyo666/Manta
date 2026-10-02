@@ -222,6 +222,9 @@ export class StructuredAgentSessionHost {
   showSessionTabs = (sessionIds: readonly string[]) => this.deps.store.showSessionTabs(sessionIds)
   /** The records file could not be read this launch, so chats it holds are not listed yet. */
   legacyRecordImportOwed = (): boolean => this.deps.journalDatabase.legacyRecordImportOwed === true
+  /** This runtime holds a chat: a record, or the records file's chats still owed their copy. */
+  holdsSessions = (): boolean => this.deps.store.holdsRecords() || this.legacyRecordImportOwed()
+  onSessionsHeld = (listener: () => void): (() => void) => this.deps.store.onFirstRecord(listener)
 
   setSessionTabVisibility = async (
     sessionId: string,
