@@ -7100,7 +7100,7 @@
             "shellEnvToggleLabel": "셸 환경 사용 전환",
             "structuredTitle": "업데이트된 구조화된 기본 채팅 사용",
             "structuredCopy": "새 Codex 및 Claude 에이전트를 구조화된 채팅으로 엽니다. 끄면 터미널 지원 채팅으로 엽니다. 이미 있는 채팅은 그대로 유지됩니다.",
-            "structuredScope": "현재는 로컬 세션만 가능합니다. WSL 및 원격 실행 호스트(SSH 포함)는 계속해서 터미널 채팅을 사용하며 Manta가 프로세스 시작 시간을 읽을 수 없으면 Windows는 이 채팅을 사용합니다.",
+            "structuredScope": "이 컴퓨터와 이를 지원하는 버전을 실행하는 페어링된 Manta 서버에서 실행됩니다. 이전 서버는 터미널 채팅을 유지합니다. WSL 및 SSH 호스트는 계속해서 터미널 채팅을 사용하며 Manta가 프로세스 시작 시간을 읽을 수 없으면 Windows는 이 채팅을 사용합니다.",
             "structuredToggleLabel": "업데이트된 구조화된 기본 채팅 전환",
             "resumeTitle": "다시 시작한 후 작업 중인 채팅을 자동으로 재개합니다.",
             "resumeCopy": "Manta가 종료되거나 업데이트를 설치하면 Manta가 다시 열릴 때 작업 중이던 채팅이 자동으로 재개됩니다.",
@@ -17835,7 +17835,11 @@
         "queuePausedCleared": "대화를 지워서 대기열이 일시 중지되었습니다",
         "queuePaused": "대기열이 일시 중지되었습니다",
         "resume": "재개"
-      }
+      },
+      "structuredSessionHostDeclined": "{{value0}}을(를) 터미널에서 열었습니다",
+      "structuredSessionHostDeclinedDescription": "이 서버는 이 워크스페이스에서 {{value0}} 채팅을 실행할 수 없습니다.",
+      "structuredSessionHostUnreachable": "{{value0}}에 연결할 수 없습니다",
+      "structuredSessionHostUnreachableDescription": "Manta가 {{value0}} 채팅을 열지 않았습니다. 서버 연결을 확인하고 다시 시도하세요."
     },
     "tab": {
       "bar": {

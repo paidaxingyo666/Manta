@@ -7100,7 +7100,7 @@
             "shellEnvToggleLabel": "シェル環境の使用の切り替え",
             "structuredTitle": "更新された構造化ネイティブチャットを使用する",
             "structuredCopy": "新規の Codex および Claude の Agent を構造化チャットとして開きます。オフにすると、ターミナルを使用したチャットで開きます。既存のチャットはそのまま残ります。",
-            "structuredScope": "今のところローカルセッションのみ。 WSL およびリモート実行ホスト (SSH を含む) は引き続きターミナルチャットを使用し、Manta がプロセスの開始時間を読み取ることができない限り、Windows はターミナルチャットにフォールバックします。",
+            "structuredScope": "このマシンと、対応するバージョンを実行しているペアリング済みの Manta サーバーで動作します。古いサーバーはターミナルチャットのままです。WSL および SSH ホストは引き続きターミナルチャットを使用し、Manta がプロセスの開始時間を読み取ることができない限り、Windows はターミナルチャットにフォールバックします。",
             "structuredToggleLabel": "更新された構造化ネイティブチャットの切り替え",
             "resumeTitle": "再起動後に作業中のチャットを自動的に再開する",
             "resumeCopy": "Manta が終了するかアップデートをインストールすると、Manta が再度開かれたときに作業中だったチャットが自動的に再開されます。",
@@ -17835,7 +17835,11 @@
         "queuePausedCleared": "会話を消去したため、キューを一時停止しました",
         "queuePaused": "キューは一時停止中です",
         "resume": "再開"
-      }
+      },
+      "structuredSessionHostDeclined": "{{value0}} をターミナルで開きました",
+      "structuredSessionHostDeclinedDescription": "このサーバーはこのワークスペースで {{value0}} チャットを実行できません。",
+      "structuredSessionHostUnreachable": "{{value0}} に接続できませんでした",
+      "structuredSessionHostUnreachableDescription": "Manta は {{value0}} チャットを開きませんでした。サーバーへの接続を確認して、もう一度お試しください。"
     },
     "tab": {
       "bar": {
