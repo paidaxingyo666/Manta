@@ -18579,6 +18579,7 @@
       "remoteDisabled": "Search is disabled on this computer. Enable transcript indexing on that computer to search its sessions.",
       "notReady": "The search index is not ready yet. Try again shortly.",
       "noService": "Search is unavailable on this computer. It may need a Manta update or a runtime with search support.",
+      "unsupportedAgent": "This computer does not support history search for the selected agent. Update Manta on that computer or select another agent.",
       "failed": "Could not search this computer. Check its connection and try again.",
       "changed": "The index changed while searching. Search again for current results.",
       "truncated": "Some results or matching text were limited. Narrow your search for more precise results.",
