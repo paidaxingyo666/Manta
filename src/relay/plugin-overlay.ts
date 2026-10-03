@@ -24,9 +24,9 @@ import {
   readdirSync,
   realpathSync,
   statSync,
-  unlinkSync,
   writeFileSync
 } from 'node:fs'
+import { writeOverlayOpenCodePluginAtomically } from '../shared/opencode-plugin-atomic-write'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { mirrorEntry, safeRemoveOverlay } from '../main/pty/overlay-mirror'
@@ -214,13 +214,8 @@ export class PluginOverlayManager {
     const pluginsDir = join(overlayDir, 'plugins')
     mkdirSync(pluginsDir, { recursive: true })
     const pluginPath = join(pluginsDir, pluginFileName)
-    writeOpenCodeTuiPlugin(pluginsDir, pluginFileName, source)
-    try {
-      unlinkSync(pluginPath)
-    } catch {
-      // Fresh overlay or no same-named stale symlink.
-    }
-    writeFileSync(pluginPath, source)
+    writeOpenCodeTuiPlugin(pluginsDir, pluginFileName, source, 'overlay')
+    writeOverlayOpenCodePluginAtomically(pluginPath, source)
   }
 
   /** Materialize the OpenCode plugin overlay for `id` (typically the

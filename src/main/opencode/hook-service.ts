@@ -1,4 +1,3 @@
-import { writeFileAtomically } from '../codex-accounts/fs-utils'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { join } from 'node:path'
 import {
@@ -8,7 +7,6 @@ import {
   readdirSync,
   realpathSync,
   statSync,
-  unlinkSync,
   writeFileSync
 } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -32,8 +30,14 @@ import {
   openCodeTuiPluginDirName,
   writeOpenCodeTuiPlugin
 } from '../../shared/opencode-tui-plugin-install'
+import { writeLegacyOpenCodePluginWithAclRetry } from './legacy-plugin-acl-retry'
 
 export { getOpenCode2PluginSource, getOpenCodeFamilyPluginSource, getOpenCodePluginSource }
+
+import {
+  writeCanonicalOpenCodePluginAtomically,
+  writeOverlayOpenCodePluginAtomically
+} from '../../shared/opencode-plugin-atomic-write'
 
 const MANTA_OPENCODE_PLUGIN_FILE = 'manta-opencode-status.js'
 const OPENCODE_OVERLAY_DIR = 'opencode-config-overlays'
@@ -137,9 +141,14 @@ export class OpenCodeHookService {
       const source = this.pluginSource()
       const installed = readFileSync(pluginPath, 'utf8')
       // Why: a TUI or service still loading this dir needs the TUI copy too, or the service keeps reporting under its starter pane.
-      this.writeTuiPlugin(pluginsDir, source)
+      writeLegacyOpenCodePluginWithAclRetry(
+        join(pluginsDir, openCodeTuiPluginDirName(this.pluginFileName), 'tui.js'),
+        () => this.writeTuiPlugin(pluginsDir, source)
+      )
       if (installed !== source) {
-        writeFileAtomically(pluginPath, source)
+        writeLegacyOpenCodePluginWithAclRetry(pluginPath, () =>
+          writeCanonicalOpenCodePluginAtomically(pluginPath, source)
+        )
       }
     } catch (error) {
       if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
@@ -279,20 +288,15 @@ export class OpenCodeHookService {
     this.writeOverlayManifest(overlayDir, nextManifest)
   }
 
-  // Why: pre-write unlink guards against POSIX writeFileSync writing through a mirrored symlink and clobbering a same-named user plugin.
+  // Atomic replacement detaches mirrored links without touching user plugins.
   private writePluginIntoOverlay(overlayDir: string): void {
     const pluginsDir = join(overlayDir, 'plugins')
     mkdirSync(pluginsDir, { recursive: true })
     const pluginPath = join(pluginsDir, this.pluginFileName)
     const source = this.pluginSource()
-    this.writeTuiPlugin(pluginsDir, source)
+    this.writeTuiPlugin(pluginsDir, source, 'overlay')
     if (!isOverlayOpenCodePluginCurrent(pluginPath, source)) {
-      try {
-        unlinkSync(pluginPath)
-      } catch {
-        // File may not exist on a fresh overlay; a real failure surfaces on writeFileSync below.
-      }
-      writeFileSync(pluginPath, source)
+      writeOverlayOpenCodePluginAtomically(pluginPath, source)
     }
   }
 
@@ -303,13 +307,17 @@ export class OpenCodeHookService {
     const source = this.pluginSource()
     this.writeTuiPlugin(pluginsDir, source)
     if (!isInstalledOpenCodePluginCurrent(pluginPath, source)) {
-      writeFileSync(pluginPath, source)
+      writeCanonicalOpenCodePluginAtomically(pluginPath, source)
     }
   }
 
-  private writeTuiPlugin(pluginsDir: string, source: string): void {
+  private writeTuiPlugin(
+    pluginsDir: string,
+    source: string,
+    ownership: 'canonical' | 'overlay' = 'canonical'
+  ): void {
     if (this.installsTuiPlugin) {
-      writeOpenCodeTuiPlugin(pluginsDir, this.pluginFileName, source)
+      writeOpenCodeTuiPlugin(pluginsDir, this.pluginFileName, source, ownership)
     }
   }
 }
