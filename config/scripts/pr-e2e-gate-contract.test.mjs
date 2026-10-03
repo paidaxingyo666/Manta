@@ -220,7 +220,7 @@ describe('PR E2E gate contract', () => {
       const installStep = e2eWorkflow.jobs[jobName].steps.find((step) =>
         step.name.startsWith('Install native build')
       )
-      expect(linuxInstallPackageList(installStep, jobName), jobName).toMatch(/\bzsh\b/)
+      expect(linuxInstallPackageList(installStep, jobName), jobName).toMatch(/(^|\s)zsh(\s|$)/)
     }
   })
 
@@ -307,10 +307,10 @@ describe('PR E2E gate contract', () => {
 
     // Why: this lane can now pay a Docker image build plus serial SSH specs.
     expect(e2eWorkflow.jobs['changed-e2e']['timeout-minutes']).toBeGreaterThanOrEqual(45)
-    const changedInstall = e2eWorkflow.jobs['changed-e2e'].steps.find((step) =>
+    const install = e2eWorkflow.jobs['changed-e2e'].steps.find((step) =>
       step.name.startsWith('Install native build')
     )
-    expect(linuxInstallPackageList(changedInstall, 'changed-e2e')).toMatch(/\bopenssh-client\b/)
+    expect(linuxInstallPackageList(install, 'changed-e2e')).toMatch(/(^|\s)openssh-client(\s|$)/)
   })
 
   it('routes direct-SSH workspace and tab restore from its unnamed source seams', () => {
