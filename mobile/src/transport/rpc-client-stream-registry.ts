@@ -26,7 +26,7 @@ export type RpcStreamSubscribeOptions = {
 type StreamRequest = {
   method: string
   params: unknown
-  listener: RpcStreamingListener
+  listener?: RpcStreamingListener
   onBinaryFrame?: (frame: BrowserScreencastFrame) => void
   subscriptionId?: string
   cancelled?: boolean
@@ -129,7 +129,7 @@ export class RpcClientStreamRegistry {
         return true
       }
       if (stream && result?.type === 'scrollback') {
-        stream.listener(result)
+        stream.listener?.(result)
         return true
       }
     }
@@ -197,16 +197,21 @@ export class RpcClientStreamRegistry {
         this.activeBrowserRequestId = response.id
       }
     }
-    if (isTerminalSubscribedResult(result)) {
+    if (isTerminalSubscribedResult(result) && stream.listener) {
       this.terminalRouter.register(response.id, result.streamId, stream.listener)
     }
     if (!stream.cancelled) {
-      stream.listener(result)
+      stream.listener?.(result)
     }
   }
 
   private dispose(id: string): void {
     const stream = this.streams.get(id)
+    if (stream) {
+      // A canceled opener may never reply; only its host cleanup route must survive.
+      stream.listener = undefined
+      stream.onBinaryFrame = undefined
+    }
     if (stream && isReadyIdStream(stream.method)) {
       if (stream.method === 'browser.screencast') {
         this.clearBrowserRequest(id)
@@ -313,10 +318,8 @@ export class RpcClientStreamRegistry {
 
   /** Removed first, so neither the listener's dispose nor a replay can name a host-ended stream. */
   private finish(id: string, stream: StreamRequest, result: unknown): void {
-    const notify = !stream.cancelled
+    const listener = stream.cancelled ? undefined : stream.listener
     this.remove(id)
-    if (notify) {
-      stream.listener(result)
-    }
+    listener?.(result)
   }
 }
