@@ -550,7 +550,7 @@ describe('buildArgs (OpenCode)', () => {
       '--agent',
       'build',
       '--format',
-      'default'
+      'json'
     ])
     expect(args).not.toContain(prompt)
     expect(args).not.toContain('')
@@ -571,7 +571,7 @@ describe('buildArgs (OpenCode)', () => {
       '--agent',
       'build',
       '--format',
-      'default',
+      'json',
       '--variant',
       'high'
     ])
@@ -604,7 +604,7 @@ describe('buildArgs (OpenCode 2)', () => {
       '--agent',
       'build',
       '--format',
-      'default'
+      'json'
     ])
     expect(args).not.toContain(prompt)
     expect(args).not.toContain('')
@@ -625,7 +625,7 @@ describe('buildArgs (OpenCode 2)', () => {
       '--agent',
       'build',
       '--format',
-      'default'
+      'json'
     ])
     expect(args).not.toContain('--variant')
   })

@@ -186,6 +186,7 @@ export function runLocalSourceControlPlan(input: {
           stdout,
           stderr,
           label: plan.label,
+          outputFormat: plan.outputFormat,
           emptyResultName: input.emptyResultName,
           includeStdoutDetail: operation !== 'branch-name'
         })
