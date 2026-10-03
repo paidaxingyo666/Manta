@@ -60,6 +60,7 @@ describe('ensure-native-runtime', () => {
       expect(result.stderr).toContain('node-gyp stderr complete\n')
       const log = readFileSync(logPath, 'utf8')
       expect(log).toContain(`node-gyp rebuild --arch=${process.arch}\n`)
+      expect(log).toContain(`trackFileAccess=${process.platform === 'win32' ? 'false' : ''}\n`)
       expect(log).toContain(join('node_modules', 'node-pty'))
       if (process.platform === 'linux') {
         expect(log).toMatch(/^cxxflags=(?:.*\s)?-std=gnu\+\+2a$/m)
@@ -73,9 +74,14 @@ describe('ensure-native-runtime', () => {
     }
   })
 
-  it.skipIf(process.platform !== 'win32')(
-    'rebuilds other failed Windows addons with patched node-pty',
-    () => {
+  it.skipIf(process.platform !== 'win32').each([
+    { trackingEnv: {}, tracking: 'false' },
+    { trackingEnv: { TrackFileAccess: 'true' }, tracking: 'true' },
+    { trackingEnv: { trackfileaccess: 'true' }, tracking: 'true' },
+    { trackingEnv: { tRaCkFiLeAcCeSs: 'false' }, tracking: 'false' }
+  ])(
+    'rebuilds other failed Windows addons with patched node-pty and tracking=$tracking',
+    ({ trackingEnv, tracking }) => {
       const projectDir = mkTempProject()
 
       try {
@@ -90,6 +96,7 @@ describe('ensure-native-runtime', () => {
           cwd: projectDir,
           encoding: 'utf8',
           env: envForNativeFixture(projectDir, {
+            ...trackingEnv,
             ORCA_NATIVE_TEST_LOG: logPath,
             ORCA_NATIVE_TEST_MARKER: markerPath
           })
@@ -99,6 +106,9 @@ describe('ensure-native-runtime', () => {
         const log = readFileSync(logPath, 'utf8')
         expect(
           log.split('\n').filter((line) => line === `node-gyp rebuild --arch=${process.arch}`)
+        ).toHaveLength(2)
+        expect(
+          log.split('\n').filter((line) => line === `trackFileAccess=${tracking}`)
         ).toHaveLength(2)
         expect(log).toContain(join('node_modules', 'node-pty'))
         expect(log).toContain(join('node_modules', '@manta', 'windows-registry'))
@@ -277,8 +287,12 @@ function mkTempProject() {
 }
 
 function envForNativeFixture(projectDir, extraEnv) {
+  // An inherited tracking preference would mask the Windows default under test.
+  const inherited = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => key.toLowerCase() !== 'trackfileaccess')
+  )
   return {
-    ...process.env,
+    ...inherited,
     ...extraEnv,
     npm_config_node_gyp: join(projectDir, 'node_modules', 'node-gyp', 'bin', 'node-gyp.js')
   }
@@ -323,7 +337,7 @@ exports.loadNativeModule = function loadNativeModule(nativeName) {
   writeFakeWindowsRegistry(projectDir, { requiresMarker: windowsRegistryRequiresMarker })
   if (process.platform === 'win32') {
     const buildDir = join(nodePtyDir, 'build', 'Release')
-    mkdirSync(buildDir, { recursive: true })
+    writePatchedNodePtyBuildArtifacts(projectDir)
     writeFileSync(join(buildDir, 'conpty.node'), Buffer.from('msys-2.0.dll', 'utf16le'))
   }
 }
@@ -419,6 +433,7 @@ const { appendFileSync, writeFileSync, writeSync } = require('node:fs')
 appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`node-gyp \${process.argv.slice(2).join(' ')}\\n\`)
 appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`cwd=\${process.cwd()}\\n\`)
 appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`cxxflags=\${process.env.CXXFLAGS || ''}\\n\`)
+appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`trackFileAccess=\${process.env.TrackFileAccess ?? ''}\\n\`)
 if (process.env.ORCA_NATIVE_TEST_VERBOSE_OUTPUT_BYTES) {
   const output = Buffer.alloc(Number(process.env.ORCA_NATIVE_TEST_VERBOSE_OUTPUT_BYTES), 'x')
   for (let offset = 0; offset < output.length;) {

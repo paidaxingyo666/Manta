@@ -13,6 +13,7 @@ import {
   windowsProcessTreeAddonPath
 } from './windows-process-tree-gyp-rebuild.mjs'
 import { describeProcessFailure, runProcessSync } from './script-child-process.mjs'
+import { disableMsbuildFileTrackingOnWindows } from './msbuild-file-tracking.mjs'
 
 const require = createRequire(import.meta.url)
 const { assertNodePtyJobOwnership, nodePtyAddonPath } = require('./node-pty-job-ownership.cjs')
@@ -420,7 +421,7 @@ function runNodeGyp({ args, cwd }) {
   const env =
     process.platform === 'linux'
       ? { ...process.env, CXXFLAGS: `${process.env.CXXFLAGS ?? ''} -std=gnu++2a`.trim() }
-      : process.env
+      : disableMsbuildFileTrackingOnWindows({ ...process.env })
   const result = runProcessSync({
     program: process.execPath,
     args,
