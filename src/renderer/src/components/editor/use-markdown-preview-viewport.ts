@@ -73,12 +73,15 @@ export function useMarkdownPreviewViewport({
       if (count === 0) {
         return
       }
+      if (largePreview) {
+        largeNavigationRef?.current?.search()
+      }
       setActiveMatchIndex((cur) => {
         const base = cur >= 0 ? cur : direction === 1 ? -1 : 0
         return (base + direction + count) % count
       })
     },
-    [largePreview, matchCount, matchesRef, setActiveMatchIndex]
+    [largeNavigationRef, largePreview, matchCount, matchesRef, setActiveMatchIndex]
   )
 
   const openSearch = useCallback(() => {
