@@ -705,7 +705,7 @@ jobs:
   # after the last shard. Deliberately absent from verify's needs for the same reason.
   unit_selection_evidence:
     needs: [test]
-    if: ${{ !cancelled() && needs.test.result == 'success' }}
+    if: ${{ !cancelled() && (needs.test.result == 'success' || needs.test.result == 'failure') }}
     uses: ./.github/workflows/unit-selection-evidence.yml
 
   # Why a separate job: the test needs a real Chrome, and the sharded `test` matrix
