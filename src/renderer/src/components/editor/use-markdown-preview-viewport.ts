@@ -64,7 +64,6 @@ export function useMarkdownPreviewViewport({
   useMarkdownPreviewScrollViewport({
     foundation,
     scrollCacheKey,
-    readyRevision: largeDocument,
     restorePixels: !largePreview
   })
 

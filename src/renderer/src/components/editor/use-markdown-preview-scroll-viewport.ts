@@ -5,12 +5,10 @@ import type { MarkdownPreviewFoundation } from './use-markdown-preview-foundatio
 export function useMarkdownPreviewScrollViewport({
   foundation,
   scrollCacheKey,
-  readyRevision,
   restorePixels = true
 }: {
   foundation: MarkdownPreviewFoundation
   restorePixels?: boolean
-  readyRevision?: unknown
   scrollCacheKey: string
 }): void {
   const { rootRef, renderedContent } = foundation
@@ -76,5 +74,5 @@ export function useMarkdownPreviewScrollViewport({
 
     tryRestore()
     return () => window.cancelAnimationFrame(frameId)
-  }, [rootRef, scrollCacheKey, renderedContent, readyRevision, restorePixels])
+  }, [rootRef, scrollCacheKey, renderedContent, restorePixels])
 }

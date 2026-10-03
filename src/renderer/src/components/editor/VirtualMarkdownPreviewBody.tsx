@@ -94,7 +94,6 @@ export function VirtualMarkdownPreviewBody({
   } | null>(null)
   const [anchor, setAnchor] = useState<PreviewReveal | null>(null)
   const virtualBodyRef = useRef<HTMLDivElement>(null)
-  const pendingHighlight = useRef<Range[]>([])
   const completedAnchor = useRef<PreviewReveal | null>(null)
   const completedSearch = useRef<{
     client: MarkdownPreviewDocumentClient
@@ -239,16 +238,13 @@ export function VirtualMarkdownPreviewBody({
       ? body.querySelector<HTMLElement>(`[data-preview-block-index="${activeMatch.block}"]`)
       : null
     clearMarkdownPreviewSearchHighlights(searchInstance)
-    pendingHighlight.current = block
+    const ranges = block
       ? applyMarkdownPreviewSearchHighlights(searchInstance, block, query, { documentOnly: true })
       : []
-    setActiveMarkdownPreviewSearchMatch(
-      searchInstance,
-      pendingHighlight.current,
-      activeMatch?.occurrence ?? -1,
-      { scrollIntoView: false }
-    )
-    const range = pendingHighlight.current[activeMatch?.occurrence ?? -1]
+    setActiveMarkdownPreviewSearchMatch(searchInstance, ranges, activeMatch?.occurrence ?? -1, {
+      scrollIntoView: false
+    })
+    const range = ranges[activeMatch?.occurrence ?? -1]
     if (
       activeMatch &&
       range &&
@@ -260,7 +256,6 @@ export function VirtualMarkdownPreviewBody({
       completedSearch.current = { client, match: activeMatch, query }
     }
     return () => {
-      pendingHighlight.current = []
       clearMarkdownPreviewSearchHighlights(searchInstance)
     }
   }, [activeMatch, bodyRef, client, query, rendered, searchInstance])

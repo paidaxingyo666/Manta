@@ -64,7 +64,6 @@ export class MarkdownPreviewDocumentEngine {
     }
     const { tree, document } = parseMarkdownPreviewDocument(content)
     this.tree = tree
-    this.cache.clear()
     return document
   }
 

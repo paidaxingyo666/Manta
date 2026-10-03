@@ -2,8 +2,13 @@ import type { Root, RootContent, Nodes } from 'hast'
 import type { Root as MarkdownRoot, Nodes as MarkdownNodes } from 'mdast'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
+import rehypeRaw from 'rehype-raw'
 import { unified } from 'unified'
-import { MARKDOWN_REMARK_PLUGINS, MARKDOWN_REHYPE_PLUGINS } from './markdown-preview-plugins'
+import {
+  MARKDOWN_REMARK_PLUGINS,
+  MARKDOWN_REHYPE_NORMALIZATION_PLUGINS,
+  MARKDOWN_REHYPE_EXPANSION_PLUGINS
+} from './markdown-preview-plugins'
 import {
   MARKDOWN_PREVIEW_DOCUMENT_MAX_NODES,
   MARKDOWN_PREVIEW_BLOCK_MAX_NODES,
@@ -128,7 +133,8 @@ export function parseMarkdownPreviewDocument(content: string): {
   const containsHtml = hasHtml(parsed)
   const processor = parser()
     .use(remarkRehype, { allowDangerousHtml: true })
-    .use(containsHtml ? MARKDOWN_REHYPE_PLUGINS.slice(0, -2) : MARKDOWN_REHYPE_PLUGINS.slice(1, -2))
+    .use(containsHtml ? [rehypeRaw] : [])
+    .use(MARKDOWN_REHYPE_NORMALIZATION_PLUGINS)
   const tree = processor.runSync(parsed)
   assertDocumentBudget(tree)
   tree.children = tree.children.filter(
@@ -156,19 +162,20 @@ function hasHtml(node: MarkdownNodes): boolean {
   return 'children' in node && node.children.some((child) => hasHtml(child))
 }
 
-const expansion = unified().use(MARKDOWN_REHYPE_PLUGINS.slice(-2))
+const expansion = unified().use(MARKDOWN_REHYPE_EXPANSION_PLUGINS)
 
 export function renderMarkdownPreviewBlock(
   node: RootContent,
   index: number
 ): MarkdownPreviewRenderedBlock {
-  const tree: Root = { type: 'root', children: [structuredClone(node)] }
+  const sourceTree: Root = { type: 'root', children: [node] }
   const tooLarge =
-    countMarkdownPreviewNodes(tree, MARKDOWN_PREVIEW_BLOCK_MAX_NODES) >
+    countMarkdownPreviewNodes(sourceTree, MARKDOWN_PREVIEW_BLOCK_MAX_NODES) >
       MARKDOWN_PREVIEW_BLOCK_MAX_NODES || getMarkdownPreviewTreeText(node).length > 32_768
   if (tooLarge) {
     return { index, tree: { type: 'root', children: [] }, oversized: true }
   }
+  const tree = structuredClone(sourceTree)
   const expanded = expansion.runSync(tree)
   if (!isHastRoot(expanded)) {
     throw new Error('Invalid rendered preview block.')

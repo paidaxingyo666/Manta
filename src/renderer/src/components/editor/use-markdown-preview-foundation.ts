@@ -8,7 +8,6 @@ import {
 import type { MarkdownDocument } from '../../../../shared/filesystem-entry-types'
 import { createMarkdownDocumentIndex } from './markdown-doc-links'
 import { exceedsMarkdownRichModeSizeLimit } from './markdown-rich-size-limit'
-import { extractFrontMatter, markdownFrontMatterInner } from './markdown-frontmatter'
 import { previewHasAnnotationBlockKey } from './markdown-preview-annotation-shortcut'
 import { selectMarkdownTableOfContents } from './markdown-toc-visibility-gate'
 import type { NotesSendMenuScope } from './NotesSendMenu'
@@ -52,7 +51,6 @@ export function useMarkdownPreviewFoundation({
     markdownComments
   } = source
 
-  const frontMatter = useMemo(() => extractFrontMatter(renderedContent), [renderedContent])
   const tableOfContentsItems = useMemo(
     () =>
       selectMarkdownTableOfContents(
@@ -65,7 +63,6 @@ export function useMarkdownPreviewFoundation({
     () => createMarkdownDocumentIndex(markdownDocuments),
     [markdownDocuments]
   )
-  const frontMatterInner = useMemo(() => markdownFrontMatterInner(frontMatter), [frontMatter])
   const toggleableSourceFileId: string | null = sourceFileId ?? null
   const frontmatterVisible = toggleableSourceFileId
     ? (frontmatterVisibleByFile[toggleableSourceFileId] ?? true)
@@ -122,10 +119,8 @@ export function useMarkdownPreviewFoundation({
 
   return {
     ...source,
-    frontMatter,
     tableOfContentsItems,
     markdownDocumentIndex,
-    frontMatterInner,
     frontmatterVisible,
     activeAnnotationBlockKey,
     setActiveAnnotationBlockKey,
