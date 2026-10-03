@@ -15,6 +15,7 @@ import { getInitialClaudeRateLimitTarget } from '../rate-limits/claude-rate-limi
 import { getKimiRuntimeTarget, resolveKimiHome } from '../kimi/kimi-runtime-home'
 import { readMiniMaxSessionCookie } from '../minimax/minimax-cookie-store'
 import { readMiniMaxApiKey } from '../minimax/minimax-api-key-store'
+import { readZcodePlanApiKey } from '../zcode/zcode-plan-api-key-store'
 import { createAccountRuntimeTargetSettingsSync } from '../rate-limits/account-runtime-target-sync'
 import { normalizeCodexRuntimeSelection } from '../codex-accounts/runtime-selection'
 import { normalizeClaudeRuntimeSelection } from '../claude-accounts/runtime-selection'
@@ -102,6 +103,17 @@ export function initializeMainProcessAccountServices(): void {
         )
       })
     }
+    // Why: the site picks the GLM Coding Plan quota host, so a stale snapshot from
+    // the previous site would otherwise sit in the status bar until the next poll.
+    if ('zcodePlanSite' in updates) {
+      state.rateLimits?.invalidateZcodeCredentialState()
+      void state.rateLimits?.refresh().catch((error: unknown) => {
+        console.warn(
+          '[rate-limits] Failed to refresh GLM Coding Plan usage after a settings change:',
+          error
+        )
+      })
+    }
   })
   state.rateLimits.setClaudeAuthPreparationResolver((target) =>
     state.claudeRuntimeAuth!.prepareForRateLimitFetch(target)
@@ -129,6 +141,10 @@ export function initializeMainProcessAccountServices(): void {
       apiKey
     }
   })
+  state.rateLimits.setZcodePlanConfigResolver(() => ({
+    site: store.getSettings().zcodePlanSite ?? 'zai',
+    apiKey: readZcodePlanApiKey() ?? ''
+  }))
   state.rateLimits.setGeminiCliOAuthEnabledResolver(() => store.getSettings().geminiCliOAuthEnabled)
   // Reuse the meter switch so hidden Antigravity usage does not spawn agy.
   state.rateLimits.setAntigravityUsageEnabledResolver(() =>

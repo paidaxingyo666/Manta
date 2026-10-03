@@ -16,6 +16,9 @@ export type UsageProviderSettings = Pick<
   // Why: MiniMax/Grok sign-in live on disk, not in settings; main sets these each poll.
   minimaxCookieConfigured: boolean
   minimaxApiKeyConfigured: boolean
+  // Why: the GLM Coding Plan key lives in its own safeStorage file; main
+  // reports presence so the ZCode bar survives reloads before the first poll.
+  zcodePlanApiKeyConfigured: boolean
   // Why: the OpenCode Go key can live in OPENCODE_API_KEY or in OpenCode's own
   // store, neither of which the renderer can see; main reports presence.
   opencodeGoApiKeyConfigured: boolean
@@ -85,7 +88,8 @@ export function hasUsageProviderSettings(
     settings?.minimaxCookieConfigured === true ||
     settings?.minimaxApiKeyConfigured === true ||
     settings?.grokAuthConfigured === true ||
-    settings?.cursorAuthConfigured === true
+    settings?.cursorAuthConfigured === true ||
+    settings?.zcodePlanApiKeyConfigured === true
   )
 }
 
@@ -124,6 +128,9 @@ export function hasUsageProviderSettingsForProvider(
   }
   if (providerId === 'cursor') {
     return settings.cursorAuthConfigured === true
+  }
+  if (providerId === 'zcode') {
+    return settings.zcodePlanApiKeyConfigured === true
   }
   return false
 }

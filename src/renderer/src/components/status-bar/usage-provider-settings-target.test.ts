@@ -9,11 +9,12 @@ describe('getUsageProviderAccountsSectionId', () => {
     expect(getUsageProviderAccountsSectionId('opencode-go')).toBe('accounts-opencode-go')
     expect(getUsageProviderAccountsSectionId('minimax')).toBe('accounts-minimax')
     expect(getUsageProviderAccountsSectionId('grok')).toBe('accounts-grok')
+    expect(getUsageProviderAccountsSectionId('cursor')).toBe('accounts-cursor')
+    expect(getUsageProviderAccountsSectionId('zcode')).toBe('accounts-zcode')
   })
 
   it('does not invent an Accounts section for CLI-owned credentials', () => {
     expect(getUsageProviderAccountsSectionId('antigravity')).toBeNull()
     expect(getUsageProviderAccountsSectionId('kimi')).toBeNull()
-    expect(getUsageProviderAccountsSectionId('zcode')).toBeNull()
   })
 })

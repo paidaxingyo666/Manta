@@ -78,11 +78,19 @@ function usageSettings(overrides: Partial<UsageProviderSettings> = {}): UsagePro
     opencodeGoApiKeyConfigured: false,
     grokAuthConfigured: false,
     cursorAuthConfigured: false,
+    zcodePlanApiKeyConfigured: false,
     ...overrides
   }
 }
 
 describe('hasUsageProviderSettings', () => {
+  it('keeps a linked GLM plan visible without CLI detection or a first quota result', () => {
+    const settings = usageSettings({ zcodePlanApiKeyConfigured: true })
+    expect(hasUsageProviderSettings(settings)).toBe(true)
+    expect(getVisibleUsageProvider('zcode', null, settings)?.status).toBe('fetching')
+    expect(getVisibleUsageProvider('zcode', null, usageSettings())).toBeNull()
+  })
+
   it('treats persisted managed accounts as configured usage providers', () => {
     expect(
       hasUsageProviderSettings(

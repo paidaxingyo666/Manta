@@ -1567,6 +1567,9 @@
           "7c3bb36706": "remove",
           "e2b0ee267f": "stale"
         },
+        "ZcodePlanAccountsSection": {
+          "keyRequired": "GLM Coding Plan API key is required."
+        },
         "accounts": {
           "search": {
             "d1d2ae383c": "Paste your opencode.ai session cookie for rate limit fetching."

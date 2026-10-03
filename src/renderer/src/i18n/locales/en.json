@@ -9152,6 +9152,18 @@
                 "rateLimit": "rate limit",
                 "statusBar": "status bar"
               }
+            },
+            "zcodePlan": {
+              "title": "GLM Coding Plan",
+              "description": "Track Z.AI or Zhipu (BigModel) GLM Coding Plan usage. Pick the site and save the plan API key.",
+              "kw": {
+                "glm": "glm",
+                "zai": "zai",
+                "zhipu": "zhipu",
+                "bigmodel": "bigmodel",
+                "codingPlan": "coding plan",
+                "rateLimit": "rate limit"
+              }
             }
           }
         },
@@ -12266,6 +12278,48 @@
         },
         "UnsealedCredentialNotice": {
           "body": "{{credential}} is stored unencrypted — this system has no OS keyring Manta can use. Anyone who can read your disk or a backup of it can read the credential. Install and unlock gnome-keyring or kwallet, then save it again to seal it."
+        },
+        "ZcodePlanAccountsSection": {
+          "site": {
+            "bigmodel": "Zhipu · BigModel (open.bigmodel.cn)",
+            "zai": "Z.AI (z.ai)"
+          },
+          "window": {
+            "session": "5 hours",
+            "weekly": "Weekly",
+            "mcp": "MCP monthly"
+          },
+          "resetIn": " — resets in {{value0}}",
+          "keyRequired": "GLM Coding Plan API key is required.",
+          "keySaved": "GLM Coding Plan API key saved.",
+          "keySaveFailed": "GLM Coding Plan credential update failed.",
+          "title": "GLM Coding Plan",
+          "subtitle": "Track Z.AI or Zhipu (BigModel) GLM Coding Plan usage in the status bar. Save the plan API key here — no ZCode CLI setup needed.",
+          "consoleLink": "Get API key",
+          "keyStored": "API key saved · {{value0}}",
+          "keyStoredHelp": "Stored locally and sent only to the selected site for usage refreshes. It takes priority over the ZCode CLI sign-in.",
+          "usingCli": "Using the ZCode CLI sign-in",
+          "usingCliHelp": "Manta reads the Coding Plan key from ~/.zcode/cli/config.json. Save an API key below to link the plan here instead.",
+          "notConfigured": "No GLM Coding Plan linked",
+          "notConfiguredHelp": "Save the plan API key below, or sign in with the ZCode CLI on this computer.",
+          "refreshUsage": "Refresh usage",
+          "siteTitle": "Plan site",
+          "siteDescription": "Pick the console your Coding Plan belongs to: Z.AI for the international site, Zhipu BigModel for the mainland site.",
+          "keyTitle": "API key",
+          "keyDescription": "Paste the API key from the selected console’s API Keys page. Stored locally, encrypted when the OS supports it, and sent only to that site for usage refreshes.",
+          "saved": "Saved",
+          "notSaved": "Not saved",
+          "keyPlaceholder": "Paste your GLM Coding Plan API key",
+          "replace": "Replace",
+          "save": "Save",
+          "forgetKey": "Forget key",
+          "keyHelp": "The same key your coding tools use for the plan (for example Claude Code with ANTHROPIC_BASE_URL pointed at the site). Switching the site above changes which host receives it.",
+          "usageTitle": "Plan usage",
+          "usageDescription": "Live quota windows for the linked Coding Plan, refreshed with the status bar usage cycle.",
+          "planLevel": "Plan: {{value0}}",
+          "hostOnly": "Change the plan site and API key in the desktop app on the computer running Manta.",
+          "detailsUnavailable": "Plan credential details are only readable on the computer running Manta.",
+          "siteUnavailable": "Host plan site unavailable"
         }
       },
       "right": {

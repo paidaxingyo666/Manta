@@ -20,10 +20,10 @@ export function getUsageProviderAccountsSectionId(
       return 'accounts-cursor'
     case 'antigravity':
     case 'kimi':
-    case 'zcode':
       // Why: Manta must not mutate Kimi's CLI-owned credential lifecycle.
-      // ZCode likewise owns its Coding Plan credential in ~/.zcode/cli/config.json.
       // Antigravity credentials live in the agy CLI; quota is fetched directly via agy.
       return null
+    case 'zcode':
+      return 'accounts-zcode'
   }
 }
