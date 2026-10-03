@@ -17364,12 +17364,13 @@
         "providerRateLimited": "{{agent}} 已被限流，正在重试。",
         "providerRetrying": "{{agent}} 遇到临时问题，正在重试。",
         "providerRetryingQuoted": "{{agent}} 正在重试：{{detail}}。",
-        "previousExitUnverifiable": "Manta 无法确认 {{agent}} 的上一个进程已结束。在 Manta 确认其已结束之前，消息会等待发送。"
+        "previousExitUnverifiable": "之前的 {{agent}} 可能仍在运行。它停止后，您的消息就会发送。"
       },
       "writeNotice": {
         "notDoneReadHistory": "无法加载此聊天的历史记录。",
         "notDoneSend": "您的消息未发送。",
         "tryAgainComposerSend": "请重新发送。",
+        "messageNotSaved": "无法保存您的消息。",
         "notDoneStop": "智能体未停止。",
         "notDoneStopTask": "后台任务未停止。",
         "notDoneStopTasks": "后台任务未停止。",
@@ -17380,15 +17381,17 @@
         "restartFailed": "智能体无法重新启动。",
         "capacity": "Manta 在过去一天内收到的请求过多。",
         "outcomeUnknown": "Manta 无法确认发生了什么。请查看聊天。",
+        "sendOutcomeLost": "Manta 无法确认你的消息已送达代理。请查看聊天，如有需要请重新发送。",
         "questionChanged": "此问题已被回答或已更改。",
         "historyUnreadable": "Manta 无法读取此聊天的已保存历史记录。",
         "historyUnusable": "无法加载此聊天。",
         "historyUnavailable": "Manta 目前无法打开此聊天的历史记录。",
         "savedByNewerOrca": "这些聊天由更新版本的 Manta 保存。",
         "updateOrcaToKeepUsing": "请更新 Manta 以继续使用这些聊天。",
-        "unsupported": "运行此聊天的 Manta 不支持此操作。请更新 Manta 后重试。",
+        "unsupported": "运行此聊天的计算机需要更新版本的 Manta。请在该计算机上更新 Manta 后重试。",
+        "notAvailable": "此聊天中无法使用此功能。",
         "unreachable": "Manta 无法连接到智能体。",
-        "recordFailed": "Manta 无法将其记录到此聊天的历史记录中。",
+        "recordFailed": "Manta 无法将此内容保存到聊天历史记录中。",
         "conversationCleared": "此对话已被清除。",
         "openCurrentConversation": "请打开当前对话以继续。",
         "clearUnfinished": "上一次 /clear 未完成。",
@@ -17407,14 +17410,14 @@
         "optionRejected": "智能体未接受此设置。",
         "goalsUnsupported": "此智能体不支持目标。",
         "agentRefused": "智能体拒绝了此请求。",
-        "ownerUnproven": "Manta 尚未确认此聊天之前的智能体已停止。",
+        "ownerUnproven": "此聊天之前的智能体可能仍在运行。",
         "reopenChat": "请重新打开聊天以再次检查。",
         "terminalAgentHoldsChat": "此聊天仍在终端智能体中打开。",
         "quitTerminalAgent": "请退出该智能体，以便在此处继续聊天。",
         "hostReconciling": "Manta 重启后仍在检查此聊天。",
         "waitMoment": "请稍候。",
         "recordUnreadable": "Manta 无法读取此聊天的已保存状态。",
-        "chatNotFound": "运行此聊天的 Manta 没有此聊天的记录。",
+        "chatNotFound": "Manta 找不到此聊天。",
         "startNewChat": "请开始新的聊天以继续。",
         "tryAgain": "请重试。"
       },
@@ -17463,8 +17466,8 @@
         "commands": "命令",
         "skills": "技能",
         "loadingSkills": "正在加载技能…",
-        "skillsUnavailableHost": "此主机上无法使用技能",
-        "skillsLoadFailed": "无法从此主机加载技能",
+        "skillsUnavailableHost": "SSH 聊天中无法使用技能",
+        "skillsLoadFailed": "无法加载技能",
         "retrySkills": "重试",
         "skillCommandCollision": "也是技能名称 — 由智能体决定",
         "skillMultipleSources": "{{sourceCount}} 个来源 — 由智能体处理",
@@ -17576,9 +17579,7 @@
         },
         "error": {
           "title": "无法加载对话",
-          "subtitle": "无法读取记录。请切回终端继续工作。",
-          "retryingSubtitle": "无法读取记录。Manta 会继续尝试加载。",
-          "keepsTrying": "Manta 会继续尝试加载。"
+          "subtitle": "无法读取记录。请切回终端继续工作。"
         },
         "reconnecting": "正在重新连接此聊天…",
         "pairHost": "配对主机以查看智能体聊天记录。",
@@ -17655,7 +17656,9 @@
       "notices": {
         "compaction": "上下文压缩",
         "details": "细节",
-        "plan": "计划"
+        "plan": "计划",
+        "historyRepaired": "此聊天的部分历史记录无法加载。",
+        "historyItemTooLarge": "聊天的这一部分过大，无法显示。"
       },
       "providerFrame": {
         "byteLength": "{{value0}} 字节"
@@ -17690,9 +17693,9 @@
         "stateBlocked": "被阻止",
         "stateDone": "完毕",
         "stateIdle": "停止了",
-        "stateUnverifiable": "无法验证的",
+        "stateUnverifiable": "暂无近期更新",
+        "stateUnverifiableCount": "{{value0}} 暂无近期更新",
         "reasonWaiting": "需要批准",
-        "reasonUnverifiable": "没有联系",
         "reasonBlocked": "失败的",
         "groupAgents": "代理",
         "groupShell": "壳",
@@ -17716,12 +17719,12 @@
           "idle": "idle",
           "failed": "失败的",
           "stopped": "停止了",
-          "unverifiable": "无法验证的",
+          "unverifiable": "暂无近期更新",
           "workingCount": "{{value0}} 工作",
           "idleCount": "{{value0}} 空闲",
           "failedCount": "{{value0}} 失败",
           "stoppedCount": "{{value0}} 已停止",
-          "unverifiableCount": "{{value0}} 无法验证"
+          "unverifiableCount": "{{value0}} 暂无近期更新"
         },
         "startedOne": "踢掉 1 个子代理",
         "startedN": "启动 {{value0}} 子代理",

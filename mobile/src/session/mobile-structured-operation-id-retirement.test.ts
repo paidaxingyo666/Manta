@@ -297,7 +297,8 @@ describe('what a structured refusal says on the phone', () => {
 
     expect(result).toEqual({
       status: 'failed',
-      message: "The Manta running this chat doesn't support this. Update Manta, then try again."
+      message:
+        'This needs a newer Manta on the computer running this chat. Update Manta there, then try again.'
     })
   })
 })

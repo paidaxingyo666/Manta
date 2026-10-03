@@ -280,7 +280,7 @@ it('holds the message with its reason while the exit stays unverifiable, and sen
     {
       kind: 'status',
       tone: 'warning',
-      text: "Manta couldn't confirm Claude's previous process ended. Messages wait to be sent until Manta confirms it has ended.",
+      text: 'Claude from before may still be running. Your messages will send once it stops.',
       failure: { kind: 'previousExitUnverifiable' }
     }
   ])

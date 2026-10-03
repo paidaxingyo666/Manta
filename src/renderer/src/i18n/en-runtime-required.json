@@ -2763,7 +2763,7 @@
         "notDelivered": "This message was not delivered.",
         "notDeliveredSendAgain": "This message was not delivered. Send it again to continue.",
         "notSignedIn": "{{agent}} is not signed in for the selected account.",
-        "previousExitUnverifiable": "Manta couldn't confirm {{agent}}'s previous process ended. Messages wait to be sent until Manta confirms it has ended.",
+        "previousExitUnverifiable": "{{agent}} from before may still be running. Your messages will send once it stops.",
         "providerExitedRejection": "{{agent}} stopped before this message was sent.",
         "providerExitedRow": "{{agent}} stopped while this response was in progress. You can continue in this conversation.",
         "providerRateLimited": "{{agent}} is rate-limited and retrying.",
@@ -2783,6 +2783,10 @@
         "theAgent": "The agent",
         "writeFailed": "Manta couldn't hand this message to the agent, so it was not sent."
       },
+      "notices": {
+        "historyItemTooLarge": "This part of the chat was too large to show.",
+        "historyRepaired": "Part of this chat's history couldn't be loaded."
+      },
       "question": {
         "other": "Other…"
       },
@@ -2792,8 +2796,6 @@
           "title": "Start a chat with {{value0}}"
         },
         "error": {
-          "keepsTrying": "Manta keeps trying to load it.",
-          "retryingSubtitle": "The transcript could not be read. Manta keeps trying to load it.",
           "subtitle": "The transcript could not be read. Toggle back to the terminal to keep working.",
           "title": "Could not load conversation"
         },
@@ -2838,7 +2840,7 @@
         "answerFirst": "Answer the question or approval first.",
         "backgroundTasksRunning": "Background tasks are still running.",
         "capacity": "Manta has received too many requests in the last day.",
-        "chatNotFound": "The Manta running this chat has no record of it.",
+        "chatNotFound": "Manta can't find this chat.",
         "clearUnfinished": "The last /clear didn't finish.",
         "commandRunning": "A /compact or /clear is still running.",
         "conversationCleared": "This conversation has been cleared.",
@@ -2847,7 +2849,9 @@
         "historyUnreadable": "Manta couldn't read this chat's saved history.",
         "historyUnusable": "Unable to load this chat.",
         "hostReconciling": "Manta is still checking on this chat after restarting.",
-        "messagesUnsettled": "A message you sent earlier hasn't been confirmed yet.",
+        "messageNotSaved": "Couldn't save your message.",
+        "messagesUnsettled": "A message you sent earlier isn't confirmed yet.",
+        "notAvailable": "This isn't available in this chat.",
         "notDoneAnswer": "Your answer was not sent.",
         "notDoneCommand": "The command didn't run.",
         "notDoneGoal": "The goal wasn't changed.",
@@ -2860,11 +2864,12 @@
         "openCurrentConversation": "Open the current conversation to continue.",
         "optionRejected": "The agent didn't accept this setting.",
         "outcomeUnknown": "Manta couldn't confirm what happened. Check the chat.",
-        "ownerUnproven": "Manta hasn't confirmed that this chat's previous agent stopped.",
+        "sendOutcomeLost": "Manta couldn't confirm your message reached the agent. Check the chat, then send it again if needed.",
+        "ownerUnproven": "The previous agent in this chat may still be running.",
         "promptPending": "The agent is waiting for an answer to a question or approval.",
         "questionChanged": "This question was already answered or has changed.",
         "quitTerminalAgent": "Quit that agent to continue the chat here.",
-        "recordFailed": "Manta couldn't record it in this chat's history.",
+        "recordFailed": "Manta couldn't save this to the chat's history.",
         "recordUnreadable": "Manta couldn't read this chat's saved state.",
         "reopenChat": "Reopen the chat to check again.",
         "restartFailed": "The agent couldn't restart.",
@@ -2876,7 +2881,7 @@
         "tryAgainComposerSend": "Send it again.",
         "turnActive": "The agent is still responding.",
         "unreachable": "Manta couldn't reach the agent.",
-        "unsupported": "The Manta running this chat doesn't support this. Update Manta, then try again.",
+        "unsupported": "This needs a newer Manta on the computer running this chat. Update Manta there, then try again.",
         "updateOrcaToKeepUsing": "Update Manta to keep using them.",
         "waitForBackgroundTasks": "Wait for the background tasks to finish.",
         "waitForCommand": "Wait for the /compact or /clear to finish.",
