@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { execFileSync } from 'node:child_process'
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { createServer } from 'node:http'
+import { removeTreeSync } from '../../shared/windows-transient-lock-removal'
+import { runProcess } from '../../shared/child-process/run-process'
 
 const { homedirMock } = vi.hoisted(() => ({ homedirMock: vi.fn<() => string>() }))
 vi.mock('os', async () => {
@@ -12,7 +15,7 @@ vi.mock('os', async () => {
 })
 
 import { JcodeHookService } from './hook-service'
-import { getJcodeManagedScriptPath } from './hook-settings'
+import { getJcodeConfigPath, getJcodeManagedScriptPath, JCODE_HOOK_EVENTS } from './hook-settings'
 
 /** Installs the managed hook into a throwaway home and returns the script path. */
 function installManagedScript(): { scriptPath: string; cleanup: () => void } {
@@ -25,7 +28,7 @@ function installManagedScript(): { scriptPath: string; cleanup: () => void } {
     scriptPath,
     cleanup: () => {
       vi.unstubAllEnvs()
-      rmSync(homeDir, { recursive: true, force: true })
+      removeTreeSync(homeDir)
     }
   }
 }
@@ -102,7 +105,8 @@ describe('the Windows managed hook', () => {
     // env var via a temp file, or the server sees no event name and drops everything.
     expect(script).toContain('setlocal EnableDelayedExpansion')
     expect(script).toContain('echo(!JCODE_HOOK_PAYLOAD!')
-    expect(script).toMatch(/type "%ORCA_JCODE_PAYLOAD_FILE%" \| .*curl\.exe/)
+    expect(script).toMatch(/<"%ORCA_JCODE_PAYLOAD_FILE%" .*curl\.exe/)
+    expect(script).not.toContain(' | ')
     expect(script).toContain('hook_event_name=%JCODE_HOOK_EVENT%')
     expect(script).toContain('del "%ORCA_JCODE_PAYLOAD_FILE%"')
   })
@@ -116,6 +120,91 @@ describe('the Windows managed hook', () => {
     // the file has to be runnable on its own.
     expect(script).not.toContain('#!/bin/sh')
   })
+
+  it('refreshes an existing Windows pipeline hook without editing config', async () => {
+    vi.spyOn(process, 'platform', 'get').mockReturnValue('win32')
+    const { scriptPath, cleanup } = installManagedScript()
+    try {
+      const script = readFileSync(scriptPath, 'utf8')
+      const configPath = getJcodeConfigPath()
+      const config = readFileSync(configPath, 'utf8')
+      writeFileSync(
+        scriptPath,
+        script.replace('<"%ORCA_JCODE_PAYLOAD_FILE%"', 'type "%ORCA_JCODE_PAYLOAD_FILE%" |')
+      )
+      await new JcodeHookService().refreshManagedScripts()
+      expect(readFileSync(scriptPath, 'utf8')).toBe(script)
+      expect(readFileSync(configPath, 'utf8')).toBe(config)
+    } finally {
+      cleanup()
+    }
+  })
+})
+
+describe.runIf(process.platform === 'win32')('Windows jcode hook payload delivery', () => {
+  it('delivers all six events and drains large gate input without a pipeline', async () => {
+    const { scriptPath, cleanup } = installManagedScript()
+    const posts: {
+      path: string | undefined
+      token: string | string[] | undefined
+      form: URLSearchParams
+    }[] = []
+    const server = createServer((request, response) => {
+      let body = ''
+      request.setEncoding('utf8')
+      request.on('data', (chunk) => {
+        body += chunk
+      })
+      request.on('end', () => {
+        posts.push({
+          path: request.url,
+          token: request.headers['x-manta-agent-hook-token'],
+          form: new URLSearchParams(body)
+        })
+        response.end('{}')
+      })
+    })
+    try {
+      await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
+      const address = server.address()
+      if (!address || typeof address === 'string') {
+        throw new Error('Expected a TCP listener')
+      }
+      for (const event of JCODE_HOOK_EVENTS) {
+        const payload = JSON.stringify({ event, tool_input: 'quotes " & pipe | bang ! %PATH% < >' })
+        const result = await runProcess({
+          program: scriptPath,
+          env: {
+            ...process.env,
+            MANTA_BACKGROUND_LAUNCH: '1',
+            MANTA_AGENT_HOOK_ENDPOINT: '',
+            MANTA_AGENT_HOOK_PORT: String(address.port),
+            MANTA_AGENT_HOOK_TOKEN: 'jcode-delivery-token',
+            MANTA_PANE_KEY: 'jcode:leaf',
+            JCODE_HOOK_EVENT: event,
+            JCODE_HOOK_SESSION_ID: 'jcode-session',
+            JCODE_HOOK_CWD: dirname(scriptPath),
+            JCODE_HOOK_PAYLOAD: payload
+          },
+          input: event === 'pre_tool' ? 'y'.repeat(512 * 1024) : '',
+          timeoutMs: 10_000
+        })
+        expect(result).toMatchObject({ code: 0, stdout: '', stderr: '', timedOut: false })
+        const post = posts.at(-1)
+        expect(posts).toHaveLength(JCODE_HOOK_EVENTS.indexOf(event) + 1)
+        expect(post?.path).toBe('/hook/jcode')
+        expect(post?.token).toBe('jcode-delivery-token')
+        expect(post?.form.get('payload')).toBe(`${payload}\r\n`)
+        expect(post?.form.get('hook_event_name')).toBe(event)
+        expect(post?.form.get('paneKey')).toBe('jcode:leaf')
+        expect(post?.form.get('session_id')).toBe('jcode-session')
+        expect(post?.form.get('cwd')).toBe(dirname(scriptPath))
+      }
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()))
+      cleanup()
+    }
+  }, 30_000)
 })
 
 describe.runIf(process.platform !== 'win32')('managed script shape', () => {

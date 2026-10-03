@@ -3,15 +3,16 @@ import { createSessionSearchClient, unavailableSessionSearchStatus } from './ai-
 import { AiVaultSearchRequestSchema as LegacyRequestSchema } from './__fixtures__/pre-qoder-search-request'
 import { searchHit, searchResults } from './ai-vault-search-test-fixture'
 
-describe('Qoder search negotiation', () => {
-  it('keeps the frozen old parser closed to Qoder', () => {
+describe.each(['qoder', 'jcode'] as const)('%s search negotiation', (agent) => {
+  const supportField = agent === 'qoder' ? 'supportsQoderHistory' : 'supportsJcodeHistory'
+  it('keeps the frozen old parser closed to the requested agent', () => {
     expect(
-      LegacyRequestSchema.safeParse({ query: 'q', filters: { agents: ['qoder'] } }).success
+      LegacyRequestSchema.safeParse({ query: 'q', filters: { agents: [agent] } }).success
     ).toBe(false)
   })
 
   it.each(['runtime', 'relay'] as const)(
-    'sends no search request for sole unsupported Qoder over %s',
+    'sends no search request for an unsupported agent over %s',
     async (transport) => {
       const search = vi.fn((params: unknown) => {
         LegacyRequestSchema.parse(params)
@@ -22,7 +23,7 @@ describe('Qoder search negotiation', () => {
         async (method, params) => (method === 'aiVault.searchStatus' ? status() : search(params)),
         transport
       )
-      expect(await client.searchSessions({ query: 'q', filters: { agents: ['qoder'] } })).toEqual({
+      expect(await client.searchSessions({ query: 'q', filters: { agents: [agent] } })).toEqual({
         kind: 'unavailable',
         reason: 'unsupported-agent'
       })
@@ -32,7 +33,7 @@ describe('Qoder search negotiation', () => {
   )
 
   it.each(['runtime', 'relay'] as const)(
-    'retains every non-Qoder filter through the actual old enum over %s',
+    'retains the supported filters through the actual old enum over %s',
     async (transport) => {
       const request = {
         query: 'q',
@@ -41,7 +42,7 @@ describe('Qoder search negotiation', () => {
         cursor: 'page-1',
         debug: true,
         filters: {
-          agents: ['qoder', 'codex', 'claude'] as const,
+          agents: [agent, 'codex', 'claude'] as const,
           scopePaths: ['/host/folder'],
           since: '2026-08-01T00:00:00Z',
           sort: 'newest' as const
@@ -68,16 +69,16 @@ describe('Qoder search negotiation', () => {
   )
 
   it.each(['runtime', 'relay'] as const)(
-    'preserves Qoder identity only after positive host attestation over %s',
+    'preserves the requested agent identity only after positive host attestation over %s',
     async (transport) => {
       const call = vi.fn(async (method: string) =>
         method === 'aiVault.searchStatus'
-          ? { ...unavailableSessionSearchStatus(), supportsQoderHistory: true }
-          : { ...searchResults(), hits: [{ ...searchHit(), agent: 'qoder' }] }
+          ? { ...unavailableSessionSearchStatus(), [supportField]: true }
+          : { ...searchResults(), hits: [{ ...searchHit(), agent }] }
       )
       const result = await createSessionSearchClient(call, transport).searchSessions({
         query: 'q',
-        filters: { agents: ['qoder'] }
+        filters: { agents: [agent] }
       })
       expect(call.mock.calls.map(([method]) => method)).toEqual([
         'aiVault.searchStatus',
@@ -86,24 +87,46 @@ describe('Qoder search negotiation', () => {
       expect(call).toHaveBeenLastCalledWith('aiVault.searchSessions', {
         query: 'q',
         limit: 20,
-        filters: { agents: ['qoder'] },
-        supportsQoderHistory: true
+        filters: { agents: [agent] },
+        supportsQoderHistory: true,
+        supportsJcodeHistory: true
       })
-      expect(result).toMatchObject({ kind: 'results', hits: [{ agent: 'qoder' }] })
+      expect(result).toMatchObject({ kind: 'results', hits: [{ agent }] })
     }
   )
+
+  it('does not infer support from the other agent capability', async () => {
+    const otherField = agent === 'qoder' ? 'supportsJcodeHistory' : 'supportsQoderHistory'
+    const call = vi.fn(async (method: string) =>
+      method === 'aiVault.searchStatus'
+        ? { ...unavailableSessionSearchStatus(), [otherField]: true }
+        : searchResults()
+    )
+    await createSessionSearchClient(call, 'relay').searchSessions({
+      query: 'q',
+      filters: { agents: [agent, 'codex'] }
+    })
+    expect(call).toHaveBeenLastCalledWith('aiVault.searchSessions', {
+      query: 'q',
+      limit: 20,
+      filters: { agents: ['codex'] },
+      supportsQoderHistory: true,
+      supportsJcodeHistory: true
+    })
+  })
 
   it('does not gate local IPC before the per-host aggregator negotiates', async () => {
     const call = vi.fn(async () => searchResults())
     await createSessionSearchClient(call, 'ipc').searchSessions({
       query: 'q',
-      filters: { agents: ['qoder'] }
+      filters: { agents: [agent] }
     })
     expect(call).toHaveBeenCalledExactlyOnceWith('aiVault.searchSessions', {
       query: 'q',
       limit: 20,
-      filters: { agents: ['qoder'] },
-      supportsQoderHistory: true
+      filters: { agents: [agent] },
+      supportsQoderHistory: true,
+      supportsJcodeHistory: true
     })
   })
 
@@ -114,7 +137,7 @@ describe('Qoder search negotiation', () => {
     await expect(
       createSessionSearchClient(call, 'relay').searchSessions({
         query: 'q',
-        filters: { agents: ['qoder', 'codex'] }
+        filters: { agents: [agent, 'codex'] }
       })
     ).rejects.toThrow('host disconnected')
     expect(call).toHaveBeenCalledExactlyOnceWith('aiVault.searchStatus', {})

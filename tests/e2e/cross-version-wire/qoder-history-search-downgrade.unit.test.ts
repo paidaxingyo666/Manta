@@ -13,59 +13,68 @@ import { importReleaseCheckoutModule, materializeReleaseCheckout } from './relea
 
 afterEach(() => setSessionSearchService(null))
 
-test('a pre-Qoder release can read current host search pages without losing other agents', async () => {
-  const checkout = await materializeReleaseCheckout('v1.4.211')
-  const baseline = await importReleaseCheckoutModule(
-    checkout,
-    'src/shared/ai-vault-search-contract.ts'
-  )
-  const schema = baseline.AiVaultSearchResponseSchema
-  if (
-    !schema ||
-    typeof schema !== 'object' ||
-    !('safeParse' in schema) ||
-    typeof schema.safeParse !== 'function'
-  ) {
-    throw new Error('The pinned release has no search response parser')
+test.each(['qoder', 'jcode'] as const)(
+  'a pre-agent release can read current %s search pages without losing other agents',
+  async (agent) => {
+    const checkout = await materializeReleaseCheckout('v1.4.211')
+    const baseline = await importReleaseCheckoutModule(
+      checkout,
+      'src/shared/ai-vault-search-contract.ts'
+    )
+    const schema = baseline.AiVaultSearchResponseSchema
+    if (
+      !schema ||
+      typeof schema !== 'object' ||
+      !('safeParse' in schema) ||
+      typeof schema.safeParse !== 'function'
+    ) {
+      throw new Error('The pinned release has no search response parser')
+    }
+    const newHit = { ...searchResults().hits[0], agent }
+    expect(schema.safeParse({ ...searchResults(), hits: [newHit] })).toHaveProperty(
+      'success',
+      false
+    )
+    const service = fakeSearchService()
+    service.search.mockImplementation(async (request) => ({
+      ...searchResults(),
+      hits:
+        !request.filters?.agents || request.filters.agents.includes(agent)
+          ? [newHit]
+          : searchResults().hits
+    }))
+    setSessionSearchService(service)
+    const oldResponse = await searchSessionService({ query: 'proof' }, 'relay')
+    expect(schema.safeParse(oldResponse)).toHaveProperty('success', true)
+    expect(oldResponse).toMatchObject({ hits: [{ agent: 'codex' }] })
+    const client = createSessionSearchClient(
+      (_method, request) => searchSessionService(request, 'relay'),
+      'relay'
+    )
+    expect(await client.searchSessions({ query: 'proof' })).toMatchObject({
+      hits: [{ agent }]
+    })
+    const oldRequest = baseline.AiVaultSearchRequestSchema
+    if (
+      !oldRequest ||
+      typeof oldRequest !== 'object' ||
+      !('safeParse' in oldRequest) ||
+      typeof oldRequest.safeParse !== 'function'
+    ) {
+      throw new Error('The pinned release has no search request parser')
+    }
+    expect(
+      oldRequest.safeParse({
+        query: 'proof',
+        supportsQoderHistory: true,
+        supportsJcodeHistory: true
+      })
+    ).toHaveProperty('success', true)
   }
-  const qoder = { ...searchResults().hits[0], agent: 'qoder' as const }
-  expect(schema.safeParse({ ...searchResults(), hits: [qoder] })).toHaveProperty('success', false)
-  const service = fakeSearchService()
-  service.search.mockImplementation(async (request) => ({
-    ...searchResults(),
-    hits:
-      !request.filters?.agents || request.filters.agents.includes('qoder')
-        ? [qoder]
-        : searchResults().hits
-  }))
-  setSessionSearchService(service)
-  const oldResponse = await searchSessionService({ query: 'proof' }, 'relay')
-  expect(schema.safeParse(oldResponse)).toHaveProperty('success', true)
-  expect(oldResponse).toMatchObject({ hits: [{ agent: 'codex' }] })
-  const client = createSessionSearchClient(
-    (_method, request) => searchSessionService(request, 'relay'),
-    'relay'
-  )
-  expect(await client.searchSessions({ query: 'proof' })).toMatchObject({
-    hits: [{ agent: 'qoder' }]
-  })
-  const oldRequest = baseline.AiVaultSearchRequestSchema
-  if (
-    !oldRequest ||
-    typeof oldRequest !== 'object' ||
-    !('safeParse' in oldRequest) ||
-    typeof oldRequest.safeParse !== 'function'
-  ) {
-    throw new Error('The pinned release has no search request parser')
-  }
-  expect(oldRequest.safeParse({ query: 'proof', supportsQoderHistory: true })).toHaveProperty(
-    'success',
-    true
-  )
-})
+)
 
 test.each(['v1.4.211', 'b49abdb1f4da6b3d62dfa9ccf3c74dc9e74d291c'])(
-  'a current client narrows Qoder filters before calling the actual %s request parser',
+  'a current client narrows new agent filters before calling the actual %s request parser',
   async (ref) => {
     const checkout = await materializeReleaseCheckout(ref)
     const baseline = await importReleaseCheckoutModule(
@@ -93,7 +102,7 @@ test.each(['v1.4.211', 'b49abdb1f4da6b3d62dfa9ccf3c74dc9e74d291c'])(
     expect(
       await client.searchSessions({
         query: 'proof',
-        filters: { agents: ['codex', 'qoder'] },
+        filters: { agents: ['codex', 'qoder', 'jcode'] },
         within
       })
     ).toMatchObject({ hits: [{ agent: 'codex' }] })
@@ -106,7 +115,11 @@ test.each(['v1.4.211', 'b49abdb1f4da6b3d62dfa9ccf3c74dc9e74d291c'])(
     )
     call.mockClear()
     expect(
-      await client.searchSessions({ query: 'proof', filters: { agents: ['qoder'] }, within })
+      await client.searchSessions({
+        query: 'proof',
+        filters: { agents: ['qoder', 'jcode'] },
+        within
+      })
     ).toEqual({ kind: 'unavailable', reason: 'unsupported-agent' })
     expect(call).toHaveBeenCalledTimes(1)
     expect(call).toHaveBeenCalledWith('aiVault.searchStatus', {})
@@ -117,7 +130,16 @@ test.each(['v1.4.211', 'b49abdb1f4da6b3d62dfa9ccf3c74dc9e74d291c'])(
       expect(call).toHaveBeenLastCalledWith(
         'aiVault.searchSessions',
         expect.objectContaining({
-          filters: { agents: AI_VAULT_AGENTS.filter((agent) => agent !== 'qoder') }
+          filters: {
+            agents: AI_VAULT_AGENTS.filter((agent) => {
+              try {
+                requestSchema.parse({ query: 'proof', filters: { agents: [agent] } })
+                return true
+              } catch {
+                return false
+              }
+            })
+          }
         })
       )
     }

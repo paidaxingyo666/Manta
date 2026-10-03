@@ -35,23 +35,25 @@ export async function searchSessionService(
   // The choke point every entry point funnels through, so every host kind
   // resolves alike; the verdict goes to the service, which answers off and
   // not-ready first.
-  const { within, supportsQoderHistory, ...request } = parsed
+  const { within, supportsQoderHistory, supportsJcodeHistory, ...request } = parsed
   // Older clients reject the whole page when a hit has an unknown agent tag.
   const requestedAgents = request.filters?.agents
   const compatibleAgents = (requestedAgents?.length ? requestedAgents : AI_VAULT_AGENTS).filter(
-    (agent) => supportsQoderHistory || agent !== 'qoder'
+    (agent) =>
+      (supportsQoderHistory || agent !== 'qoder') && (supportsJcodeHistory || agent !== 'jcode')
   )
-  const compatibleRequest = supportsQoderHistory
-    ? request
-    : {
-        ...request,
-        filters: {
-          ...request.filters,
-          agents: compatibleAgents.length
-            ? compatibleAgents
-            : AI_VAULT_AGENTS.filter((agent) => agent !== 'qoder')
+  const compatibleRequest =
+    supportsQoderHistory && supportsJcodeHistory
+      ? request
+      : {
+          ...request,
+          filters: {
+            ...request.filters,
+            agents: compatibleAgents.length
+              ? compatibleAgents
+              : AI_VAULT_AGENTS.filter((agent) => agent !== 'qoder' && agent !== 'jcode')
+          }
         }
-      }
   const hostScope = within
     ? resolveSessionSearchScope(within, sessionSearchScopeCatalog())
     : undefined
@@ -85,7 +87,8 @@ export async function sessionSearchServiceStatus(
   return redactStatusForTransport(
     AiVaultSearchStatusSchema.parse({
       ...(service ? await service.status() : unavailableSessionSearchStatus()),
-      supportsQoderHistory: true
+      supportsQoderHistory: true,
+      supportsJcodeHistory: true
     }),
     transport
   )

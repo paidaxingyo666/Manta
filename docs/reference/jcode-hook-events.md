@@ -126,6 +126,22 @@ each pane gets its own daemon, socket, and lock. The value is a 16-hex hash of
 the pane key because the socket path is capped at `SUN_LEN` (104 bytes) and a
 full pane key never fits.
 
+## Windows hook launcher
+
+Use Jcode **v0.89.0 or newer** on Windows. Earlier observer hooks launch with
+`DETACHED_PROCESS`, leaving their children without a console to inherit. A
+console program such as the managed hook's `curl.exe` can then open a Windows
+Terminal tab on every event. Jcode's launcher fix uses `CREATE_NO_WINDOW` for
+observer hooks and the `pre_tool` gate, keeping their descendants invisible.
+Changing the managed script alone cannot repair an older Jcode launcher.
+
+The managed Windows hook redirects its payload file into curl directly, avoiding
+the extra shells that a `type ... | curl` pipeline starts. Existing managed scripts
+are refreshed on Manta startup without changing the user's hook configuration.
+
+Report: https://github.com/stablyai/orca/pull/22539#issuecomment-5809618574
+Launcher fix: https://github.com/1jehuang/jcode/pull/1490
+
 ## Config shape
 
 `[hooks]` values accept a string or an array of strings (`HookCommands` in

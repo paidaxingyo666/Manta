@@ -62,7 +62,8 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       `if "%JCODE_HOOK_EVENT%"=="pre_tool" ${WINDOWS_HOOK_STDIN_DRAIN_COMMAND}`,
       `set "ORCA_JCODE_PAYLOAD_FILE=%TEMP%\\orca-jcode-hook-%RANDOM%%RANDOM%.json"`,
       `>"${payloadFile}" echo(!JCODE_HOOK_PAYLOAD!`,
-      `type "${payloadFile}" | ${buildWindowsAgentHookPostCommand('jcode', [
+      // Input redirection avoids spawning cmd's extra pipeline shells on every event.
+      `<"${payloadFile}" ${buildWindowsAgentHookPostCommand('jcode', [
         '  --data-urlencode "hook_event_name=%JCODE_HOOK_EVENT%" ^',
         '  --data-urlencode "session_id=%JCODE_HOOK_SESSION_ID%" ^',
         '  --data-urlencode "cwd=%JCODE_HOOK_CWD%" ^'
