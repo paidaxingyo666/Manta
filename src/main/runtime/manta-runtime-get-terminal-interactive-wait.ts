@@ -15,6 +15,10 @@ import { selectExactWorkerProviderSession } from './orchestration/worker-provide
 import type { TuiAgent } from '../../shared/tui-agent'
 import { isTuiAgentEnabled } from '../../shared/tui-agent-selection'
 import { OrchestrationError } from './orchestration/orchestration-error'
+import { resolveLocalWindowsAgentStartupShell } from '../../shared/windows-terminal-shell'
+import { resolveStartupShell, type AgentStartupShell } from '../../shared/tui-agent-startup-shell'
+import { isTuiAgent } from '../../shared/tui-agent-config'
+import { resolveConfiguredWorkerAgent } from './orchestration/configured-worker-agent-selector'
 
 export class MantaRuntimeWithGetTerminalInteractiveWait extends MantaRuntimeWithAdoptTerminalOrphansFromInventory {
   async getTerminalInteractiveWait(
@@ -181,6 +185,42 @@ export class MantaRuntimeWithGetTerminalInteractiveWait extends MantaRuntimeWith
       observedAfter,
       statuses: this.getAgentStatusSnapshotFn?.() ?? []
     })
+  }
+
+  resolveOrchestrationAgentLauncher(
+    selector: string,
+    platform: NodeJS.Platform = process.platform,
+    shell?: AgentStartupShell
+  ): TuiAgent | undefined {
+    return resolveConfiguredWorkerAgent(
+      selector,
+      this.store?.getSettings().agentCmdOverrides ?? {},
+      platform,
+      shell
+    )
+  }
+
+  async resolveOrchestrationAgentLauncherForTarget(
+    selector: string,
+    target: { repo?: string; worktree?: string }
+  ): Promise<TuiAgent | undefined> {
+    if (isTuiAgent(selector)) {
+      return selector
+    }
+    const repo = target.repo ? await this.resolveRepoSelector(target.repo) : null
+    const workspace = repo
+      ? { repo, path: repo.path, connectionId: repo.connectionId }
+      : await this.resolveTerminalWorkspaceLaunchScope(target.worktree)
+    const platform = this.getAgentLaunchPlatformForWorkspace(workspace)
+    const shell = resolveStartupShell(
+      platform,
+      resolveLocalWindowsAgentStartupShell({
+        platform,
+        isRemote: Boolean(workspace.connectionId),
+        terminalWindowsShell: this.store?.getSettings().terminalWindowsShell
+      })
+    )
+    return this.resolveOrchestrationAgentLauncher(selector, platform, shell)
   }
 
   validateOrchestrationAgentLauncher(agent: TuiAgent): void {
