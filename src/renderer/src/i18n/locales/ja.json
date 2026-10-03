@@ -3909,7 +3909,7 @@
             "compact": "コンパクト",
             "footerDetailAria": "使用量フッターの詳細",
             "detailedTooltip": "バー・ラベル・パーセントを含む完全な使用状況",
-            "compactTooltip": "凝縮された使用状況: 最も狭いウィンドウのみ"
+            "compactTooltip": "簡潔な使用状況：プロバイダーごとに1つの概要"
           },
           "RemoteServerUpdateStatusSegment": {
             "updating": "{{value0}}/{{value1}}を更新中",

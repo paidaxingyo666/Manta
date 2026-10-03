@@ -4101,7 +4101,7 @@
             "detailed": "Detailed",
             "compact": "Compact",
             "detailedTooltip": "Full usage with bars, labels, and percentages",
-            "compactTooltip": "Condensed usage: only the tightest window",
+            "compactTooltip": "Condensed usage: one summary per provider",
             "footerDetailAria": "Usage footer detail"
           },
           "RemoteServerUpdateStatusSegment": {

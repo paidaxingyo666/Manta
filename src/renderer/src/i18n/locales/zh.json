@@ -3909,7 +3909,7 @@
             "compact": "精简",
             "footerDetailAria": "使用情况页脚详情",
             "detailedTooltip": "完整使用情况，包含条形图、标签和百分比",
-            "compactTooltip": "精简使用情况：仅显示最吃紧的窗口"
+            "compactTooltip": "精简使用情况：每个提供方显示一项汇总"
           },
           "RemoteServerUpdateStatusSegment": {
             "updating": "Updating {{value0}}/{{value1}}",

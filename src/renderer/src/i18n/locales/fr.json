@@ -4019,7 +4019,7 @@
             "detailed": "Détaillé",
             "compact": "Compact",
             "detailedTooltip": "Utilisation complète avec barres, libellés et pourcentages",
-            "compactTooltip": "Utilisation condensée : uniquement la fenêtre la plus contrainte",
+            "compactTooltip": "Utilisation condensée : un résumé par fournisseur",
             "footerDetailAria": "Détail du pied de page d'utilisation"
           },
           "RemoteServerUpdateStatusSegment": {
