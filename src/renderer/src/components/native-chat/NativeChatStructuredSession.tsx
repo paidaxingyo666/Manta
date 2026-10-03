@@ -6,9 +6,10 @@ import type { NativeChatLiveSession } from './use-native-chat-live-session'
 import { NativeChatApprovalCard } from './NativeChatApprovalCard'
 import { NativeChatComposer, type NativeChatComposerHandle } from './NativeChatComposer'
 import { NativeChatEmptyState } from './NativeChatEmptyState'
+import { NativeChatLoadingCue } from './NativeChatLoadingCue'
 import { NativeChatMessageList } from './NativeChatMessageList'
 import { NativeChatQuestionCard } from './NativeChatQuestionCard'
-import { selectNativeChatViewState } from './native-chat-view-state'
+import { selectNativeChatViewState, structuredChatHistoryPhase } from './native-chat-view-state'
 import { useNativeChatComposerRevealFocus } from './use-native-chat-composer-reveal-focus'
 import { useNativeChatFontScale } from './use-native-chat-font-scale'
 import { LinkActionPopover } from '@/components/link-actions/LinkActionPopover'
@@ -84,13 +85,14 @@ export function NativeChatStructuredSession(
     sessionId: props.sessionId,
     target: props.target
   })
+  const historyPhase = structuredChatHistoryPhase(provisionalLaunch, controller.status)
   const session = useMemo<NativeChatLiveSession>(
     () => ({
       messages: controller.messages,
       status:
         controller.status === 'error'
           ? 'error'
-          : controller.status === 'loading'
+          : historyPhase !== 'known'
             ? 'loading'
             : controller.isWorking
               ? 'working'
@@ -111,7 +113,7 @@ export function NativeChatStructuredSession(
             ? 'error'
             : 'ready'
     }),
-    [controller, props.agent, props.sessionId]
+    [controller, historyPhase, props.agent, props.sessionId]
   )
   // Read at click time, so the notices stay put while the outbox's Retry is rebuilt each render.
   const retryRef = useRef(controller.retry)
@@ -149,6 +151,8 @@ export function NativeChatStructuredSession(
     ]
   )
   const viewState = selectNativeChatViewState(session, { readRetries: true })
+  // Nothing reads an unread history, so its pane stays blank beside the Retry line.
+  const loadingPane = historyPhase === 'unread' ? null : <NativeChatLoadingCue />
   const readFailure =
     controller.status === 'error'
       ? structuredAgentSessionReadFailureNotice(controller.readRefusal)
@@ -267,7 +271,7 @@ export function NativeChatStructuredSession(
     >
       <div className="flex min-h-0 flex-1 flex-col">
         {viewState.kind === 'loading' ? (
-          <NativeChatEmptyState kind="loading" />
+          loadingPane
         ) : viewState.kind === 'error' ? (
           <NativeChatEmptyState
             kind="error"

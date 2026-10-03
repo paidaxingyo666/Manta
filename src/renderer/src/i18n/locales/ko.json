@@ -17480,8 +17480,6 @@
         "chooseInAgentPicker": "에이전트 선택기에서 선택…",
         "toggleOption": "{{value0}} 전환",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueIsDefault": "기본값",
-        "valueNotReported": "미보고",
         "sentNotConfirmed": "에이전트에 전송됨 — 확인되지 않음",
         "setWhenSessionStarts": "세션을 시작할 때 설정하세요.",
         "availableAfterSessionStarts": "세션이 시작된 후 사용할 수 있습니다.",
@@ -17607,6 +17605,7 @@
       },
       "state": {
         "loading": {
+          "label": "채팅 로드 중",
           "title": "대화 로드 중…",
           "subtitle": "agent 기록을 읽는 중입니다."
         },
@@ -17745,8 +17744,6 @@
         "asked": "질문:",
         "questionCount": "{{value0}} 질문"
       },
-      "structuredSessionLaunchFailed": "{{value0}} 채팅을 열 수 없습니다.",
-      "structuredSessionLaunchFailedDescription": "Manta는 구조화된 {{value0}} 채팅을 열 수 없습니다. 자세한 내용은 로그를 참조하세요.",
       "subagents": {
         "state": {
           "completed": "완전한",

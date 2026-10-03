@@ -17480,8 +17480,6 @@
         "chooseInAgentPicker": "Agent の選択画面で選ぶ…",
         "toggleOption": "{{value0}}を切り替える",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueIsDefault": "既定",
-        "valueNotReported": "未報告",
         "sentNotConfirmed": "Agent に送信済み — 未確認",
         "setWhenSessionStarts": "セッション開始時に設定してください。",
         "availableAfterSessionStarts": "セッション開始後に利用できます。",
@@ -17607,6 +17605,7 @@
       },
       "state": {
         "loading": {
+          "label": "チャットを読み込んでいます",
           "title": "会話を読み込んでいます…",
           "subtitle": "Agent の記録を読んでいます。"
         },
@@ -17745,8 +17744,6 @@
         "asked": "質問:",
         "questionCount": "{{value0}} の質問"
       },
-      "structuredSessionLaunchFailed": "{{value0}} チャットを開けませんでした",
-      "structuredSessionLaunchFailedDescription": "Manta は構造化された {{value0}} チャットを開けませんでした。詳細についてはログを参照してください。",
       "subagents": {
         "state": {
           "completed": "完成した",

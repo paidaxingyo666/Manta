@@ -15074,8 +15074,6 @@
         "chooseInAgentPicker": "Elegir en el selector del agente…",
         "toggleOption": "Alternar {{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueIsDefault": "Predeterminado",
-        "valueNotReported": "No informado",
         "sentNotConfirmed": "Enviado al agente — sin confirmar",
         "setWhenSessionStarts": "Configúralo al iniciar la sesión.",
         "availableAfterSessionStarts": "Disponible después de iniciar la sesión.",
@@ -15122,6 +15120,7 @@
       },
       "state": {
         "loading": {
+          "label": "Cargando chat",
           "title": "Cargando conversación…",
           "subtitle": "Leyendo la transcripción del agente."
         },

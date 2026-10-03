@@ -17445,8 +17445,6 @@
         "chooseInAgentPicker": "在智能体选择器中选择…",
         "toggleOption": "切换{{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
-        "valueIsDefault": "默认",
-        "valueNotReported": "未报告",
         "sentNotConfirmed": "已发送给智能体 — 尚未确认",
         "setWhenSessionStarts": "请在会话开始时设置。",
         "availableAfterSessionStarts": "会话开始后可用。",
@@ -17572,6 +17570,7 @@
       },
       "state": {
         "loading": {
+          "label": "正在加载聊天",
           "title": "正在加载对话…",
           "subtitle": "正在读取智能体记录。"
         },
@@ -17710,8 +17709,6 @@
         "asked": "问：",
         "questionCount": "{{value0}} 问题"
       },
-      "structuredSessionLaunchFailed": "无法打开 {{value0}} 聊天",
-      "structuredSessionLaunchFailedDescription": "Manta 无法打开结构化 {{value0}} 聊天。有关详细信息，请参阅日志。",
       "subagents": {
         "state": {
           "completed": "已完成",

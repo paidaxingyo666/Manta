@@ -360,7 +360,12 @@ describe('structured chat adoption guard on the launch path', () => {
       error: refusal
     })
     expect(mockCreateTab).not.toHaveBeenCalled()
-    await vi.waitFor(() => expect(mockToastError).toHaveBeenCalledOnce())
+    // The chat tab opened before the refusal; its Retry line says it, so no toast says it again.
+    expect(store.unifiedTabsByWorktree['wt-1']).toContainEqual(
+      expect.objectContaining({ contentType: 'agent-session', entityId: 'codex-session-1' })
+    )
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(mockToastError).not.toHaveBeenCalled()
   })
 
   it('reports no prompt delivery from a definitive refusal', async () => {
@@ -474,12 +479,18 @@ describe('structured chat adoption guard on the launch path', () => {
     const { launchAgentInNewTab } = await import('./launch-agent-in-new-tab')
 
     const unknown = launchAgentInNewTab({ agent: 'codex', worktreeId: 'wt-1' })
-    await vi.waitFor(() => expect(mockToastError).toHaveBeenCalledTimes(1))
     await expect(unknown?.structuredSettlement).resolves.toEqual({
       kind: 'visibility-unknown',
       sessionId: firstIntent.sessionId
     })
     expect(mockCreateTab).not.toHaveBeenCalled()
+    // Its open chat tab says the start could not be confirmed; no toast repeats it.
+    expect(mockCreateUnifiedTab).toHaveBeenCalledWith(
+      'wt-1',
+      'agent-session',
+      expect.objectContaining({ entityId: firstIntent.sessionId })
+    )
+    expect(mockToastError).not.toHaveBeenCalled()
 
     launchAgentInNewTab({ agent: 'codex', worktreeId: 'wt-1' })
     await vi.waitFor(() => expect(mockRefreshLocalStructuredSessionTabs).toHaveBeenCalledTimes(3))

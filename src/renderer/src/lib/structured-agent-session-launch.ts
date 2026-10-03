@@ -26,7 +26,6 @@ import {
   type StructuredLaunchCaller
 } from '@/lib/structured-agent-session-launch-callers'
 import * as launchDraft from './structured-agent-session-launch-draft'
-import { trackStructuredLaunchFailureToast } from './structured-agent-session-launch-failure-toast'
 import { structuredLaunchFailure } from './structured-agent-session-launch-failure'
 import {
   deleteStructuredLaunchStateIfCurrent,
@@ -140,7 +139,8 @@ function trackLaunchSettlement(
         }
         return
       }
-      // The host's message is for its log; the Retry line words the refusal itself.
+      // The host's message is for the log; the chat's Retry line alone says the failure.
+      console.warn('[native-chat] structured launch failed', error)
       const failure = structuredLaunchFailure(error)
       if (failure) {
         state.failure = failure
@@ -188,7 +188,6 @@ function restartStructuredLaunchState(state: StructuredLaunchState): void {
     wasVisibilityUnknown ? reconcileUnknownLaunch(state) : launchAndReconcile(state)
   )
   trackLaunchSettlement(state, state.promise)
-  trackStructuredLaunchFailureToast(state.intent.agent, state.promise)
   notifyStructuredLaunchListeners()
 }
 
@@ -267,7 +266,6 @@ function structuredAgentLaunchState(
   setStructuredLaunchState(state)
   notifyStructuredLaunchListeners()
   trackLaunchSettlement(state, state.promise)
-  trackStructuredLaunchFailureToast(state.intent.agent, state.promise)
   return {
     state,
     caller
