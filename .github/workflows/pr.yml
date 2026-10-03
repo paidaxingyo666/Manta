@@ -415,6 +415,8 @@ jobs:
       - uses: ./.github/actions/prepare-git-compatibility
 
       - name: Verify Git binary compatibility matrix
+        env:
+          MANTA_BACKGROUND_LAUNCH: '1'
         run: |
           specs=(
             "alpine/git:edge-2.38.1|2.38.1"
@@ -433,7 +435,9 @@ jobs:
               ORCA_GIT_COMPAT_VERSION="2.25.5" \
               pnpm exec vitest run --config config/vitest.config.ts \
               src/shared/git-binary-compatibility.test.ts \
-              src/main/git/worktree-safety-real-git.test.ts
+              src/main/git/worktree-safety-real-git.test.ts \
+              src/main/git/worktree-rebase-update-refs-real-git.test.ts \
+              src/relay/git-review-draft-binary-compatibility.test.ts
           ) &
           pids+=("$!")
 
@@ -444,7 +448,9 @@ jobs:
               MANTA_GIT_COMPAT_IMAGE="$image" ORCA_GIT_COMPAT_VERSION="$version" \
                 pnpm exec vitest run --config config/vitest.config.ts \
                 src/shared/git-binary-compatibility.test.ts \
-                src/main/git/worktree-safety-real-git.test.ts
+                src/main/git/worktree-safety-real-git.test.ts \
+                src/main/git/worktree-rebase-update-refs-real-git.test.ts \
+                src/relay/git-review-draft-binary-compatibility.test.ts
             ) &
             pids+=("$!")
           done

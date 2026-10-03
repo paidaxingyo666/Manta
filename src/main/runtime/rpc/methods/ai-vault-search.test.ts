@@ -57,7 +57,9 @@ describe('session search runtime RPC', () => {
           query: 'needle',
           limit: 20,
           filters: {
-            agents: AI_VAULT_AGENTS.filter((agent) => agent !== 'qoder' && agent !== 'jcode')
+            agents: AI_VAULT_AGENTS.filter(
+              (agent) => !['codebuddy', 'zcode', 'qoder', 'jcode'].includes(agent)
+            )
           }
         },
         undefined
@@ -70,7 +72,7 @@ describe('session search runtime RPC', () => {
     }
   )
   it.each([undefined, 'runtime', 'mobile'] as const)(
-    'preserves explicitly supported Qoder filters for client kind %s',
+    'retains the current catalog for an attested client kind %s',
     async (clientKind) => {
       const service = fakeSearchService()
       setSessionSearchService(service)
@@ -78,18 +80,42 @@ describe('session search runtime RPC', () => {
         await dispatcher().dispatch(
           request({
             query: 'needle',
-            supportsQoderHistory: true,
-            filters: { agents: ['qoder', 'codex'] }
+            supportedAgents: [...AI_VAULT_AGENTS],
+            filters: { agents: ['jcode'] }
           }),
           { clientKind }
         )
       ).toMatchObject({ ok: true })
       expect(service.search).toHaveBeenCalledExactlyOnceWith(
-        { query: 'needle', limit: 20, filters: { agents: ['qoder', 'codex'] } },
+        { query: 'needle', limit: 20, filters: { agents: ['jcode'] } },
         undefined
       )
     }
   )
+  describe.each(['qoder', 'jcode'] as const)('%s history capability', (agent) => {
+    const supportField = agent === 'qoder' ? 'supportsQoderHistory' : 'supportsJcodeHistory'
+    it.each([undefined, 'runtime', 'mobile'] as const)(
+      'preserves explicitly supported filters for client kind %s',
+      async (clientKind) => {
+        const service = fakeSearchService()
+        setSessionSearchService(service)
+        expect(
+          await dispatcher().dispatch(
+            request({
+              query: 'needle',
+              [supportField]: true,
+              filters: { agents: [agent, 'codex'] }
+            }),
+            { clientKind }
+          )
+        ).toMatchObject({ ok: true })
+        expect(service.search).toHaveBeenCalledExactlyOnceWith(
+          { query: 'needle', limit: 20, filters: { agents: [agent, 'codex'] } },
+          undefined
+        )
+      }
+    )
+  })
   it('maps the old runtime dispatcher refusal and rejects malformed responses', async () => {
     const legacy = dispatcher(true)
     const client = createSessionSearchClient(async (method, params) => {
