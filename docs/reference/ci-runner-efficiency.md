@@ -1897,3 +1897,22 @@ The collector succeeded after one unit shard failed, while required verification
 remained red. Its review recognized all five shards as a complete reference
 (10,608 files, 8,965,977 worker-ms). This was again a full fallback with
 `selectionEvaluated: false`, not evidence for enabling selected tests.
+
+## October 3 removal fixture cleanup ordering
+
+[37105566358](https://github.com/stablyai/orca/actions/runs/37105566358)
+failed unit shard 4 with `ENOTEMPTY` removing the failed-removal fixture's temporary
+directory; the other four shards passed. A client's removal reply intentionally
+precedes the detached job's final record persistence. This fixture reset tracking
+and removed the directory before waiting for that persistence, allowing a writer
+to race cleanup. Its teardown now awaits the existing settlement helper before
+resetting tracking or deleting the fixture. Production removal behavior and all
+assertions are unchanged.
+
+All 1,348 runtime tests passed (one existing skip). A temporary controlled queue
+held the final record write after the client replied: waiting before reset stayed
+pending and passed; resetting before waiting lost the tracked job and failed the
+same ordering assertion. The gate was released, both controls drained the captured
+job, and the instrumentation was removed. Changed-code quality passed. This proves
+the teardown ordering mechanism, not a measured avoided-retry saving. Final-head
+hosted qualification remains required.
