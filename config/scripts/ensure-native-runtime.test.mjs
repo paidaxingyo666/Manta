@@ -20,7 +20,10 @@ import { resolveCliCommand } from '../../src/shared/node-cli-command-resolution.
 import { removeTreeSync } from '../../src/shared/windows-transient-lock-removal.ts'
 import { resolvePnpmCliInvocation } from './pnpm-cli-invocation.mjs'
 import { copyScriptWithLocalModules } from './script-module-dependencies.mjs'
-import { nodeGypRebuildInvocation } from './windows-process-tree-gyp-rebuild.mjs'
+import {
+  nodeGypRebuildInvocation,
+  nodeGypRebuildTimeoutMs
+} from './windows-process-tree-gyp-rebuild.mjs'
 
 const sourceScriptPath = fileURLToPath(new URL('./ensure-native-runtime.mjs', import.meta.url))
 // The import walk sees `from './x.mjs'` only, so the createRequire'd CJS
@@ -60,6 +63,7 @@ describe('ensure-native-runtime', () => {
       expect(result.stderr).toContain('node-gyp stderr complete\n')
       const log = readFileSync(logPath, 'utf8')
       expect(log).toContain(`node-gyp rebuild --arch=${process.arch}\n`)
+      expect(log).toContain(`node-gyp timeout=${nodeGypRebuildTimeoutMs('node-pty')}\n`)
       expect(log).toContain(`trackFileAccess=${process.platform === 'win32' ? 'false' : ''}\n`)
       expect(log).toContain(join('node_modules', 'node-pty'))
       if (process.platform === 'linux') {
@@ -275,7 +279,14 @@ function mkTempProject() {
   copyScriptWithLocalModules(sourceScriptPath, join(projectDir, 'config', 'scripts'))
   writeFileSync(
     join(projectDir, 'config', 'scripts', 'script-child-process.mjs'),
-    `export { describeProcessFailure, runProcessSync } from ${JSON.stringify(new URL('./script-child-process.mjs', import.meta.url).href)}\n`
+    `import { appendFileSync } from 'node:fs'
+import { describeProcessFailure, runProcessSync as run } from ${JSON.stringify(new URL('./script-child-process.mjs', import.meta.url).href)}
+export { describeProcessFailure }
+export function runProcessSync(options) {
+  appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`node-gyp timeout=\${options.timeoutMs}\\n\`)
+  return run(options)
+}
+`
   )
   for (const name of REQUIRED_CJS_SIBLINGS) {
     copyFileSync(
