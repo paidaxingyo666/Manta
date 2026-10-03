@@ -3,6 +3,7 @@ import { GLOBAL_FLAGS } from '../args'
 import { WORKTREE_LISTING_SCOPE_NOTES } from './worktree-listing-scope-notes'
 import { WORKTREE_SET_COMMAND_SPEC } from './worktree-set'
 import { SERVE_COMMAND_SPECS } from './serve'
+import { REPO_COMMAND_SPECS } from './repo'
 import { TERMINAL_SEND_COMMAND_SPEC } from './terminal-send'
 import { TERMINAL_CLOSE_COMMAND_SPEC } from './terminal-close'
 
@@ -37,36 +38,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     ],
     examples: ['manta claude-teams', 'manta claude-teams --resume <session-id>']
   },
-  {
-    path: ['repo', 'list'],
-    summary: 'List repos registered in Manta',
-    usage: 'manta repo list [--json]',
-    allowedFlags: [...GLOBAL_FLAGS]
-  },
-  {
-    path: ['repo', 'add'],
-    summary: 'Add a project to Manta by filesystem path',
-    usage: 'manta repo add --path <path> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'path']
-  },
-  {
-    path: ['repo', 'show'],
-    summary: 'Show one registered repo',
-    usage: 'manta repo show --repo <selector> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'repo']
-  },
-  {
-    path: ['repo', 'set-base-ref'],
-    summary: "Set the repo's default base ref for future worktrees",
-    usage: 'manta repo set-base-ref --repo <selector> --ref <ref> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'repo', 'ref']
-  },
-  {
-    path: ['repo', 'search-refs'],
-    summary: 'Search branch/tag refs within a repo',
-    usage: 'manta repo search-refs --repo <selector> --query <text> [--limit <n>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'repo', 'query', 'limit']
-  },
+  ...REPO_COMMAND_SPECS,
   {
     path: ['worktree', 'list'],
     summary: 'List Manta-managed worktrees',

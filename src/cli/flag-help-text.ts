@@ -1,5 +1,7 @@
 /** One-line flag descriptions shared by every command's help output. */
 export const FLAG_HELP_TEXT: Record<string, string> = {
+  'external-worktree-visibility':
+    '--external-worktree-visibility show|hide|inherit  Override or inherit non-Manta worktree visibility',
   agent: '--agent <id>          Launch a known TUI agent in the first terminal',
   'base-branch': '--base-branch <ref>    Base branch/ref to create the worktree from',
   command: '--command <text>       Command to run in the terminal on startup',

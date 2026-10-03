@@ -78,6 +78,7 @@ export const ROOT_HELP_TEXT_SECONDARY = [
   '  manta repo list [--json]',
   '  manta repo add --path <path> [--json]',
   '  manta repo show --repo <selector> [--json]',
+  '  manta repo set --repo <selector> --external-worktree-visibility show|hide|inherit [--json]',
   '  manta repo set-base-ref --repo <selector> --ref <ref> [--json]',
   '  manta repo search-refs --repo <selector> --query <text> [--limit <n>] [--json]',
   '',

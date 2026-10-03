@@ -73,6 +73,7 @@ Common commands:
 MANTA repo list --json
 MANTA repo show --repo id:<repoId> --json
 MANTA repo add --path /abs/repo --json
+MANTA repo set --repo id:<repoId> --external-worktree-visibility show --json
 MANTA repo set-base-ref --repo id:<repoId> --ref origin/main --json
 MANTA repo search-refs --repo id:<repoId> --query main --limit 10 --json
 MANTA worktree list --repo id:<repoId> --json
@@ -93,6 +94,10 @@ MANTA worktree set --worktree active --gitlab-issue '#42' --gitlab-mr '!77' --js
 MANTA worktree set --worktree active --pr null --gitlab-mr null --json
 MANTA worktree rm --worktree id:<repoId>::<worktreePath> --force --json
 ```
+
+Use `repo set --external-worktree-visibility show` to show a repo's non-Manta worktrees.
+`hide` hides them; `inherit` clears the repo override and follows the global default.
+Per-worktree visibility rules still apply.
 
 Selectors:
 
