@@ -22,6 +22,7 @@ import { configureLazyArabicShapingJoiner } from './terminal-arabic-shaping-join
 import { TerminalLigaturesAddon } from './terminal-ligatures-addon'
 import { attachInlineImages, detachInlineImages } from './pane-inline-images'
 import { installTerminalImeCandidateAnchor } from './terminal-ime-candidate-anchor'
+import { cancelPendingTerminalViewportPresents } from './pane-viewport-present'
 
 // ---------------------------------------------------------------------------
 // Pane creation, terminal open/close, addon management
@@ -185,6 +186,7 @@ export function disposePane(
   pane: ManagedPaneInternal,
   panes: Map<number, ManagedPaneInternal>
 ): void {
+  cancelPendingTerminalViewportPresents(pane.terminal)
   if (pane.pendingInitialFitRafId != null) {
     cancelAnimationFrame(pane.pendingInitialFitRafId)
     pane.pendingInitialFitRafId = null
