@@ -22,7 +22,7 @@ import { NativeChatStructuredSessionStatus } from './NativeChatStructuredSession
 import { useNativeChatLaunchDraftSignal } from './use-native-chat-launch-draft-adoption'
 import { NativeChatLaunchRetry } from './NativeChatLaunchRetry'
 import { useNativeChatProvisionalLaunch } from './use-native-chat-provisional-launch'
-import { useStructuredAgentSessionHostExecution } from './StructuredAgentSessionStatusBridge'
+import { useStructuredAgentSessionHostExecutionPhase } from './StructuredAgentSessionStatusBridge'
 import { NativeChatQueuedMessageList } from './NativeChatQueuedMessageList'
 import { useAppStore } from '../../store'
 import { structuredAgentLabel } from '@/lib/structured-agent-session-launch-label'
@@ -44,7 +44,7 @@ export function NativeChatStructuredSession(
   )
   const { sendThroughRelaunch } = provisionalLaunch
   // The host's own word on whether the provider child has answered startup yet.
-  const hostExecution = useStructuredAgentSessionHostExecution(props.sessionId, props.target)
+  const startupPhase = useStructuredAgentSessionHostExecutionPhase(props.sessionId, props.target)
   const paneKey = useMemo(
     () => structuredAgentSessionPaneKey(props.tabId, props.sessionId),
     [props.sessionId, props.tabId]
@@ -55,7 +55,7 @@ export function NativeChatStructuredSession(
     ...props,
     composerScopeKey: paneKey,
     queueFollowUps,
-    providerStarting: hostExecution.phase === 'starting',
+    providerStarting: startupPhase === 'starting',
     transportEnabled: provisionalLaunch.transportEnabled,
     ...(provisionalLaunch.launch ? { launch: provisionalLaunch.launch } : {})
   })
@@ -315,9 +315,6 @@ export function NativeChatStructuredSession(
       />
       <NativeChatStructuredSessionStatus
         sessionId={props.sessionId}
-        agentLabel={agentLabel}
-        startupPhase={hostExecution.phase}
-        startupChildKey={hostExecution.childKey}
         paneKey={paneKey}
         // Said once: on the pane when the failure took it, else here beside the transcript. A
         // failure that names nothing is only the pane reconnecting.

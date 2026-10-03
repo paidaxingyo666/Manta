@@ -57,30 +57,18 @@ export function useStructuredAgentSessionStatusSummary(
   return { summary, observation }
 }
 
-/** The host's child state, projected to stable primitives so journal updates do not re-render chat. */
-export function useStructuredAgentSessionHostExecution(
+/** Only the host's startup phase, so a chat re-renders when that changes, not on every status. */
+export function useStructuredAgentSessionHostExecutionPhase(
   sessionId: string,
   target: RuntimeClientTarget
-): {
-  phase: NonNullable<AgentSessionStatusSummary['hostExecutionPhase']> | null
-  childKey: string | number | null
-} {
+): NonNullable<AgentSessionStatusSummary['hostExecutionPhase']> | null {
   const feed = useMemo(() => getStructuredAgentSessionStatusFeed(target), [target])
   useEffect(() => feed.activate(), [feed])
-  const phase = useSyncExternalStore(
+  return useSyncExternalStore(
     feed.subscribe,
     () => feed.getSnapshot().get(sessionId)?.hostExecutionPhase ?? null,
     () => null
   )
-  const childKey = useSyncExternalStore(
-    feed.subscribe,
-    () => {
-      const child = feed.getSnapshot().get(sessionId)?.hostExecutionChild
-      return child?.generation ?? child?.fence ?? null
-    },
-    () => null
-  )
-  return { phase, childKey }
 }
 
 /** The host's child records for the row, and the legacy roster readers of `subagents` keep. A host

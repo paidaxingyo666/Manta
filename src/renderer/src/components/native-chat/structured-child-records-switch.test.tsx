@@ -195,9 +195,6 @@ function Surfaces(props: { roster: AgentSessionBackgroundTaskState | null }): Re
       <StructuredAgentSessionStatusBridge />
       <NativeChatStructuredSessionStatus
         sessionId={tab.entityId}
-        agentLabel="Claude"
-        startupPhase="ready"
-        startupChildKey={null}
         paneKey={PANE_KEY}
         error={null}
         composerError={null}
