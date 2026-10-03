@@ -10,6 +10,7 @@ function parseOmpCatalogModels(stdout: string): CatalogModel[] {
 }
 
 export const OMP_SESSION_OPTION_CATALOG: AgentSessionOptionCatalog = {
+  supportsWorkerLaunchPreferences: true,
   // Why: OMP's selectable models are whatever providers the user configured keys
   // for — no id is available on every install, and `/model` rejects an unknown
   // one. Seed nothing: desktop fills the picker from discovery, and every surface
