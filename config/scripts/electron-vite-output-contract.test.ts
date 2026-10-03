@@ -99,13 +99,14 @@ describe('Electron Vite output contract', () => {
     expect(output.chunkFileNames).toBe('chunks/[name]-[hash].js')
   })
 
-  it('keeps offline profile-state CLI imports unpacked at stable paths', () => {
+  it('keeps CLI main imports unpacked at stable paths', () => {
     const input = electronViteConfig.main?.build?.rollupOptions?.input
     if (!input || typeof input !== 'object' || Array.isArray(input)) {
       throw new Error('Expected named main-process inputs')
     }
 
     for (const name of [
+      'gitlab/project-ref-parser',
       'manta-profiles/profile-index-store',
       'persistence/profile-state/profile-state-access',
       'persistence/profile-state/profile-state-active-location',
@@ -121,6 +122,7 @@ describe('Electron Vite output contract', () => {
     ]) {
       expect(input).toHaveProperty(name)
     }
+    expect(electronBuilderConfig.asarUnpack).toContain('out/main/gitlab/project-ref-parser.js')
     expect(electronBuilderConfig.asarUnpack).toContain('out/main/persistence/profile-state/**')
     expect(electronBuilderConfig.asarUnpack).toContain(
       'out/main/manta-profiles/profile-index-store.js'

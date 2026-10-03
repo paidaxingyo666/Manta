@@ -38,8 +38,11 @@ manta status --json
 ```
 manta worktree ps --json
 manta worktree create --repo id:<repoId> --name my-task --issue 123 --json
+manta worktree create --repo id:<repoId> --name review-pr-123 --pr 123 --json
 manta worktree current --json
 manta worktree set --worktree active --comment "reproduced bug" --json
+manta worktree set --worktree active --gitlab-issue 42 --gitlab-mr 77 --json
+manta worktree set --worktree active --pr null --json
 manta worktree rm --worktree id:<id> --force --json
 ```
 
