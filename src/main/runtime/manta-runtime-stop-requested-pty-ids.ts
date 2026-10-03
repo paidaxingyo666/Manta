@@ -148,7 +148,7 @@ export class MantaRuntimeWithStopRequestedPtyIds extends MantaRuntimeWithRuntime
     listResolved: () => this.listResolvedWorktrees(),
     resolveRepo: (selector) => this.resolveRepoSelector(selector),
     selectRepos: (selector) => this.selectReposBySelector(selector),
-    scanRepo: (repo) => this.listRepoWorktreesForResolution(repo),
+    scanRepo: (repo) => this.listRepoWorktreesForListing(repo),
     listKnownHostIds: () => this.listKnownExecutionHostIds()
   })
 

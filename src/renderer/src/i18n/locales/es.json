@@ -4708,6 +4708,7 @@
           "74522ee457": "falló el cambio de nombre",
           "02e19349f4": "Error al cambiar el nombre automáticamente: ver error",
           "691ccfd622": "Eliminando…",
+          "deleteFailed": "Error al eliminar",
           "35ccfe2475": "Proyecto {{value0}}",
           "1d66d84f0b": "cadena",
           "57eaa61b55": "Ocultar espacios de trabajo secundarios",

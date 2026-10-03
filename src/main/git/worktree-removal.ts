@@ -128,15 +128,21 @@ function deleteBranchOfRemovedWorktree(
 /**
  * Finishes a removal whose checkout Git no longer registers (it finished deleting, or an earlier
  * run did): leftover files, stale admin records, then the branch. Already-gone parts are done.
+ * `assertLeftover` refuses unless the path still holds the removed checkout's own leftover.
  */
 export async function finishUnregisteredWorktreeRemoval(
   repoPath: string,
   worktreePath: string,
   branch: { name: string; head: string } | null,
+  assertLeftover: () => Promise<void>,
   options: RemoveWorktreeOptions = {}
 ): Promise<RemoveWorktreeResult> {
   try {
-    await runUnderWorktreeDeleteLimit(() => removeCheckoutLeftByGit(worktreePath, options))
+    await runUnderWorktreeDeleteLimit(async () => {
+      // Why in the slot: the wait can outlast two large deletes, and the path may change meanwhile.
+      await assertLeftover()
+      await removeCheckoutLeftByGit(worktreePath, options)
+    })
     await gitExecFileAsync(['worktree', 'prune'], gitExecOptions(repoPath, options)).catch(
       (error: unknown) => console.warn(`[git] worktree prune failed in ${repoPath}`, error)
     )

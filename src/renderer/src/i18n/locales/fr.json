@@ -5604,6 +5604,7 @@
           "74522ee457": "échec du renommage",
           "02e19349f4": "Échec du renommage auto : voir l'erreur",
           "691ccfd622": "Suppression…",
+          "deleteFailed": "Échec de la suppression",
           "35ccfe2475": "Projet {{value0}}",
           "1d66d84f0b": "string",
           "57eaa61b55": "Masquer les espaces de travail enfants",
