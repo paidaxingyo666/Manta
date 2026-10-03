@@ -12,7 +12,7 @@ import type { BuildPtyHostEnvOptions } from './types'
 
 const fixture = vi.hoisted(() => ({ userData: '', guestOverlay: '' }))
 vi.mock('../../../../shared/app-environment', () => ({
-  getAppEnvironment: () => ({ getPath: () => fixture.userData })
+  getAppEnvironment: () => ({ getPath: () => fixture.userData, onWillQuit: vi.fn() })
 }))
 vi.mock('../../../agent-hooks/server', () => ({
   agentHookServer: { buildPtyEnv: () => ({ MANTA_AGENT_HOOK_PORT: '12345' }) }

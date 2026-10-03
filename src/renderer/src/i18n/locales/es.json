@@ -15558,5 +15558,21 @@
       "searchFailed": "La búsqueda no pudo finalizar. Inténtalo de nuevo.",
       "refreshFailed": "No se pudo actualizar la vista previa. Se muestra la versión anterior; abre la vista de código para ver el contenido actual."
     }
+  },
+  "accounts": {
+    "managedData": {
+      "description": "Añade cuentas ejecutando este comando en una terminal del host de Manta. La selección se aplica a nuevos inicios del agente en ese host; las conexiones SSH directas y WSL alojado en Windows usan sus propias credenciales.",
+      "copied": "Copiado",
+      "add": "Copiar comando para añadir cuenta",
+      "refresh": "Actualizar cuentas",
+      "upgrade": "Si las cuentas no aparecen, actualiza o reinicia el host de Manta.",
+      "system": "Predeterminada del sistema",
+      "active": "Activa",
+      "select": "Seleccionar",
+      "remove": "Eliminar",
+      "removeTitle": "¿Eliminar la cuenta administrada?",
+      "removeDescription": "Detén primero los agentes que usan este perfil. Al eliminarlo se borran sus credenciales y conversaciones guardadas. Tu inicio de sesión del sistema no cambia.",
+      "cancel": "Cancelar"
+    }
   }
 }

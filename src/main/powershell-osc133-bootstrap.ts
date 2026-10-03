@@ -1,4 +1,5 @@
 import { getPowerShellOmpShellWrapper } from './pty/omp-shell-wrapper'
+import { MANAGED_DATA_ACCOUNT_POWERSHELL_RESTORE } from '../shared/managed-data-account-shell'
 import { getPowerShellCodexShellLaunchPreflight } from '../shared/codex-shell-function'
 export { encodePowerShellCommand } from '../shared/powershell-command-encoding'
 
@@ -39,6 +40,7 @@ const POWERSHELL_OSC133_BOOTSTRAP = `# Manta OSC 133 shell integration for Power
 # Profiles have already loaded normally by the time -EncodedCommand runs.
 # Restore managed ownership before the shell-integration compatibility guard.
 if ($env:MANTA_OPENCODE_CONFIG_DIR) { $env:OPENCODE_CONFIG_DIR = $env:MANTA_OPENCODE_CONFIG_DIR }
+${MANAGED_DATA_ACCOUNT_POWERSHELL_RESTORE}
 if ($env:MANTA_MIMOCODE_HOME) { $env:MIMOCODE_HOME = $env:MANTA_MIMOCODE_HOME }
 if ($env:MANTA_CODEX_HOME) { $env:CODEX_HOME = $env:MANTA_CODEX_HOME }
 

@@ -1,4 +1,5 @@
 import { getPosixOmpShellWrapper } from '../pty/omp-shell-wrapper'
+import { MANAGED_DATA_ACCOUNT_POSIX_RESTORE } from '../../shared/managed-data-account-shell'
 import { getPosixCodexShellLaunchPreflight } from '../../shared/codex-shell-function'
 import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-composition'
 import { BASH_FEATURE_CHANNEL_BLOCK, SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
@@ -37,6 +38,7 @@ __manta_restore_agent_teams_path
 # Why: user startup files may set the default OpenCode config after Manta's
 # spawn env; restore the Manta-managed config dir before the first prompt.
 [[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
+${MANAGED_DATA_ACCOUNT_POSIX_RESTORE}
 [[ -n "\${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${MANTA_MIMOCODE_HOME}"
 ${getPosixOmpShellWrapper()}
 # Why: Codex must keep using Manta's runtime CODEX_HOME after profile scripts.

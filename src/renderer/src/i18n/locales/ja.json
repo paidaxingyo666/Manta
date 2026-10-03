@@ -18673,5 +18673,21 @@
     "addTypedPath": "Add",
     "noDirectories": "No folders added yet.",
     "removePath": "Remove {{name}}"
+  },
+  "accounts": {
+    "managedData": {
+      "description": "Manta ホストのターミナルでこのコマンドを実行してアカウントを追加します。選択はそのホストでの新規 Agent 起動に適用されます。直接 SSH 接続とWindows上の WSL は独自の認証情報を使用します。",
+      "copied": "コピーしました",
+      "add": "アカウント追加コマンドをコピー",
+      "refresh": "アカウントを更新",
+      "upgrade": "アカウントが表示されない場合はMantaホストを更新または再起動してください。",
+      "system": "システムの既定",
+      "active": "使用中",
+      "select": "選択",
+      "remove": "削除",
+      "removeTitle": "管理アカウントを削除しますか？",
+      "removeDescription": "まずこのプロファイルを使う Agent を停止してください。削除すると保存済みの認証情報と会話データが消去されます。システムのログインには影響しません。",
+      "cancel": "キャンセル"
+    }
   }
 }

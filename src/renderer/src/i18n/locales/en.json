@@ -18861,6 +18861,20 @@
         "google": "google",
         "accounts": "accounts"
       }
+    },
+    "managedData": {
+      "description": "Add accounts by running this command in a terminal on the Manta host. Selection applies to new explicit agent launches on that host; direct SSH relay and Windows-hosted WSL launches use their own credentials.",
+      "copied": "Copied",
+      "add": "Copy add account command",
+      "refresh": "Refresh accounts",
+      "upgrade": "If accounts do not appear, update or restart the Manta host.",
+      "system": "System default",
+      "active": "Active",
+      "select": "Select",
+      "remove": "Remove",
+      "removeTitle": "Remove managed account?",
+      "removeDescription": "Stop agents using this profile first. Removal deletes its saved credentials and conversation data. Your system login stays unchanged.",
+      "cancel": "Cancel"
     }
   }
 }

@@ -18672,5 +18672,21 @@
     "addTypedPath": "Add",
     "noDirectories": "No folders added yet.",
     "removePath": "Remove {{name}}"
+  },
+  "accounts": {
+    "managedData": {
+      "description": "Ajoutez des comptes en exécutant cette commande dans un terminal sur l’hôte Manta. La sélection s’applique aux nouveaux lancements sur cet hôte ; les connexions SSH directes et WSL sous Windows utilisent leurs propres identifiants.",
+      "copied": "Copié",
+      "add": "Copier la commande d’ajout de compte",
+      "refresh": "Actualiser les comptes",
+      "upgrade": "Si les comptes n’apparaissent pas, mettez à jour ou redémarrez l’hôte Manta.",
+      "system": "Compte système par défaut",
+      "active": "Actif",
+      "select": "Sélectionner",
+      "remove": "Supprimer",
+      "removeTitle": "Supprimer le compte géré ?",
+      "removeDescription": "Arrêtez d’abord les agents utilisant ce profil. Sa suppression efface les identifiants et conversations enregistrés. Votre connexion système reste inchangée.",
+      "cancel": "Annuler"
+    }
   }
 }

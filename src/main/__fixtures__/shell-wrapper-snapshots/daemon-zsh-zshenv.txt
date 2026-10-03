@@ -71,6 +71,14 @@ __manta_deferred_init() {
     }
     __manta_restore_agent_teams_path
     [[ -n "${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${MANTA_OPENCODE_CONFIG_DIR}"
+    if [[ -n "${ORCA_DATA_ACCOUNT_DATA_HOME:-}" ]]; then
+      export XDG_DATA_HOME="${ORCA_DATA_ACCOUNT_DATA_HOME}"
+      export XDG_STATE_HOME="${ORCA_DATA_ACCOUNT_STATE_HOME}"
+      if [[ "${ORCA_DATA_ACCOUNT_PROVIDER:-}" == opencode ]]; then
+        export OPENCODE_AUTH_CONTENT=""
+        export OPENCODE_DB="opencode.db"
+      fi
+    fi
     [[ -n "${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${MANTA_MIMOCODE_HOME}"
     # Why: OMP does not auto-load Manta's managed status extension; wrap only
     # interactive launch invocations so subcommands such as `omp config` keep

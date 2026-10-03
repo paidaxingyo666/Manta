@@ -18725,5 +18725,21 @@
     "addTypedPath": "Add",
     "noDirectories": "No folders added yet.",
     "removePath": "Remove {{name}}"
+  },
+  "accounts": {
+    "managedData": {
+      "description": "在 Manta 主机的终端中运行此命令以添加账户。选择适用于该主机上新启动的代理；直接 SSH 连接和 Windows 托管的 WSL 使用各自的凭据。",
+      "copied": "已复制",
+      "add": "复制添加账户命令",
+      "refresh": "刷新账户",
+      "upgrade": "如果账户未显示，请更新或重启 Manta 主机。",
+      "system": "系统默认",
+      "active": "当前使用",
+      "select": "选择",
+      "remove": "移除",
+      "removeTitle": "移除托管账户？",
+      "removeDescription": "请先停止使用此配置的代理。移除将删除其保存的凭据和对话数据。系统登录不受影响。",
+      "cancel": "取消"
+    }
   }
 }
