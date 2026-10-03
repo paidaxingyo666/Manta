@@ -304,14 +304,29 @@ it('runs the Bun and Node cross-runtime tests on Linux against pinned inputs', (
   expect(setupBun.with['bun-version']).toBe('1.4.2')
   const build = steps.find((step) => String(step.run).includes('build-mantad-bun.mjs'))
   expect(build.env.BUN_ORCAD_COMMIT).toMatch(/^[0-9a-f]{40}$/)
-  expect(build.run).toContain('ORCA_BUN_ORCAD_SLOT=')
-  expect(build.run).toContain('BUN_EXECUTABLE=')
-  for (const step of [setupBun, build]) {
-    expect(step.if).toBe("runner.os == 'Linux'")
-  }
-  expect(steps.map((step) => step.run).join('\n')).toContain(
+  expect(setupBun.if).toBe("runner.os == 'Linux'")
+  expect(build.id).toBe('bun-orcad')
+  expect(build.background).toBe(true)
+  expect(build.if).toBeUndefined()
+  expect(build['continue-on-error']).toBeUndefined()
+  expect(build.run).toMatch(/^if \[ "\$RUNNER_OS" != Linux \]; then exit 0; fi\n/)
+  expect(build.run).toContain('echo "slot=$RUNNER_TEMP/bun-orcad" >> "$GITHUB_OUTPUT"')
+  expect(build.run).toContain('echo "executable=$(command -v bun)" >> "$GITHUB_OUTPUT"')
+  expect(build.run).not.toContain('GITHUB_ENV')
+  const join = steps.findIndex((step) => step.wait === build.id)
+  expect(join).toBeGreaterThan(steps.indexOf(build))
+  expect(steps[join].if).toBeUndefined()
+  expect(steps[join]['continue-on-error']).toBeUndefined()
+  const consumer = steps.find((step) => step.run?.startsWith('pnpm test:node-server --artifact '))
+  expect(steps.indexOf(consumer)).toBeGreaterThan(join)
+  expect(consumer.run).toBe(
     "pnpm test:node-server --artifact ${{ runner.os == 'Linux' && '--cross-runtime' || '' }}"
   )
+  expect(consumer.if).toBeUndefined()
+  expect(consumer.env).toEqual({
+    ORCA_BUN_ORCAD_SLOT: '${{ steps.bun-orcad.outputs.slot }}',
+    BUN_EXECUTABLE: '${{ steps.bun-orcad.outputs.executable }}'
+  })
   const alpine = workflow.jobs.linux_musl.steps.find((step) =>
     String(step.run).includes('docker run')
   )

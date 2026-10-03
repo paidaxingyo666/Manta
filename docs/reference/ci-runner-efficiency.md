@@ -1632,7 +1632,14 @@ hashes. Selected-case totals fell from 13.674 to 3.318 seconds and from 13.276 t
 6.323 seconds. Whole-file test totals fell from 24.845 to 10.829 seconds and from
 21.500 to 19.410 seconds. Process wall times were 41.488/37.810 seconds and
 42.140/78.450 seconds; the reverse candidate spent 56.31 seconds importing under
-unrelated local load. Overall wall-time savings remain inconclusive.
+unrelated local load. Local process-wall savings were inconclusive.
+
+The later [hosted x64 and ARM comparison](https://github.com/stablyai/orca/actions/runs/37001891871)
+passed the same 23 cases in `structured-chat-coordinator-mail.test.ts` in both
+orders on each architecture, with frozen case and policy hashes. Median full-file
+wall time was 33.506 → 23.149 seconds on x64 and 33.438 → 22.504 seconds on ARM.
+Median test-body totals were 19.329 → 9.343 and 19.695 → 9.103 seconds, respectively.
+These measurements qualify this file; they do not measure whole-PR time.
 
 Injected extra deliveries at 1,499 ms and 99 ms still fail the original assertions
 in both clock modes. The latter candidate fails the unchanged journal-read gate
@@ -1640,3 +1647,107 @@ with the same extra provider start. A separate control confirms the orphan repai
 actually executes against the closed database and leaves no fake timers. The
 change retains all 121 original expectation sites and adds one teardown check;
 it does not shorten the runtime's observation interval or claim a whole-PR gain.
+
+## Stub child shutdown clocks: Codex and Claude
+
+[Merged Codex change #24893](https://github.com/stablyai/orca/pull/24893) scopes timeout
+clocks to two synthetic-child cases in `codex-app-server-connection.test.ts`.
+The full platform graceful deadline and 1,000 ms forced wait remain; the test
+waits for the actual stub SIGKILL before advancing the forced window. Streams,
+process-table reads, Date and immediate callbacks remain real. Fault controls
+still detect late exit, missing EPIPE, missing exit proof and unwanted notification.
+
+The [hosted ARM comparison](https://github.com/stablyai/orca/actions/runs/37074124526)
+passed the same 32 full-file cases in baseline/candidate and candidate/baseline
+order. File wall times were 13.671 / 13.674 seconds originally and 1.658 / 1.649
+seconds with scoped clocks. Installer time is excluded; generated caches remain
+across the disclosed order. Real-child coverage and production shutdown code remain.
+
+[Merged Claude change #24897](https://github.com/stablyai/orca/pull/24897) changes only
+two synthetic-child cases in `claude-agent-sdk-exit-proof.test.ts`. Both full
+33-case runs passed, including the unchanged five real-child cases. In one local
+macOS pair, the two bodies took 2,503 / 1,502 ms originally and 1.37 / 0.39 ms with
+scoped clocks. They cross a real immediate callback before advancing the complete
+1,500 ms graceful and 1,000 ms forced windows, restore timers in `finally`, and
+retain the original false exit verdicts. Fault controls detect either deadline
+shortened by one millisecond, an unproved true verdict and a leftover timer.
+[Normal PR CI](https://github.com/stablyai/orca/actions/runs/37075819218) passed;
+these local body measurements do not establish hosted or whole-PR time savings.
+
+## Sequential static analysis and typecheck: retain separate jobs
+
+A four-trial hosted screen kept the slim router unchanged and compared the two
+independent ARM jobs with one ARM job running their unchanged checks sequentially.
+The [compiler/planner census](https://github.com/stablyai/orca/actions/runs/37069472888)
+matched all compiler inputs and the full 10,477-file unit inventory in separate,
+shared root-only and shared mixed-install states. The [safety qualification](https://github.com/stablyai/orca/actions/runs/37075043747)
+verified native joins after compiler failure and a real late action-post failure;
+all four guarded downstream sentinels skipped and the audit passed.
+
+| Trial                                                          | Mode     | Active ARM seconds | Router finish to heavy finish, seconds |
+| -------------------------------------------------------------- | -------- | -----------------: | -------------------------------------: |
+| [1](https://github.com/stablyai/orca/actions/runs/37075574191) | Separate |                157 |                                    124 |
+| [2](https://github.com/stablyai/orca/actions/runs/37075887937) | Combined |                134 |                                    150 |
+| [3](https://github.com/stablyai/orca/actions/runs/37076222202) | Combined |                129 |                                    134 |
+| [4](https://github.com/stablyai/orca/actions/runs/37076786281) | Separate |                159 |                                    194 |
+
+Both pairs saved active ARM time: 23 and 30 seconds, or 14.6% and 18.9%, with one
+heavy admission instead of two. The active critical path was 15 and 8 seconds
+longer. Downstream eligibility changed by +26 and −60 seconds; observed ready-to-start
+delay differences of +11 and −68 seconds explain that reversal. Created-to-start
+delay is recorded separately and does not establish a quota or queue cause.
+
+Retain separate jobs for now. This screen shows a capacity saving, with a longer
+active critical path and no repeatable latency gain. All trials used frozen
+`cc73c8e1a72b0e9ee9c29e57458ce307f5f019c2` source, manual workflow dispatches,
+Node 24.21.0 and the same four exact primary cache hits. Main's later
+[Linux PR root-store policy change #24896](https://github.com/stablyai/orca/pull/24896)
+is outside this screen. The trial ran actual heavy checks and proved unit and both
+package eligibility, without launching those downstream matrices or measuring a
+whole-PR speedup.
+
+## Linux headless runtime build overlap
+
+The historical pinned Bun artifact now builds in a native background step while
+current native preparation and Node bundling run in the foreground. An
+unconditional join precedes the unchanged artifact and cross-runtime tests. Bun
+setup stays Linux-only; other platforms register and join a successful no-op.
+The producer publishes step outputs consumed only by those tests. The existing
+selector, native floors, template builders and cache policies remain.
+
+A [hosted alternating comparison](https://github.com/stablyai/orca/actions/runs/37072923774)
+ran four serial/overlap arms on each of two Linux VMs:
+
+| Architecture | Serial preparation, seconds | Overlapped preparation, seconds |
+| ------------ | --------------------------: | ------------------------------: |
+| x64          |             20.831 / 19.576 |                 11.149 / 10.914 |
+| ARM64        |             15.155 / 14.396 |                   8.566 / 8.553 |
+
+Every arm passed the same 961 cases across 92 files: 930 passed and 31 skipped.
+Both cross-runtime persistence cases passed. The two live daemon-handover cases
+kept their existing protocol-version skips. All four x64 arms passed actual Node
+18 loading and pinned-runtime handoff. Installed/source inputs and artifact
+inventories matched; each normal owned-process ledger was clean before cleanup.
+Common native compiler warmup preceded timing and retained its generated Python
+caches in the strict installed ledger. These are preparation savings of 5.8–9.7
+seconds, excluding setup, cold installs, runner start delays and whole-PR time.
+
+Actual [Bun failure](https://github.com/stablyai/orca/actions/runs/37078015921) and
+[Node failure](https://github.com/stablyai/orca/actions/runs/37078021568) controls
+qualified genuine compiler errors with fresh live opposite builders, native joins,
+skipped consumers, restored inputs and verified exits. A [normal cancellation
+control](https://github.com/stablyai/orca/actions/runs/37079655167) received SIGINT
+while the actual Bun builder was freshly live; both builders and the detached
+owned child had simultaneous earlier readiness. All three native joins had terminal dispositions of cancelled, success and
+cancelled, and every consumer skipped. The temporary observer retired its owned processes;
+the collector independently verified their absence and unchanged inputs. This
+proves signal delivery and observer-owned retirement, without establishing
+runner-only descendant cleanup at the join. The unchanged historical builder
+starts finite build/smoke work, and its children retain GitHub's normal orphan
+tracking marker.
+
+Earlier cancellation trials remain excluded from live-build qualification: one
+collector stopped its observer before signal routing, and the corrected trial
+received the signal after both builders finished. The qualifying trial requested
+normal cancellation earlier in the same preparation sequence to account for
+observed delivery delay; no workload, wait or proof predicate was shortened.

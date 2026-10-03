@@ -161,6 +161,27 @@ jobs:
         with:
           native-runtime: ${{ runner.os == 'Windows' && 'node' || 'none' }}
           cache-pnpm-store: ${{ runner.os != 'Windows' }}
+      # Design D7 upgrade and rollback: the last Bun mantad, built from a main commit that shipped
+      # it, beside this checkout's Node slot; the live-terminal hand-over skips once PROTOCOL_VERSION
+      # moves past the Bun daemon's. Its build uses this checkout's installed dependencies.
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        if: runner.os == 'Linux'
+        with:
+          bun-version: 1.4.2
+      - name: Build the last Bun mantad for the cross-runtime tests
+        id: bun-orcad
+        background: true
+        shell: bash
+        env:
+          BUN_ORCAD_COMMIT: f4092c06d639ee13ad446261dcabc78b27a21fbc
+        run: |
+          if [ "$RUNNER_OS" != Linux ]; then exit 0; fi
+          git fetch --no-tags --depth=1 origin "$BUN_ORCAD_COMMIT"
+          git worktree add --detach "$RUNNER_TEMP/bun-orcad-source" "$BUN_ORCAD_COMMIT"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/bun-orcad-source/node_modules"
+          node "$RUNNER_TEMP/bun-mantad-source/config/scripts/build-mantad-bun.mjs" --out-dir "$RUNNER_TEMP/bun-orcad"
+          echo "slot=$RUNNER_TEMP/bun-orcad" >> "$GITHUB_OUTPUT"
+          echo "executable=$(command -v bun)" >> "$GITHUB_OUTPUT"
       # Linux release slots come from the floor and Alpine lanes; this slot serves local tests.
       - uses: ./.github/actions/prepare-orcad-prebuilds
         id: orcad-prebuild
@@ -171,26 +192,11 @@ jobs:
             (github.ref == 'refs/heads/main' && contains(fromJSON('["push","schedule","workflow_dispatch"]'), github.event_name))) }}
           restore-windows-cache: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
       - run: pnpm build:mantad
-      # Design D7 upgrade and rollback: the last Bun mantad, built from a main commit that shipped
-      # it, beside this checkout's Node slot; the live-terminal hand-over skips once PROTOCOL_VERSION
-      # moves past the Bun daemon's. Same lockfile, so its build reuses this checkout's node_modules.
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        if: runner.os == 'Linux'
-        with:
-          bun-version: 1.4.2
-      - name: Build the last Bun mantad for the cross-runtime tests
-        if: runner.os == 'Linux'
-        shell: bash
-        env:
-          BUN_ORCAD_COMMIT: f4092c06d639ee13ad446261dcabc78b27a21fbc
-        run: |
-          git fetch --no-tags --depth=1 origin "$BUN_ORCAD_COMMIT"
-          git worktree add --detach "$RUNNER_TEMP/bun-orcad-source" "$BUN_ORCAD_COMMIT"
-          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/bun-orcad-source/node_modules"
-          node "$RUNNER_TEMP/bun-mantad-source/config/scripts/build-mantad-bun.mjs" --out-dir "$RUNNER_TEMP/bun-orcad"
-          echo "ORCA_BUN_ORCAD_SLOT=$RUNNER_TEMP/bun-orcad" >> "$GITHUB_ENV"
-          echo "BUN_EXECUTABLE=$(command -v bun)" >> "$GITHUB_ENV"
+      - wait: bun-orcad
       - run: pnpm test:node-server --artifact ${{ runner.os == 'Linux' && '--cross-runtime' || '' }}
+        env:
+          ORCA_BUN_ORCAD_SLOT: ${{ steps.bun-orcad.outputs.slot }}
+          BUN_EXECUTABLE: ${{ steps.bun-orcad.outputs.executable }}
       # Only a Windows runner compiles it; arm64 cross-compiles here, as release-cut does for the relay.
       # Before the Node 18 check below: the build script imports TypeScript, which Node 18 cannot load.
       - name: Build the Windows process-table addons for the desktop template

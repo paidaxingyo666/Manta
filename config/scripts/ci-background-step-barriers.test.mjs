@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 const pr = parse(readFileSync('.github/workflows/pr.yml', 'utf8'))
 const mobile = parse(readFileSync('.github/workflows/mobile.yml', 'utf8'))
 const cloud = parse(readFileSync('.github/workflows/cloud-verify.yml', 'utf8'))
+const headless = parse(readFileSync('.github/workflows/node-server-tests.yml', 'utf8'))
 
 function assertJoinedBefore(steps, id, consumer) {
   const start = steps.findIndex((step) => step.id === id)
@@ -25,7 +26,8 @@ describe('CI background step barriers', () => {
       pr.jobs.package,
       pr.jobs.shell_contracts,
       mobile.jobs.verify,
-      cloud.jobs.security
+      cloud.jobs.security,
+      headless.jobs.persistence
     ]) {
       const pending = new Set()
       for (const step of job.steps) {
@@ -54,6 +56,35 @@ describe('CI background step barriers', () => {
       'unit-plan',
       (step) => step.uses === 'actions/upload-artifact@v7'
     )
+  })
+
+  it('joins the Linux Bun build before requiring both headless runtime artifacts', () => {
+    const steps = headless.jobs.persistence.steps
+    const consumer = (step) => step.run?.startsWith('pnpm test:node-server --artifact ')
+    assertJoinedBefore(steps, 'bun-orcad', consumer)
+    const start = steps.findIndex((step) => step.id === 'bun-orcad')
+    const join = steps.findIndex((step) => step.wait === 'bun-orcad')
+    const install = steps.findIndex((step) => step.uses?.endsWith('/install-node-dependencies'))
+    const setup = steps.findIndex((step) => step.uses?.startsWith('oven-sh/setup-bun@'))
+    expect(install).toBeGreaterThanOrEqual(0)
+    expect(setup).toBeGreaterThanOrEqual(0)
+    expect(install).toBeLessThan(setup)
+    expect(setup).toBeLessThan(start)
+    expect(steps[setup].if).toBe("runner.os == 'Linux'")
+    expect(steps[start].if).toBeUndefined()
+    expect(steps[start].run).toContain('if [ "$RUNNER_OS" != Linux ]; then exit 0; fi')
+    for (const build of [
+      steps.findIndex((step) => step.uses?.endsWith('/prepare-orcad-prebuilds')),
+      steps.findIndex((step) => step.run === 'pnpm build:mantad')
+    ]) {
+      expect(build).toBeGreaterThan(start)
+      expect(build).toBeLessThan(join)
+      expect(steps[build].background).toBeUndefined()
+    }
+    const test = steps.find(consumer)
+    expect(test.run).toContain("${{ runner.os == 'Linux' && '--cross-runtime' || '' }}")
+    expect(test.env.ORCA_BUN_ORCAD_SLOT).toBe('${{ steps.bun-orcad.outputs.slot }}')
+    expect(test.env.BUN_EXECUTABLE).toBe('${{ steps.bun-orcad.outputs.executable }}')
   })
 
   it('finishes native import-cycle analysis before mobile installation changes resolution', () => {
