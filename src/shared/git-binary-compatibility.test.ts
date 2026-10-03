@@ -164,11 +164,12 @@ describeBinaryCompatibility('real Git binary compatibility', () => {
       'rev-parse',
       '--path-format=absolute',
       '--show-toplevel',
-      '--git-common-dir'
+      '--git-common-dir',
+      '--git-dir'
     ])
     expect(hasUnsupportedRevParsePathFormatEcho(preferred.stdout)).toBe(!supports(2, 31))
     await expect(
-      runGit(['rev-parse', '--show-toplevel', '--git-common-dir'])
+      runGit(['rev-parse', '--show-toplevel', '--git-common-dir', '--git-dir'])
     ).resolves.toBeDefined()
   })
 

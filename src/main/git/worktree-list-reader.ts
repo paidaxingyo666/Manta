@@ -23,22 +23,23 @@ import { gitExecFileAsync } from './runner'
 
 const PRUNABLE_EXISTENCE_PROBE_CONCURRENCY = 8
 
-type RepoLocation = { topLevel: string; commonDir: string }
+type RepoLocation = { topLevel: string; commonDir: string; gitDir: string }
 
 function parseRepoLocation(repoPath: string, output: string): RepoLocation | undefined {
   // Old git echoes the unrecognized `--path-format` flag and exits 0, so drop `-`-prefixed lines and
-  // read the last two path lines (toplevel, git-common-dir); strip only trailing CR — paths may have edge spaces.
+  // read the last three path lines (toplevel, git-common-dir, git-dir); strip only trailing CR — paths may have edge spaces.
   const lines = output
     .split('\n')
     .map((line) => (line.endsWith('\r') ? line.slice(0, -1) : line))
     .filter((line) => line.length > 0 && !line.startsWith('-'))
-  if (lines.length < 2) {
+  if (lines.length < 3) {
     return undefined
   }
-  const [topLevel, commonDir] = lines.slice(-2)
+  const [topLevel, commonDir, gitDir] = lines.slice(-3)
   return {
     topLevel: resolveRevParsePath(repoPath, topLevel),
-    commonDir: resolveRevParsePath(repoPath, commonDir)
+    commonDir: resolveRevParsePath(repoPath, commonDir),
+    gitDir: resolveRevParsePath(repoPath, gitDir)
   }
 }
 
@@ -55,7 +56,13 @@ export async function readRepoLocation(
           'rev-parse-path-format',
           async () => {
             const { stdout } = await gitExecFileAsync(
-              ['rev-parse', '--path-format=absolute', '--show-toplevel', '--git-common-dir'],
+              [
+                'rev-parse',
+                '--path-format=absolute',
+                '--show-toplevel',
+                '--git-common-dir',
+                '--git-dir'
+              ],
               gitExecOptions(repoPath, options)
             )
             if (hasUnsupportedRevParsePathFormatEcho(stdout)) {
@@ -66,7 +73,7 @@ export async function readRepoLocation(
           },
           async () => {
             const { stdout } = await gitExecFileAsync(
-              ['rev-parse', '--show-toplevel', '--git-common-dir'],
+              ['rev-parse', '--show-toplevel', '--git-common-dir', '--git-dir'],
               gitExecOptions(repoPath, options)
             )
             return parseRepoLocation(resolveBasePath, stdout)
@@ -183,6 +190,11 @@ async function normalizeMainWorktreePath(
   // Why: only a separate-git-dir/submodule main worktree reports git-common-dir as its path; gate on
   // that equality so we don't overwrite a linked worktree's real working root with its own toplevel.
   if (!areWorktreePathsEqual(mainWorktree.path, location.commonDir)) {
+    return worktrees
+  }
+  // Why: a linked worktree of a bare/separate-git-dir repo passes the gate above too, but its toplevel
+  // is its own folder; relabelling would give the main row that folder's path and repeat it (#23631).
+  if (!areWorktreePathsEqual(location.gitDir, location.commonDir)) {
     return worktrees
   }
 
