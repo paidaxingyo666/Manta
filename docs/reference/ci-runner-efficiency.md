@@ -1815,6 +1815,49 @@ received the signal after both builders finished. The qualifying trial requested
 normal cancellation earlier in the same preparation sequence to account for
 observed delivery delay; no workload, wait or proof predicate was shortened.
 
+## October 3 Terminal Perf dependency preparation
+
+The daily/manual Terminal Perf workflow still installed current dependencies through
+raw lifecycle scripts and a global node-gyp installation. Its historical `ref`
+input also accepts revisions that lack the shared installer, so replacing that
+path unconditionally would break older runs. The current-profile path now uses
+the existing shared installer with explicit Electron preparation and archive
+caching. A guard requires GitHub-hosted Linux x64, Node 24/pnpm 12.8.1, the
+native-only root postinstall and the needed local action inputs/files. Other
+profiles and historical revisions keep their original frozen install.
+
+The [hosted comparison](https://github.com/stablyai/orca/actions/runs/37101695800)
+ran both preparation paths in each of two Linux x64 jobs, reversing their order.
+Legacy/shared preparation took 25.164/16.956 seconds and 27.434/18.032 seconds:
+8.208 and 9.402 seconds saved. Both used Node 24.21.0, pnpm 12.8.1 and Electron
+43.7.5. Both shared native-module cache lookups missed, so this improvement did
+not depend on a warm native build. Electron archive and root pnpm cache lookups
+hit. Dependency trees, pnpm data and Electron archives were reset between paths;
+compiler headers and external services were not. Bootstrap, resets, validation,
+post-job cleanup, queueing and the production guard step are outside those times.
+These are preparation measurements, not whole-workflow or billing savings.
+
+Both paths passed a native-module probe inside the actual Electron executable
+with `ELECTRON_RUN_AS_NODE=1`, and built the same Electron-vite e2e application.
+The candidate's 18 focused routing/fallback tests, workflow actionlint and changed
+code-quality checks passed. Performance tests, budgets and report uploads remain
+unchanged. The [existing October 2 run](https://github.com/stablyai/orca/actions/runs/36985792125)
+failed the same-workspace 50/100-terminal budgets (46.9/50.2 ms against 25 ms).
+This dependency change does not claim to resolve those application regressions.
+
+The [full candidate integration](https://github.com/stablyai/orca/actions/runs/37104625474)
+passed on `df71ad849cd854a232f7063562785563743b641a`: current preparation was
+selected, its native cache missed and rebuilt, the app built and all 32 report
+annotation rows passed the unchanged budget checker. The downloaded report also
+passed the same checker locally. This is integration evidence; it does not
+attribute application latency changes to dependency preparation. Subsequent
+rebases resolved report documentation and incorporated fixture teardown fixes.
+Workflow, installer-action and toolchain content stayed unchanged. Main also
+added an import and a Windows-only MSBuild setting to the native-runtime script:
+the imported helper has no top-level side effects, and the Linux rebuild branch
+is unchanged. Focused tests verify its Linux/macOS no-op behavior. Final-head PR
+checks qualify separately.
+
 ## October 3 producer follow-up: automatic selection for the measured profile
 
 The first producer rollout in [#24927](https://github.com/stablyai/orca/pull/24927)
