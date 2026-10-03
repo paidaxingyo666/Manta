@@ -249,6 +249,7 @@ type ManagedPty = {
   wslDistro?: string
   shellCwd?: string
   shellPathEnv?: string
+  agentLaunchToken?: string
   envToDelete: string[]
   gitCredentialPromptGuarded: boolean
   historyIsolationEnabled?: boolean
@@ -756,10 +757,7 @@ export class PtyHandler {
     if (process.platform === 'win32' || this.isPaneSurfaceRetired(paneKey)) {
       return null
     }
-    const candidates = [...this.ptys.values()].filter(
-      (pty) => !pty.disposed && (pty.paneKey ?? pty.attachIdentity?.paneKey) === paneKey
-    )
-    const root = candidates.length === 1 ? candidates[0] : undefined
+    const root = this.getCurrentManagedPty(paneKey)
     if (!root?.worktreeId || !root.pty.pid) {
       return null
     }
@@ -773,6 +771,19 @@ export class PtyHandler {
         workspaceKind: root.worktreeId.startsWith('folder:') ? 'folder' : 'git-worktree'
       }
     }
+  }
+
+  getAgentLaunchToken(paneKey: string): string | undefined {
+    return this.isPaneSurfaceRetired(paneKey)
+      ? undefined
+      : this.getCurrentManagedPty(paneKey)?.agentLaunchToken
+  }
+
+  private getCurrentManagedPty(paneKey: string): ManagedPty | undefined {
+    const candidates = [...this.ptys.values()].filter(
+      (pty) => !pty.disposed && (pty.paneKey ?? pty.attachIdentity?.paneKey) === paneKey
+    )
+    return candidates.length === 1 ? candidates[0] : undefined
   }
 
   /** Notified when the last PTY leaves the pool, so the relay can re-arm its idle grace. */
@@ -2063,6 +2074,11 @@ export class PtyHandler {
     // includes Homebrew, nvm, and user-installed CLIs (claude, codex, gh).
     // When overlays are injected, the launch wrapper keeps those paths after
     // user startup files re-export their defaults.
+    const ptyEnv: Record<string, string> = {
+      ...spawnEnv,
+      [SHELL_STARTUP_FEATURE_ENV]: '',
+      ...shellLaunch.env
+    }
     let term: IPty
     try {
       term = pty.spawn(shell, shellLaunch.args, {
@@ -2073,11 +2089,7 @@ export class PtyHandler {
         cwd,
         // Why the empty default: relay shells inherit process.env, and the launch
         // config is the only thing allowed to name features for this shell.
-        env: {
-          ...spawnEnv,
-          [SHELL_STARTUP_FEATURE_ENV]: '',
-          ...shellLaunch.env
-        },
+        env: ptyEnv,
         ...this.conptyDllSpawnOptions()
       })
     } catch (error) {
@@ -2131,6 +2143,7 @@ export class PtyHandler {
       ...(terminalWindowsWslDistro ? { wslDistro: terminalWindowsWslDistro } : {}),
       shellCwd: cwd,
       shellPathEnv: spawnEnv.PATH,
+      agentLaunchToken: ptyEnv.MANTA_AGENT_LAUNCH_TOKEN?.trim() || undefined,
       ownerBackend: resolvePtyOwnerBackend({
         platform: process.platform,
         shellPath: shell,
@@ -3190,6 +3203,11 @@ export class PtyHandler {
     const shellLaunch = getRelayShellLaunchConfig(shell, spawnEnv, process.platform, {
       terminalWindowsWslDistro
     })
+    const ptyEnv: Record<string, string> = {
+      ...spawnEnv,
+      [SHELL_STARTUP_FEATURE_ENV]: '',
+      ...shellLaunch.env
+    }
     let term: IPty
     try {
       term = ptyMod.spawn(shell, shellLaunch.args, {
@@ -3198,11 +3216,7 @@ export class PtyHandler {
         rows: entry.rows,
         cwd: entry.cwd,
         // Why: no provider-delivered command is waiting for a ready marker.
-        env: {
-          ...spawnEnv,
-          [SHELL_STARTUP_FEATURE_ENV]: '',
-          ...shellLaunch.env
-        },
+        env: ptyEnv,
         ...this.conptyDllSpawnOptions()
       })
     } catch (error) {
@@ -3233,6 +3247,7 @@ export class PtyHandler {
         limit: REPLAY_BUFFER_MAX
       }),
       paneKey: entry.paneKey,
+      agentLaunchToken: ptyEnv.MANTA_AGENT_LAUNCH_TOKEN?.trim() || undefined,
       tabId: entry.tabId,
       attachIdentity: entry.attachIdentity,
       worktreeId: entry.worktreeId,

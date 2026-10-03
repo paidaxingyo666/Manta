@@ -129,14 +129,16 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
     const pluginSource = readFileSync(pluginPath, 'utf8')
     expect(pluginSource).toContain('MantaOpenCodeStatusPlugin')
     expect(pluginSource).toContain('messageID: part.messageID')
-    // Why: OpenCode 2 reports pane lifecycle from each TUI, which loads only plugin directories.
+    // Legacy attach loads an object TUI entry; the server export stays callable.
     const tuiEntry = join(
       resolveOpenCodeConfigDirectory(),
       'plugins',
       'manta-opencode-status-tui',
       'tui.js'
     )
-    expect(readFileSync(tuiEntry, 'utf8')).toBe(pluginSource)
+    expect(readFileSync(tuiEntry, 'utf8')).toContain('tui: setupLegacyOpenCodeTui')
+    expect(readFileSync(tuiEntry, 'utf8')).toContain('setup: setupOpenCode2Status')
+    expect(pluginSource).not.toContain('export default { id:')
     const past = new Date('2020-01-01T00:00:00Z')
     utimesSync(tuiEntry, past, past)
     service.buildPtyEnv(daemonSessionId)
@@ -260,7 +262,7 @@ describe('OpenCodeHookService buildPtyEnv / clearPty round-trip', () => {
     // A service loading this dir stands down only when the TUI copy sits beside it.
     expect(
       readFileSync(join(legacyPluginPath, '..', 'manta-opencode-status-tui', 'tui.js'), 'utf8')
-    ).toBe(getOpenCodePluginSource())
+    ).toContain('tui: setupLegacyOpenCodeTui')
   })
 
   it('repairs late and overwritten legacy plugins atomically on the same service', () => {
@@ -517,8 +519,11 @@ describe('OpenCodeHookService overlay mode (user OPENCODE_CONFIG_DIR set)', () =
 
     const overlayTui = join(env.OPENCODE_CONFIG_DIR!, 'plugins', 'manta-opencode-status-tui')
     expect(lstatSync(overlayTui).isSymbolicLink()).toBe(false)
-    expect(readFileSync(join(overlayTui, 'tui.js'), 'utf8')).toBe(
-      readFileSync(join(env.OPENCODE_CONFIG_DIR!, 'plugins', 'manta-opencode-status.js'), 'utf8')
+    expect(readFileSync(join(overlayTui, 'tui.js'), 'utf8')).toContain(
+      'tui: setupLegacyOpenCodeTui'
+    )
+    expect(readFileSync(join(overlayTui, 'tui.js'), 'utf8')).toContain(
+      'setup: setupOpenCode2Status'
     )
     expect(readFileSync(join(userTuiDir, 'tui.js'), 'utf8')).toBe('USER OWNED')
   })

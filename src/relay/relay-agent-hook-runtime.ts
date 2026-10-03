@@ -43,6 +43,7 @@ export class RelayAgentHookRuntime {
       // Why: the PTY handler is the only component that knows which panes still have a client
       // surface, so it — not the client — decides whether a hook post describes a live pane.
       isPaneSurfaceRetired: (paneKey) => ptyHandler.isPaneSurfaceRetired(paneKey),
+      getAgentLaunchToken: (paneKey) => ptyHandler.getAgentLaunchToken(paneKey),
       getTmuxManagedPty: async (paneKey) => ptyHandler.getTmuxManagedPty(paneKey)
     })
   }

@@ -3,7 +3,8 @@ import {
   writeCanonicalOpenCodePluginAtomically,
   writeOverlayOpenCodePluginAtomically
 } from './opencode-plugin-atomic-write'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { registerOpenCodeTuiPlugin } from './opencode-tui-config-registration'
 import {
   isInstalledOpenCodePluginCurrent,
   isOverlayOpenCodePluginCurrent
@@ -11,8 +12,7 @@ import {
 
 /**
  * Directory holding the TUI copy of a status plugin file. OpenCode 2 loads a
- * `tui` entrypoint only from a plugins/ subdirectory, and OpenCode 1 loads only
- * plugins/*.js files, so this entry is invisible to 1.x.
+ * `tui` entrypoint from a plugins/ subdirectory; 1.x needs explicit config registration.
  */
 export function openCodeTuiPluginDirName(pluginFileName: string): string {
   return `${pluginFileName.replace(/\.js$/, '')}-tui`
@@ -31,9 +31,18 @@ export function writeOpenCodeTuiPlugin(
 ): void {
   const dir = join(pluginsDir, openCodeTuiPluginDirName(pluginFileName))
   const entry = join(dir, 'tui.js')
+  // The 1.x TUI loader rejects a default object that also exposes server().
+  const tuiSource =
+    source.includes('const ORCA_STATUS_AGENT = "opencode";') &&
+    source.includes('async function setupLegacyOpenCodeTui(')
+      ? `${source.replace(/^export default /m, 'const mantaServerPlugin = ')}\nconst { server: _orcaServerOnly, ...orcaTuiPlugin } = mantaServerPlugin;\nexport default { id: ${JSON.stringify(pluginFileName.replace(/\.js$/, ''))}, setup: setupOpenCode2Status, ...orcaTuiPlugin, tui: setupLegacyOpenCodeTui };\n`
+      : source
   const isCurrent =
     ownership === 'canonical' ? isInstalledOpenCodePluginCurrent : isOverlayOpenCodePluginCurrent
-  if (isCurrent(entry, source)) {
+  if (isCurrent(entry, tuiSource)) {
+    if (tuiSource !== source) {
+      registerOpenCodeTuiPlugin(dirname(pluginsDir), entry, ownership)
+    }
     return
   }
   mkdirSync(dir, { recursive: true })
@@ -41,5 +50,8 @@ export function writeOpenCodeTuiPlugin(
     ownership === 'canonical'
       ? writeCanonicalOpenCodePluginAtomically
       : writeOverlayOpenCodePluginAtomically
-  write(entry, source)
+  write(entry, tuiSource)
+  if (tuiSource !== source) {
+    registerOpenCodeTuiPlugin(dirname(pluginsDir), entry, ownership)
+  }
 }
