@@ -1,4 +1,5 @@
 import { DEDICATED_E2E_SPECS } from './ci-e2e-job-selection.mjs'
+import { linuxInstallPackageList } from './pr-e2e-linux-packages.test-fixture.mjs'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { parse as parseJsonc } from 'jsonc-parser'
@@ -20,6 +21,7 @@ import {
 const projectDir = resolve(import.meta.dirname, '../..')
 const prWorkflow = parseYaml(readFileSync(join(projectDir, '.github/workflows/pr.yml'), 'utf8'))
 const e2eWorkflow = parseYaml(readFileSync(join(projectDir, '.github/workflows/e2e.yml'), 'utf8'))
+
 const reliabilityManifest = parseJsonc(
   readFileSync(join(projectDir, 'config/reliability-gates.jsonc'), 'utf8')
 )
@@ -218,7 +220,7 @@ describe('PR E2E gate contract', () => {
       const installStep = e2eWorkflow.jobs[jobName].steps.find((step) =>
         step.name.startsWith('Install native build')
       )
-      expect(installStep.env.ORCA_E2E_APT_PACKAGES.split(/\s+/), jobName).toContain('zsh')
+      expect(linuxInstallPackageList(installStep, jobName), jobName).toMatch(/\bzsh\b/)
     }
   })
 
@@ -308,7 +310,7 @@ describe('PR E2E gate contract', () => {
     const changedInstall = e2eWorkflow.jobs['changed-e2e'].steps.find((step) =>
       step.name.startsWith('Install native build')
     )
-    expect(changedInstall.env.ORCA_E2E_APT_PACKAGES.split(/\s+/)).toContain('openssh-client')
+    expect(linuxInstallPackageList(changedInstall, 'changed-e2e')).toMatch(/\bopenssh-client\b/)
   })
 
   it('routes direct-SSH workspace and tab restore from its unnamed source seams', () => {
