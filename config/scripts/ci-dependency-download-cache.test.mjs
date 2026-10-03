@@ -32,13 +32,13 @@ describe('CI dependency download caches', () => {
     ])
   })
 
-  it('restores PR stores except measured Windows and Linux installs, without a post-job save', () => {
+  it('restores PR stores except measured Windows, Linux and macOS installs, without a post-job save', () => {
     const resolve = action.runs.steps.find((step) => step.id === 'pnpm-store')
     const restore = action.runs.steps.find(
       (step) => step.name === 'Restore pnpm download store without saving'
     )
     expect(resolve.if).toBe(
-      "github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' && !(runner.os == 'Linux' && (runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml') && (runner.os != 'Windows' || !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) && !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))"
+      "github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' && !((runner.os == 'Linux' || runner.os == 'macOS') && (runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml') && (runner.os != 'Windows' || !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) && !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))"
     )
     expect(restore.if).toBe(resolve.if)
     expect(restore.uses).toBe('actions/cache/restore@v5')
@@ -124,11 +124,17 @@ describe('CI dependency download caches', () => {
     ['Linux x64 custom PR', 'pull_request', 'Linux', 'X64', 'cloud/pnpm-lock.yaml', true, ''],
     ['Linux x64 root-only push', 'push', 'Linux', 'X64', false, false, 'pnpm'],
     ['Linux ARM64 root-only manual', 'workflow_dispatch', 'Linux', 'ARM64', false, false, 'pnpm'],
-    ['macOS x64 root-only PR', 'pull_request', 'macOS', 'X64', false, true, ''],
-    ['macOS ARM64 root-only PR', 'pull_request', 'macOS', 'ARM64', false, true, ''],
+    ['macOS x64 root-only PR', 'pull_request', 'macOS', 'X64', false, false, ''],
+    ['macOS ARM64 root-only PR', 'pull_request', 'macOS', 'ARM64', false, false, ''],
+    ['macOS x86 root-only PR', 'pull_request', 'macOS', 'X86', false, true, ''],
+    ['macOS x64 mixed PR', 'pull_request', 'macOS', 'X64', true, true, ''],
+    ['macOS ARM64 mixed PR', 'pull_request', 'macOS', 'ARM64', true, true, ''],
+    ['macOS ARM64 custom PR', 'pull_request', 'macOS', 'ARM64', 'cloud/pnpm-lock.yaml', true, ''],
+    ['macOS ARM64 opted-out PR', 'pull_request', 'macOS', 'ARM64', true, false, '', 'false'],
+    ['macOS x64 root-only push', 'push', 'macOS', 'X64', false, false, 'pnpm'],
+    ['macOS ARM64 root-only manual', 'workflow_dispatch', 'macOS', 'ARM64', false, false, 'pnpm'],
     ['Linux x64 mixed PR', 'pull_request', 'Linux', 'X64', true, true, ''],
     ['Linux ARM64 mixed PR', 'pull_request', 'Linux', 'ARM64', true, true, ''],
-    ['macOS ARM64 mixed PR', 'pull_request', 'macOS', 'ARM64', true, true, ''],
     ['Windows x64 mixed push', 'push', 'Windows', 'X64', true, false, 'pnpm'],
     ['Windows x64 mixed manual run', 'workflow_dispatch', 'Windows', 'X64', true, false, 'pnpm']
   ])(

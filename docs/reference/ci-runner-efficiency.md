@@ -174,9 +174,43 @@ setup. These are warm-policy setup measurements, not workflow or billing savings
 
 The shared installer consequently skips root-only Linux x64/ARM64 store restores
 on PRs. It still installs and checks every package through pnpm. Mixed mobile and
-custom lockfile sets, other architectures, Mac behavior, verification/native caches,
+custom lockfile sets, other architectures, verification/native caches,
 main store writers and release installation policies keep their existing behavior.
-The measured Windows exceptions remain. No new periodic job or cache is added.
+The measured Windows exceptions remain. Mac restores were retained at this stage;
+the following comparison supersedes that policy. No periodic job or cache is added.
+
+## October 2 macOS root store comparison
+
+A [six-job hosted comparison](https://github.com/stablyai/orca/actions/runs/37078232553)
+used the same paired method on macOS 15 Intel and Apple Silicon. All six jobs
+passed with actual main store cache hits. The middle sample reversed treatment
+order. Each treatment started with a reset dependency tree, store and pnpm
+metadata, followed by the same verification-record restore. Policy files and
+installed lockfile digests matched within every pair.
+
+| Architecture/sample | Store restore + install | Direct registry install | Paired saving |
+| ------------------- | ----------------------- | ----------------------- | ------------- |
+| x64 / 1             | 87.270s                 | 60.584s                 | 26.686s       |
+| x64 / 2             | 103.280s                | 52.640s                 | 50.640s       |
+| x64 / 3             | 61.564s                 | 40.768s                 | 20.796s       |
+| ARM64 / 1           | 26.024s                 | 14.375s                 | 11.649s       |
+| ARM64 / 2           | 37.000s                 | 19.726s                 | 17.274s       |
+| ARM64 / 3           | 34.616s                 | 14.888s                 | 19.728s       |
+
+Median paired savings are 26.686 seconds on x64 and 17.274 seconds on ARM64;
+means are 32.707 and 16.217 seconds. Node matched within each pair: 24.19.0 on
+Intel and 24.20.0 on Apple Silicon, as resolved by the existing installer. Both
+used pnpm 12.8.1. Timing includes actual cache lookup/transfer/restore, inter-step
+overhead and installation. Checkout, initial setup, process-wrapper preparation,
+resets, verification restores, native work, tests, cache saves and queues are
+excluded. Initial setup has already used package services. These measurements
+do not establish whole-workflow or billing savings.
+
+The existing root-only PR exception now also covers macOS x64/ARM64. Frozen,
+script-free installs and pnpm policy checks still run. Mixed/custom lockfile sets,
+other architectures, verification/native caches, main/manual store writers and
+release installation policies retain their existing behavior. No periodic job
+or cache is added.
 
 ## October 1 Windows and dependency cache follow-up
 
