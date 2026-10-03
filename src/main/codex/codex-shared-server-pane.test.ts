@@ -5,8 +5,7 @@ const mocks = vi.hoisted(() => ({
   getCodexPaneAccount: vi.fn<(ptyId: string) => CodexPaneAccountRecord | null>(),
   probeCodexSharedServer: vi.fn<(home: string) => Promise<'live' | 'absent' | 'unknown'>>(),
   getProcessTableSnapshot: vi.fn(),
-  readWindowsProcessTable: vi.fn(),
-  isShellStartupEnvProbeSupported: vi.fn<() => boolean>()
+  readWindowsProcessTable: vi.fn()
 }))
 vi.mock('./codex-pane-account-registry', () => ({
   getCodexPaneAccount: mocks.getCodexPaneAccount
@@ -15,8 +14,7 @@ vi.mock('./codex-shared-server-probe', () => ({
   probeCodexSharedServer: mocks.probeCodexSharedServer
 }))
 vi.mock('./codex-home-paths', () => ({
-  getSystemCodexHomePath: () => '/home/me/.codex',
-  resolveMantaManagedCodexHomePath: () => '/data/manta/codex-runtime-home/home'
+  getSystemCodexHomePath: () => '/home/me/.codex'
 }))
 vi.mock('../../shared/process-table-snapshot-reader', () => ({
   getProcessTableSnapshot: mocks.getProcessTableSnapshot
@@ -24,14 +22,10 @@ vi.mock('../../shared/process-table-snapshot-reader', () => ({
 vi.mock('../windows/windows-process-table', () => ({
   readWindowsProcessTable: mocks.readWindowsProcessTable
 }))
-vi.mock('../pty/shell-startup-env', () => ({
-  isShellStartupEnvProbeSupported: mocks.isShellStartupEnvProbeSupported
-}))
 
 import {
   findPaneCodex,
   findPaneCodexOnSharedServer,
-  isCodexPaneOnOrcaMirrorHome,
   resolveCodexPaneHome
 } from './codex-shared-server-pane'
 
@@ -43,7 +37,6 @@ function row(pid: number, ppid: number, command: string) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mocks.isShellStartupEnvProbeSupported.mockReturnValue(true)
 })
 
 describe('findPaneCodex', () => {
@@ -114,6 +107,8 @@ describe('resolveCodexPaneHome', () => {
       '/rc/codex'
     ],
     [{ selectionKey: 'host', accountId: null, homeRoute: 'custom-home' }, null],
+    // Manta's mirror: a fallback lane or a pre-upgrade pane's retired home.
+    [{ selectionKey: 'host', accountId: null, homeRoute: 'shared-home' }, null],
     [{ selectionKey: 'host', accountId: 'acct', homeRoute: 'account-home' }, null],
     [{ selectionKey: 'wsl:Ubuntu', accountId: null, homeRoute: 'real-home' }, null],
     [{ selectionKey: 'host', accountId: null }, null]
@@ -125,44 +120,9 @@ describe('resolveCodexPaneHome', () => {
     }
   )
 
-  // Why: only Windows still routes the default host lane through the promoted mirror.
-  it.each([
-    [false, '/data/manta/codex-runtime-home/home'],
-    [true, null]
-  ])(
-    'names the mirror for a legacy shared-home pane only off the real-home route (probe %s)',
-    (probeSupported, expected) => {
-      mocks.isShellStartupEnvProbeSupported.mockReturnValue(probeSupported)
-      mocks.getCodexPaneAccount.mockReturnValue({
-        selectionKey: 'host',
-        accountId: null,
-        homeRoute: 'shared-home'
-      })
-      expect(resolveCodexPaneHome('pty')).toBe(expected)
-    }
-  )
-
   it('names no home for a pane with no launch record', () => {
     mocks.getCodexPaneAccount.mockReturnValue(null)
     expect(resolveCodexPaneHome('pty')).toBeNull()
-  })
-})
-
-describe('isCodexPaneOnOrcaMirrorHome', () => {
-  it.each([
-    ['a Windows shared-home pane', 'shared-home', false, true],
-    ['a retired shared-home pane off Windows', 'shared-home', true, false],
-    ['a real-home pane', 'real-home', false, false],
-    ['a custom-home pane', 'custom-home', false, false]
-  ] as const)('%s → %s', (_label, homeRoute, probeSupported, expected) => {
-    mocks.isShellStartupEnvProbeSupported.mockReturnValue(probeSupported)
-    mocks.getCodexPaneAccount.mockReturnValue({
-      selectionKey: 'host',
-      accountId: null,
-      homeRoute,
-      environmentHomeOverride: { codexHome: '/custom/codex' }
-    })
-    expect(isCodexPaneOnOrcaMirrorHome('pty')).toBe(expected)
   })
 })
 
