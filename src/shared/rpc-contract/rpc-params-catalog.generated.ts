@@ -42,6 +42,10 @@ import {
   AiVaultPrepareSessionResumeParams,
   AiVaultSessionTitlesParams
 } from './ai-vault-params'
+import {
+  AntigravityAccountMutationParams,
+  AntigravityAccountTargetParams
+} from './antigravity-accounts-params'
 import { ArtifactsDeleteParams, ListOptions, SourceRequest, WriteRequest } from './artifacts-params'
 import {
   AutomationCreate,
@@ -558,6 +562,10 @@ import {
 export const RPC_PARAMS_BY_METHOD = {
   'accounts.addClaudeFromConfigDir': AddClaudeFromConfigDirParams,
   'accounts.addCodexFromHome': AddCodexFromHomeParams,
+  'accounts.antigravityAddCurrent': AntigravityAccountTargetParams,
+  'accounts.antigravityList': AntigravityAccountTargetParams,
+  'accounts.antigravityRemove': AntigravityAccountMutationParams,
+  'accounts.antigravitySelect': AntigravityAccountMutationParams,
   'accounts.consumeCodexResetCredit': ConsumeCodexResetCreditParams,
   'accounts.list': ListAccountsParams,
   'accounts.removeClaude': RemoveAccountParams,

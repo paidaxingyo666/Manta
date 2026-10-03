@@ -6616,8 +6616,8 @@
           "96f3649526": "Use Gemini CLI credentials (experimental)",
           "d676c41fc6": "Extracts OAuth credentials from your local Gemini CLI installation to authenticate with Google. This uses credentials issued to the Gemini CLI app, not Manta. May break if Google updates the CLI. Use at your own risk.",
           "0c7f915b01": "Use Gemini CLI credentials",
-          "973741a871": "Configure Gemini provider settings.",
-          "0c64dc2a64": "Gemini",
+          "973741a871": "Keep existing Gemini CLI sessions available. Gemini credentials do not sign you into Antigravity.",
+          "0c64dc2a64": "Gemini CLI (legacy)",
           "db209ee572": "Remove",
           "8a0f870153": "Re-authenticate",
           "3d245ef7d9": "Codex reported this sign-in is out of date",
@@ -18754,5 +18754,36 @@
     "addTypedPath": "Add",
     "noDirectories": "No folders added yet.",
     "removePath": "Remove {{name}}"
+  },
+  "accounts": {
+    "antigravity": {
+      "scope": "Manage the native agy account on {{host}}.",
+      "signIn": "Start agy on this host and complete its browser sign-in, then save the current account. To add a different account, use /logout in agy and sign in again.",
+      "docs": "Sign-in instructions",
+      "retry": "Retry",
+      "identityUnknown": "Signed-in identity unavailable",
+      "signedOut": "No native agy account is signed in.",
+      "changed": "The native account changed. Select a saved account again before launching agy.",
+      "save": "Save current account",
+      "refresh": "Refresh accounts",
+      "usage": "Refresh usage",
+      "working": "Updating account",
+      "usageReading": "Session: {{session}} · Weekly: {{weekly}}",
+      "saved": "Saved Google account",
+      "nativeActive": "Native account",
+      "selected": "Selected",
+      "select": "Select",
+      "remove": "Remove",
+      "sessions": "Selection applies to new agy sessions on this host. Existing sessions may keep their previous account.",
+      "searchTitle": "Antigravity Accounts",
+      "searchDescription": "Save and select native agy Google accounts on the execution host.",
+      "title": "Antigravity",
+      "keyword": {
+        "antigravity": "antigravity",
+        "agy": "agy",
+        "google": "google",
+        "accounts": "accounts"
+      }
+    }
   }
 }
