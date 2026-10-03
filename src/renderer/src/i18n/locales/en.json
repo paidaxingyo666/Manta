@@ -8128,6 +8128,8 @@
           "c7ef4415de": "Display Name",
           "b0a0c14a1c": "Project-specific display details for the sidebar and tabs.",
           "removeProjectAllHosts": "Remove this project from Manta on all configured hosts.",
+          "removeProjectCheckout": "Remove this checkout from Manta. Other checkouts of this project stay.",
+          "removeProjectKeepCheckouts": "Remove this project from Manta. Checkouts that have their own settings stay.",
           "0909e5d650": "Remove Project",
           "ee5a290616": "Opened as folder. Git features are unavailable for this workspace.",
           "323debba71": "Type:",
