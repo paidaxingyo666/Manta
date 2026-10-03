@@ -26,7 +26,6 @@ export function createCloseFileAction(
 
       set((s) => {
         const closedFile = s.openFiles.find((f) => f.id === fileId)
-        const idx = s.openFiles.findIndex((f) => f.id === fileId)
         const newFiles = s.openFiles.filter((f) => f.id !== fileId)
         const newEditorDrafts = { ...s.editorDrafts }
         delete newEditorDrafts[fileId]
@@ -59,24 +58,20 @@ export function createCloseFileAction(
         const newActiveFileIdByWorktree = { ...s.activeFileIdByWorktree }
 
         if (s.activeFileId === fileId) {
-          // Find next file within the same worktree
-          const worktreeId = closedFile?.worktreeId
+          // Why: a stale activeFileId (e.g. an orphan editor tab promoted by closeUnifiedTab) is not in openFiles; scope the fallback to the active worktree.
+          const worktreeId = closedFile?.worktreeId ?? s.activeWorktreeId
           const worktreeFiles = worktreeId
             ? newFiles.filter((f) => f.worktreeId === worktreeId)
-            : newFiles
+            : []
           if (worktreeFiles.length === 0) {
             newActiveId = null
           } else {
-            // Pick adjacent file from same worktree
-            const closedWorktreeIdx = worktreeId
-              ? s.openFiles
-                  .filter((f) => f.worktreeId === worktreeId)
-                  .findIndex((f) => f.id === fileId)
-              : idx
+            // Pick adjacent file from same worktree; -1 (closed file not open) clamps to the first.
+            const closedWorktreeIdx = (
+              worktreeId ? s.openFiles.filter((f) => f.worktreeId === worktreeId) : s.openFiles
+            ).findIndex((f) => f.id === fileId)
             newActiveId =
-              closedWorktreeIdx >= worktreeFiles.length
-                ? worktreeFiles.at(-1)!.id
-                : worktreeFiles[closedWorktreeIdx].id
+              worktreeFiles[Math.min(Math.max(closedWorktreeIdx, 0), worktreeFiles.length - 1)].id
           }
           if (worktreeId) {
             newActiveFileIdByWorktree[worktreeId] = newActiveId
