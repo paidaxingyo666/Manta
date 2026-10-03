@@ -6,7 +6,7 @@ import {
   buildRequestStreamUnsubscribe,
   updateTerminalSubscriptionViewport
 } from './rpc-client-terminal-subscription'
-import { buildReadyStreamUnsubscribe } from './rpc-client-server-subscription'
+import { buildReadyStreamUnsubscribe, isReadyIdStream } from './rpc-client-server-subscription'
 import { isStreamingOpenerReply } from './rpc-acceptance-policies'
 import {
   isStreamEndResult,
@@ -207,13 +207,10 @@ export class RpcClientStreamRegistry {
 
   private dispose(id: string): void {
     const stream = this.streams.get(id)
-    if (stream?.method === 'browser.screencast') {
-      stream.cancelled = true
-      this.clearBrowserRequest(id)
-      this.disposeServerSubscription(id, stream)
-      return
-    }
-    if (stream?.method === 'runtime.clientEvents.subscribe') {
+    if (stream && isReadyIdStream(stream.method)) {
+      if (stream.method === 'browser.screencast') {
+        this.clearBrowserRequest(id)
+      }
       this.disposeServerSubscription(id, stream)
       return
     }
