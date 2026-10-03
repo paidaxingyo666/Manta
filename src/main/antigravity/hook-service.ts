@@ -16,7 +16,12 @@ import {
   writeHooksJsonRemote,
   writeManagedScriptRemote
 } from '../agent-hooks/installer-utils-remote'
-import { refreshManagedScriptIfPresent } from '../agent-hooks/managed-hook-script-refresh'
+import { WINDOWS_ANTIGRAVITY_JSON_POST_SCRIPT } from './windows-hook-json-post'
+import {
+  restoreManagedScript,
+  refreshManagedScriptIfPresent,
+  scriptStillExists
+} from '../agent-hooks/managed-hook-script-refresh'
 import {
   ANTIGRAVITY_EVENTS,
   ANTIGRAVITY_PRE_TOOL_USE_DECISION,
@@ -70,9 +75,19 @@ function getManagedCommand(scriptPath: string, event: AntigravityEvent): string 
 }
 
 export class AntigravityHookService {
+  private getWindowsRuntimePath = (): string => process.execPath
+
+  setWindowsRuntimePathProvider(provider: () => string): void {
+    this.getWindowsRuntimePath = provider
+  }
+
   async refreshManagedScripts(): Promise<void> {
-    await refreshManagedScriptIfPresent(getManagedScriptPath(), getManagedScript())
-    if (process.platform === 'win32') {
+    const runtimePath = process.platform === 'win32' ? this.getWindowsRuntimePath() : undefined
+    if (process.platform === 'win32' && (await scriptStillExists(getManagedScriptPath()))) {
+      await restoreManagedScript(
+        getSharedManagedScriptPath('antigravity-hook-post.cjs'),
+        WINDOWS_ANTIGRAVITY_JSON_POST_SCRIPT
+      )
       for (const event of ANTIGRAVITY_EVENTS) {
         await refreshManagedScriptIfPresent(
           getWindowsWrapperScriptPath(event),
@@ -80,6 +95,10 @@ export class AntigravityHookService {
         )
       }
     }
+    await refreshManagedScriptIfPresent(
+      getManagedScriptPath(),
+      getManagedScript('local', runtimePath)
+    )
   }
 
   getStatus(): AgentHookInstallStatus {
@@ -157,7 +176,14 @@ export class AntigravityHookService {
       (event) => getManagedCommand(scriptPath, event),
       createAntigravityManagedCommandMatcher()
     )
-    writeManagedScript(scriptPath, getManagedScript())
+    const runtimePath = process.platform === 'win32' ? this.getWindowsRuntimePath() : undefined
+    if (process.platform === 'win32') {
+      writeManagedScript(
+        getSharedManagedScriptPath('antigravity-hook-post.cjs'),
+        WINDOWS_ANTIGRAVITY_JSON_POST_SCRIPT
+      )
+    }
+    writeManagedScript(scriptPath, getManagedScript('local', runtimePath))
     if (process.platform === 'win32') {
       // Why: Antigravity wraps hook commands in cmd.exe. Keeping event env
       // setup inside event-specific .cmd files avoids nested hooks.json quotes.

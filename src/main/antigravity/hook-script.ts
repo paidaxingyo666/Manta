@@ -2,21 +2,14 @@ import {
   buildPosixHookPayloadCapture,
   POSIX_HOOK_JSON_STDIN,
   buildPosixHookSpoolLines,
-  buildWindowsHookEnvironmentGuardLines,
-  buildWindowsHookStdinDrainEpilogue,
-  WINDOWS_HOOK_STDIN_DRAIN_COMMAND
+  buildWindowsHookEnvironmentGuardLines
 } from '../agent-hooks/hook-stdin-contract'
-import { buildWindowsAgentHookPostCommand } from '../agent-hooks/installer-utils'
 import { ANTIGRAVITY_PRE_TOOL_USE_DECISION } from './hook-events'
 
-// Why (#15117): PowerShell cost ~300ms of startup per event, which is what made the console
-// the agent allocates for each hook last long enough to see.
-const WINDOWS_ANTIGRAVITY_HOOK_POST_COMMAND = buildWindowsAgentHookPostCommand('antigravity', [
-  // Why: Antigravity alone takes its event name from the wrapper's env, not the piped payload.
-  '  --data-urlencode "hook_event_name=%MANTA_ANTIGRAVITY_EVENT%" ^'
-])
-
-export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
+export function getManagedScript(
+  target: 'local' | 'posix' = 'local',
+  windowsRuntimePath = process.execPath
+): string {
   if (target === 'local' && process.platform === 'win32') {
     return [
       '@echo off',
@@ -32,9 +25,11 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       ')',
       'if defined MANTA_AGENT_HOOK_ENDPOINT if exist "%MANTA_AGENT_HOOK_ENDPOINT%" call "%MANTA_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
-      WINDOWS_ANTIGRAVITY_HOOK_POST_COMMAND,
+      // The runtime path is fixed at installation; hook payloads stay on stdin.
+      'set "ELECTRON_RUN_AS_NODE=1"',
+      `if not defined ORCA_AGENT_HOOK_NODE set "ORCA_AGENT_HOOK_NODE=${windowsRuntimePath.replaceAll('%', '%%')}"`,
+      '"%ORCA_AGENT_HOOK_NODE%" "%~dp0antigravity-hook-post.cjs" >nul 2>nul',
       'exit /b 0',
-      ...buildWindowsHookStdinDrainEpilogue(),
       ''
     ].join('\r\n')
   }
@@ -108,7 +103,6 @@ export function getWindowsWrapperScript(eventName: string): string {
     ')',
     // Missing-core fallbacks obey the same outside-Orca stdin guard as the core.
     ...buildWindowsHookEnvironmentGuardLines(),
-    WINDOWS_HOOK_STDIN_DRAIN_COMMAND,
     'exit /b 0',
     ''
   ].join('\r\n')

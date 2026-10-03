@@ -104,6 +104,7 @@ describe('createPtySubprocess', () => {
         cwd: 'C:\\repo',
         env: {
           MANTA_AGENT_TEAMS_TEAM_ID: 'team-test',
+          manta_agent_hook_node: 'C:\\Stale\\node.exe',
           MANTA_PATH_ROOT: 'C:\\Users\\manta\\AppData\\Local',
           PATH: '%manta_path_root%\\agy\\bin;C:\\Windows'
         }
@@ -114,6 +115,8 @@ describe('createPtySubprocess', () => {
       }
     }
 
+    expect(spawnMock.mock.calls.at(-1)?.[2].env.ORCA_AGENT_HOOK_NODE).toBe(process.execPath)
+    expect(spawnMock.mock.calls.at(-1)?.[2].env.manta_agent_hook_node).toBeUndefined()
     expect(spawnMock.mock.calls.at(-1)?.[2].env.PATH).toBe(
       'C:\\Users\\manta\\AppData\\Local\\agy\\bin;C:\\Windows'
     )
@@ -126,12 +129,12 @@ describe('createPtySubprocess', () => {
       MANTA_PANE_KEY: process.env.MANTA_PANE_KEY,
       MANTA_TAB_ID: process.env.MANTA_TAB_ID,
       MANTA_WORKTREE_ID: process.env.MANTA_WORKTREE_ID,
-      ORCA_WSL_CLI_DIR: process.env.ORCA_WSL_CLI_DIR
+      MANTA_WSL_CLI_DIR: process.env.MANTA_WSL_CLI_DIR
     }
     process.env.MANTA_PANE_KEY = 'parent-tab:parent-leaf'
     process.env.MANTA_TAB_ID = 'parent-tab'
     process.env.MANTA_WORKTREE_ID = 'parent-worktree'
-    process.env.ORCA_WSL_CLI_DIR = 'C:/parent/wsl-managed-cli'
+    process.env.MANTA_WSL_CLI_DIR = 'C:/parent/wsl-managed-cli'
 
     try {
       await createPtySubprocess({ sessionId: 'test', cols: 80, rows: 24 })
@@ -149,7 +152,7 @@ describe('createPtySubprocess', () => {
     expect(env.MANTA_PANE_KEY).toBeUndefined()
     expect(env.MANTA_TAB_ID).toBeUndefined()
     expect(env.MANTA_WORKTREE_ID).toBeUndefined()
-    expect(env.ORCA_WSL_CLI_DIR).toBeUndefined()
+    expect(env.MANTA_WSL_CLI_DIR).toBeUndefined()
   })
 
   it('preserves explicit child Manta pane identity over parent env', async () => {
