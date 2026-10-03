@@ -228,8 +228,8 @@ proved that lookup left the payload absent, refreshed the existing cache's acces
 time, and published a miss that a fresh job restored. A
 [nested composite control](https://github.com/stablyai/orca/actions/runs/37084946789)
 then saved and restored a fresh payload using the actual environment-path pattern.
-The installer exports its resolved store path through `GITHUB_ENV`: post-job saves
-cannot resolve the composite's internal step outputs. The primary key is captured
+The installer exports its resolved store path through `GITHUB_ENV`: twice-nested composite post-job saves
+cannot resolve their internal step outputs. The primary key is captured
 by the cache action before cleanup. Paths, architecture and lockfile keys match
 `setup-node`, so existing default-branch archives remain reusable.
 
@@ -1814,3 +1814,40 @@ collector stopped its observer before signal routing, and the corrected trial
 received the signal after both builders finished. The qualifying trial requested
 normal cancellation earlier in the same preparation sequence to account for
 observed delivery delay; no workload, wait or proof predicate was shortened.
+
+## October 3 producer follow-up: automatic selection for the measured profile
+
+The first producer rollout in [#24927](https://github.com/stablyai/orca/pull/24927)
+passed all 46 PR checks, all five manual warmers and all 11 manual Headless
+qualifications on `a2c489c0cca5e46d24333a4d40ba910af0de0208`. The same root installer
+also serves recurring unit, browser and performance workflows that had not opted
+in. The follow-up defaults the existing input to `auto`, reusing lookup mode for
+non-PR root-only installs on GitHub-hosted Linux/macOS/Windows x64/ARM64 runners,
+with no job container, the manifest's Node 24/pnpm 12.8.1 profile and no conflicting
+Node override. Explicit `true` and `false` retain their previous meanings. Mixed
+lockfiles, other toolchains, containers and self-hosted runners retain full cache
+restoration; PR policies are unchanged. The manifest check runs only when the
+context is potentially eligible, before setup-node chooses its cache behavior.
+
+A second cleanup audit distinguished nesting depth. The
+[twice-nested control](https://github.com/stablyai/orca/actions/runs/37087090689)
+published the environment-path payload and lost the output-path payload with an
+`Input required and not supplied: path` warning. The
+[direct control](https://github.com/stablyai/orca/actions/runs/37087211236) published
+and restored both payloads. Current Electron archive callers are direct, so they
+need no cache-path change. Keeping the producer's exported path also makes its
+new lookup mode safe for callers that nest the shared installer. These tiny
+controls establish publication behavior, not installer time savings.
+
+The [actual automatic-mode cold publisher control](https://github.com/stablyai/orca/actions/runs/37097980789)
+passed both jobs on `7b8858bdc8f`. A twice-nested wrapper called the installer
+without overriding its default input. The writer selected lookup, missed its
+unique root-lockfile key, completed the frozen policy-checked install and saved
+that key during cleanup. A fresh reader restored the exact key and installed the
+same dependency successfully. The fixture retained the manifest toolchain and
+applicable workspace policies; its one dependency keeps the publication check
+small. Two earlier trials failed fixture assertions (the pnpm multi-document
+header placement, then its empty cache-miss output), and are excluded. This proves
+automatic selection and cold publication, not a new timing result. Local
+verification passed eight suites / 184 tests, the changed-code quality gate and
+compiled-composite actionlint.
