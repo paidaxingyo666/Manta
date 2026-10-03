@@ -1,6 +1,11 @@
 // Resume-command construction for Agent Session History rows: turns a scanned
 // session into the shell line that re-enters it, quoted for the target platform
 // and (when known) the live tab's shell.
+import {
+  isAntigravityReferenceSession,
+  antigravityTranscriptReferencePrompt
+} from './antigravity-session-origin'
+import { normalizeAiVaultResumeFilePath } from './ai-vault-resume-path'
 import { TUI_AGENT_CONFIG } from './tui-agent-config'
 import {
   clearEnvCommand,
@@ -41,7 +46,11 @@ export function buildAiVaultResumeCommand(args: {
       : shell
         ? quoteStartupArg(resumeTarget, shell)
         : quoteShellArg(resumeTarget, platform)
-  const resumeCommand = buildAgentResumeInvocation(agent, baseCommand, sessionArg)
+  const referencePath = normalizeAiVaultResumeFilePath(resumeFilePath ?? undefined, platform)
+  const resumeCommand =
+    isAntigravityReferenceSession({ agent, filePath: referencePath }) && referencePath
+      ? `${baseCommand} --prompt-interactive ${quoteResumeArg(antigravityTranscriptReferencePrompt(referencePath), platform, shell)}`
+      : buildAgentResumeInvocation(agent, baseCommand, sessionArg)
 
   return buildAiVaultResumeShellCommand({
     resumeCommand,

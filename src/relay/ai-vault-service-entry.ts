@@ -53,6 +53,7 @@ async function execute(request: RelayAiVaultServiceRequest): Promise<void> {
       hostPlatform: init.hostPlatform,
       limit: request.params.limit,
       unlimited: request.params.unlimited,
+      includeAntigravityIdeSessions: request.params.includeAntigravityIdeSessions,
       scopePaths: request.params.scopePaths,
       signal: controller.signal
     })

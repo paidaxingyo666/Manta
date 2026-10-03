@@ -116,6 +116,8 @@ export type AiVaultSession = {
   /** Older messages fell out of the newest-N window: the earliest preview turn
    * is NOT the opening ask, so first-prompt consumers must not scan it. */
   previewMessagesTruncated?: boolean
+  /** Bounded opening-prompt identity for Antigravity history joins; never a rolling preview. */
+  antigravityOpeningPrompt?: { hash: string; timestamp: string | null }
   /**
    * Full first non-injected user prompt. List scans omit this (payload/perf);
    * populated only by on-demand `aiVault.getFirstUserPrompt` re-parses for copy.
@@ -212,6 +214,8 @@ export type AiVaultScanIssue = {
 }
 
 export type AiVaultListArgs = {
+  /** Opt-in promises this client starts IDE history in a new CLI conversation. */
+  includeAntigravityIdeSessions?: boolean
   limit?: number
   unlimited?: boolean
   force?: boolean
