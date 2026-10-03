@@ -1851,3 +1851,20 @@ header placement, then its empty cache-miss output), and are excluded. This prov
 automatic selection and cold publication, not a new timing result. Local
 verification passed eight suites / 184 tests, the changed-code quality gate and
 compiled-composite actionlint.
+
+## October 3 retired-cache collection observation
+
+The same owner-collection assertion failed in unit shard 3 of
+[37098089274](https://github.com/stablyai/orca/actions/runs/37098089274/attempts/1)
+and [37100365037](https://github.com/stablyai/orca/actions/runs/37100365037/attempts/1),
+requiring a full shard retry despite the focused suite passing locally. Its
+three-turn collection budget was shorter than the six-turn plus final yield
+pattern already used by the GitLab known-host retirement tests.
+
+The fixture now uses that existing observation budget. All seven tests, their assertions,
+expiry clocks and production code are unchanged. The focused suite passes. A
+local fault control changed only the production timer callback to hold its owner
+strongly: the owner-collection assertion failed, with the other six tests passing.
+The source was restored afterward. Extra collection turns therefore preserve the
+strong-retention oracle. Hosted qualification is still required; these observations
+do not prove a particular VM-retention cause or quantify avoided retries.
