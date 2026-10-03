@@ -391,7 +391,7 @@ describe('StructuredAgentSessionAttentionBridge', () => {
     })
   })
 
-  it('keeps a published paired chat subscribed and delivers after a workspace-id collision', async () => {
+  it('keeps a legacy published paired chat subscribed and delivers after a workspace-id collision', async () => {
     const store = mocks.store
     if (!store) {
       throw new Error('test store was not initialized')
@@ -445,10 +445,15 @@ describe('StructuredAgentSessionAttentionBridge', () => {
         100
       )
     )
-    const tab = store.getState().unifiedTabsByWorktree[WORKSPACE][0]
-    if (!tab) {
+    const publishedTab = store.getState().unifiedTabsByWorktree[WORKSPACE][0]
+    if (!publishedTab) {
       throw new Error('snapshot did not publish a chat tab')
     }
+    expect(publishedTab.executionHostId).toBe('runtime:env-1')
+    // Why: restored tabs from before host stamping can still have ambiguous catalog ownership.
+    const tab = { ...publishedTab }
+    delete tab.executionHostId
+    store.setState({ unifiedTabsByWorktree: { [WORKSPACE]: [tab] } })
     expect(tab.contentType).toBe('agent-session')
     expect(tab.executionHostId).toBeUndefined()
     render(<StructuredAgentSessionAttentionBridge />)
