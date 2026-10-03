@@ -3,9 +3,9 @@ import { normalizeHookPayload } from '../../../shared/agent-hook-listener'
 import { isAgentHookSource, type AgentHookSource } from '../../../shared/agent-hook-relay'
 import { isOpenCodeSharedServerPost } from '../../../shared/agent-hook-listener/opencode-session-registry'
 import type { NormalizedLocalHook } from './server-types'
-import { AgentHookServerOpenCodeBinder } from './server-opencode-binder'
+import { AgentHookServerTmuxStatus } from './server-tmux-status'
 
-export abstract class AgentHookServerIngestNormalization extends AgentHookServerOpenCodeBinder {
+export abstract class AgentHookServerIngestNormalization extends AgentHookServerTmuxStatus {
   protected setClaudeBackgroundEvidence(
     paneKey: string,
     hasRunningTask: boolean,

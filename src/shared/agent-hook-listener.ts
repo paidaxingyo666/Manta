@@ -1,5 +1,5 @@
 import { readAgentProcessIdentity } from './agent-process-presence'
-import { normalizeAgentStatusPayload } from './agent-status-types'
+import { normalizeAgentStatusPayload, type AgentMainAgentStatus } from './agent-status-types'
 import type { AgentHookSource } from './agent-hook-relay'
 import { extractAgentProviderSession } from './agent-session-resume'
 import {
@@ -37,7 +37,10 @@ export function normalizeHookPayload(
   source: AgentHookSource,
   body: unknown,
   expectedEnv: string,
-  options: { deferCompactOwnershipToClient?: boolean } = {}
+  options: {
+    deferCompactOwnershipToClient?: boolean
+    previousOpenCodeMainAgent?: AgentMainAgentStatus
+  } = {}
 ): AgentHookEventPayload | null {
   const envelope = parseHookEnvelope(state, source, body, expectedEnv)
   if (!envelope) {
@@ -189,7 +192,8 @@ export function normalizeHookPayload(
     paneKey,
     hookPayload: hookPayloadRecord,
     envelope: record,
-    extractedPrompt
+    extractedPrompt,
+    previousOpenCodeMainAgent: options.previousOpenCodeMainAgent
   })
   const providerSessionOnly =
     (source === 'pi' || source === 'prime-agent') &&

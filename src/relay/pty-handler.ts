@@ -1,3 +1,4 @@
+import type { TmuxManagedPty } from '../shared/tmux-agent-hook-owner'
 /* oxlint-disable max-lines */
 import { resolveSynchronizedOutputSafeSplit } from '../shared/terminal-synchronized-output-scan'
 import { createTerminalTitleTracker } from '../shared/terminal-output-side-effects'
@@ -749,6 +750,29 @@ export class PtyHandler {
    *  paneKey since. Nothing this pane emits can belong to a surface any client still owns. */
   isPaneSurfaceRetired(paneKey: string): boolean {
     return this.retiredPaneSurfaces.isRetired(paneKey)
+  }
+
+  getTmuxManagedPty(paneKey: string): TmuxManagedPty | null {
+    if (process.platform === 'win32' || this.isPaneSurfaceRetired(paneKey)) {
+      return null
+    }
+    const candidates = [...this.ptys.values()].filter(
+      (pty) => !pty.disposed && (pty.paneKey ?? pty.attachIdentity?.paneKey) === paneKey
+    )
+    const root = candidates.length === 1 ? candidates[0] : undefined
+    if (!root?.worktreeId || !root.pty.pid) {
+      return null
+    }
+    return {
+      pid: root.pty.pid,
+      incarnation: root.incarnationId,
+      scope: {
+        executionHostId: 'local',
+        wslDistro: null,
+        workspaceId: root.worktreeId,
+        workspaceKind: root.worktreeId.startsWith('folder:') ? 'folder' : 'git-worktree'
+      }
+    }
   }
 
   /** Notified when the last PTY leaves the pool, so the relay can re-arm its idle grace. */

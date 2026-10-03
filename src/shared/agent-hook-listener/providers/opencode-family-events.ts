@@ -1,6 +1,7 @@
 import { continueMainAgentStatus } from '../../agent-lead-status-fold'
 import {
   normalizeAgentStatusPayload,
+  type AgentMainAgentStatus,
   type ParsedAgentStatusPayload
 } from '../../agent-status-types'
 import type { HookListenerState } from '../listener-state'
@@ -13,7 +14,8 @@ export function normalizeOpenCodeFamilyEvent(
   eventName: unknown,
   promptText: string,
   paneKey: string,
-  hookPayload: Record<string, unknown>
+  hookPayload: Record<string, unknown>,
+  previousMainAgent?: AgentMainAgentStatus
 ): ParsedAgentStatusPayload | null {
   const resetsTurn =
     isNewTurnEvent(source, eventName) ||
@@ -50,7 +52,7 @@ export function normalizeOpenCodeFamilyEvent(
       ? continueMainAgentStatus(
           eventName === 'SessionStart'
             ? undefined
-            : state.lastStatusByPaneKey.get(paneKey)?.payload.mainAgent,
+            : (previousMainAgent ?? state.lastStatusByPaneKey.get(paneKey)?.payload.mainAgent),
           {
             state: rootState,
             outcome:

@@ -123,7 +123,20 @@ export type AgentHookRelayEnvelope = {
   version?: string
   /** Pre-normalized status payload from the relay's `normalizeHookPayload`.
    *  Manta's `ingestRemote` validates it again at the SSH trust boundary. */
+  evidenceAgeMs?: number
   payload: ParsedAgentStatusPayload
+}
+
+/** Older clients ignore the null payload; newer clients clear only the selected projection. */
+export type AgentHookUnavailableEnvelope = {
+  source: 'opencode' | 'opencode2'
+  paneKey: string
+  tabId?: string
+  worktreeId?: string
+  launchToken?: string
+  connectionId: null
+  statusUnavailable: true
+  payload: null
 }
 
 /** JSON-RPC notification method name carried over the relay control channel. */

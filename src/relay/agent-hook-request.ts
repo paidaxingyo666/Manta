@@ -25,6 +25,7 @@ export async function handleRelayHookRequest(
       env?: string,
       version?: string
     ) => AgentHookEventPayload | undefined
+    ingestTmuxHook?: (source: AgentHookSource, body: unknown) => Promise<boolean>
     retryScheduler: AgentHookResultRetryScheduler
     transportInterference: ReturnType<typeof createHookTransportInterferenceTracker>
   }
@@ -55,6 +56,11 @@ export async function handleRelayHookRequest(
     }
     const body = await readRequestBody(req)
     const hookBody = mergeAgentHookRequestHeaders(body, req.headers)
+    if (await options.ingestTmuxHook?.(source, hookBody)) {
+      res.writeHead(204)
+      res.end()
+      return
+    }
     const event = normalizeHookPayload(options.state, source, hookBody, options.env, {
       deferCompactOwnershipToClient: true
     })

@@ -103,6 +103,11 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
         const hookBody = mergeAgentHookRequestHeaders(body, req.headers)
         trackEmptyPaneKeyHook(hookBody)
         const aliasedBody = this.normalizeHookBodyPaneKeyAlias(hookBody)
+        if (await this.ingestTmuxHook(source, aliasedBody)) {
+          res.writeHead(204)
+          res.end()
+          return
+        }
         const normalized = this.normalizeLocalHookPayload(source, aliasedBody)
         const statusDisposition = normalized.event
           ? this.getAgentStatusDisposition(normalized.event.paneKey, {
@@ -202,6 +207,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
     // Why: flush the pending debounced write before clearing the map, else a hook <250ms before quit is lost on relaunch.
     this.flushStatusPersistSync()
     this.stopOpenCodeBinderLoop()
+    this.stopTmuxStatus()
     this.rollbackTransportStart()
     this.env = 'production'
     this.onAgentStatus = null

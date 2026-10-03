@@ -1718,6 +1718,8 @@ export class SshRelaySession {
               : undefined,
           // Why: the SSH relay protocol advertises no run-serving capability.
           advertisedAgentStatusCapabilities: AGENT_STATUS_LEGACY_UNADVERTISED_PEER_CAPABILITIES,
+          evidenceAgeMs: envelope.evidenceAgeMs,
+          statusUnavailable: envelope.statusUnavailable,
           payload: envelope.payload
         },
         this.targetId

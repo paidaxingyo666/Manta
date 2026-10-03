@@ -39,9 +39,11 @@ export class RelayAgentHookRuntime {
     this.hookServer = new RelayAgentHookServer({
       endpointDir: endpointDir ?? endpointDirForRelaySocket(sockPath),
       forward: (envelope) => publishAgentHookEnvelope(dispatcher, envelope),
+      forwardUnavailable: (envelope) => publishAgentHookEnvelope(dispatcher, envelope),
       // Why: the PTY handler is the only component that knows which panes still have a client
       // surface, so it — not the client — decides whether a hook post describes a live pane.
-      isPaneSurfaceRetired: (paneKey) => ptyHandler.isPaneSurfaceRetired(paneKey)
+      isPaneSurfaceRetired: (paneKey) => ptyHandler.isPaneSurfaceRetired(paneKey),
+      getTmuxManagedPty: async (paneKey) => ptyHandler.getTmuxManagedPty(paneKey)
     })
   }
 
