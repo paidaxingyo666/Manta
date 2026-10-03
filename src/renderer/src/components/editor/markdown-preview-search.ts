@@ -89,8 +89,13 @@ function findCaseInsensitiveMatchRanges(
 
     const matchEnd = matchStart + normalizedQuery.length
     matches.push({
-      start: normalizedText.originalStartByNormalizedOffset[matchStart] ?? text.length,
-      end: normalizedText.originalEndByNormalizedOffset[matchEnd - 1] ?? text.length
+      start: normalizedText.identityOffsets
+        ? matchStart
+        : (normalizedText.originalStartByNormalizedOffset[matchStart] ?? text.length),
+      end:
+        normalizedText.identityOffsets && matchEnd > 0
+          ? matchEnd
+          : (normalizedText.originalEndByNormalizedOffset[matchEnd - 1] ?? text.length)
     })
     // Why: advance by at least 1 to guarantee forward progress even if a
     // future locale edge-case produces a zero-length normalizedQuery.
@@ -141,9 +146,20 @@ function isWholeWordMatch(text: string, start: number, end: number): boolean {
 
 function buildLocaleLowercaseIndex(text: string): {
   text: string
+  identityOffsets: boolean
   originalStartByNormalizedOffset: number[]
   originalEndByNormalizedOffset: number[]
 } {
+  // ASCII has no contextual casing or multi-unit characters, so every offset stays identical.
+  if (!/[\u0080-\uffff]/.test(text)) {
+    return {
+      text: text.toLocaleLowerCase(),
+      identityOffsets: true,
+      originalStartByNormalizedOffset: [],
+      originalEndByNormalizedOffset: []
+    }
+  }
+
   let normalized = ''
   const originalStartByNormalizedOffset: number[] = []
   const originalEndByNormalizedOffset: number[] = []
@@ -163,7 +179,12 @@ function buildLocaleLowercaseIndex(text: string): {
     originalOffset = originalEnd
   }
 
-  return { text: normalized, originalStartByNormalizedOffset, originalEndByNormalizedOffset }
+  return {
+    text: normalized,
+    identityOffsets: false,
+    originalStartByNormalizedOffset,
+    originalEndByNormalizedOffset
+  }
 }
 
 // Why: react-markdown owns the preview DOM. Injecting <mark> by splitting its
