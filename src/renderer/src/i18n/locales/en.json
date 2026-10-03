@@ -18517,6 +18517,10 @@
     }
   },
   "sourceControl": {
+    "discard": {
+      "restoreStagedVersionDescription": "This will restore the last staged version and discard the deletion. This cannot be undone.",
+      "unstagedChangesDescription": "This will revert the unstaged changes to this file. This cannot be undone."
+    },
     "unlinkedPr": {
       "status": "PR #{{number}} unlinked"
     }

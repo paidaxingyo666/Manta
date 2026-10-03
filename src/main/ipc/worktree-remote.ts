@@ -534,10 +534,6 @@ function getSshWorktreeCreateBaseFetchKey(repo: Repo, base: RemoteTrackingBase):
   return `${repo.connectionId ?? 'ssh'}::${repo.path}::base:${base.remote}:${base.branch}`
 }
 
-function getSshWorktreeCreateRemoteFetchKey(repo: Repo, remote: string): string {
-  return `${repo.connectionId ?? 'ssh'}::${repo.path}::remote:${remote}`
-}
-
 function getSshWorktreeCreateRemoteQueueKey(repo: Repo, remote: string): string {
   return `${repo.connectionId ?? 'ssh'}::${repo.path}::queue:${remote}`
 }
@@ -630,13 +626,17 @@ async function refreshRemoteTrackingBaseForWorktreeCreate(
 async function fetchRemoteForWorktreeCreate(
   provider: SshGitProvider,
   repo: Repo,
-  remote: string
-): Promise<void> {
-  return getOrStartSshWorktreeCreateFetch(
-    getSshWorktreeCreateRemoteFetchKey(repo, remote),
-    getSshWorktreeCreateRemoteQueueKey(repo, remote),
-    () => provider.exec(['fetch', remote], repo.path).then(() => undefined)
-  )
+  baseBranch: string
+): Promise<RemoteTrackingBase> {
+  const branch = normalizeLocalBranchName(baseBranch)
+  const base = {
+    remote: 'origin',
+    branch,
+    ref: `refs/remotes/origin/${branch}`,
+    base: `origin/${branch}`
+  }
+  await refreshRemoteTrackingBaseForWorktreeCreate(provider, repo, base)
+  return base
 }
 
 export function __resetSshWorktreeCreateFetchCacheForTests(): void {
@@ -1630,7 +1630,7 @@ export async function prefetchRemoteWorktreeCreateBase(
   }
 
   // Why: mirrors createRemoteWorktree's legacy local-base fallback so prefetch and create share one process-local SSH fetch cache.
-  await fetchRemoteForWorktreeCreate(provider, repo, 'origin')
+  await fetchRemoteForWorktreeCreate(provider, repo, basePlan.baseBranch)
 }
 
 /** Never rejects: the create may already have succeeded when this settles. */
@@ -1921,9 +1921,13 @@ export async function createRemoteWorktree(
       }
     }
   } else if (!(await hasRemoteWorktreeBaseRef(provider, repo.path, baseBranch))) {
-    // Why: non-remote-tracking bases keep the legacy best-effort fetch; verified PR/MR SHA bases already have the object, so a broad fetch is wasted.
+    // Why: fetch only the missing named base; verified PR/MR SHA bases already have the object.
     try {
-      await fetchRemoteForWorktreeCreate(provider, repo, 'origin')
+      const fetchedBase = await fetchRemoteForWorktreeCreate(provider, repo, baseBranch)
+      if (await hasCommitRefSsh(provider, repo.path, fetchedBase.ref)) {
+        baseBranch = fetchedBase.base
+        remoteTrackingBase = fetchedBase
+      }
     } catch {
       /* best-effort */
     }

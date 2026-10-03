@@ -1,6 +1,6 @@
 import type { AdmissionClass, AdmissionSlotKind, AdmissionWaiter } from './git-admission-state'
 import { CandidateHeap, type Candidate, type WaiterLane } from './git-admission-candidate-heap'
-import type { GitAdmissionTier } from './git-exec-options'
+import type { GitAdmissionTier } from './rpc-contract/git-admission-tier-params'
 
 type SelectedWaiter = {
   waiter: AdmissionWaiter

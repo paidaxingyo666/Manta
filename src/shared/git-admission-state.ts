@@ -1,7 +1,9 @@
-import { availableParallelism } from 'node:os'
-import type { GitAdmissionTier } from './git-exec-options'
+import * as os from 'node:os'
+import type { GitAdmissionTier } from './rpc-contract/git-admission-tier-params'
 
-export const GENERAL_CAP = Math.max(2, Math.min(4, availableParallelism() - 4))
+// Older relay hosts lack availableParallelism; keep their concurrency conservative.
+const parallelism = typeof os.availableParallelism === 'function' ? os.availableParallelism() : 1
+export const GENERAL_CAP = Math.max(2, Math.min(4, parallelism - 4))
 export const NETWORK_CAP = 3
 export const GENERAL_HEADROOM = 2
 export const NETWORK_HEADROOM = 1

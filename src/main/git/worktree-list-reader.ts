@@ -1,3 +1,4 @@
+import { annotateWorktreeLocksFromAdmin } from '../../shared/git-worktree-admin'
 import { stat } from 'node:fs/promises'
 import type { GitWorktreeInfo } from '../../shared/worktree/types'
 import { toWslExecutionSpace } from '../../shared/wsl-paths'
@@ -241,7 +242,11 @@ export async function readWorktreeList(
           )
           // Why: Git <2.31 emits no `prunable`, so probe each linked path for existence instead of trusting
           // stale registrations; a harmless backstop on 2.31–2.35 where parseWorktreeList already set it (#8389).
-          return annotatePrunableByExistence(normalized, repoPath, options)
+          return annotatePrunableByExistence(
+            await annotateWorktreeLocksFromAdmin(repoPath, normalized, options),
+            repoPath,
+            options
+          )
         },
         isUnsupportedWorktreeListZError
       )
@@ -261,8 +266,7 @@ async function annotatePrunableByExistence(
       const index = nextIndex
       nextIndex += 1
       const worktree = worktrees[index]
-      // Git only prunes linked worktrees, never locked ones (a lock shields a missing dir; `locked`
-      // parses only on Git >=2.31). A missing main worktree is handled by the repo-level ENOENT paths.
+      // Git only prunes linked worktrees, never locked ones (a lock shields a missing directory). A missing main worktree is handled by the repo-level ENOENT paths.
       if (
         !worktree ||
         worktree.isMainWorktree ||

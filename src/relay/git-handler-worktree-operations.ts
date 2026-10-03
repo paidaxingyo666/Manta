@@ -1,3 +1,4 @@
+import { annotateWorktreeLocksFromAdmin } from '../shared/git-worktree-admin'
 import * as path from 'node:path'
 import type { RequestContext } from './dispatcher'
 import { expandTilde } from './context'
@@ -155,7 +156,11 @@ export class GitHandlerWorktreeOperations extends GitHandlerOperationContext {
         })
         const normalized = await this.normalizeMainWorktreePath(repoPath, parseWorktreeList(stdout))
         // Why: Git <2.31 emits no `prunable` annotation, so probe each linked worktree's existence instead of trusting stale registrations (issue #8389).
-        return annotatePrunableWorktreesByExistence(normalized)
+        return annotatePrunableWorktreesByExistence(
+          await annotateWorktreeLocksFromAdmin(expandTilde(repoPath), normalized, {
+            signal: context?.signal
+          })
+        )
       },
       isUnsupportedWorktreeListZError
     )
