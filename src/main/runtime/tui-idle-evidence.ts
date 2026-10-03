@@ -274,7 +274,7 @@ function rankTuiIdleEvidence(input: TuiIdleEvaluationInput): TuiIdleVerdict {
     return { kind: 'blocked', reason: blockedReason }
   }
   // Qoder publishes "Ready" before its trust dialog is dismissed; only its composer proves input is live.
-  if (input.agent === 'qoder') {
+  if (input.agent === 'qoder' || input.agent === 'qoder-cn') {
     if (
       hasFreshWorkingFirstPartyStatus(input.firstPartyStatus) ||
       input.record.lastAgentStatus === 'working'

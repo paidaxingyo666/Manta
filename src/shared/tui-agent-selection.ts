@@ -18,6 +18,7 @@ export const TUI_AGENT_AUTO_PICK_ORDER = [
   'muse',
   'dsh',
   'qoder',
+  'qoder-cn',
   'zcode',
   'pi',
   'omp',

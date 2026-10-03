@@ -44,6 +44,7 @@ export const AGENT_FAVICON_ASSETS: Partial<Record<TuiAgent, string>> = {
   trae: traeUrl,
   'prime-agent': primeAgentUrl,
   qoder: qoderUrl,
+  'qoder-cn': qoderUrl,
   gemini: geminiUrl,
   antigravity: antigravityUrl,
   goose: gooseUrl,

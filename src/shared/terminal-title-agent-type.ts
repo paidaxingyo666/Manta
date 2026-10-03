@@ -175,7 +175,7 @@ function computeAgentLabel(title: string): string | null {
     return 'DeepSeek Harness'
   }
   if (isQoderTerminalTitle(title)) {
-    return 'Qoder CLI'
+    return title.includes('Qoder CLI CN') ? 'Qoder CLI CN' : 'Qoder CLI'
   }
   if (isGeminiTerminalTitle(title)) {
     return 'Gemini CLI'
@@ -258,6 +258,8 @@ const TITLE_LABEL_TO_AGENT: Partial<Record<string, TuiAgent>> = {
   OpenClaude: 'openclaude',
   Codex: 'codex',
   'Qoder CLI': 'qoder',
+  'Qoder CLI CN': 'qoder-cn',
+  'Qoder CLI China': 'qoder-cn',
   'Gemini CLI': 'gemini',
   'GitHub Copilot': 'copilot',
   Grok: 'grok',

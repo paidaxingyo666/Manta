@@ -146,6 +146,12 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     promptInjectionMode: 'flag-prompt-interactive',
     preflightTrust: 'qoder'
   },
+  'qoder-cn': {
+    detectCmd: 'qoderclicn',
+    detectCmdAliases: ['qodercn'],
+    promptInjectionMode: 'flag-prompt-interactive',
+    preflightTrust: 'qoder-cn'
+  },
   gemini: {
     detectCmd: 'gemini',
     promptInjectionMode: 'flag-prompt-interactive'

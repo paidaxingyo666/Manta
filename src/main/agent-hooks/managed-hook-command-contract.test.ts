@@ -93,6 +93,34 @@ const buildersByAgent = new Map<string, CommandBuilders>([
     }
   ],
   [
+    'qoder-cn',
+    {
+      local: (path) => [
+        getManagedLifecycleHook(path, {
+          configDirName: '.qoder-cn',
+          scriptBaseName: 'qoder-cn-hook',
+          usesWindowsCompatLauncher: true,
+          windowsHookShell: 'powershell'
+        }).command
+      ],
+      remote: (path) => [getClaudeRemoteCommand(path)]
+    }
+  ],
+  [
+    'qwen-code',
+    {
+      local: (path) => [
+        getManagedLifecycleHook(path, {
+          configDirName: '.qwen',
+          scriptBaseName: 'qwen-code-hook',
+          usesWindowsCompatLauncher: true,
+          windowsHookShell: 'powershell'
+        }).command
+      ],
+      remote: (path) => [getClaudeRemoteCommand(path)]
+    }
+  ],
+  [
     'codebuddy',
     {
       local: (path) => [
@@ -233,7 +261,10 @@ describe('managed hook command contract', () => {
         // Native PowerShell hooks evaluate these variables without Grok's dollar-byte scanner.
         const scannedCommand =
           platform === 'win32' &&
-          (agent === 'qoder' || agent === 'codebuddy') &&
+          (agent === 'qoder' ||
+            agent === 'qoder-cn' ||
+            agent === 'qwen-code' ||
+            agent === 'codebuddy') &&
           command.startsWith('$scriptPath = Join-Path')
             ? command
                 .replaceAll('$LASTEXITCODE', '')

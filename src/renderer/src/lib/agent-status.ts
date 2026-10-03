@@ -111,6 +111,7 @@ const ICONABLE_AGENT_TYPES: Record<TuiAgent, true> = {
   omp: true,
   'prime-agent': true,
   qoder: true,
+  'qoder-cn': true,
   gemini: true,
   antigravity: true,
   aider: true,

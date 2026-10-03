@@ -21,6 +21,7 @@ export const AGENT_KIND_VALUES = [
   'omp',
   'prime-agent',
   'qoder',
+  'qoder-cn',
   'gemini',
   'antigravity',
   'aider',

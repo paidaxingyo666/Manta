@@ -18,6 +18,7 @@ const HEADLESS_ONE_SHOT_MATCHERS: Partial<
   Record<TuiAgent, (tokens: readonly string[]) => boolean>
 > = {
   qoder: isQoderHeadlessCommand,
+  'qoder-cn': isQoderHeadlessCommand,
   claude: isPrintModeHeadlessOneShotCommand,
   codebuddy: isCodebuddyNonInteractiveCommand,
   trae: isPrintModeHeadlessOneShotCommand,

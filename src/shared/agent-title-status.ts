@@ -132,7 +132,8 @@ export function createAgentStatusTracker(
 export function normalizeTerminalTitle(title: string): string {
   const qoderStatus = qoderTitleStatus(title)
   if (qoderStatus) {
-    return `${qoderStatus === 'working' ? '✦' : qoderStatus === 'permission' ? '▲' : '◇'} Qoder CLI`
+    const label = title.includes('Qoder CLI CN') ? 'Qoder CLI CN' : 'Qoder CLI'
+    return `${qoderStatus === 'working' ? '✦' : qoderStatus === 'permission' ? '▲' : '◇'} ${label}`
   }
   if (!title) {
     return title

@@ -163,6 +163,21 @@ export function normalizeProviderEvent(input: {
     case 'devin':
       payload = normalizeDevinEvent(state, eventName, promptText, paneKey, hookPayload)
       break
+    case 'qoder-cn':
+      payload = normalizeCompatibleLifecycleEvent(
+        source,
+        state,
+        eventName,
+        promptText,
+        paneKey,
+        hookPayload
+      )
+      break
+    case 'qwen-code': {
+      const normalized = normalizeClaudeEvent(state, eventName, promptText, paneKey, hookPayload)
+      payload = normalized ? { ...normalized, agentType: 'qwen-code' } : null
+      break
+    }
     case 'qoder':
       payload = normalizeQoderEvent(state, eventName, promptText, paneKey, hookPayload)
       break

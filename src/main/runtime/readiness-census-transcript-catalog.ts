@@ -44,6 +44,7 @@ const RUNTIME_RECORDERS: readonly (readonly [string, Recorder])[] = [
   ['muse-', { agent: 'muse', foregroundProcess: 'muse' }],
   ['omp-', { agent: 'omp', foregroundProcess: 'omp' }],
   ['prime-agent-', { agent: 'prime-agent', foregroundProcess: 'prime-agent' }],
+  ['qoder-cn-', { agent: 'qoder-cn', foregroundProcess: 'qoderclicn' }],
   ['qoder-', { agent: 'qoder', foregroundProcess: 'qodercli' }],
   ['zcode-', { agent: 'zcode', foregroundProcess: 'zcode' }]
 ]

@@ -20,6 +20,7 @@ export const MOBILE_AGENT_ICON_ASSETS: Partial<Record<TuiAgent, ImageSourcePropT
   'prime-agent': require('../../../src/shared/agent-icons/prime-agent.png'),
   codebuddy: require('../../../src/shared/agent-icons/codebuddy.png'),
   qoder: require('../../../src/shared/agent-icons/qoder.png'),
+  'qoder-cn': require('../../../src/shared/agent-icons/qoder-cn.png'),
   gemini: require('../../../src/shared/agent-icons/gemini.png'),
   antigravity: require('../../../src/shared/agent-icons/antigravity.png'),
   goose: require('../../../src/shared/agent-icons/goose.png'),

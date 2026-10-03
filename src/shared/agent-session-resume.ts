@@ -8,6 +8,8 @@ export const RESUMABLE_TUI_AGENTS = [
   'codebuddy',
   'codex',
   'qoder',
+  'qoder-cn',
+  'qwen-code',
   'gemini',
   'antigravity',
   'opencode',
@@ -197,6 +199,8 @@ export function extractAgentProviderSession(
     // Native-chat agents: also capture the hook's authoritative transcript_path,
     // since recent Claude Code names the transcript file with a UUID that differs
     // from the hook session_id (so the id-based glob no longer finds it).
+    case 'qoder-cn':
+    case 'qwen-code':
     case 'qoder':
     case 'codebuddy':
     case 'claude':
@@ -291,6 +295,10 @@ export function getAgentResumeArgv(
       return providerSession.key === 'conversation_id' ? ['cursor-agent', '--resume', id] : null
     case 'codex':
       return providerSession.key === 'session_id' ? ['codex', 'resume', id] : null
+    case 'qoder-cn':
+      return providerSession.key === 'session_id' ? ['qoderclicn', '--resume', id] : null
+    case 'qwen-code':
+      return providerSession.key === 'session_id' ? ['qwen', '--resume', id] : null
     case 'qoder':
       return providerSession.key === 'session_id' ? ['qodercli', '--resume', id] : null
     case 'gemini':
