@@ -12,7 +12,7 @@ describe('CI dependency download caches', () => {
     expect(action.inputs['cache-dependency-path'].default).toBe('pnpm-lock.yaml')
     for (const step of action.runs.steps.filter((step) => step.uses === 'actions/setup-node@v6')) {
       expect(step.with.cache).toBe(
-        "${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }}"
+        "${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && inputs.cache-pnpm-store-lookup-only != 'true' && 'pnpm' || '' }}"
       )
       expect(step.with['cache-dependency-path']).toBe('${{ inputs.cache-dependency-path }}')
       expect(step.with['package-manager-cache']).toBe(false)
@@ -37,10 +37,12 @@ describe('CI dependency download caches', () => {
     const restore = action.runs.steps.find(
       (step) => step.name === 'Restore pnpm download store without saving'
     )
-    expect(resolve.if).toBe(
+    expect(restore.if).toBe(
       "github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' && !((runner.os == 'Linux' || runner.os == 'macOS') && (runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml') && (runner.os != 'Windows' || !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) && !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))"
     )
-    expect(restore.if).toBe(resolve.if)
+    expect(resolve.if).toBe(
+      `${restore.if} || (github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && inputs.cache-pnpm-store-lookup-only == 'true')`
+    )
     expect(restore.uses).toBe('actions/cache/restore@v5')
     expect(restore.with.path).toBe('${{ steps.pnpm-store.outputs.path }}')
     expect(restore.with.key).toBe(
@@ -65,6 +67,27 @@ describe('CI dependency download caches', () => {
       'pnpm-lock.yaml',
       'mobile/pnpm-lock.yaml'
     ])
+  })
+
+  it('keeps producer lookup optional and compatible with the existing store archive', () => {
+    const lookup = action.runs.steps.find((step) => step.id === 'pnpm-store-lookup')
+    const restore = action.runs.steps.find((step) => step.id === 'pnpm-store-restore')
+    expect(action.inputs['cache-pnpm-store-lookup-only'].default).toBe('false')
+    expect(lookup.uses).toBe('actions/cache@v5')
+    expect(lookup.if).toBe(
+      "github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && inputs.cache-pnpm-store-lookup-only == 'true'"
+    )
+    expect(lookup.with).toEqual({
+      path: '${{ env.ORCA_PNPM_STORE_CACHE_PATH }}',
+      key: restore.with.key,
+      'lookup-only': true
+    })
+    expect(action.runs.steps.indexOf(lookup)).toBeLessThan(
+      action.runs.steps.findIndex((step) => step.name === 'Install dependencies')
+    )
+    expect(action.outputs['pnpm-store-cache-hit'].value).toBe(
+      '${{ steps.pnpm-store-lookup.outputs.cache-hit || steps.pnpm-store-restore.outputs.cache-hit || steps.requested-node.outputs.cache-hit || steps.default-node.outputs.cache-hit }}'
+    )
   })
 
   it.each([
@@ -136,15 +159,53 @@ describe('CI dependency download caches', () => {
     ['Linux x64 mixed PR', 'pull_request', 'Linux', 'X64', true, true, ''],
     ['Linux ARM64 mixed PR', 'pull_request', 'Linux', 'ARM64', true, true, ''],
     ['Windows x64 mixed push', 'push', 'Windows', 'X64', true, false, 'pnpm'],
-    ['Windows x64 mixed manual run', 'workflow_dispatch', 'Windows', 'X64', true, false, 'pnpm']
+    ['Windows x64 mixed manual run', 'workflow_dispatch', 'Windows', 'X64', true, false, 'pnpm'],
+    ['Windows x64 lookup producer', 'push', 'Windows', 'X64', false, false, '', 'true', 'true'],
+    [
+      'Windows ARM64 lookup producer',
+      'schedule',
+      'Windows',
+      'ARM64',
+      false,
+      false,
+      '',
+      'true',
+      'true'
+    ],
+    ['macOS ARM64 lookup producer', 'push', 'macOS', 'ARM64', false, false, '', 'true', 'true'],
+    [
+      'Linux x64 lookup producer',
+      'workflow_dispatch',
+      'Linux',
+      'X64',
+      false,
+      false,
+      '',
+      'true',
+      'true'
+    ],
+    ['Opted-out lookup producer', 'push', 'Windows', 'ARM64', false, false, '', 'false', 'true'],
+    [
+      'macOS root PR lookup flag',
+      'pull_request',
+      'macOS',
+      'ARM64',
+      false,
+      false,
+      '',
+      'true',
+      'true'
+    ],
+    ['macOS mixed PR lookup flag', 'pull_request', 'macOS', 'ARM64', true, true, '', 'true', 'true']
   ])(
     '%s keeps its scoped store policy',
-    (_name, event, os, arch, mixed, restore, cache, storeCache = 'true') => {
+    (_name, event, os, arch, mixed, restore, cache, storeCache = 'true', lookupOnly = 'false') => {
       const context = {
         github: { event_name: event },
         runner: { os, arch },
         inputs: {
           'cache-pnpm-store': storeCache,
+          'cache-pnpm-store-lookup-only': lookupOnly,
           'cache-dependency-path':
             typeof mixed === 'string'
               ? mixed
@@ -157,6 +218,10 @@ describe('CI dependency download caches', () => {
       const evaluate = (expression) =>
         runInNewContext(
           expression
+            .replaceAll(
+              'inputs.cache-pnpm-store-lookup-only',
+              'inputs["cache-pnpm-store-lookup-only"]'
+            )
             .replaceAll('inputs.cache-dependency-path', 'inputs["cache-dependency-path"]')
             .replaceAll('inputs.cache-pnpm-store', 'inputs["cache-pnpm-store"]'),
           context
@@ -165,8 +230,17 @@ describe('CI dependency download caches', () => {
         (step) =>
           step.id === 'pnpm-store' || step.name === 'Restore pnpm download store without saving'
       )) {
-        expect(evaluate(step.if)).toBe(restore)
+        expect(evaluate(step.if)).toBe(
+          restore ||
+            (step.id === 'pnpm-store' &&
+              event !== 'pull_request' &&
+              storeCache !== 'false' &&
+              lookupOnly === 'true')
+        )
       }
+      expect(evaluate(action.runs.steps.find((step) => step.id === 'pnpm-store-lookup').if)).toBe(
+        event !== 'pull_request' && storeCache !== 'false' && lookupOnly === 'true'
+      )
       for (const step of action.runs.steps.filter(
         (step) => step.uses === 'actions/setup-node@v6'
       )) {
@@ -191,6 +265,14 @@ describe('CI dependency download caches', () => {
     expect(persistence.with['cache-pnpm-store']).toBe("${{ runner.os != 'Windows' }}")
     expect(ssh.with['cache-pnpm-store']).toBe('false')
     expect(warmer.with['cache-pnpm-store']).toBeUndefined()
+    expect(warmer.with['cache-pnpm-store-lookup-only']).toBe('true')
+    expect(persistence.with['cache-pnpm-store-lookup-only']).toBe('true')
+    for (const name of ['warm', 'warm-linux-arm']) {
+      const install = workflow('ci-cache-warmup').jobs[name].steps.find((step) =>
+        step.uses?.includes('install-node-dependencies')
+      )
+      expect(install.with['cache-pnpm-store-lookup-only']).toBe('true')
+    }
   })
 
   it('restores Windows packaging downloads from the release cache without a PR upload', () => {

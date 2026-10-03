@@ -212,6 +212,69 @@ other architectures, verification/native caches, main/manual store writers and
 release installation policies retain their existing behavior. No periodic job
 or cache is added.
 
+## October 2 store producers: keep caches without downloading hits
+
+The optional `cache-pnpm-store-lookup-only` installer input uses
+[`actions/cache` lookup-only](https://github.com/actions/cache#inputs) on non-PR
+runs. An exact hit refreshes cache access without extracting the archive; a miss
+still installs from the registry and publishes the populated store at successful
+job completion. The default remains the existing `setup-node` cache behavior.
+The four Linux/Windows dependency warmers and Linux/macOS persistence producers
+opt in. Windows persistence retains its existing store opt-out, and PR restore
+policies are unchanged. This adds no recurring job or extra cache family.
+
+A [tiny framework control](https://github.com/stablyai/orca/actions/runs/37082688033)
+proved that lookup left the payload absent, refreshed the existing cache's access
+time, and published a miss that a fresh job restored. A
+[nested composite control](https://github.com/stablyai/orca/actions/runs/37084946789)
+then saved and restored a fresh payload using the actual environment-path pattern.
+The installer exports its resolved store path through `GITHUB_ENV`: post-job saves
+cannot resolve the composite's internal step outputs. The primary key is captured
+by the cache action before cleanup. Paths, architecture and lockfile keys match
+`setup-node`, so existing default-branch archives remain reusable.
+
+The [six-platform installer screen](https://github.com/stablyai/orca/actions/runs/37084946789),
+[Linux repeats](https://github.com/stablyai/orca/actions/runs/37085164277), and
+[corrected Windows repeats](https://github.com/stablyai/orca/actions/runs/37085248976)
+compared the complete shared installer, including toolchain setup, cache actions,
+policy verification, frozen installation and native probes where requested.
+Each treatment reset dependencies, the store, pnpm metadata and the Windows
+registry build directory. Treatment order reversed across architectures and
+repeats. Every qualified pair required real main store cache hits, matching
+policy/installed-lockfile digests and Node/pnpm versions, plus exact native-cache
+hits on Linux and Windows. The initial Windows x64 screen stopped before timing
+because its benchmark guard rejected the standard `D:\.pnpm-store` path; that
+unqualified job is excluded.
+
+| Platform / sample        | Restore + installer | Lookup + installer | Paired saving |
+| ------------------------ | ------------------: | -----------------: | ------------: |
+| macOS ARM64              |             37.785s |            20.024s |       17.761s |
+| macOS x64                |             75.610s |            46.638s |       28.972s |
+| Linux ARM64 / 1          |             10.005s |             7.242s |        2.763s |
+| Linux ARM64 / 2          |              8.817s |             6.672s |        2.145s |
+| Linux ARM64 / 3          |              8.800s |             6.581s |        2.219s |
+| Linux x64 / 1            |             12.309s |             9.735s |        2.574s |
+| Linux x64 / 2            |             10.131s |             8.690s |        1.441s |
+| Linux x64 / 3            |             13.741s |             9.485s |        4.256s |
+| Windows ARM64 / repeat 1 |            145.818s |            78.729s |       67.089s |
+| Windows ARM64 / repeat 2 |            152.730s |           106.475s |       46.255s |
+| Windows ARM64 / screen   |            294.092s |           193.957s |      100.135s |
+| Windows x64 / 1          |             30.936s |            20.256s |       10.680s |
+| Windows x64 / 2          |             31.021s |            20.098s |       10.923s |
+
+All 13 qualified pairs improved. Median paired savings were 2.574 seconds on
+Linux x64, 2.219 on Linux ARM64, 10.802 on Windows x64 and 67.089 on Windows
+ARM64. Each macOS architecture had one pair; its 28.972 / 17.761 second savings
+are a screen, supported by the earlier three-pair root-store comparisons.
+
+All pairs used pnpm 12.8.1. Node was 24.21.0 on Linux and Windows, 24.19.0 on
+macOS Intel and 24.20.0 on macOS ARM. Source dependency policies were frozen for
+this screen; later main dependency changes do not extend these measurements.
+Timing excludes checkout, initial service/bootstrap use, wrapper compilation,
+resets, result validation, post-job saves and queues. These are installation
+measurements, not whole-workflow or billing savings. Cold publication is verified
+separately by the small controls; no large synthetic store cache was uploaded.
+
 ## October 1 Windows and dependency cache follow-up
 
 [PR #24355](https://github.com/stablyai/orca/pull/24355) merged at `197ea3a3`.

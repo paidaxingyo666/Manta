@@ -76,6 +76,7 @@ jobs:
           native-runtime: node
           node-version: '24'
           cache-electron-package: 'true'
+          cache-pnpm-store-lookup-only: 'true'
 
       - uses: ./.github/actions/prepare-headless-compiler
         with:
@@ -113,6 +114,7 @@ jobs:
           native-runtime: node
           node-version: '24'
           cache-electron-package: 'true'
+          cache-pnpm-store-lookup-only: 'true'
       - name: Populate shared Electron archive
         run: node config/scripts/install-electron-package-binary.mjs
       - name: Verify native cache is usable
@@ -134,6 +136,7 @@ jobs:
       - uses: ./.github/actions/install-node-dependencies
         with:
           native-runtime: node
+          cache-pnpm-store-lookup-only: 'true'
       - name: Verify native cache is usable
         run: node config/scripts/ensure-native-runtime.mjs --check-only
 

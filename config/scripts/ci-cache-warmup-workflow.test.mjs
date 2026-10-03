@@ -42,6 +42,7 @@ it('populates shared Electron archives on both Linux architectures without chang
     )
     expect(install.with['native-runtime']).toBe('node')
     expect(install.with['cache-electron-package']).toBe('true')
+    expect(install.with['cache-pnpm-store-lookup-only']).toBe('true')
     const populate = steps.find((step) => step.name === 'Populate shared Electron archive')
     expect(populate.run).toBe('node config/scripts/install-electron-package-binary.mjs')
     expect(steps.indexOf(populate)).toBeGreaterThan(steps.indexOf(install))
@@ -97,6 +98,9 @@ it('warms and probes both Windows images with the persistence job runtime', () =
   const install = job.steps.find(
     (step) => step.uses === './.github/actions/install-node-dependencies'
   )
-  expect(install.with).toEqual({ 'native-runtime': 'node' })
+  expect(install.with).toEqual({
+    'native-runtime': 'node',
+    'cache-pnpm-store-lookup-only': 'true'
+  })
   expect(job.steps.at(-1).run).toBe('node config/scripts/ensure-native-runtime.mjs --check-only')
 })

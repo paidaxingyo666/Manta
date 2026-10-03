@@ -290,7 +290,7 @@ describe('PR workflow parallelism', () => {
     expect(steps[pnpmIndex].with.version).toBeUndefined()
     expect(steps[pnpmIndex].with.install).toBe(false)
     const saveOutsidePrs =
-      "${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }}"
+      "${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && inputs.cache-pnpm-store-lookup-only != 'true' && 'pnpm' || '' }}"
     expect(steps[nodeIndex].with.cache).toBe(saveOutsidePrs)
     expect(steps[nodeIndex].if).toBe("inputs.node-version == ''")
     expect(steps[requestedNodeIndex].if).toBe("inputs.node-version != ''")

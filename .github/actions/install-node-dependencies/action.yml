@@ -6,6 +6,10 @@ inputs:
     description: Restore or save the pnpm download store; verification and native caches are independent.
     required: false
     default: 'true'
+  cache-pnpm-store-lookup-only:
+    description: On non-PR producers, refresh existing stores without downloading and save stores on a miss.
+    required: false
+    default: 'false'
   cache-pnpm-verification:
     description: Restore pnpm's policy-checked lockfile verification record.
     required: false
@@ -32,6 +36,9 @@ inputs:
     default: 'false'
 
 outputs:
+  pnpm-store-cache-hit:
+    description: Whether the requested download store matched an existing cache.
+    value: ${{ steps.pnpm-store-lookup.outputs.cache-hit || steps.pnpm-store-restore.outputs.cache-hit || steps.requested-node.outputs.cache-hit || steps.default-node.outputs.cache-hit }}
   verification-cache-hit:
     description: Whether pnpm's verification record was restored.
     value: ${{ steps.verification-cache.outputs.cache-hit }}
@@ -73,7 +80,7 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version-file: package.json
-        cache: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }}
+        cache: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && inputs.cache-pnpm-store-lookup-only != 'true' && 'pnpm' || '' }}
         cache-dependency-path: ${{ inputs.cache-dependency-path }}
         package-manager-cache: false
 
@@ -83,7 +90,7 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
-        cache: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && 'pnpm' || '' }}
+        cache: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' && inputs.cache-pnpm-store-lookup-only != 'true' && 'pnpm' || '' }}
         cache-dependency-path: ${{ inputs.cache-dependency-path }}
         package-manager-cache: false
 
@@ -95,20 +102,27 @@ runs:
         !((runner.os == 'Linux' || runner.os == 'macOS') && (runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml') &&
         (runner.os != 'Windows' ||
         !(runner.arch == 'X64' && contains(inputs.cache-dependency-path, 'mobile/pnpm-lock.yaml')) &&
-        !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml'))
+        !((runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml')) ||
+        (github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' &&
+        inputs.cache-pnpm-store-lookup-only == 'true')
       shell: bash
       env:
         LOCKFILE_HASH: ${{ hashFiles(inputs.cache-dependency-path) }}
+        STORE_LOOKUP_ONLY: ${{ github.event_name != 'pull_request' && inputs.cache-pnpm-store-lookup-only == 'true' }}
       run: |
         test -n "$LOCKFILE_HASH"
         cache_path="$(pnpm store path --silent)"
         test -n "$cache_path"
         printf 'path=%s\n' "$cache_path" >> "$GITHUB_OUTPUT"
         printf 'arch=%s\n' "$(node -p 'require("node:os").arch()')" >> "$GITHUB_OUTPUT"
+        if [ "$STORE_LOOKUP_ONLY" = 'true' ]; then
+          printf 'ORCA_PNPM_STORE_CACHE_PATH=%s\n' "$cache_path" >> "$GITHUB_ENV"
+        fi
 
     # Match setup-node's key and path so existing default-branch stores remain reusable.
     # Direct downloads beat store restoration for the measured Linux, macOS and Windows installs.
     - name: Restore pnpm download store without saving
+      id: pnpm-store-restore
       if: >-
         github.event_name == 'pull_request' && inputs.cache-pnpm-store != 'false' &&
         !((runner.os == 'Linux' || runner.os == 'macOS') && (runner.arch == 'X64' || runner.arch == 'ARM64') && inputs.cache-dependency-path == 'pnpm-lock.yaml') &&
@@ -119,6 +133,19 @@ runs:
       with:
         path: ${{ steps.pnpm-store.outputs.path }}
         key: node-cache-${{ runner.os }}-${{ steps.pnpm-store.outputs.arch }}-pnpm-${{ hashFiles(inputs.cache-dependency-path) }}
+
+    # Producers can refresh access and publish misses without downloading existing archives.
+    - name: Keep pnpm download store without restoring
+      id: pnpm-store-lookup
+      if: >-
+        github.event_name != 'pull_request' && inputs.cache-pnpm-store != 'false' &&
+        inputs.cache-pnpm-store-lookup-only == 'true'
+      uses: actions/cache@v5
+      with:
+        # Post-job saves cannot resolve the composite's internal step outputs.
+        path: ${{ env.ORCA_PNPM_STORE_CACHE_PATH }}
+        key: node-cache-${{ runner.os }}-${{ steps.pnpm-store.outputs.arch }}-pnpm-${{ hashFiles(inputs.cache-dependency-path) }}
+        lookup-only: true
 
     - name: Restore pnpm verification record
       id: verification-cache
