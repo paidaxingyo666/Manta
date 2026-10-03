@@ -5319,7 +5319,12 @@
           "86f0ae1257": "Delete Workspaces"
         },
         "DeleteWorktreeDirtyChangeHint": {
-          "8e2994ce28": "Deleting this workspace permanently removes these changes from disk."
+          "8e2994ce28": "Deleting this workspace permanently removes these changes from disk.",
+          "showLoadedPaths": "Show loaded paths",
+          "loadedPathsNotice": "Loaded paths may be incomplete or out of date.",
+          "loadedChangedPaths": "Loaded changed paths",
+          "unresolvedConflict": "Unresolved conflict",
+          "moreLoadedPaths": "and {{value0}} more loaded paths"
         },
         "DeleteWorktreeLineageNotice": {
           "ad407c2d55": "more",

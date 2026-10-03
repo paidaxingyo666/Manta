@@ -5099,7 +5099,12 @@
           "86f0ae1257": "ワークスペースの削除"
         },
         "DeleteWorktreeDirtyChangeHint": {
-          "8e2994ce28": "このワークスペースを削除すると、これらの変更がディスクから完全に削除されます。"
+          "8e2994ce28": "このワークスペースを削除すると、これらの変更がディスクから完全に削除されます。",
+          "showLoadedPaths": "読み込まれたパスを表示",
+          "loadedPathsNotice": "読み込まれたパスは不完全な場合や古い場合があります。",
+          "loadedChangedPaths": "読み込まれた変更済みパス",
+          "unresolvedConflict": "未解決の競合",
+          "moreLoadedPaths": "ほかに読み込まれたパスが{{value0}}件"
         },
         "DeleteWorktreeLineageNotice": {
           "ad407c2d55": "件以上",

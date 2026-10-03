@@ -4354,7 +4354,12 @@
           "86f0ae1257": "Eliminar espacios de trabajo"
         },
         "DeleteWorktreeDirtyChangeHint": {
-          "8e2994ce28": "Al eliminar este espacio de trabajo de forma permanente, estos cambios se eliminan del disco."
+          "8e2994ce28": "Al eliminar este espacio de trabajo de forma permanente, estos cambios se eliminan del disco.",
+          "showLoadedPaths": "Mostrar rutas cargadas",
+          "loadedPathsNotice": "Las rutas cargadas pueden estar incompletas o desactualizadas.",
+          "loadedChangedPaths": "Rutas modificadas cargadas",
+          "unresolvedConflict": "Conflicto sin resolver",
+          "moreLoadedPaths": "y {{value0}} rutas cargadas más"
         },
         "DeleteWorktreeLineageNotice": {
           "ad407c2d55": "más",

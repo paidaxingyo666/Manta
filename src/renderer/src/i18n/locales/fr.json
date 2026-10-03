@@ -5236,7 +5236,12 @@
           "86f0ae1257": "Supprimer les espaces de travail"
         },
         "DeleteWorktreeDirtyChangeHint": {
-          "8e2994ce28": "Supprimer cet espace de travail efface définitivement ces modifications du disque."
+          "8e2994ce28": "Supprimer cet espace de travail efface définitivement ces modifications du disque.",
+          "showLoadedPaths": "Afficher les chemins chargés",
+          "loadedPathsNotice": "Les chemins chargés peuvent être incomplets ou obsolètes.",
+          "loadedChangedPaths": "Chemins modifiés chargés",
+          "unresolvedConflict": "Conflit non résolu",
+          "moreLoadedPaths": "et {{value0}} autres chemins chargés"
         },
         "DeleteWorktreeLineageNotice": {
           "ad407c2d55": "de plus",
