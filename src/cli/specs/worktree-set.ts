@@ -5,7 +5,7 @@ export const WORKTREE_SET_COMMAND_SPEC: CommandSpec = {
   path: ['worktree', 'set'],
   summary: 'Update Manta metadata for a worktree',
   usage:
-    'manta worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--pr <number|null>] [--linear-issue <identifier-or-url|null>] [--gitlab-issue <number-or-url|null>] [--gitlab-mr <number-or-url|null>] [--comment <text>] [--workspace-status <id>] [--parent-worktree <selector>|--no-parent] [--json]',
+    'manta worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--pr <number|null>] [--linear-issue <identifier-or-url|null>] [--gitlab-issue <number-or-url|null>] [--gitlab-mr <number-or-url|null>] [--comment <text>] [--workspace-status <id>] [--unread|--read] [--parent-worktree <selector>|--no-parent] [--json]',
   allowedFlags: [
     ...GLOBAL_FLAGS,
     'worktree',
@@ -17,6 +17,8 @@ export const WORKTREE_SET_COMMAND_SPEC: CommandSpec = {
     'gitlab-mr',
     'comment',
     'workspace-status',
+    'unread',
+    'read',
     'parent-worktree',
     'no-parent'
   ],
@@ -28,6 +30,7 @@ export const WORKTREE_SET_COMMAND_SPEC: CommandSpec = {
   ],
   examples: [
     'manta worktree set --worktree active --linear-issue STA-335 --json',
-    'manta worktree set --worktree active --linear-issue null --json'
+    'manta worktree set --worktree active --linear-issue null --json',
+    'manta worktree set --worktree active --workspace-status in-review --unread --json'
   ]
 }

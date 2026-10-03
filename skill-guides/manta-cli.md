@@ -87,6 +87,7 @@ MANTA worktree create --name independent-task --no-parent --json
 MANTA worktree set --worktree id:<repoId>::<worktreePath> --display-name "My Task" --json
 MANTA worktree set --worktree active --comment "reproduced bug; testing fix" --json
 MANTA worktree set --worktree active --workspace-status in-review --json
+MANTA worktree set --worktree active --unread --json
 MANTA worktree create --repo id:<repoId> --name review-task --pr 123 --json
 MANTA worktree set --worktree active --gitlab-issue '#42' --gitlab-mr '!77' --json
 MANTA worktree set --worktree active --pr null --gitlab-mr null --json
@@ -138,7 +139,7 @@ MANTA worktree set --worktree active --comment "fix implemented; running integra
 
 Update after a repro, fix, validation, handoff, or blocker. Keep it short and current. A failed comment update is not an error to surface unless the user asked for Manta state.
 
-Card status uses `--workspace-status <id>`; defaults are `todo`, `in-progress`, `in-review`, `completed`.
+Card status uses `--workspace-status <id>`; defaults are `todo`, `in-progress`, `in-review`, `completed`. `--unread` puts the workspace's unread dot in the sidebar to ask for a person's attention; `--read` clears it.
 
 Issue/review links: `--pr` writes the GitHub pull request number; `--gitlab-issue` and
 `--gitlab-mr` write separate GitLab numbers and accept `#42` / `!77` respectively.

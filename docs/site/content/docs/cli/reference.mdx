@@ -97,10 +97,13 @@ manta worktree show --worktree active --json
 manta worktree create --repo id:<repoId> --name fix-login --json
 manta worktree create --name child-task --agent codex --prompt "Investigate the flaky login test" --json
 manta worktree set --worktree active --comment "reproduced failure; testing token refresh fix" --json
+manta worktree set --worktree active --workspace-status in-review --unread --json
 manta worktree rm --worktree id:<worktreeId> --force --json
 ```
 
 When `worktree create` runs from inside a Manta-managed worktree, Manta records the new worktree as a child when it can infer the relationship. Pass `--parent-worktree active` to be explicit, or `--no-parent` when the new work is independent.
+
+`worktree set --unread` puts the unread dot on the workspace in the sidebar, the same one Manta shows when an agent finishes; `--read` clears it.
 
 Agent startup flags:
 
