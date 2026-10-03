@@ -14,7 +14,7 @@ describe('os-opened markdown wiring', () => {
 
   it('captures argv before the serve-duplicate early return', () => {
     const captureIndex = index.indexOf(
-      'state.osOpenedMarkdownFiles.capture(argv, publishOsOpenedMarkdownFiles)'
+      'state.osOpenedDocuments.capture(argv, publishOsOpenedDocuments)'
     )
     const serveGuardIndex = index.indexOf('if (!shouldActivateDesktopForSecondInstance(argv)) {')
 
@@ -37,21 +37,21 @@ describe('os-opened markdown wiring', () => {
   })
 
   it('captures the cold-start argv and lets the renderer pull it after mount', () => {
-    expect(index).toContain('state.osOpenedMarkdownFiles.capture(process.argv)')
+    expect(index).toContain('state.osOpenedDocuments.capture(process.argv)')
     expect(bootstrap).toContain("ipcMain.handle('ui:consumePendingMarkdownFileOpens'")
   })
 
   // Why: `webContents.send` to a renderer that has not attached the listener is dropped with no
   // error, so publishing on "a window exists" alone would consume the queue into a void.
   it('only pushes once the renderer has proven its listener is attached', () => {
-    expect(index).toContain('!state.markdownFileOpenListenerReady')
-    expect(bootstrap).toContain('state.markdownFileOpenListenerReady = true')
+    expect(index).toContain('!state.osDocumentOpenListenerReady')
+    expect(bootstrap).toContain('state.osDocumentOpenListenerReady = true')
     // A reload drops the listener; the fresh renderer re-proves itself by pulling again.
-    expect(controller).toContain('state.markdownFileOpenListenerReady = false')
+    expect(controller).toContain('state.osDocumentOpenListenerReady = false')
   })
 
   it('restores an undelivered batch on both the push and the pull path', () => {
-    expect(index).toContain('state.osOpenedMarkdownFiles.restore(filePaths)')
-    expect(bootstrap).toContain('state.osOpenedMarkdownFiles.restore(filePaths)')
+    expect(index).toContain('state.osOpenedDocuments.restore(filePaths)')
+    expect(bootstrap).toContain('state.osOpenedDocuments.restore(filePaths)')
   })
 })

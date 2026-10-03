@@ -1,14 +1,19 @@
 import { stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { MarkdownDocument } from '../../shared/filesystem-entry-types'
+import type { FileDocument } from '../../shared/filesystem-entry-types'
 import { authorizeExternalPath } from '../ipc/filesystem-auth'
 import { ensureDefaultFloatingWorkspacePath } from '../ipc/floating-workspace-directory'
-import { isMarkdownDocumentName, markdownDocumentFromFilePath } from '../ipc/markdown-documents'
+import { fileDocumentFromFilePath, isMarkdownDocumentName } from '../ipc/markdown-documents'
+
+export function isOsOpenedDocumentName(name: string): boolean {
+  const extension = path.extname(name).toLowerCase()
+  return isMarkdownDocumentName(name) || extension === '.csv' || extension === '.tsv'
+}
 
 // Why: a shell can only ever hand over the files the user selected; anything past this is a
 // runaway argv, and buffering it unbounded would pin the paths for the whole session.
-export const MAX_PENDING_OS_OPENED_MARKDOWN_FILES = 32
+export const MAX_PENDING_OS_OPENED_DOCUMENTS = 32
 
 /**
  * Resolves one argv entry to a local absolute path, or null if it is not one.
@@ -35,13 +40,13 @@ function localPathFromArgument(argument: string, platform: NodeJS.Platform): str
 }
 
 /**
- * Absolute markdown paths an OS "Open With" put on a launch or second-instance argv.
+ * Absolute document paths an OS "Open With" put on a launch or second-instance argv.
  *
- * Why no executable/asar/dev-entry filtering: none of those argv entries end in a markdown
+ * Why no executable/asar/dev-entry filtering: none of those argv entries end in a supported
  * extension, so the extension check already excludes them. Relative entries are dropped
  * because the shell always passes absolute paths and `cwd` is meaningless for a second instance.
  */
-export function markdownPathsFromArguments(
+export function documentPathsFromArguments(
   argv: readonly string[],
   platform: NodeJS.Platform = process.platform
 ): string[] {
@@ -53,7 +58,7 @@ export function markdownPathsFromArguments(
       continue
     }
     const argument = localPathFromArgument(rawArgument, platform)
-    if (!argument || !isMarkdownDocumentName(argument)) {
+    if (!argument || !isOsOpenedDocumentName(argument)) {
       continue
     }
     const normalized = pathApi.normalize(argument)
@@ -70,23 +75,23 @@ export function markdownPathsFromArguments(
 }
 
 /**
- * Buffers markdown paths the OS handed us until a renderer can receive them.
+ * Buffers document paths the OS handed us until a renderer can receive them.
  *
  * Mirrors SkillShareDeepLinkState: main pushes when a window is already live, and the
  * renderer pulls the same buffer when its listener attaches, so a cold-start "Open With"
  * that lands before mount is not dropped.
  */
-export class OsOpenedMarkdownFileState {
+export class OsOpenedDocumentState {
   private pending: string[] = []
 
-  /** Returns true when argv carried at least one markdown path. */
+  /** Returns true when argv carried at least one supported document path. */
   capture(argv: readonly string[], publish?: () => void): boolean {
-    return this.add(markdownPathsFromArguments(argv), publish)
+    return this.add(documentPathsFromArguments(argv), publish)
   }
 
-  /** Returns true when at least one path was a markdown document. */
+  /** Returns true when at least one path was a supported document. */
   captureFilePaths(filePaths: readonly string[], publish?: () => void): boolean {
-    return this.add(markdownPathsFromArguments(filePaths), publish)
+    return this.add(documentPathsFromArguments(filePaths), publish)
   }
 
   consume(): string[] {
@@ -97,7 +102,7 @@ export class OsOpenedMarkdownFileState {
 
   /** Puts an undelivered batch back at the front so the next renderer still receives it. */
   restore(filePaths: readonly string[]): void {
-    this.pending = [...filePaths, ...this.pending].slice(0, MAX_PENDING_OS_OPENED_MARKDOWN_FILES)
+    this.pending = [...filePaths, ...this.pending].slice(0, MAX_PENDING_OS_OPENED_DOCUMENTS)
   }
 
   private add(filePaths: readonly string[], publish?: () => void): boolean {
@@ -107,7 +112,7 @@ export class OsOpenedMarkdownFileState {
     const merged = [...this.pending]
     let index = 0
     for (; index < filePaths.length; index++) {
-      if (merged.length >= MAX_PENDING_OS_OPENED_MARKDOWN_FILES) {
+      if (merged.length >= MAX_PENDING_OS_OPENED_DOCUMENTS) {
         break
       }
       const filePath = filePaths[index]!
@@ -119,30 +124,34 @@ export class OsOpenedMarkdownFileState {
       // Why logged: the cap drops the tail of an oversized selection, and a file the
       // user explicitly asked to open must not vanish without leaving a trace.
       console.warn(
-        `[os-open] Dropped ${filePaths.length - index} of ${filePaths.length} OS-opened markdown files; the pending queue is capped at ${MAX_PENDING_OS_OPENED_MARKDOWN_FILES}.`
+        `[os-open] Dropped ${filePaths.length - index} of ${filePaths.length} OS-opened documents; the pending queue is capped at ${MAX_PENDING_OS_OPENED_DOCUMENTS}.`
       )
     }
-    this.pending = merged.slice(0, MAX_PENDING_OS_OPENED_MARKDOWN_FILES)
+    this.pending = merged.slice(0, MAX_PENDING_OS_OPENED_DOCUMENTS)
     publish?.()
     return true
   }
 }
 
 /**
- * Turns OS-handed paths into the same `MarkdownDocument` shape the floating workspace's own
+ * Turns OS-handed paths into the same document shape the floating workspace's own
  * file picker produces, authorizing each one for the renderer's later read.
  */
-export async function resolveOpenedMarkdownDocuments(
+export async function resolveOsOpenedDocuments(
   filePaths: readonly string[]
-): Promise<MarkdownDocument[]> {
-  if (filePaths.length === 0) {
+): Promise<FileDocument[]> {
+  const supportedPaths = documentPathsFromArguments(filePaths).slice(
+    0,
+    MAX_PENDING_OS_OPENED_DOCUMENTS
+  )
+  if (supportedPaths.length === 0) {
     return []
   }
   const floatingRoot = await ensureDefaultFloatingWorkspacePath()
-  const documents: MarkdownDocument[] = []
-  for (const filePath of filePaths) {
+  const documents: FileDocument[] = []
+  for (const filePath of supportedPaths) {
     try {
-      // Why: the shell can hand over a bundle directory named `*.md`, or a path already
+      // Why: the shell can hand over a directory named like a document, or a path already
       // deleted by the time we resolve. Authorize only something that is really a file.
       if (!(await stat(filePath)).isFile()) {
         continue
@@ -152,7 +161,7 @@ export async function resolveOpenedMarkdownDocuments(
     }
     authorizeExternalPath(filePath)
     documents.push(
-      markdownDocumentFromFilePath(floatingRoot, filePath, {
+      fileDocumentFromFilePath(floatingRoot, filePath, {
         outsideRootRelativePath: 'basename'
       })
     )

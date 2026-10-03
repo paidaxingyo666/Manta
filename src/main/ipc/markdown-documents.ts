@@ -1,5 +1,5 @@
 import { basename as pathBasename, extname, isAbsolute, join, relative, resolve } from 'node:path'
-import type { MarkdownDocument } from '../../shared/filesystem-entry-types'
+import type { FileDocument, MarkdownDocument } from '../../shared/filesystem-entry-types'
 import { spawnBundledRipgrep } from '../ripgrep/bundled-ripgrep-spawn'
 import { parseWslPath } from '../wsl'
 import {
@@ -39,11 +39,11 @@ function rootRelativePath(rootPath: string, filePath: string): string | null {
   return normalizeRelativePath(relativePath)
 }
 
-export function markdownDocumentFromFilePath(
+export function fileDocumentFromFilePath(
   rootPath: string,
   filePath: string,
   options: { outsideRootRelativePath?: 'basename' | 'relative' } = {}
-): MarkdownDocument {
+): FileDocument {
   const basename = pathBasename(filePath)
   const extension = extname(basename)
   const relativePath =
@@ -58,6 +58,8 @@ export function markdownDocumentFromFilePath(
     name: extension ? basename.slice(0, -extension.length) : basename
   }
 }
+
+export const markdownDocumentFromFilePath = fileDocumentFromFilePath
 
 export function markdownDocumentFromRelativePath(
   rootPath: string,

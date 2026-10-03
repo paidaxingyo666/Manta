@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
 import type { MarkdownDocument } from '../../../shared/filesystem-entry-types'
 import type { EditorFilesSlice } from '@/store/slices/editor/types/editor-files-slice'
-import { openMarkdownDocumentInFloatingWorkspace } from './open-markdown-in-floating-workspace'
+import { openDocumentInFloatingWorkspace } from './open-document-in-floating-workspace'
 
 function openFileMock(): ReturnType<typeof vi.fn<EditorFilesSlice['openFile']>> {
   return vi.fn<EditorFilesSlice['openFile']>(() => 'file-1')
@@ -18,11 +18,11 @@ function markdownDocument(overrides: Partial<MarkdownDocument> = {}): MarkdownDo
   }
 }
 
-describe('openMarkdownDocumentInFloatingWorkspace', () => {
+describe('openDocumentInFloatingWorkspace', () => {
   it('opens the document as a permanent floating-workspace edit tab', () => {
     const openFile = openFileMock()
 
-    const fileId = openMarkdownDocumentInFloatingWorkspace(openFile, markdownDocument())
+    const fileId = openDocumentInFloatingWorkspace(openFile, markdownDocument())
 
     expect(fileId).toBe('file-1')
     expect(openFile).toHaveBeenCalledTimes(1)
@@ -44,7 +44,7 @@ describe('openMarkdownDocumentInFloatingWorkspace', () => {
   it('pins the open to this machine instead of the active runtime', () => {
     const openFile = openFileMock()
 
-    openMarkdownDocumentInFloatingWorkspace(openFile, markdownDocument())
+    openDocumentInFloatingWorkspace(openFile, markdownDocument())
 
     // Why: the caller already resolved an absolute local path, so a null runtime plus the
     // fallback suppression is what keeps the read off a remote SSH host the user is focused on.
@@ -53,26 +53,31 @@ describe('openMarkdownDocumentInFloatingWorkspace', () => {
     expect(openFile.mock.calls[0][1]?.suppressActiveRuntimeFallback).toBe(true)
   })
 
-  it('derives the language from the relative path', () => {
-    const openFile = openFileMock()
+  it.each(['mdx', 'csv', 'tsv'])(
+    'derives the language for %s from the relative path',
+    (extension) => {
+      const openFile = openFileMock()
 
-    openMarkdownDocumentInFloatingWorkspace(
-      openFile,
-      markdownDocument({
-        filePath: '/Users/me/notes/plan.mdx',
-        relativePath: 'plan.mdx',
-        basename: 'plan.mdx',
-        name: 'plan'
-      })
-    )
+      openDocumentInFloatingWorkspace(
+        openFile,
+        markdownDocument({
+          filePath: `/Users/me/notes/plan.${extension}`,
+          relativePath: `plan.${extension}`,
+          basename: `plan.${extension}`,
+          name: 'plan'
+        })
+      )
 
-    expect(openFile.mock.calls[0][0].language).toBe('markdown')
-  })
+      expect(openFile.mock.calls[0][0].language).toBe(extension === 'mdx' ? 'markdown' : extension)
+      expect(openFile.mock.calls[0][0].runtimeEnvironmentId).toBeNull()
+      expect(openFile.mock.calls[0][1]?.suppressActiveRuntimeFallback).toBe(true)
+    }
+  )
 
   it('forwards a requested target group', () => {
     const openFile = openFileMock()
 
-    openMarkdownDocumentInFloatingWorkspace(openFile, markdownDocument(), {
+    openDocumentInFloatingWorkspace(openFile, markdownDocument(), {
       targetGroupId: 'group-2'
     })
 

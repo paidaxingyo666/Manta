@@ -37,6 +37,7 @@ type LaunchedManta = {
 }
 
 type LaunchOptions = {
+  extraArgs?: string[]
   /**
    * Called for each chunk the relaunched main process writes to stderr. The
    * listener is attached before `firstWindow()` resolves so main-process
@@ -177,7 +178,7 @@ export function createRestartSession(
   const launch = async (options?: LaunchOptions): Promise<LaunchedManta> => {
     runtimeWsPort ??= await reserveRestartRuntimeWsPort()
     const app = await electron.launch({
-      args: getMantaElectronLaunchArgs(mainPath, headful),
+      args: [...getMantaElectronLaunchArgs(mainPath, headful), ...(options?.extraArgs ?? [])],
       env: {
         ...homeIsolation.env,
         ...options?.extraEnv,

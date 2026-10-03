@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { OsOpenedMarkdownFileState } from './os-opened-markdown-files'
+import { OsOpenedDocumentState } from './os-opened-documents'
 
 /**
  * The two ways a queued "Open With" can be lost between main and the renderer. Both are
@@ -7,7 +7,7 @@ import { OsOpenedMarkdownFileState } from './os-opened-markdown-files'
  */
 describe('os-opened markdown delivery ownership', () => {
   it('keeps the batch when resolution rejects on the pull path', async () => {
-    const state = new OsOpenedMarkdownFileState()
+    const state = new OsOpenedDocumentState()
     state.captureFilePaths(['/notes/a.md'])
     const resolve = vi.fn().mockRejectedValue(new Error('floating root unavailable'))
 
@@ -28,11 +28,11 @@ describe('os-opened markdown delivery ownership', () => {
   })
 
   it('holds the batch while the renderer listener is not yet attached', () => {
-    const state = new OsOpenedMarkdownFileState()
+    const state = new OsOpenedDocumentState()
     const send = vi.fn()
     let listenerReady = false
 
-    // Mirrors publishOsOpenedMarkdownFiles()'s guard.
+    // Mirrors publishOsOpenedDocuments()'s guard.
     const publish = (): void => {
       if (!listenerReady) {
         return
@@ -56,7 +56,7 @@ describe('os-opened markdown delivery ownership', () => {
   })
 
   it('restores a batch the window could no longer receive', () => {
-    const state = new OsOpenedMarkdownFileState()
+    const state = new OsOpenedDocumentState()
     state.captureFilePaths(['/notes/a.md'])
     const filePaths = state.consume()
 
