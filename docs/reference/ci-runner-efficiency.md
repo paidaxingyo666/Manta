@@ -1941,6 +1941,49 @@ remained red. Its review recognized all five shards as a complete reference
 (10,608 files, 8,965,977 worker-ms). This was again a full fallback with
 `selectionEvaluated: false`, not evidence for enabling selected tests.
 
+## October 4 runtime imports and recovery fixtures
+
+Three helper-only tests now import the existing terminal modules directly rather
+than initializing the runtime service. Ten copied-loop cases never exercised
+runtime memoization: they passed with its cache, timestamp update or prune
+invalidation disabled. Two actual helper checks remain. The existing runtime
+prune suite now exercises real leaf cache reuse, split prompt timestamps,
+ordinary output, fresh prompts and detection after retained-history eviction.
+Each of those three production faults fails a real runtime assertion.
+
+Recovery tests now seed three exact fixture variants once, after the seed child
+has closed. Each crash still receives an independent byte-for-byte copy of the
+entire database/WAL family and remapped paths. Buffer.equals retains exact byte
+comparison without recursive matcher overhead. All 46 original crash boundaries
+and retries remain. Four additional copy-isolation/WAL checks run, and teardown
+requires that all seed bytes remain unchanged after the full suite.
+
+Three alternating one-worker hosted ARM pairs in
+[37182181976](https://github.com/stablyai/orca/actions/runs/37182181976)
+measured these complete invocations:
+
+| Cohort | Baseline seconds | Candidate seconds | Median saving |
+| --- | --- | --- | --- |
+| Three imports only, same 15 tests | 19.257 / 19.167 / 19.363 | 1.769 / 1.768 / 1.768 | 90.8% |
+| Final four-file runtime cohort | 22.312 / 22.122 / 21.969 | 13.494 / 13.793 / 13.601 | 38.5% |
+| Recovery crash boundaries | 24.082 / 24.075 / 24.814 | 8.061 / 8.105 / 9.074 | 66.3% |
+
+The final runtime cohort has seven real cases versus 16 including the copied
+loops; its new runtime case is included in candidate timing. Recovery has 50
+passes versus the original 46. Hosted Node typecheck passed. Recovery faults for
+last-byte database/WAL corruption, shared database paths, missing WAL copies and
+accepted/unaccepted seed collision failed the intended assertions. These are
+focused workload savings, not measured whole-shard or queue-delay gains.
+
+An independent local cache screen left both caches disabled. Across 14 unchanged
+files and 92 cases, a warm Vitest transform cache reduced median invocation time
+3.090 to 1.948 seconds, excluding archive costs; its cold arm increased time to
+3.281 seconds. Node compilation caching showed no gain. Controls reproduced stale
+transforms after TypeScript configuration or plugin-option changes, so persisted
+reuse requires a complete transform-input stamp and hosted net-cost evidence.
+A separate 130,000-pane leaf-collection optimization was restored: its complete
+migration-file timing stayed within noise. The regression fixture remains.
+
 ## October 3 removal fixture cleanup ordering
 
 [37105566358](https://github.com/stablyai/orca/actions/runs/37105566358)
