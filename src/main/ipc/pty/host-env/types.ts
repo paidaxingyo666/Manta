@@ -23,6 +23,8 @@ export type BuildPtyHostEnvOptions = {
   launchCommand?: string
   /** Trusted agent identity for wrapped commands that cannot be recognized from text. */
   launchAgent?: TuiAgent
+  /** Selected execution shell, which may differ from inherited SHELL. */
+  shellPath?: string
   isWsl?: boolean
   /** Distro for WSL spawns (null = Windows default distro); drives the WSL hook relay + endpoint repoint. Only read when isWsl. */
   wslDistro?: string | null
