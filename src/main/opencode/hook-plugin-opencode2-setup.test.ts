@@ -49,6 +49,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
   const ENV_KEYS = [
     'MANTA_PANE_KEY',
     'MANTA_OPENCODE_AGENT',
+    'ORCA_OPENCODE_PLUGIN_API',
     'MANTA_AGENT_HOOK_ENDPOINT',
     'MANTA_AGENT_HOOK_PORT',
     'MANTA_AGENT_HOOK_TOKEN'
@@ -66,6 +67,7 @@ describe.each(['opencode', 'opencode2'] as const)('%s plugin on OpenCode 2', (ag
       savedEnv[key] = process.env[key]
     }
     process.env.MANTA_OPENCODE_AGENT = agent
+    process.env.ORCA_OPENCODE_PLUGIN_API = 'v2'
     delete process.env.MANTA_AGENT_HOOK_ENDPOINT
     process.env.MANTA_AGENT_HOOK_PORT = '59999'
     process.env.MANTA_AGENT_HOOK_TOKEN = 'test-token'

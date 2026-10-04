@@ -35,6 +35,7 @@ describe('OpenCode status plugin module contract', () => {
   // env. Pin every input here so the run does not depend on the developer's Manta session
   // (an inherited MANTA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
   const ENV_KEYS = [
+    'ORCA_OPENCODE_PLUGIN_API',
     'MANTA_PANE_KEY',
     'MANTA_AGENT_HOOK_ENDPOINT',
     'MANTA_AGENT_HOOK_PORT',
@@ -55,7 +56,8 @@ describe('OpenCode status plugin module contract', () => {
     // Why: the generated plugin self-disables when this names a different major,
     // so an inherited value from the developer's own Manta pane would leave
     // `hooks.event` undefined and fail the contract for the wrong reason.
-    delete process.env.ORCA_OPENCODE_AGENT
+    delete process.env.ORCA_OPENCODE_PLUGIN_API
+    delete process.env.MANTA_OPENCODE_AGENT
     delete process.env.MANTA_AGENT_HOOK_ENDPOINT
     process.env.MANTA_AGENT_HOOK_PORT = '59999'
     process.env.MANTA_AGENT_HOOK_TOKEN = 'test-token'
@@ -85,6 +87,13 @@ describe('OpenCode status plugin module contract', () => {
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: Runtime validation or the local test fixture establishes the asserted shape.
     return (await import(pathToFileURL(pluginPath).href)) as PluginModule
   }
+
+  it('selects the same factory for a v1 execution host', async () => {
+    process.env.ORCA_OPENCODE_PLUGIN_API = 'v1'
+    const module = await loadPluginModule()
+    expect(module.default).toBeTypeOf('function')
+    expect(module.default).toBe(module.MantaOpenCodeStatusPlugin)
+  })
 
   it('exposes a default export carrying a string id and a callable server()', async () => {
     const module = await loadPluginModule()
