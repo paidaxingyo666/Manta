@@ -111,9 +111,9 @@ export async function listMarkdownDocuments(
       '--null',
       '--path-separator',
       '/',
-      // Directory-only globs preserve hidden Markdown files without traversing hidden folders.
+      // Keep case variants in --glob: --iglob is applied after exclusions and can reopen hidden folders.
       '--glob',
-      '**',
+      '*.{[mM][dD],[mM][dD][xX],[mM][aA][rR][kK][dD][oO][wW][nN]}',
       '--glob',
       '!**/.*/',
       '--glob',
