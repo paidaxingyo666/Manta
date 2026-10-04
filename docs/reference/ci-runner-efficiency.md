@@ -133,7 +133,7 @@ POST start/completion rows; wall timestamps and cross-stream interleaving are
 excluded from equivalence. Eleven generated-source faults fail their intended
 identity, reload, order, deadline or timer-cleanup assertions. Four import/setup/
 disposer rejection and timeout controls confirm restoration of clocks, fetch,
-argv and environment. Teardown restores real clocks before its bounded wait.
+argv and environment. Teardown holds its fake clock through bounded native cleanup and pending-timer checks, then restores real clocks. The [teardown qualification](https://github.com/stablyai/orca/actions/runs/37195736834) passes all 41 cases and 12 failure and restoration control invocations, including interval and retry leaks missed by the earlier teardown.
 Title-send authorization tests retain real terminal creation, graph binding and
 positive evidence paths. Negative process-evidence probes use scoped clocks
 after setup: both 150 ms polling loops retain their 6,500 ms budget, crossed at
@@ -151,6 +151,7 @@ original test bodies are byte-unchanged. Three actual range/hunk/draft faults
 fail their original assertions; a real draft-render menu call hits the facade
 and sentinel, and an outer cleanup check proves mock state cleared after failure.
 The actual saved-note menu retains its independent component tests.
+
 ## October 2 headless detector compiler cache
 
 The deferred detector already avoids dependency setup for known build inputs.
@@ -705,6 +706,8 @@ it was 67.36 / 67.05 / 61.75 versus 55.52 / 60.06 / 55.68 seconds.
 All commands passed and plans matched within each comparison. These command
 timings exclude setup and queues; compiler variation contributes to the cold
 difference. The retained arrangement showed no cold compiler penalty.
+
+The sequential gate in [October 4 shared PR preflight capacity](#october-4-shared-pr-preflight-capacity) supersedes the earlier rejection below.
 
 Combining static analysis too was rejected. An
 [alternating same-runner comparison](https://github.com/stablyai/orca/actions/runs/36835091650)
@@ -1844,6 +1847,8 @@ these local body measurements do not establish hosted or whole-PR time savings.
 
 ## Sequential static analysis and typecheck: retain separate jobs
 
+The earlier recommendation below is superseded by [October 4 shared PR preflight capacity](#october-4-shared-pr-preflight-capacity).
+
 A four-trial hosted screen kept the slim router unchanged and compared the two
 independent ARM jobs with one ARM job running their unchanged checks sequentially.
 The [compiler/planner census](https://github.com/stablyai/orca/actions/runs/37069472888)
@@ -2085,11 +2090,11 @@ production and still passed when production always threw.
 
 Three alternating one-worker hosted ARM pairs measured complete invocations:
 
-| Cohort | Baseline median | Candidate median | Saving |
-| --- | --- | --- | --- |
-| Serializer replay/fuzz/descriptor checks | 71.675s | 46.581s | 35.0% |
-| Emulator/reconciliation/color parity | 24.095s | 5.411s | 77.5% |
-| Frame equivalence | 18.472s | 13.736s | 25.6% |
+| Cohort                                   | Baseline median | Candidate median | Saving |
+| ---------------------------------------- | --------------- | ---------------- | ------ |
+| Serializer replay/fuzz/descriptor checks | 71.675s         | 46.581s          | 35.0%  |
+| Emulator/reconciliation/color parity     | 24.095s         | 5.411s           | 77.5%  |
+| Frame equivalence                        | 18.472s         | 13.736s          | 25.6%  |
 
 [37180517143](https://github.com/stablyai/orca/actions/runs/37180517143)
 retained 116 timed serializer passes and three existing/paired-control skips.
@@ -2164,11 +2169,11 @@ Three alternating one-worker hosted ARM pairs in
 [37182181976](https://github.com/stablyai/orca/actions/runs/37182181976)
 measured these complete invocations:
 
-| Cohort | Baseline seconds | Candidate seconds | Median saving |
-| --- | --- | --- | --- |
-| Three imports only, same 15 tests | 19.257 / 19.167 / 19.363 | 1.769 / 1.768 / 1.768 | 90.8% |
-| Final four-file runtime cohort | 22.312 / 22.122 / 21.969 | 13.494 / 13.793 / 13.601 | 38.5% |
-| Recovery crash boundaries | 24.082 / 24.075 / 24.814 | 8.061 / 8.105 / 9.074 | 66.3% |
+| Cohort                            | Baseline seconds         | Candidate seconds        | Median saving |
+| --------------------------------- | ------------------------ | ------------------------ | ------------- |
+| Three imports only, same 15 tests | 19.257 / 19.167 / 19.363 | 1.769 / 1.768 / 1.768    | 90.8%         |
+| Final four-file runtime cohort    | 22.312 / 22.122 / 21.969 | 13.494 / 13.793 / 13.601 | 38.5%         |
+| Recovery crash boundaries         | 24.082 / 24.075 / 24.814 | 8.061 / 8.105 / 9.074    | 66.3%         |
 
 The final runtime cohort has seven real cases versus 16 including the copied
 loops; its new runtime case is included in candidate timing. Recovery has 50
@@ -2250,9 +2255,9 @@ Three alternating one-worker hosted ARM pairs in
 [37180614492](https://github.com/stablyai/orca/actions/runs/37180614492)
 measured these complete focused invocations:
 
-| Suite | Baseline seconds | Candidate seconds | Median saving |
-| --- | --- | --- | --- |
-| Git admission storm | 26.619 / 26.635 / 26.582 | 1.017 / 1.018 / 1.016 | 25.602s (96.2%) |
+| Suite                 | Baseline seconds         | Candidate seconds        | Median saving   |
+| --------------------- | ------------------------ | ------------------------ | --------------- |
+| Git admission storm   | 26.619 / 26.635 / 26.582 | 1.017 / 1.018 / 1.016    | 25.602s (96.2%) |
 | Antigravity readiness | 27.347 / 27.910 / 27.550 | 13.855 / 13.894 / 13.800 | 13.695s (49.7%) |
 
 Each candidate passed its original meaningful checks. Hosted Node typecheck
@@ -2261,3 +2266,120 @@ FIFO-only priority failed the queued-contention or interactive-start assertion.
 Two additional local transcript faults failed the original picker-rejection and
 repaint-readiness assertions. These are focused suite savings; whole-shard time
 and queue delay were not measured by this experiment.
+
+## October 4 aggregate unit-test comparison
+
+A [counterbalanced hosted comparison](https://github.com/stablyai/orca/actions/runs/37197643399)
+measured 128.605 seconds less summed test-process time (4.36%) and a 37.694-second
+reduction in the slowest shard (5.98%). It compares the accepted optimizations
+with their original file snapshots on the same source, five fixed shard
+assignments, Node 24, Ubuntu ARM and four workers per process. This is one paired
+trial, not a population estimate or a measurement of PR queue delay.
+
+| Test process                  | Original snapshots | Accepted optimizations |
+| ----------------------------- | ------------------ | ---------------------- |
+| Shard 1                       | 574.221s           | 533.116s               |
+| Shard 2                       | 572.553s           | 569.593s               |
+| Shard 3                       | 630.629s           | 592.935s               |
+| Shard 4                       | 565.412s           | 546.759s               |
+| Shard 5                       | 609.410s           | 581.218s               |
+| Sum: runner time during tests | 2952.225s          | 2823.621s              |
+| Maximum: test critical path   | 630.629s           | 592.935s               |
+
+Both arms cover exactly 10,838 timed modules on source `9574c8adb253` and tree
+`4d5487e8b827`. One added eight-case batching qualification passes in a separate
+0.770-second invocation outside the table, completing the 10,839-module ordinary
+census. The complete timed case and outcome
+comparison accounts for eight approved coverage changes: 105,231 original cases
+versus 105,242 candidate cases. Removed copied simulations and an algebra-only
+case are accompanied by real runtime, retention, recovery and reusable-cell
+regressions. No unexpected case or outcome difference is accepted.
+
+Each arm starts with distinct empty transform and result caches; Node compilation
+caching is disabled. Cold-cache execution ordering remains Vitest's default and
+can change with source size. Source snapshots, assignments, raw reports and case outcomes
+are checked. Only three case-title fields containing random temporary paths or
+a UUID use stable identities, bound to the exact two test-source hashes; raw
+titles remain in the artifacts.
+
+The five dependency setups total 84.284 seconds and are shared by both arms.
+The actual paired jobs consumed 5,969 seconds and spanned 2,031 seconds from the
+first start to the last completion. Those job figures include both treatments,
+setup, uploads and staggered starts; they cannot be assigned to either arm or
+used as a workflow saving. The table measures test-process wall time, not CPU
+time or the complete CI workflow. Focused-suite percentages elsewhere in this
+report are separate measurements and must not be summed into these results.
+
+The [earlier aggregate trial](https://github.com/stablyai/orca/actions/runs/37193799646)
+is rejected because a real test failed; its timings do not qualify a gain. Two
+local invocations sharing one XDG directory reproduced the Muse refresher failure.
+The fixture now isolates and restores that setting in both arms. The historical
+serializer case ledger was also independently corrected from the original source
+before this fresh trial; its seven original cases and twenty candidate cases are
+an explicit coverage change rather than an assumed equal census.
+
+## October 4 shard-weight holdouts
+
+Fresh shard weights were generated with the production importer from a complete
+successful run of the accepted source. Two subsequent hosted holdouts used those
+same weights and assignments without retraining. The
+[first pair](https://github.com/stablyai/orca/actions/runs/37199891967) alternated
+existing and fresh assignments across the five jobs; the
+[second pair](https://github.com/stablyai/orca/actions/runs/37201939057) reversed
+each job's treatment order.
+
+| Test-process measurement | First: existing | First: fresh | Reversed: existing | Reversed: fresh |
+| ------------------------ | --------------- | ------------ | ------------------ | --------------- |
+| Sum across five shards   | 2813.595s       | 2776.421s    | 2924.689s          | 2878.481s       |
+| Maximum shard wall       | 578.735s        | 584.709s     | 603.995s           | 614.408s        |
+
+Fresh weights reduced summed test-process time by 1.32% and 1.58%, but increased
+the slowest shard's time by 1.03% and 1.72%. The small capacity saving comes with
+a repeated critical-path regression, so the existing weights remain. The 3.01%
+improvement projected from training module durations is not a measured speed
+gain.
+
+Every arm covers the same 10,839 modules and 105,250 case outcomes on source
+`9574c8adb253`, tree `4d5487e8b827`, Node 24.21.0, Ubuntu ARM and four workers.
+Both trials use cold caches and the same training data, weights, plans and case
+identity rules. Complete raw reports, assignments, hashes and opposite treatment
+orders are checked before combining the results. Two pairs supply no statistical
+confidence or account-wide queue measurement. The second run's jobs started 119
+seconds apart; that stagger and the paired jobs' setup and upload costs are
+separate from the treatment timings above.
+
+## October 4 remaining unit-test opportunities
+
+The audit retained real child-process, PTY, SSH and crash-boundary tests. It
+removed copied simulations or algebra-only cases after fault controls showed
+that they could pass with production behavior broken. The retained or replacement
+tests exercise production behavior directly. The focused timings in this report
+use the final qualified checks. They must not be added together to estimate a
+whole-workflow saving.
+
+Several further changes did not justify promotion:
+
+- A synchronous readiness-clock screen retained all 49 shard cases and their
+  outcomes, but complete invocation time changed only from 34.210 to 33.518
+  seconds in one local pair. That 2% result was too small to ship without a
+  stronger result; the original implementation remains.
+- A larger local transform-cache screen reduced warm test execution. Separately
+  measured medians for warm tests (17.251 seconds), extraction (3.539 seconds) and
+  archive creation (3.092 seconds) sum to 23.882 seconds, versus 23.473 seconds
+  with caching disabled. This component estimate excludes transfer costs; it is not an
+  end-to-end measurement. Unkeyed plugin options, inherited configuration and
+  import priority also produced stale reuse. Persisted test transforms remain
+  disabled.
+- Two successful full-run shadow references identified about 1.9% of
+  recorded worker time as omittable. That is advisory worker time, not measured
+  runner occupancy. It does not supply the failed-reference evidence or a
+  complete selected-run comparison needed to enable test selection.
+- Six sampled failed PR runs contained no failed unit job that could trigger
+  unit-matrix fail-fast. Successful unit siblings of failures in other jobs
+  cannot be counted as savings from that policy. The sample is too small to
+  establish a population-wide rate, and the policy remains unchanged.
+
+These screens reject the examined changes; they do not establish that every
+future optimization is exhausted. Shorter admitted jobs and one shared preflight
+reduce demand on the existing runner allowance. They do not increase that
+allowance or prove lower queue delay under different account traffic.

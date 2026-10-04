@@ -161,7 +161,7 @@ jobs:
     # Why ARM: measured 128s against 172s on ubuntu-latest, with every compute step faster --
     # type-aware 24s->15s, anti-slop 28->19s, localization extraction 67->46s, the mantad smoke
     # 39->14s. Both lint engines ship linux-arm64 and the Bun target follows process.arch, so
-    # the whole toolchain resolves. Free for public repositories, same as the typecheck job.
+    # the whole toolchain resolves. Free for public repositories.
     runs-on: ubuntu-24.04-arm
     outputs:
       shards: ${{ steps.unit-plan.outputs.shards }}
