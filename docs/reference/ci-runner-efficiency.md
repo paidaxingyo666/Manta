@@ -1912,6 +1912,47 @@ The source was restored afterward. Extra collection turns therefore preserve the
 strong-retention oracle. Hosted qualification is still required; these observations
 do not prove a particular VM-retention cause or quantify avoided retries.
 
+## October 4 terminal oracle execution
+
+Three measured test-support changes preserve the original seeds, payloads,
+chunk boundaries and meaningful assertions. Serializer comparisons reuse cells
+and format only the first mismatch instead of allocating descriptors for every
+cell. The terminal parity writer submits every original chunk in FIFO order and
+awaits the final parser callback. The independent legacy frame oracle memoizes
+measured code-point widths. Its discarded algebra-only case never called
+production and still passed when production always threw.
+
+Three alternating one-worker hosted ARM pairs measured complete invocations:
+
+| Cohort | Baseline median | Candidate median | Saving |
+| --- | --- | --- | --- |
+| Serializer replay/fuzz/descriptor checks | 71.675s | 46.581s | 35.0% |
+| Emulator/reconciliation/color parity | 24.095s | 5.411s | 77.5% |
+| Frame equivalence | 18.472s | 13.736s | 25.6% |
+
+[37180517143](https://github.com/stablyai/orca/actions/runs/37180517143)
+retained 116 timed serializer passes and three existing/paired-control skips.
+Separate captures matched all 190,796,645 raw bytes over 1,611 scenarios and
+8,617 checkpoints (SHA256 `00ab219cfb31456af2ecd5e766d1b82d47abc751f6f2de0d7f795e36a936d3c7`),
+including complete outputs and diagnostic payloads. Twenty candidate controls
+passed; formatting/color/blank/clipping fault controls detected regressions.
+
+[37181073275](https://github.com/stablyai/orca/actions/runs/37181073275)
+retained all 16 parity cases and default fuzz counts. Captures matched 2,325
+batches, 28,182 original chunks and 1,698,285 input bytes, with identical
+terminal state and serialization per terminal/batch. Independent terminal
+completion order differs, so comparison uses canonical per-terminal ordering
+(SHA256 `c38ac1dbbefb9f6dc33ecfe7c495d65b707c1664614544622af93cfc1850e421`).
+All 73 callback/parser/other-consumer controls passed; first-callback, reversed
+chunks, missing empty boundary and early-completion faults failed.
+
+The frame candidate passed all 19 retained cases directly against the original
+uncached legacy oracle, preserving 4,000 short and 800 near-cap seeded trials.
+Sequence, surrogate width, byte width and span-transform faults failed real
+assertions. A part-array alternative was rejected after adding time locally.
+Hosted Node typecheck passed. These are focused workload savings, not measured
+whole-shard or queue-delay improvements; application behavior is unchanged.
+
 ## October 3 unit-selection evidence: include failed references
 
 The caller's `needs.test.result == 'success'` condition prevented the advisory
