@@ -1921,6 +1921,36 @@ automatic selection and cold publication, not a new timing result. Local
 verification passed eight suites / 184 tests, the changed-code quality gate and
 compiled-composite actionlint.
 
+## October 4 shared PR preflight capacity
+
+Static analysis and the unchanged compiler now share one ARM runner and guarded
+Node 24 install. Static checks finish and all background work joins before the
+compiler starts; unit planning still overlaps compilation. Each phase keeps its
+classifier output. Successful no-op background bodies register every required
+join when a phase is unselected or an earlier step failed. Unit and package
+consumers depend on physical job success, including action cleanup.
+
+Three counterbalanced pairs in
+[37180613601](https://github.com/stablyai/orca/actions/runs/37180613601)
+used the same frozen checkout `f199a20c3acd`, Node 24.21.0, pnpm 12.8.1,
+policy hashes, native cache hits, warm TypeScript cache and 10,787-file unit plan.
+Both arms used the PR root-only download-store policy. Total active job time was
+152 / 153 / 151 seconds separately and 138 / 133 / 129 combined. Excluding the
+extra measurement-only evidence steps gives 151 / 151 / 149 versus
+136 / 132 / 128 seconds: median 151 to 132, saving 19 seconds (12.6%).
+Two heavy runner admissions become one. This saves capacity; it does not prove a
+whole-PR latency or queue gain. The median active dependency barrier increases
+from 116 to 132 seconds because compilation follows static checks.
+
+The separate physical-failure run
+[37180755694](https://github.com/stablyai/orca/actions/runs/37180755694)
+proved that an included TypeScript error failed the actual compiler, its planner
+still joined, and unit/package admissions skipped. A registered late action post
+failure also blocked both consumers after successful foreground checks and
+published shards. All 12 unselected/prior-failure no-op backgrounds joined, and
+the downstream audit passed. Local workflow contracts passed 239 tests across
+12 suites; lint and formatting passed.
+
 ## October 3 retired-cache collection observation
 
 The same owner-collection assertion failed in unit shard 3 of
