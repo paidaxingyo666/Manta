@@ -15670,7 +15670,9 @@
           }
         },
         "richMarkdownLargeTextPaste": {
-          "tooLarge": "Paste is too large."
+          "tooLarge": "Paste is too large.",
+          "stopped": "Large paste stopped before it finished.",
+          "cancelled": "Large paste cancelled because its original target changed."
         },
         "ExternalFileChangeBanner": {
           "7c41e90d12": "This file changed on disk while you have unsaved edits. Saving will overwrite the newer disk content.",
