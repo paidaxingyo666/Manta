@@ -25,6 +25,7 @@
  * is injected as a factory instead of branched on here.
  */
 
+import { assertOpenCodeModelLaunchPreferencesAbsent } from '../opencode/opencode-model-startup-plan'
 import { parsePaneKey } from '../../shared/stable-pane-id'
 import type {
   AgentLaunchIntent,
@@ -76,6 +77,9 @@ export async function executeAgentLaunch(
   execution: AgentLaunchExecution
 ): Promise<AgentLaunchResult> {
   const { intent, runtime } = execution
+  if (intent.reuseTerminal || intent.target.kind === 'create-worktree') {
+    assertOpenCodeModelLaunchPreferencesAbsent(intent.agent, intent.sessionOptions)
+  }
   const vocabulary = execution.vocabulary ?? DEFAULT_LAUNCH_VOCABULARY
   const settings = readAgentLaunchModeSettings(runtime)
   const preflight = decideAgentLaunchMode({

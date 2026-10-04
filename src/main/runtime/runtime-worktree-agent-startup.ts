@@ -14,6 +14,7 @@ import {
   detectRemoteAgents
 } from '../preflight/agent-detection'
 import type { RuntimeStore } from './runtime-store-contract'
+import type { RuntimeManagedWorktreeCreateArgs } from './runtime-managed-worktree-create-types'
 
 export type WorktreeStartupDraftPaste = { agent: TuiAgent; content: string }
 export type WorktreeStartupFollowup = { expectedProcess: string; prompt: string }
@@ -172,4 +173,22 @@ export function buildWorktreeStartupForAgent(
         }
       : {})
   }
+}
+
+export function resolveWorktreeCreateAgentStartup(
+  args: RuntimeManagedWorktreeCreateArgs,
+  build: (
+    agent: TuiAgent,
+    prompt: string | undefined,
+    preferences: AgentLaunchPreferences | undefined,
+    inputs: { agentArgs?: string | null; launchSource?: string }
+  ) => { agent: TuiAgent; startup: WorktreeStartupLaunch; followup?: WorktreeStartupFollowup }
+) {
+  if (args.startup || !args.startupAgent) {
+    return null
+  }
+  return build(args.startupAgent, args.startupPrompt, args.startupLaunchPreferences, {
+    ...(args.startupAgentArgs !== undefined ? { agentArgs: args.startupAgentArgs } : {}),
+    ...(args.startupLaunchSource ? { launchSource: args.startupLaunchSource } : {})
+  })
 }

@@ -31,6 +31,7 @@ import {
   WorktreeCreateCollisionError,
   WORKTREE_CREATE_COLLISION_CODE
 } from '../../../../shared/new-workspace/worktree-create-collision'
+import { assertOpenCodeModelLaunchPreferencesAbsent } from '../../../opencode/opencode-model-startup-plan'
 import { executeAgentLaunch } from '../../../agent-launch/agent-launch-executor'
 import {
   trackTerminalSpawnDispatch,
@@ -137,6 +138,9 @@ async function resolveUnlaunchedIntent(
   params: AgentLaunchParams,
   runtime: MantaRuntimeService
 ): Promise<AgentLaunchIntent> {
+  if (params.reuseTerminal || params.target.kind === 'create-worktree') {
+    assertOpenCodeModelLaunchPreferencesAbsent(params.agent, params.sessionOptions)
+  }
   const intent = await agentLaunchIntent(params, runtime)
   await validateReusedTerminal(intent, runtime)
   return intent
@@ -237,7 +241,7 @@ async function executeReplaySafeAgentLaunch(
 ): Promise<AgentLaunchResult> {
   const admission = await admitAgentLaunchOperation(context, params, fingerprint)
   if (admission.decision === 'refuse') {
-    throw new Error(admission.refusal.code)
+    throw Object.assign(new Error(admission.refusal.code), { code: admission.refusal.code })
   }
   if (admission.decision === 'replay') {
     return admission.result

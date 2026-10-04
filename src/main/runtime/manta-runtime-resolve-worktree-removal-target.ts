@@ -25,7 +25,7 @@ import { terminalShellOverrideRefusal } from './terminal-shell-override-host-sup
 import { resolveTerminalStartupCwd } from '../../shared/terminal-startup-cwd'
 import { resolveLocalProjectRuntimeForWorktreeId } from '../local-project-runtime-resolution'
 import { resolveBareAgentLaunchCommand } from './runtime-agent-launch-resolution'
-import { buildAgentStartupPlan } from '../../shared/tui-agent-startup'
+import { buildExecutionHostAgentStartupPlan } from '../opencode/opencode-model-startup-plan'
 import { resolveAgentStartupPlanInputs } from '../../shared/agent-startup-plan-inputs'
 import { agentStartedTelemetry } from '../agent-launch/agent-started-telemetry'
 import { LOCAL_EXECUTION_HOST_ID, parseExecutionHostId } from '../../shared/execution-host'
@@ -307,8 +307,8 @@ export class MantaRuntimeWithResolveWorktreeRemovalTarget extends MantaRuntimeWi
       return opts
     }
 
-    const startupPlan = buildAgentStartupPlan({
-      ...resolveAgentStartupPlanInputs({
+    const startupPlan = await buildExecutionHostAgentStartupPlan({
+      inputs: resolveAgentStartupPlanInputs({
         agent,
         settings,
         platform,
@@ -319,7 +319,8 @@ export class MantaRuntimeWithResolveWorktreeRemovalTarget extends MantaRuntimeWi
         sessionOptions: this.toAgentSessionOptions(opts.launchPreferences)
       }),
       prompt: opts.startupPrompt ?? '',
-      allowEmptyPromptLaunch: true
+      cwd: resolveTerminalStartupCwd(workspace.path, opts.cwd) ?? workspace.path,
+      hostIdentity: this.runtimeId
     })
     if (!startupPlan) {
       // Why: an explicit agent that yields no plan would otherwise spawn a bare
