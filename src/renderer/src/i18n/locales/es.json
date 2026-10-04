@@ -2757,18 +2757,9 @@
           },
           "MobileDriverOverlay": {
             "c6460cf584": "Recuperar control",
-            "c8f2e1a4b9": "Recuperar control de este terminal",
             "c44659e09f": "Teléfono controlando",
-            "7cffad954c": "Contraer",
             "3eed73394f": "Tu teclado está en pausa",
-            "faa367dc74": "Tu teléfono dejó esto en tamaño móvil",
-            "54f7d6f69d": "Recuperar control de todos los terminales",
-            "b3d8e1f42a": "Restaurar este terminal",
-            "e8c4f2a91b": "Restaurar todos los terminales",
-            "f2a8b9c1d3": "Desde tu teléfono",
-            "c7e4a2b8f1": "Tu teléfono tiene el control",
-            "d9f3c6e2a4": "El teclado de escritorio está en pausa. Recupera este terminal para escribir aquí, recupera todos los terminales que controla tu teléfono o contrae para seguir observando.",
-            "a6b1d8f3e2": "La sesión del teléfono terminó. Restaura el tamaño de escritorio para este terminal o para todos los terminales que tu teléfono dejó en tamaño móvil."
+            "c7e4a2b8f1": "Tu teléfono tiene el control"
           },
           "TerminalAgentSessionForkDialog": {
             "17fc841e59": "Copiar contexto",
@@ -6539,7 +6530,6 @@
         },
         "MobilePane": {
           "dd3cd78d04": "Escanear con Manta Móvil",
-          "35100bca5d": "Mientras usas un terminal en tu teléfono, Manta lo reduce para que se ajuste a la pantalla del teléfono. Cuando cierras la app o cambias a otra, esto controla si se queda en tamaño de teléfono (para que las herramientas CLI interactivas no se reacomoden) o vuelve al tamaño del escritorio. Siempre puedes usar Restaurar este terminal o Restaurar todos los terminales en el banner para cambiar el tamaño manualmente.",
           "ee56f1c7e4": "Cuando sales de la aplicación móvil",
           "3939fd062c": "Revocar un dispositivo lo desconecta inmediatamente.",
           "254a6d09e4": "Emparejado",
