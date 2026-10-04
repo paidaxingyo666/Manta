@@ -17817,6 +17817,7 @@
       "dismissDeliveryNotice": "閉じる",
       "messageNotSent": "メッセージは送信されませんでした",
       "deliveryUnconfirmed": "配信を確認できません — 再試行する前にチャットを確認してください",
+      "messageSending": "送信中…",
       "queuedMessages": {
         "alreadySent": "このメッセージはすでに送信されています。",
         "editAlreadySent": "すでに送信されています — テキストは入力欄に残っています。",
