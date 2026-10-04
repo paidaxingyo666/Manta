@@ -449,10 +449,10 @@ describe('StructuredAgentSessionAttentionBridge', () => {
     if (!publishedTab) {
       throw new Error('snapshot did not publish a chat tab')
     }
-    expect(publishedTab.executionHostId).toBe('runtime:env-1')
     // Why: restored tabs from before host stamping can still have ambiguous catalog ownership.
-    const tab = { ...publishedTab }
-    delete tab.executionHostId
+    const { executionHostId, ...legacyTab } = publishedTab
+    expect(executionHostId).toBe('runtime:env-1')
+    const tab = makeUnifiedTab(legacyTab)
     store.setState({ unifiedTabsByWorktree: { [WORKSPACE]: [tab] } })
     expect(tab.contentType).toBe('agent-session')
     expect(tab.executionHostId).toBeUndefined()
