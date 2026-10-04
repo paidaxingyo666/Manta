@@ -1,6 +1,7 @@
 import { readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { getPosixOmpShellWrapper } from '../main/pty/omp-shell-wrapper'
+import { ORCA_CLI_POSIX_PATH_RESTORE } from '../shared/manta-cli-shell-path'
 import { getPosixCodexShellLaunchPreflight } from '../shared/codex-shell-function'
 import {
   BASH_FEATURE_CHANNEL_BLOCK,
@@ -73,6 +74,7 @@ fi
 [[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
 [[ -n "\${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${MANTA_MIMOCODE_HOME}"
 [[ -n "\${MANTA_REMOTE_CLI_BIN_DIR:-}" ]] && case ":$PATH:" in *:"\${MANTA_REMOTE_CLI_BIN_DIR}":*) ;; *) export PATH="\${MANTA_REMOTE_CLI_BIN_DIR}:$PATH" ;; esac
+${ORCA_CLI_POSIX_PATH_RESTORE}
 ${getPosixOmpShellWrapper()}
 ${getPosixCodexShellLaunchPreflight()}${BASH_HISTFILE_RESTORE_BLOCK}
 # Why: SSH bash sessions need the same command lifecycle markers as local

@@ -460,6 +460,7 @@ describe('spawn', () => {
         PATH: '/home/user/.manta-relay/bin:/usr/bin',
         MANTA_TERMINAL_HANDLE: 'term_ssh',
         [POWERLEVEL10K_WIZARD_DISABLE_ENV]: 'true',
+        ORCA_CLI_BIN_DIR: '/home/user/.manta-relay/bin',
         MANTA_REMOTE_CLI_BIN_DIR: '/home/user/.manta-relay/bin',
         MANTA_RELAY_DIR: '/home/user/.manta-relay/relay-v1',
         MANTA_RELAY_NODE_PATH: '/usr/bin/node',
@@ -490,6 +491,7 @@ describe('spawn', () => {
       env: {
         MANTA_TERMINAL_HANDLE: 'term_ssh',
         [POWERLEVEL10K_WIZARD_DISABLE_ENV]: 'true',
+        ORCA_CLI_BIN_DIR: '/home/user/.manta-relay/bin',
         MANTA_REMOTE_CLI_BIN_DIR: '/home/user/.manta-relay/bin',
         MANTA_RELAY_DIR: '/home/user/.manta-relay/relay-v1',
         MANTA_RELAY_NODE_PATH: '/usr/bin/node',

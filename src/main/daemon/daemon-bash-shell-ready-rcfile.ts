@@ -1,4 +1,5 @@
 import { getPosixOmpShellWrapper } from '../pty/omp-shell-wrapper'
+import { ORCA_CLI_POSIX_PATH_RESTORE } from '../../shared/manta-cli-shell-path'
 import { MANAGED_DATA_ACCOUNT_POSIX_RESTORE } from '../../shared/managed-data-account-shell'
 import { getPosixCodexShellLaunchPreflight } from '../../shared/codex-shell-function'
 import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-composition'
@@ -35,6 +36,7 @@ __manta_restore_agent_teams_path() {
   export PATH="\${MANTA_AGENT_TEAMS_SHIM_DIR}:$PATH"
 }
 __manta_restore_agent_teams_path
+${ORCA_CLI_POSIX_PATH_RESTORE}
 # Why: user startup files may set the default OpenCode config after Manta's
 # spawn env; restore the Manta-managed config dir before the first prompt.
 [[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
