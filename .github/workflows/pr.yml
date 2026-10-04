@@ -811,7 +811,7 @@ jobs:
       # in this job loads node-pty.
       - uses: ./.github/actions/install-node-dependencies
         with:
-          native-runtime: node
+          native-runtime: none
           cache-dependency-path: |
             pnpm-lock.yaml
             mobile/pnpm-lock.yaml
@@ -1263,8 +1263,19 @@ jobs:
 
   e2e:
     name: e2e
-    needs: code_paths
-    if: needs.code_paths.outputs.e2e_should_run == 'true'
+    needs: [code_paths, preflight]
+    if: >-
+      !cancelled() &&
+      needs.code_paths.result == 'success' &&
+      needs.code_paths.outputs.e2e_should_run == 'true' &&
+      (
+        needs.preflight.result == 'success' ||
+        (
+          needs.preflight.result == 'skipped' &&
+          needs.code_paths.outputs.static_analysis == 'false' &&
+          needs.code_paths.outputs.typecheck == 'false'
+        )
+      )
     # Why: reusable e2e.yml only checkouts, builds, and uploads artifacts.
     permissions:
       contents: read
