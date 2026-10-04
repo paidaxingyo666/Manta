@@ -293,7 +293,7 @@ export function createDraftPasteReadyScanner(readySignal: DraftPasteReadySignal)
       }
       // Why: the Codex glyph and opencode show-cursor signals must NOT arm the
       // quiet window (they carry no quiet anchor). opencode goes silent for
-      // ~1.5-2s between enabling bracketed paste and mounting its composer, so a
+      // Up to ~3.9s between enabling bracketed paste and mounting its composer, so a
       // quiet window would fire during that gap — before the composer exists —
       // and pre-empt the marker. Those signals wait for their marker, bounded
       // only by the caller's hard timeout (and its best-effort
