@@ -1959,3 +1959,60 @@ same ordering assertion. The gate was released, both controls drained the captur
 job, and the instrumentation was removed. Changed-code quality passed. This proves
 the teardown ordering mechanism, not a measured avoided-retry saving. Final-head
 hosted qualification remains required.
+
+## October 4 store oracle and retention fixtures
+
+The randomized in-place-store test validated the copying oracle twice after
+accepted mutations and compared snapshots through the same production parser.
+Its 5,000-step retention fixture generated enough tombstones to hit the count
+limit, but never reached the 4,096-revision age boundary.
+
+The test retains all four seeds and 1,500 mutations per seed, removes the duplicate
+validation, and projects snapshots directly from the copying oracle's validated
+maps. Separate fixtures now check the revision before, at and after expiry and
+count overflow. Production code is unchanged.
+
+Three alternating one-worker pairs on `ubuntu-24.04-arm` in
+[37180517143](https://github.com/stablyai/orca/actions/runs/37180517143)
+measured baseline invocation times 33.551 / 33.304 / 33.529 seconds and candidate
+13.848 / 13.816 / 13.875 seconds: median 33.529 to 13.848 seconds, saving 19.681
+seconds (58.7%). Baseline passed seven tests; candidate passed eight. This is a
+focused test saving, not a measured whole-shard or queue-delay change.
+
+Hosted Node typecheck passed. Separate fault controls failed the intended
+assertion for early, late and disabled age expiry, disabled count compaction,
+and a snapshot that drops child descriptions. The description fault passes with
+the original parser-sharing oracle and fails with the independent projection.
+
+## October 4 Git contention and remaining readiness waits
+
+The full Git admission benchmark compared a disabled arm with no correctness
+assertions to an enabled arm with structural ledger checks. Its default CI test
+now saturates the real base and headroom budgets with FIFO-gated child processes,
+queues older background and newer interactive work, releases base slots, and
+requires interactive priority, matching outputs and complete permit release.
+The full original diagnostic remains opt-in through
+`ORCA_GIT_ADMISSION_STORM_MEASUREMENT=1`; both opt-in tests passed locally.
+The existing Windows real-Git parity tests remain unchanged; this fixture retains
+its existing POSIX platform scope.
+
+Two remaining Antigravity transcript tests used real 5,000ms refusal windows.
+They now use the existing scoped `waitForTranscriptIdle` timer harness after the
+emulator drains. All 60 tests, original captured transcripts, deadlines and
+readiness assertions remain.
+
+Three alternating one-worker hosted ARM pairs in
+[37180614492](https://github.com/stablyai/orca/actions/runs/37180614492)
+measured these complete focused invocations:
+
+| Suite | Baseline seconds | Candidate seconds | Median saving |
+| --- | --- | --- | --- |
+| Git admission storm | 26.619 / 26.635 / 26.582 | 1.017 / 1.018 / 1.016 | 25.602s (96.2%) |
+| Antigravity readiness | 27.347 / 27.910 / 27.550 | 13.855 / 13.894 / 13.800 | 13.695s (49.7%) |
+
+Each candidate passed its original meaningful checks. Hosted Node typecheck
+passed. Separate scheduler faults for bypassed admission, withheld release and
+FIFO-only priority failed the queued-contention or interactive-start assertion.
+Two additional local transcript faults failed the original picker-rejection and
+repaint-readiness assertions. These are focused suite savings; whole-shard time
+and queue delay were not measured by this experiment.
