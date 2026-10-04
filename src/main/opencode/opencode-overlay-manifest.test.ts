@@ -30,3 +30,32 @@ it('accepts only string manifest entries and tolerates invalid persisted shapes'
     rmSync(root, { recursive: true, force: true })
   }
 })
+
+it('keeps source ownership optional for older manifests and rejects non-string metadata', () => {
+  const root = mkdtempSync(join(tmpdir(), 'orca-overlay-source-manifest-'))
+  try {
+    const file = join(root, OPENCODE_OVERLAY_MANIFEST_FILE)
+    for (const source of [undefined, null, 42, {}]) {
+      writeFileSync(
+        file,
+        JSON.stringify({ topLevelEntries: [], pluginEntries: [], sourceConfigDir: source })
+      )
+      expect(readOpenCodeOverlayManifest(root)).toEqual({ topLevelEntries: [], pluginEntries: [] })
+    }
+    writeFileSync(
+      file,
+      JSON.stringify({
+        topLevelEntries: ['opencode.json'],
+        pluginEntries: [],
+        sourceConfigDir: '/owned/source'
+      })
+    )
+    expect(readOpenCodeOverlayManifest(root)).toEqual({
+      topLevelEntries: ['opencode.json'],
+      pluginEntries: [],
+      sourceConfigDir: '/owned/source'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})

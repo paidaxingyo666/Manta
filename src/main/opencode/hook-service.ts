@@ -7,11 +7,9 @@ import {
   readFileSync,
   readdirSync,
   realpathSync,
-  statSync,
-  writeFileSync
+  statSync
 } from 'node:fs'
-import { createHash } from 'node:crypto'
-import { isSafeDescendCandidate, mirrorEntry, safeRemoveOverlay } from '../pty/overlay-mirror'
+import { isSafeDescendCandidate, mirrorEntry } from '../pty/overlay-mirror'
 import {
   getOpenCode2PluginSource,
   getOpenCodeFamilyPluginSource,
@@ -19,7 +17,8 @@ import {
 } from './status-plugin-module-source'
 import {
   readOpenCodeOverlayManifest,
-  OPENCODE_OVERLAY_MANIFEST_FILE,
+  clearOpenCodeOverlayManifestEntries,
+  writeOpenCodeOverlayManifest,
   type OpenCodeOverlayManifest
 } from './opencode-overlay-manifest'
 import { resolveOpenCodeConfigDirectory } from '../../shared/opencode-config-directory'
@@ -33,14 +32,18 @@ import {
   writeOpenCodeTuiPlugin
 } from '../../shared/opencode-tui-plugin-install'
 import { writeLegacyOpenCodePluginWithAclRetry } from './legacy-plugin-acl-retry'
+import {
+  OPENCODE_OVERLAY_DIR,
+  MANTA_OPENCODE_PLUGIN_FILE,
+  sourceOverlayDirName,
+  toSafeDirName
+} from './overlay-dir-names'
+import { OpenCodeDirGcLifecycle } from './overlay-dir-gc-lifecycle'
 
 export { getOpenCode2PluginSource, getOpenCodeFamilyPluginSource, getOpenCodePluginSource }
 
 import { writeCanonicalOpenCodePluginAtomically } from '../../shared/opencode-plugin-atomic-write'
 import { writeOpenCodePluginConfig } from './opencode-plugin-config-writer'
-
-const MANTA_OPENCODE_PLUGIN_FILE = 'manta-opencode-status.js'
-const OPENCODE_OVERLAY_DIR = 'opencode-config-overlays'
 
 type OpenCodeHookVariant = {
   pluginFileName: string
@@ -57,11 +60,6 @@ function isUsableId(id: string): boolean {
   return typeof id === 'string' && id.length > 0 && id.length <= 1024
 }
 
-function toSafeDirName(id: string): string {
-  // Why: 32 hex chars (128 bits) makes collisions negligible and stays filesystem-portable (no base64 padding or `/`).
-  return createHash('sha256').update(id).digest('hex').slice(0, 32)
-}
-
 // Why: installs the plugin into OpenCode's config discovery path so it POSTs to the shared agent-hooks server, unifying OpenCode status with Claude/Codex/Gemini.
 export class OpenCodeHookService {
   private readonly pluginSource: () => string
@@ -70,6 +68,7 @@ export class OpenCodeHookService {
   private readonly overlayDir: string
   private readonly installsTuiPlugin: boolean
   private readonly tuiOnlyDirectory: string | undefined
+  readonly configDirGc: OpenCodeDirGcLifecycle
 
   constructor(variant?: OpenCodeHookVariant | (() => string)) {
     const config: OpenCodeHookVariant =
@@ -93,6 +92,7 @@ export class OpenCodeHookService {
     this.pluginFileName = config.pluginFileName
     this.legacyHooksDir = config.legacyHooksDir
     this.overlayDir = config.overlayDir
+    this.configDirGc = new OpenCodeDirGcLifecycle(() => this.getOverlayRoot(), this.pluginFileName)
   }
 
   clearPty(_ptyId: string): void {
@@ -114,6 +114,7 @@ export class OpenCodeHookService {
         }
       }
       this.writePluginIntoOverlay(directory)
+      owner.configDirGc.reference(directory)
       return 'installed'
     } catch {
       return 'failed'
@@ -152,6 +153,7 @@ export class OpenCodeHookService {
         this.mirrorUserConfig(existingConfigDir, overlayDir)
       }
       this.writePluginIntoOverlay(overlayDir)
+      this.configDirGc.reference(overlayDir)
       return { OPENCODE_CONFIG_DIR: overlayDir }
     } catch {
       return { OPENCODE_CONFIG_DIR: existingConfigDir }
@@ -217,7 +219,7 @@ export class OpenCodeHookService {
   }
 
   private getSourceOverlayDir(sourceConfigDir: string): string {
-    return join(this.getOverlayRoot(), toSafeDirName(`source:${sourceConfigDir}`))
+    return join(this.getOverlayRoot(), sourceOverlayDirName(sourceConfigDir))
   }
 
   private getSharedConfigDir(): string {
@@ -227,34 +229,17 @@ export class OpenCodeHookService {
     )
   }
 
-  private writeOverlayManifest(overlayDir: string, manifest: OpenCodeOverlayManifest): void {
-    writeFileSync(
-      join(overlayDir, OPENCODE_OVERLAY_MANIFEST_FILE),
-      `${JSON.stringify(manifest, null, 2)}\n`
-    )
-  }
-
-  private clearManifestEntries(overlayDir: string, manifest: OpenCodeOverlayManifest): void {
-    for (const entryName of manifest.topLevelEntries) {
-      safeRemoveOverlay(join(overlayDir, entryName), overlayDir)
-    }
-
-    const overlayPluginsDir = join(overlayDir, 'plugins')
-    for (const entryName of manifest.pluginEntries) {
-      if (entryName === this.pluginFileName) {
-        continue
-      }
-      safeRemoveOverlay(join(overlayPluginsDir, entryName), overlayPluginsDir)
-    }
-  }
-
   // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Manta can drop a sibling plugin file.
   private mirrorUserConfig(sourceDir: string, overlayDir: string): void {
     const previousManifest = readOpenCodeOverlayManifest(overlayDir)
     // Why: overlays persist across terminals; remove only Manta-mirrored paths so stale user config clears but OpenCode runtime dirs (node_modules) survive.
-    this.clearManifestEntries(overlayDir, previousManifest)
+    clearOpenCodeOverlayManifestEntries(overlayDir, previousManifest, this.pluginFileName)
 
-    const nextManifest: OpenCodeOverlayManifest = { topLevelEntries: [], pluginEntries: [] }
+    const nextManifest: OpenCodeOverlayManifest = {
+      topLevelEntries: [],
+      pluginEntries: [],
+      sourceConfigDir: sourceDir
+    }
 
     for (const entry of readdirSync(sourceDir, { withFileTypes: true })) {
       const sourcePath = join(sourceDir, entry.name)
@@ -301,7 +286,7 @@ export class OpenCodeHookService {
       nextManifest.topLevelEntries.push(entry.name)
     }
 
-    this.writeOverlayManifest(overlayDir, nextManifest)
+    writeOpenCodeOverlayManifest(overlayDir, nextManifest)
   }
 
   private writePluginIntoOverlay(overlayDir: string): void {
