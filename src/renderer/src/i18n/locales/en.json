@@ -18888,5 +18888,8 @@
       "removeDescription": "Stop agents using this profile first. Removal deletes its saved credentials and conversation data. Your system login stays unchanged.",
       "cancel": "Cancel"
     }
+  },
+  "fileSearch": {
+    "failed": "Search failed. Try again."
   }
 }
