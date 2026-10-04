@@ -10855,7 +10855,9 @@
           "a42f6fbdd8": "Maintient cet ordinateur et cet écran éveillés pendant que les agents travaillent. Manta demande également à cet appareil de rester éveillé lorsque le capot est fermé, sous réserve de sa politique d'alimentation.",
           "modeTitle": "Empêcher la mise en veille de l'ordinateur",
           "modeDescriptionWindows": "Choisissez Activé, Agent ou Désactivé. Le mode Agent reste éveillé tant que des agents travaillent ; le comportement à la fermeture du capot suit les paramètres d'alimentation de cet appareil.",
-          "modeDescriptionDefault": "Choisissez Activé, Agent ou Désactivé. Le mode Agent reste éveillé tant que des agents travaillent. Manta demande également à cet appareil de rester éveillé lorsque le capot est fermé, sous réserve de sa politique d'alimentation."
+          "modeDescriptionMac": "Choisissez Activé, Agent ou Désactivé. Le mode Agent empêche la mise en veille pendant que des agents travaillent, pour que les longues tâches se terminent avec le capot ouvert. Fermer le capot met quand même ce Mac en veille.",
+          "modeDescriptionDefault": "Choisissez Activé, Agent ou Désactivé. Le mode Agent reste éveillé tant que des agents travaillent. Manta demande également à cet appareil de rester éveillé lorsque le capot est fermé, sous réserve de sa politique d'alimentation.",
+          "lidNoteMac": "Empêche la mise en veille avec le capot ouvert ; fermer le capot met quand même ce Mac en veille."
         },
         "agent-status-hooks-copy": {
           "7707c15abb": "Hooks de statut des agents",

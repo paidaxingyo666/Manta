@@ -13,7 +13,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useAppStore } from '@/store'
 import { isPairedWebClientWindow } from '@/lib/desktop-window-chrome'
 import { translate } from '@/i18n/i18n'
-import { getAgentAwakeModeLabel, getAgentAwakeTitle } from '../settings/agent-awake-copy'
+import {
+  getAgentAwakeLidNote,
+  getAgentAwakeModeLabel,
+  getAgentAwakeTitle
+} from '../settings/agent-awake-copy'
 import {
   computerAwakeSettingsForMode,
   normalizeComputerAwakeMode,
@@ -110,11 +114,7 @@ export function CaffeinateStatusSegment({
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="top" sideOffset={6}>
-          {ariaLabel}.{' '}
-          {translate(
-            'auto.components.status.bar.CaffeinateStatusSegment.tooltipDescription',
-            'Caffeinate prevents idle sleep while active. Closing a MacBook lid may still put it to sleep.'
-          )}
+          {ariaLabel}. {getAgentAwakeLidNote()}
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent
