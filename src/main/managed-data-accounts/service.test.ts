@@ -491,15 +491,18 @@ describe('managed data accounts', () => {
     expect(service.transcriptEnvironments('devin')).toEqual([secondEnvironment])
   })
 
-  it('rejects a credential symlink without touching its target', async () => {
-    const original = join(source, 'devin', 'credentials.toml')
-    const target = join(root, 'private.toml')
-    writeFileSync(target, readFileSync(original))
-    rmSync(original)
-    symlinkSync(target, original)
-    await expect(service.add('devin', source, 'Work')).rejects.toThrow('regular file')
-    expect(readFileSync(target, 'utf8')).toContain('test-only-key')
-  })
+  it.skipIf(process.platform === 'win32')(
+    'rejects a credential symlink without touching its target',
+    async () => {
+      const original = join(source, 'devin', 'credentials.toml')
+      const target = join(root, 'private.toml')
+      writeFileSync(target, readFileSync(original))
+      rmSync(original)
+      symlinkSync(target, original)
+      await expect(service.add('devin', source, 'Work')).rejects.toThrow('regular file')
+      expect(readFileSync(target, 'utf8')).toContain('test-only-key')
+    }
+  )
 
   it('keeps credential parse errors out of RPC messages', async () => {
     writeFileSync(
