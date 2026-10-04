@@ -18755,6 +18755,10 @@
       "description": "This makes agent status more reliable. You can turn it back on in Settings.",
       "openSettings": "Open Settings"
     },
+    "codexSharedSettingsNotice": {
+      "title": "Codex in Manta now uses ~/.codex",
+      "description": "Codex may ask again to trust folders or approve commands. Re-add any MCP servers you added only in Manta."
+    },
     "codexSharedServerBanner": {
       "title": "This Codex is sharing a server with your other Codex tabs",
       "body": "Sessions may end unexpectedly, and agent status may be wrong.",
