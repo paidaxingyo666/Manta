@@ -1858,6 +1858,32 @@ the imported helper has no top-level side effects, and the Linux rebuild branch
 is unchanged. Focused tests verify its Linux/macOS no-op behavior. Final-head PR
 checks qualify separately.
 
+## October 4 reusable cells for terminal context scans
+
+Terminal cursor-context scans now request one reusable cell per invocation when
+the adapter offers getNullCell, and pass it through all unchanged text/style
+scans. Adapters without that optional method keep the existing allocating path.
+The scratch cell is local and no cell reference escapes into returned context.
+Browser composer/readiness text, colors, bold flags and wrapping are unchanged.
+
+Three alternating one-worker ARM pairs in
+[37182789677](https://github.com/stablyai/orca/actions/runs/37182789677)
+ran all 19 original cases from readiness census suite 2. Baseline complete
+invocations were 37.141 / 37.879 / 37.090 seconds; candidate invocations were
+33.887 / 33.387 / 32.916 seconds. Median 37.141 to 33.387 seconds saves 10.1%.
+This is a focused workload measurement, not a whole-shard or queue-delay claim.
+
+Separate baseline/candidate captures retained all 192 cases across six census
+suites. Every context and visible projection matched: 643,926 of each, with
+7,465,308,324 complete length-prefixed payload bytes hashed per test/type/order.
+The canonical capture digest was
+`f7440c0f1b5bbb57127cd29245530029415c8e9e243c1744359f330b3c7ace19`.
+These captures run outside the timing samples. All 41 cursor/composer/browser
+consumer checks passed. Seven faults for lost dim filtering, wide continuation,
+bold prompt, custom foreground, wrap preservation, adapter fallback and scratch
+reuse failed their intended assertions. Node and web typecheck, lint and format
+passed. Two added controls prove per-call scratch lifetime and adapter parity.
+
 ## October 3 producer follow-up: automatic selection for the measured profile
 
 The first producer rollout in [#24927](https://github.com/stablyai/orca/pull/24927)
