@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Editor } from '@tiptap/core'
+import { Editor } from '@tiptap/react'
 import { toast } from 'sonner'
 import { insertRichMarkdownImageFromPath } from './rich-markdown-image-insert'
 import { createRichMarkdownExtensions } from './rich-markdown-extensions'
@@ -29,7 +29,7 @@ vi.mock('@/runtime/runtime-rpc-client', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  toast: { error: vi.fn() }
+  toast: { error: vi.fn(), info: vi.fn() }
 }))
 
 const openEditors: Editor[] = []
@@ -46,14 +46,13 @@ function createRichMarkdownEditor(markdown: string): Editor {
 }
 
 function editorWithRunResult(runResult: boolean, markdown = 'hello world') {
-  const run = vi.fn(() => runResult)
-  const insertContentAt = vi.fn(() => ({ run }))
-  const focus = vi.fn(() => ({ insertContentAt }))
-  const chain = vi.fn(() => ({ focus }))
-  // Why: the insert path reads the real schema and document to decide whether an
-  // inline image fits at the target position, so the stub borrows both.
-  const { schema, state } = createRichMarkdownEditor(markdown)
-  return { editor: { chain, schema, state }, chain, focus, insertContentAt, run }
+  const editor = createRichMarkdownEditor(markdown)
+  editor.commands.setTextSelection(4)
+  const insertion = editor.chain()
+  vi.spyOn(insertion, 'run').mockReturnValue(runResult)
+  const insertContentAt = vi.spyOn(insertion, 'insertContentAt')
+  const chain = vi.spyOn(editor, 'chain').mockReturnValue(insertion)
+  return { editor, chain, insertContentAt }
 }
 
 describe('insertRichMarkdownImageFromPath', () => {
@@ -82,11 +81,11 @@ describe('insertRichMarkdownImageFromPath', () => {
     const { editor } = editorWithRunResult(false)
 
     await insertRichMarkdownImageFromPath({
-      editor: editor as never,
+      editor,
       filePath: '/repo/note.md',
       sourcePath: '/tmp/image.png',
       worktreeId: 'wt-1',
-      insertPos: 4
+      getInsertionRange: () => ({ from: 4, to: 4, requestOrder: 1 })
     })
 
     expect(toast.error).toHaveBeenCalledWith('Failed to insert image.')
@@ -102,12 +101,12 @@ describe('insertRichMarkdownImageFromPath', () => {
     const { editor } = editorWithRunResult(true)
 
     await insertRichMarkdownImageFromPath({
-      editor: editor as never,
+      editor,
       filePath: '/folder-workspace/note.md',
       sourcePath: '/tmp/image.png',
       worktreeId: 'folder:folder-1',
       runtimeEnvironmentId: 'env-1',
-      insertPos: 4
+      getInsertionRange: () => ({ from: 4, to: 4, requestOrder: 1 })
     })
 
     expect(importExternalPathsToRuntime).toHaveBeenCalledWith(
@@ -132,34 +131,40 @@ describe('insertRichMarkdownImageFromPath', () => {
     const { editor, insertContentAt } = editorWithRunResult(true)
 
     await insertRichMarkdownImageFromPath({
-      editor: editor as never,
+      editor,
       filePath: '/repo/note.md',
       sourcePath: '/tmp/image.png',
       worktreeId: 'wt-1',
-      insertPos: 4
+      getInsertionRange: () => ({ from: 4, to: 4, requestOrder: 1 })
     })
 
-    expect(insertContentAt).toHaveBeenCalledWith(4, {
-      type: 'image',
-      attrs: {
-        src: 'Screenshot%202026-06-22%20at%203.37.19%20PM%20copy.png'
-      }
-    })
+    expect(insertContentAt).toHaveBeenCalledWith(
+      4,
+      {
+        type: 'image',
+        attrs: {
+          src: 'Screenshot%202026-06-22%20at%203.37.19%20PM%20copy.png'
+        }
+      },
+      { updateSelection: true }
+    )
   })
 
   it('skips editor mutation when the caller rejects the stale target after import', async () => {
     const { editor, chain } = editorWithRunResult(true)
 
     await insertRichMarkdownImageFromPath({
-      editor: editor as never,
+      editor,
       filePath: '/repo/note.md',
       sourcePath: '/tmp/image.png',
       worktreeId: 'wt-1',
-      insertPos: 4,
-      canInsert: () => false
+      getInsertionRange: () => null
     })
 
     expect(chain).not.toHaveBeenCalled()
     expect(toast.error).not.toHaveBeenCalled()
+    expect(toast.info).toHaveBeenCalledExactlyOnceWith(
+      'Image insertion canceled because the destination changed. The imported file was kept.'
+    )
   })
 })

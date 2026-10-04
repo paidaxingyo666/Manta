@@ -34,7 +34,7 @@ vi.mock('@/runtime/runtime-rpc-client', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  toast: { error: vi.fn() }
+  toast: { error: vi.fn(), info: vi.fn() }
 }))
 
 const CODE_BLOCK_SOURCE = '```ts\nconst a = 1\n```\n'
