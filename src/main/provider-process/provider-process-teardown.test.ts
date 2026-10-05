@@ -4,7 +4,7 @@ import {
   findSelfInitiatedTreeKills,
   resetSelfInitiatedTreeKillLogForTest
 } from '../crash-reporting/self-initiated-tree-kill-log'
-import { terminateCodexAppServerProcessTree } from './codex-app-server-process-teardown'
+import { terminateProviderProcessTree } from './provider-process-teardown'
 
 /** Above pid_max on every supported POSIX host, so the group signal is a real ESRCH. */
 const UNREACHABLE_PGID = 2_147_483_647
@@ -12,11 +12,11 @@ const UNREACHABLE_PGID = 2_147_483_647
 function child() {
   return {
     pid: 1234,
-    kill: vi.fn(() => true) as ChildProcess['kill']
+    kill: vi.fn<ChildProcess['kill']>(() => true)
   }
 }
 
-describe('terminateCodexAppServerProcessTree', () => {
+describe('terminateProviderProcessTree', () => {
   beforeEach(() => {
     resetSelfInitiatedTreeKillLogForTest()
   })
@@ -26,7 +26,8 @@ describe('terminateCodexAppServerProcessTree', () => {
     const release = Promise.withResolvers<void>()
     const terminateWindowsTree = vi.fn(() => release.promise)
 
-    const teardown = terminateCodexAppServerProcessTree(target, {
+    const teardown = terminateProviderProcessTree(target, {
+      site: 'codex-app-server-teardown',
       platform: 'win32',
       terminateWindowsTree
     })
@@ -38,12 +39,25 @@ describe('terminateCodexAppServerProcessTree', () => {
     expect(target.kill).toHaveBeenCalledWith('SIGKILL')
   })
 
+  it('passes a non-Codex diagnostic label to Windows teardown', async () => {
+    const terminateWindowsTree = vi.fn(async () => undefined)
+
+    await terminateProviderProcessTree(child(), {
+      site: 'provider-test-teardown',
+      platform: 'win32',
+      terminateWindowsTree
+    })
+
+    expect(terminateWindowsTree).toHaveBeenCalledWith(1234, { site: 'provider-test-teardown' })
+  })
+
   it('waits for an owned POSIX snapshot before killing the wrapper', async () => {
     const target = child()
     const snapshot = { rootPgid: 1234, descendants: [], capturedAtMs: 1 }
     const release = Promise.withResolvers<boolean>()
 
-    const teardown = terminateCodexAppServerProcessTree(target, {
+    const teardown = terminateProviderProcessTree(target, {
+      site: 'codex-app-server-teardown',
       platform: 'darwin',
       captureDescendants: async () => snapshot,
       terminateDescendants: () => release.promise
@@ -62,7 +76,8 @@ describe('terminateCodexAppServerProcessTree', () => {
     const signalProcessGroup = vi.fn()
 
     await expect(
-      terminateCodexAppServerProcessTree(target, {
+      terminateProviderProcessTree(target, {
+        site: 'provider-test-teardown',
         platform: 'darwin',
         dedicatedProcessGroup: true,
         captureDescendants,
@@ -73,13 +88,17 @@ describe('terminateCodexAppServerProcessTree', () => {
     expect(signalProcessGroup).toHaveBeenCalledWith(1234, 'SIGKILL')
     expect(captureDescendants).not.toHaveBeenCalled()
     expect(target.kill).not.toHaveBeenCalled()
+    expect(findSelfInitiatedTreeKills(Date.now())).toEqual([
+      expect.objectContaining({ site: 'provider-test-teardown', scope: 'posix-process-group' })
+    ])
   })
 
   it('keeps the dedicated-group wrapper reachable when signalling is unproven', async () => {
     const target = child()
 
     await expect(
-      terminateCodexAppServerProcessTree(target, {
+      terminateProviderProcessTree(target, {
+        site: 'codex-app-server-teardown',
         platform: 'linux',
         dedicatedProcessGroup: true,
         signalProcessGroup: () => {
@@ -99,10 +118,11 @@ describe('terminateCodexAppServerProcessTree', () => {
    * lives in the production default, not in an injectable seam.
    */
   it('does not claim a snapshot group that was already gone', async () => {
-    const target = { pid: UNREACHABLE_PGID, kill: vi.fn(() => true) as ChildProcess['kill'] }
+    const target = { pid: UNREACHABLE_PGID, kill: vi.fn<ChildProcess['kill']>(() => true) }
 
     await expect(
-      terminateCodexAppServerProcessTree(target, {
+      terminateProviderProcessTree(target, {
+        site: 'codex-app-server-teardown',
         platform: 'darwin',
         captureDescendants: async () => ({
           rootPgid: UNREACHABLE_PGID,
@@ -122,7 +142,8 @@ describe('terminateCodexAppServerProcessTree', () => {
     const signalProcessGroup = vi.fn()
 
     await expect(
-      terminateCodexAppServerProcessTree(target, {
+      terminateProviderProcessTree(target, {
+        site: 'codex-app-server-teardown',
         platform: 'darwin',
         captureDescendants: async () => ({ rootPgid: 1234, descendants: [], capturedAtMs: 1 }),
         terminateDescendants: async () => true,
@@ -141,17 +162,18 @@ describe('terminateCodexAppServerProcessTree', () => {
   })
 
   it('tears down 40 dedicated groups without process-table scans or cross-group fanout', async () => {
-    const killMocks = Array.from({ length: 40 }, () => vi.fn(() => true))
+    const killMocks = Array.from({ length: 40 }, () => vi.fn<ChildProcess['kill']>(() => true))
     const targets = killMocks.map((kill, index) => ({
       pid: 10_000 + index,
-      kill: kill as ChildProcess['kill']
+      kill
     }))
     const captureDescendants = vi.fn()
     const signalProcessGroup = vi.fn()
 
     const results = await Promise.all(
       targets.map((target) =>
-        terminateCodexAppServerProcessTree(target, {
+        terminateProviderProcessTree(target, {
+          site: 'codex-app-server-teardown',
           platform: 'linux',
           dedicatedProcessGroup: true,
           captureDescendants,
