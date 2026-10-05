@@ -149,6 +149,8 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
   },
   qoder: {
     detectCmd: 'qodercli',
+    // The documented `qoder` dispatcher still launches the legacy CLI binary.
+    detectCmdAliases: ['qoder'],
     promptInjectionMode: 'flag-prompt-interactive',
     preflightTrust: 'qoder'
   },

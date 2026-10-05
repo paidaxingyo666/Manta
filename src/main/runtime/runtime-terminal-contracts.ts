@@ -4,7 +4,10 @@ import type {
   AgentSessionExecutionClaim,
   RuntimeCreateAgentSessionResult
 } from '../../shared/agent-session-host-authority'
-import type { AgentProviderSessionMetadata } from '../../shared/agent-session-resume'
+import type {
+  AgentProviderSessionMetadata,
+  SleepingAgentLaunchConfig
+} from '../../shared/agent-session-resume'
 import type { OrchestrationCompatibilityHostStamp } from '../../shared/orchestration-compatibility-evidence'
 import type { TerminalOscColorQueryReplyColors } from '../../shared/terminal-osc-color-reply'
 import type {
@@ -84,7 +87,10 @@ export type TerminalCreateOptions = {
   signal?: AbortSignal
   onPtySpawnCommitted?: () => void
   /** Called before the spawn request leaves this process; a throw before it proves nothing spawned. */
-  onPtySpawnDispatched?: () => void
+  onPtySpawnDispatched?: (launch?: {
+    launchConfig?: SleepingAgentLaunchConfig
+    launchAgent?: TuiAgent
+  }) => void
   deferMobileSessionPublish?: boolean
 }
 
