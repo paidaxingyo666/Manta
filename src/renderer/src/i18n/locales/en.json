@@ -16966,7 +16966,16 @@
           "markUnread": "Mark Unread",
           "goToWorkspace": "Go to Workspace",
           "clear": "Clear from List",
-          "agentSection": "Agent"
+          "agentSection": "Agent",
+          "markManyRead_one": "Mark {{count}} Agent Read",
+          "markManyRead_other": "Mark {{count}} Agents Read",
+          "markManyUnread_one": "Mark {{count}} Agent Unread",
+          "markManyUnread_other": "Mark {{count}} Agents Unread",
+          "clearMany_one": "Clear {{count}} Agent from List",
+          "clearMany_other": "Clear {{count}} Agents from List",
+          "markManyRead": "Mark {{count}} Agents Read",
+          "markManyUnread": "Mark {{count}} Agents Unread",
+          "clearMany": "Clear {{count}} Agents from List"
         }
       },
       "confirmation": {

@@ -1,19 +1,19 @@
-export type WorktreeSelectionIntent = 'replace' | 'toggle' | 'range'
+export type SelectionIntent = 'replace' | 'toggle' | 'range'
 
-export type WorktreeSelectionResult = {
+export type SelectionResult = {
   selectedIds: Set<string>
   anchorId: string
 }
 
-export type WorktreeAreaSelectionResult = {
+export type AreaSelectionResult = {
   selectedIds: Set<string>
   anchorId: string | null
 }
 
-export function getWorktreeSelectionIntent(
+export function getSelectionIntent(
   event: Pick<MouseEvent, 'metaKey' | 'ctrlKey' | 'shiftKey'>,
   isMac: boolean
-): WorktreeSelectionIntent {
+): SelectionIntent {
   if (event.shiftKey) {
     return 'range'
   }
@@ -21,13 +21,13 @@ export function getWorktreeSelectionIntent(
   return toggle ? 'toggle' : 'replace'
 }
 
-export function updateWorktreeSelection(params: {
+export function updateSelection(params: {
   visibleIds: readonly string[]
   previousSelectedIds: ReadonlySet<string>
   previousAnchorId: string | null
   targetId: string
-  intent: WorktreeSelectionIntent
-}): WorktreeSelectionResult {
+  intent: SelectionIntent
+}): SelectionResult {
   const { visibleIds, previousSelectedIds, previousAnchorId, targetId, intent } = params
 
   if (intent === 'replace') {
@@ -62,7 +62,7 @@ export function updateWorktreeSelection(params: {
   }
 }
 
-export function pruneWorktreeSelection(
+export function pruneSelection(
   selectedIds: ReadonlySet<string>,
   anchorId: string | null,
   visibleIds: readonly string[]
@@ -80,13 +80,13 @@ export function pruneWorktreeSelection(
   }
 }
 
-export function updateWorktreeAreaSelection(params: {
+export function updateAreaSelection(params: {
   visibleIds: readonly string[]
   previousSelectedIds: ReadonlySet<string>
   previousAnchorId: string | null
   areaIds: readonly string[]
   additive: boolean
-}): WorktreeAreaSelectionResult {
+}): AreaSelectionResult {
   const { visibleIds, previousSelectedIds, previousAnchorId, areaIds, additive } = params
   const areaIdSet = new Set(areaIds)
   const orderedAreaIds = visibleIds.filter((id) => areaIdSet.has(id))
@@ -108,10 +108,7 @@ export function updateWorktreeAreaSelection(params: {
   }
 }
 
-export function areWorktreeSelectionsEqual(
-  a: ReadonlySet<string>,
-  b: ReadonlySet<string>
-): boolean {
+export function areSelectionsEqual(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
   if (a.size !== b.size) {
     return false
   }
