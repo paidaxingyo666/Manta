@@ -63,7 +63,7 @@ test('requires one canary or a bounded reviewed batch', () => {
     rollbackDigest,
     confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c31`
   }).cells, ['production-gce-c31'])
-  for (const cellId of ['production-gce-c32', 'production-gce-c33']) {
+  for (const cellId of ['production-gce-c32', 'production-gce-c33', 'production-gce-c34']) {
     assert.deepEqual(validateSameCapWave({
       mode: 'canary-apply',
       cellIds: cellId,
@@ -74,10 +74,10 @@ test('requires one canary or a bounded reviewed batch', () => {
   }
   assert.throws(() => validateSameCapWave({
     mode: 'canary-apply',
-    cellIds: 'production-gce-c34',
+    cellIds: 'production-gce-c35',
     targetDigest,
     rollbackDigest,
-    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c34`
+    confirmation: `ROLL_RELAY_SAME_CAP ${targetDigest} production-gce-c35`
   }), /cells/)
 })
 
@@ -123,8 +123,11 @@ test('the wave workflow chains exactly ten serial cell jobs', () => {
   assert.doesNotMatch(dispatch, /\n  cell_11:/)
 })
 
-test('lists only C17 and C18 as migration-only now that C32 and C33 are promoted', () => {
-  assert.deepEqual(SAME_CAP_MIGRATION_ONLY_CELLS, ['production-gce-c17', 'production-gce-c18'])
+test('lists the C34 spare as migration-only beside C17 and C18, and C30-C33 as general', () => {
+  assert.deepEqual(
+    SAME_CAP_MIGRATION_ONLY_CELLS,
+    ['production-gce-c17', 'production-gce-c18', 'production-gce-c34']
+  )
   for (const cellId of [
     'production-gce-c30', 'production-gce-c31', 'production-gce-c32', 'production-gce-c33'
   ]) {
