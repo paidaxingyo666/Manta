@@ -19,6 +19,13 @@ import type {
 import type { PreloadApi } from '../api-types'
 
 export const fsApi = {
+  readFileChunk: (args: {
+    filePath: string
+    connectionId?: string
+    access?: LocalFileAccess
+    offset: number
+    length: number
+  }) => ipcRenderer.invoke('fs:readFileChunk', args),
   readDir: (args: {
     dirPath: string
     connectionId?: string

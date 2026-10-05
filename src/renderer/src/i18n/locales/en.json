@@ -1,4 +1,14 @@
 {
+  "csv": {
+    "detectingDelimiter": "Detecting delimiter…",
+    "indexProgress": "Indexing CSV… {{percent}}%",
+    "loadingCell": "Loading…",
+    "nextRows": "Next rows",
+    "previousRows": "Previous rows",
+    "readOnlyPreview": "Large file preview · Read-only",
+    "resizeColumn": "Resize column {{column}}",
+    "rowWindow": "Rows {{first}}–{{last}}"
+  },
   "osDocumentOpen": {
     "failed": "Failed to open the file."
   },

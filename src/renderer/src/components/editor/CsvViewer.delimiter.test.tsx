@@ -4,14 +4,26 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import CsvViewer from './CsvViewer'
 
 vi.mock('@tanstack/react-virtual', () => ({
-  useVirtualizer: ({ count }: { count: number }) => ({
+  useVirtualizer: ({
+    count,
+    estimateSize,
+    paddingStart = 0
+  }: {
+    count: number
+    estimateSize: (index: number) => number
+    paddingStart?: number
+  }) => ({
     getVirtualItems: () =>
       Array.from({ length: Math.min(count, 3) }, (_, index) => ({
         index,
         key: index,
-        start: index * 28
+        start: paddingStart + index * estimateSize(index),
+        size: estimateSize(index),
+        end: paddingStart + (index + 1) * estimateSize(index)
       })),
-    getTotalSize: () => count * 28
+    getTotalSize: () => paddingStart + count * estimateSize(0),
+    resizeItem: vi.fn(),
+    measure: vi.fn()
   })
 }))
 
@@ -23,6 +35,14 @@ async function chooseDelimiter(label: string): Promise<void> {
 }
 
 describe('CSV delimiter selection', () => {
+  it('previews a dense file below the paged byte threshold', () => {
+    const header = Array.from({ length: 100 }, (_, i) => `column-${i}`).join(',')
+    const content = `${header}\n${`${Array.from({ length: 100 }, () => '1').join(',')}\n`.repeat(4000)}`
+    expect(new TextEncoder().encode(content).length).toBeLessThan(1024 * 1024)
+    render(<CsvViewer content={content} filePath="dense.csv" />)
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.getByRole('table').getAttribute('aria-rowcount')).toBe('4001')
+  })
   it('lets the reader resolve ambiguous headerless decimal data', async () => {
     render(<CsvViewer content={'1,50;coffee\n2,75;tea'} filePath="prices.csv" />)
     expect(screen.getByRole('combobox', { name: 'Delimiter' }).textContent).toBe('Auto (Comma)')

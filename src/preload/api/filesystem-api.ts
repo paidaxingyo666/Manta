@@ -1,4 +1,5 @@
 import type { PathExistenceResult } from '../../shared/path-existence-batch'
+import type { RuntimeFileReadChunkResult } from '../../shared/runtime-types'
 import type { SearchOptions, SearchResult } from '../../shared/code-search-types'
 import type {
   DirEntry,
@@ -38,6 +39,13 @@ export type ExportApi = {
 
 export type FilesystemApi = {
   fs: {
+    readFileChunk: (args: {
+      filePath: string
+      connectionId?: string
+      access?: LocalFileAccess
+      offset: number
+      length: number
+    }) => Promise<RuntimeFileReadChunkResult>
     readDir: (args: { dirPath: string; connectionId?: string }) => Promise<DirEntry[]>
     readFile: (args: {
       filePath: string

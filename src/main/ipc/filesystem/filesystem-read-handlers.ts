@@ -20,6 +20,7 @@ import { getLocalGitOptionsForRegisteredWorktree } from '../local-worktree-runti
 import { recordCrashBreadcrumb } from '../../crash-reporting/crash-breadcrumb-store'
 import { buildReadDirErrorBreadcrumb, type ReadDirThrowSite } from '../readdir-error-diagnostics'
 import type { FilesystemHandlerContext } from './filesystem-handler-context'
+import { registerFilesystemChunkReadHandler } from './filesystem-chunk-read-handler'
 import {
   isDirectoryEntry,
   readLocalFileContent,
@@ -28,6 +29,7 @@ import {
 } from './filesystem-file-content-inspection'
 
 export function registerFilesystemReadHandlers(context: FilesystemHandlerContext): void {
+  registerFilesystemChunkReadHandler(context)
   const { store } = context
 
   ipcMain.handle(

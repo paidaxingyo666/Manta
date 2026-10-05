@@ -3,7 +3,8 @@ import type { OpenFile } from '@/store/slices/editor'
 import { getConnectionIdForFile, isWorktreeConnectionResolved } from '@/lib/connection-context'
 import { useAppStore } from '@/store'
 import { getDiskBaselineSignature } from './diff-content-signature'
-import { getRuntimeFileReadScope, readRuntimeFileContent } from '@/runtime/runtime-file-client'
+import { getRuntimeFileReadScope } from '@/runtime/runtime-file-client'
+import { readEditorCsvFileContent } from './editor-csv-file-content'
 import { RuntimeRpcCallError, settingsForRuntimeOwner } from '@/runtime/runtime-rpc-client'
 import { findWorkspaceFileRoute } from '@/lib/runtime-workspace-file-route'
 import { selectWorktreeHostConnectionPhase } from '@/lib/worktree-host-connection-phase'
@@ -45,7 +46,7 @@ type UseEditorPanelFileContentLoaderParams = {
 // the signature was taken over). Best-effort metadata — a failure here must
 // not convert an already-delivered load into an error view, hence the guard.
 function stampCleanTabDiskBaseline(id: string, result: FileContent): void {
-  if (result.isBinary || result.loadError) {
+  if (result.isBinary || result.loadError || result.csvPreview) {
     return
   }
   try {
@@ -165,8 +166,11 @@ export function useEditorPanelFileContentLoader({
         const access = restoredOpenFile
           ? editorTabFileAccess(useAppStore.getState(), restoredOpenFile)
           : undefined
-        // Why the access kind in the key: a contained tab must not share a read made as a user-named one.
-        const key = `${inFlightReadKey(readScope, filePath)}::${access?.kind ?? ''}`
+        const allowPagedPreview =
+          !restoredOpenFile?.isDirty &&
+          (!/\.(csv|tsv)$/i.test(filePath) || useAppStore.getState().editorDrafts[id] === undefined)
+        // Keep file authorization and editable drafts isolated between concurrent reads.
+        const key = `${inFlightReadKey(readScope, filePath)}::${access?.kind ?? ''}${allowPagedPreview ? '' : '::editable'}`
         const registeredRead = inFlightFileReads.get(key)
         if (
           options?.force &&
@@ -179,16 +183,19 @@ export function useEditorPanelFileContentLoader({
         }
         let pending = inFlightFileReads.get(key)
         if (!pending) {
-          const promise: Promise<FileContent> = readRuntimeFileContent({
-            settings: readSettings,
-            filePath,
-            relativePath: readRelativePath,
-            worktreeId: readWorktreeId,
-            connectionId: readConnectionId,
-            expectedExternalSshTargetId: restoredOpenFile?.externalSshTargetId,
-            includeLocalLogMetadata: isLiveTailLogTab,
-            access
-          })
+          const promise = readEditorCsvFileContent(
+            {
+              settings: readSettings,
+              filePath,
+              relativePath: readRelativePath,
+              worktreeId: readWorktreeId,
+              connectionId: readConnectionId,
+              expectedExternalSshTargetId: restoredOpenFile?.externalSshTargetId,
+              includeLocalLogMetadata: isLiveTailLogTab,
+              access
+            },
+            allowPagedPreview
+          )
           pending = { externalEventGeneration: options?.externalEventGeneration, promise }
           inFlightFileReads.set(key, pending)
           queueMicrotask(() => {
@@ -200,6 +207,14 @@ export function useEditorPanelFileContentLoader({
         const result = await pending.promise
         if (fileReadGenerationRef.current[id] !== generation) {
           return
+        }
+        if (result.csvPreview && useAppStore.getState().editorDrafts[id] !== undefined) {
+          throw new Error(
+            'CSV grew too large for editing. Your draft has been kept; reopen the file to preview it.'
+          )
+        }
+        if (result.csvPreview || restoredOpenFile?.csvPreviewOnly) {
+          useAppStore.getState().setCsvPreviewOnly(id, Boolean(result.csvPreview))
         }
         delete fileLoadRetryAttemptsRef.current[id]
         setFileContents((prev) => ({ ...prev, [id]: result }))

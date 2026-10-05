@@ -77,6 +77,9 @@ export function createEditorSaveQueue(store: AppStoreApi): EditorSaveQueue {
         if (!liveFile) {
           return
         }
+        if (liveFile.csvPreviewOnly === true) {
+          throw new Error('Large CSV previews are read-only.')
+        }
 
         // Why: read-only tabs (AI Vault View Log) must never write the agent-owned artifact through editor paths.
         if (liveFile.readOnly === true) {
