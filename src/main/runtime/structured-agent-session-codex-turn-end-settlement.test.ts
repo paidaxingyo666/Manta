@@ -25,6 +25,8 @@ import type { AgentJournalSubmission } from '../../shared/agent-session-journal-
 import { classifyDispatchRejection } from '../../shared/structured-agent-session-dispatch-rejection'
 import { owesStructuredAgentSessionWork } from '../../shared/structured-agent-session-owed-work'
 import { readAgentJournalTurn } from '../../shared/agent-session-turn-record'
+import { agentJournalItemKey } from '../../shared/agent-session-journal-item-key'
+import { structuredAgentSessionStopNoteIdentity } from '../native-chat/agent-session-wire/structured-agent-session-command-turn'
 import {
   HOST_TEST_SESSION as SESSION,
   HOST_TEST_THREAD as THREAD,
@@ -633,6 +635,32 @@ describe("a Stop pressed while Codex's turn/start is in flight", () => {
     })
     // Codex's end, after its answer, settles the send.
     await vi.waitFor(async () => expect((await settled()).owesWork).toBe(false))
+  })
+
+  // The Stop was read with no turn running; its note is the turn the interrupt took, as a normal
+  // Stop's is, never a conversation row below whatever came next.
+  it('keeps its note with the turn the interrupt took', async () => {
+    const release = turns.holdNextAnswer()
+    await send('look around')
+    await vi.waitFor(() => expect(answers).toBe(1))
+    const stopping = stop()
+    release()
+    await vi.waitFor(() => expect(openWaits.turnIds).toContain('turn-1'))
+    turns.start()
+    await stopping
+
+    const { items } = await host.journalSnapshot(SESSION)
+    const turn = items.find((item) => readAgentJournalTurn(item.body)?.turnId === 'turn-1')
+    expect(readAgentJournalTurn(turn?.body)?.state).toBe('interrupted')
+    const notes = items.filter(
+      (item) => item.body.kind === 'status' && item.body.text === 'Cancellation requested.'
+    )
+    expect(notes.map((note) => [note.itemId, note.turnScope])).toEqual([
+      [
+        agentJournalItemKey(structuredAgentSessionStopNoteIdentity('turn-1')),
+        { kind: 'turn', turnItemId: turn?.itemId }
+      ]
+    ])
   })
 
   it('ends the child when its interrupt was refused and the turn has not opened by the end of its wait', async () => {
