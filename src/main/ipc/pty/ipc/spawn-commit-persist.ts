@@ -103,7 +103,6 @@ export function publishPtyIpcSpawnCommit(ctx: PtyIpcSpawnState, committedSize: P
     isReattach: ctx.result.isReattach === true,
     pinnedByResume: ctx.codexResumeHomeSelected,
     launchCodexHomePath: ctx.selectedCodexHomePath,
-    launchEnv: ctx.baseEnv,
     target: ctx.codexSelectionTarget,
     settings: ctx.deps.getSettings?.()
   })

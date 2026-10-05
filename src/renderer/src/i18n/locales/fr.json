@@ -1231,11 +1231,7 @@
         "9263e75f49": "Codex utilise le compte précédent",
         "d3e8a1f4b2": "Compte changé",
         "9375620cc3": "Redémarrez cette session pour utiliser {{value0}}. Elle reste sur le compte précédent tant que vous ne l'avez pas fait.",
-        "6133594b12": "Conserver l'ancien compte",
-        "8f0d5c92a1": "Configuration Codex modifiée",
-        "3ea91b5c07": "Cette session Codex utilise une configuration obsolète",
-        "e6b7139d2a": "Redémarrez cette session pour charger votre configuration Codex actuelle.",
-        "7b1d20f4c8": "Conserver la session actuelle"
+        "6133594b12": "Conserver l'ancien compte"
       },
       "FirstLaunchBanner": {
         "b9e1b966c7": "Masquer l'avis",
