@@ -10,7 +10,7 @@ import { useCsvTableEditor } from './useCsvTableEditor'
 import { CsvTableToolbar } from './CsvTableToolbar'
 import { remapCsvColumnWidths } from './csv-column-width-preferences'
 import { useCsvColumnWidths } from './useCsvColumnWidths'
-import { buildFileViewPreferenceKey } from './file-view-preference-storage'
+import { buildFileViewPreferenceKey } from '../file-view-preference-storage'
 
 export default function CsvViewer({
   content,

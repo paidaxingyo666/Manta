@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CsvFilePreview } from './editor-csv-file-content'
+import type { CsvFilePreview } from './csv-file-content'
 import { CsvPagedPreview } from './csv-paged-preview'
 import type { CsvIndex } from './csv-byte-index'
 

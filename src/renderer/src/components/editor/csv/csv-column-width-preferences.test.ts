@@ -6,7 +6,7 @@ import {
   writeCsvColumnWidths,
   remapCsvColumnWidths
 } from './csv-column-width-preferences'
-import { buildFileViewPreferenceKey } from './file-view-preference-storage'
+import { buildFileViewPreferenceKey } from '../file-view-preference-storage'
 
 afterEach(() => {
   vi.restoreAllMocks()

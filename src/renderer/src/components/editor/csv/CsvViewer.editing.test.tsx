@@ -5,9 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import CsvViewer from './CsvViewer'
 import { useCsvTableEditor } from './useCsvTableEditor'
 import { parseCsvTextDocument } from './csv-text-document'
-import { flushPendingEditorChange, hasPendingEditorChange } from './editor-pending-flush'
+import { flushPendingEditorChange, hasPendingEditorChange } from '../editor-pending-flush'
 import { APP_MENU_PASTE_EVENT } from '@/lib/app-menu-paste'
-import { MANTA_EDITOR_FILE_SAVED_EVENT } from './editor-autosave'
+import { MANTA_EDITOR_FILE_SAVED_EVENT } from '../editor-autosave'
 
 vi.mock('@tanstack/react-virtual', () => ({
   useVirtualizer: ({

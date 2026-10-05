@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
-import { registerPendingEditorFlush } from './editor-pending-flush'
-import { MANTA_EDITOR_FILE_SAVED_EVENT } from './editor-autosave'
+import { registerPendingEditorFlush } from '../editor-pending-flush'
+import { MANTA_EDITOR_FILE_SAVED_EVENT } from '../editor-autosave'
 import type { CsvTextDocument } from './csv-text-document'
 import { editCsvTextCells } from './csv-text-cell-edits'
 import type { CsvCellEditSession } from './csv-grid-interaction'

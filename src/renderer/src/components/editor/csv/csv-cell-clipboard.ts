@@ -2,9 +2,9 @@ import {
   CLIPBOARD_TEXT_WRITE_MAX_BYTES,
   assertClipboardTextWithinLimit,
   assertClipboardTextWriteWithinLimit
-} from '../../../../shared/clipboard-text'
+} from '../../../../../shared/clipboard-text'
 import { CSV_MAX_COLUMNS, CSV_RECORD_BYTES } from './csv-byte-index'
-import { measureUtf8ByteLength } from '../../../../shared/utf8-byte-limits'
+import { measureUtf8ByteLength } from '../../../../../shared/utf8-byte-limits'
 import { parseCsv } from './csv-parse'
 import { serializeCsvRecord } from './csv-serialization'
 import { csvSelectionBounds, type CsvCellSelection } from './csv-cell-selection'

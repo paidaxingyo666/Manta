@@ -1,10 +1,10 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { createEditorSaveQueue } from './editor-save-queue'
-import { registerPendingEditorFlush } from './editor-pending-flush'
+import { createEditorSaveQueue } from '../editor-save-queue'
+import { registerPendingEditorFlush } from '../editor-pending-flush'
 import {
   createEditorStore,
   stubEditorWindowWithDisk
-} from './editor-autosave-controller-test-fixture'
+} from '../editor-autosave-controller-test-fixture'
 
 afterEach(() => vi.unstubAllGlobals())
 

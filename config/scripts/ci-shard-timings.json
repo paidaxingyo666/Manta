@@ -5375,7 +5375,7 @@
       "src/renderer/src/components/editor/combined-diff/scroll-viewport/combined-diff-restore-signal-equivalence.test.tsx": 552,
       "src/renderer/src/components/editor/combined-diff/scroll-viewport/combined-diff-scrollbar-drag.test.ts": 59,
       "src/renderer/src/components/editor/conflict-review-file-tree-windowing.test.tsx": 2238,
-      "src/renderer/src/components/editor/csv-parse.test.ts": 122,
+      "src/renderer/src/components/editor/csv/csv-parse.test.ts": 122,
       "src/renderer/src/components/editor/details-markdown-html.test.ts": 99,
       "src/renderer/src/components/editor/diff-editor-hide-unchanged-options.test.ts": 35,
       "src/renderer/src/components/editor/diff-editor-line-number-options.test.ts": 48,
