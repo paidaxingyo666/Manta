@@ -318,11 +318,11 @@ describePostgres('PostgreSQL transaction recovery', () => {
       { scope_key: keys[1], count: '1' }
     ])
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('"event":"manta_relay_postgres_transaction_retry"')
+      expect.stringContaining('"event":"orca_relay_postgres_transaction_retry"')
     )
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('"phase":"rate-limit"'))
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('"event":"manta_relay_postgres_transaction_exhausted"')
+      expect.stringContaining('"event":"orca_relay_postgres_transaction_exhausted"')
     )
     warn.mockRestore()
   }, 10_000)
@@ -400,10 +400,10 @@ describePostgres('PostgreSQL transaction recovery', () => {
     expect(directorDatabase.attempts).toBe(2)
     expect(legacyAttempts).toBe(1)
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_retry')
+      expect.stringContaining('orca_relay_postgres_transaction_retry')
     )
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_exhausted')
+      expect.stringContaining('orca_relay_postgres_transaction_exhausted')
     )
     await expect(seedStore.resolve(identity)).resolves.toMatchObject({
       cellId,
@@ -462,7 +462,7 @@ describePostgres('PostgreSQL transaction recovery', () => {
     await expect(legacyTransaction).resolves.toBeUndefined()
     expect(inventoryAttempts).toBe(0)
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_retry')
+      expect.stringContaining('orca_relay_postgres_transaction_retry')
     )
     warn.mockRestore()
   }, 15_000)
@@ -794,6 +794,57 @@ describePostgres('PostgreSQL transaction recovery', () => {
     ])
   }, 15_000)
 
+  it('keeps a unit placed between reconciliation reading leases and locking cells', async () => {
+    const now = 1_350_000_000_000
+    const cells = [
+      { id: 'reconcile-cell-a', url: 'https://reconcile-a.example.com', capacityRequests: 100 },
+      { id: 'reconcile-cell-b', url: 'https://reconcile-b.example.com', capacityRequests: 100 }
+    ]
+    const seedStore = new RelayAssignmentStore(database, () => now)
+    await seedStore.reconcileCells(cells)
+
+    const leasesRead = signal()
+    const continueReconciliation = signal()
+    let gateReconciliation = true
+    const reconcileDatabase = new TransactionProbeDatabase(database, async (phase, sql) => {
+      if (
+        gateReconciliation &&
+        phase === 'after' &&
+        sql.includes('SELECT lease.* FROM relay_assignment_activity_leases lease')
+      ) {
+        gateReconciliation = false
+        leasesRead.resolve()
+        await continueReconciliation.promise
+      }
+    })
+    const reconciliation = new RelayAssignmentStore(
+      reconcileDatabase,
+      () => now
+    ).cellEvacuationStatus('reconcile-cell-a', 'reconcile-cell-b', true)
+    await leasesRead.promise
+    // A brand-new host holds no row reconciliation locked, so it commits in the gap.
+    const grant = await seedStore.assign({
+      userId: 'reconcile-user-gap',
+      relayHostId: 'reconcilehostgap'
+    })
+    continueReconciliation.resolve()
+    await reconciliation
+
+    expect(['reconcile-cell-a', 'reconcile-cell-b']).toContain(grant.cellId)
+    const reservations = await database.query(
+      `SELECT cell.cell_id, cell.reserved_requests,
+         COALESCE(SUM(lease.request_units), 0) AS lease_units
+       FROM relay_cells cell
+       LEFT JOIN relay_assignment_activity_leases lease ON lease.cell_id = cell.cell_id
+       WHERE cell.cell_id = ?
+       GROUP BY cell.cell_id, cell.reserved_requests`,
+      [grant.cellId]
+    )
+    expect(reservations).toEqual([
+      { cell_id: grant.cellId, reserved_requests: '1', lease_units: '1' }
+    ])
+  }, 15_000)
+
   it('fences a source activity queued behind evacuation completion', async () => {
     const now = 1_400_000_000_000
     const identity = {
@@ -968,7 +1019,7 @@ describePostgres('PostgreSQL transaction recovery', () => {
     await expect(completionStore.completeReadyEvacuations()).resolves.toBe(0)
     await expect(legacyTransaction).resolves.toBeUndefined()
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_retry')
+      expect.stringContaining('orca_relay_postgres_transaction_retry')
     )
     await expect(store.completeReadyEvacuations()).resolves.toBe(1)
   }, 15_000)
@@ -1189,7 +1240,7 @@ describePostgres('PostgreSQL transaction recovery', () => {
     await expect(legacyTransaction).resolves.toBeUndefined()
     expect(cleanupDatabase.attempts).toBe(1)
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_retry')
+      expect.stringContaining('orca_relay_postgres_transaction_retry')
     )
     await expect(store.releaseExpiredActivityLeases()).resolves.toBe(1)
   }, 15_000)
@@ -1233,7 +1284,7 @@ describePostgres('PostgreSQL transaction recovery', () => {
     await expect(cleanupStore.releaseExpiredActivityLeases()).resolves.toBe(0)
     expect(cleanupDatabase.attempts).toBe(1)
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_retry')
+      expect.stringContaining('orca_relay_postgres_transaction_retry')
     )
     warn.mockRestore()
 
@@ -1298,7 +1349,7 @@ describePostgres('PostgreSQL transaction recovery', () => {
     await expect(legacyTransaction).resolves.toBeUndefined()
     expect(cleanupDatabase.attempts).toBe(1)
     expect(warn).not.toHaveBeenCalledWith(
-      expect.stringContaining('manta_relay_postgres_transaction_retry')
+      expect.stringContaining('orca_relay_postgres_transaction_retry')
     )
     await expect(store.releaseExpiredActivity()).resolves.toBe(1)
   }, 15_000)
