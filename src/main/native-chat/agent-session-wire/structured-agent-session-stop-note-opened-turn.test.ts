@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
+import { codexProviderHandle } from '../../../shared/agent-session-provider-handle-encoding'
 import {
   AGENT_JOURNAL_THREAD_SCOPE,
   type AgentSessionJournalIdentity
@@ -21,7 +22,7 @@ const IDENTITY: AgentSessionJournalIdentity = {
   workspaceId: 'workspace-1',
   hostId: 'host-1',
   agent: 'codex',
-  providerHandle: { kind: 'codex', threadId: 'thread-1' }
+  providerHandle: codexProviderHandle('thread-1')
 }
 const TURN = { provider: 'codex' as const, threadId: 'thread-1', turnId: 'turn-1', ordinal: 0 }
 
