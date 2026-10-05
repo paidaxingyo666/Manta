@@ -1,8 +1,8 @@
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { resolveMantadBrowserProvider } from './mantad-browser-provider'
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
-import { ORCAD_BUNDLED_LAUNCHER_ENV } from './orcad-bundled-runtime'
-import { resolveMantadExitCode } from './orcad-exit-code'
+import { ORCAD_BUNDLED_LAUNCHER_ENV } from './mantad-bundled-runtime'
+import { resolveMantadExitCode } from './mantad-exit-code'
 import {
   acquireProfileStateRuntimeAdmission,
   type ProfileStateRuntimeAdmission
@@ -127,11 +127,11 @@ export async function startOrcadWithHost<T extends object>(
 }
 
 export async function flushOrcadProfileStoreForShutdown(store: {
-  flushFinalOrThrowAsync(options?: { exportJsonCompatibility?: boolean }): Promise<void>
+  flushFinalOrThrowAsync(): Promise<void>
   freezeWritesAsync(): Promise<void>
 }): Promise<void> {
   try {
-    await store.flushFinalOrThrowAsync({ exportJsonCompatibility: true })
+    await store.flushFinalOrThrowAsync()
   } finally {
     await store.freezeWritesAsync()
   }

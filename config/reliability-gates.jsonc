@@ -11,6 +11,97 @@
   },
   "gates": [
     {
+      "id": "profile-storage.sqlite-authority-without-automatic-json",
+      "title": "SQLite remains authoritative after automatic JSON snapshots are retired",
+      "maturity": "experimental",
+      "protection": "partial",
+      "owner": "persistence",
+      "layer": "main-sqlite-lifecycle",
+      "surfaces": [
+        "shutdown and update checkpoints",
+        "profile-switch maintenance",
+        "offline profile recovery",
+        "pinned and local build selection"
+      ],
+      "platforms": ["macos", "linux", "windows"],
+      "providers": ["local", "daemon", "ssh", "wsl", "remote-runtime"],
+      "coveredPlatforms": ["macos"],
+      "coveredProviders": ["local"],
+      "coverageNotes": "Real temporary profile databases and production Store/CLI recovery paths on macOS; mocked updater feed admission for macOS/Linux/Windows. PTY execution and remote wire payloads are unchanged. Profile persistence executes on its owning runtime. Native installers and physical remote hosts are untested.",
+      "motivatingLinks": ["https://github.com/stablyai/orca/pull/23262"],
+      "invariant": "Ordinary lifecycle operations durably checkpoint SQLite without rewriting legacy JSON; missing SQLite cannot revive stale JSON; explicit recovery preserves artifacts and selects the named profile without changing active-profile state; the updater refuses JSON-era releases before admitting their feed.",
+      "oracle": "Assert unchanged JSON through final flush and maintenance, failure propagation before quit, missing-database refusal after marker publication, archived SQLite and latest committed JSON from inactive-profile conversion, unchanged active database/index/HTTP marker, and zero feed/check calls for incompatible pinned/local builds.",
+      "commands": [
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/main/persistence/profile-state src/main/persistence/loading-store src/main/manta-profiles src/main/startup/profile-state-recovery-preflight.test.ts src/main/startup/main-window-core-services.test.ts src/main/ipc/manta-profiles-switch-persistence.test.ts src/main/updater-sqlite-profile-downgrade.test.ts src/main/updater.build-channel-selection.test.ts src/cli/handlers/profile-state.test.ts src/cli/handlers/profile-state-recovery-admission.test.ts src/cli/specs/profile-state.test.ts src/cli/runtime/profile-state-recovery-launch.test.ts src/shared/profile-state-recovery-command.test.ts src/shared/profile-state-build-compatibility.test.ts",
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/main/persistence/loading-store/profile-state-update-quit.test.ts src/main/persistence/loading-store/profile-state-maintenance-compatibility.test.ts src/main/persistence/profile-state/profile-state-authority-marker.test.ts src/main/persistence/profile-state/profile-state-selected-profile-recovery.test.ts src/main/persistence/profile-state/profile-state-current-sqlite-command.test.ts src/main/updater-sqlite-profile-downgrade.test.ts src/main/persistence/loading-store/profile-state-checkpoints.test.ts src/main/startup/main-window-core-services.test.ts",
+        "MANTA_BACKGROUND_LAUNCH=1 pnpm exec playwright test tests/e2e/profile-state-terminal-restart-persistence.spec.ts tests/e2e/orchestration-legacy-worker-restart-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+      ],
+      "testFiles": [
+        "src/main/persistence/loading-store/profile-state-update-quit.test.ts",
+        "src/main/persistence/loading-store/profile-state-maintenance-compatibility.test.ts",
+        "src/main/persistence/profile-state/profile-state-authority-marker.test.ts",
+        "src/main/persistence/profile-state/profile-state-selected-profile-recovery.test.ts",
+        "src/main/persistence/profile-state/profile-state-current-sqlite-command.test.ts",
+        "src/main/updater-sqlite-profile-downgrade.test.ts",
+        "src/main/persistence/loading-store/profile-state-checkpoints.test.ts",
+        "src/main/startup/main-window-core-services.test.ts",
+        "tests/e2e/profile-state-terminal-restart-persistence.spec.ts"
+      ],
+      "assertionRefs": [
+        {
+          "file": "src/main/persistence/profile-state/profile-state-selected-profile-recovery.test.ts",
+          "assertions": [
+            "downgrades an inactive profile from its latest SQLite state without changing the active profile",
+            "refuses unknown and escaping IDs without falling back to the active profile"
+          ]
+        }
+      ],
+      "evidenceRuns": [
+        {
+          "date": "2026-10-05",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm test src/main/persistence/profile-state src/main/persistence/loading-store src/main/manta-profiles src/main/startup/profile-state-recovery-preflight.test.ts src/main/startup/main-window-core-services.test.ts src/main/ipc/manta-profiles-switch-persistence.test.ts src/main/updater-sqlite-profile-downgrade.test.ts src/main/updater.build-channel-selection.test.ts src/cli/handlers/profile-state.test.ts src/cli/handlers/profile-state-recovery-admission.test.ts src/cli/specs/profile-state.test.ts src/cli/runtime/profile-state-recovery-launch.test.ts src/shared/profile-state-recovery-command.test.ts src/shared/profile-state-build-compatibility.test.ts",
+          "result": "passed",
+          "durationSeconds": 33.17,
+          "summary": "1,435 tests passed with four skips across 145 passed test files and two skipped files. All three typecheck projects and the CLI build passed separately."
+        },
+        {
+          "date": "2026-10-05",
+          "runner": "local",
+          "platform": "macos",
+          "command": "MANTA_BACKGROUND_LAUNCH=1 pnpm exec playwright test tests/e2e/profile-state-terminal-restart-persistence.spec.ts tests/e2e/orchestration-legacy-worker-restart-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "result": "passed",
+          "durationSeconds": 66,
+          "summary": "Six hidden Electron/CDP journeys passed, including four SQL-only clean/abrupt restart, profile switch and project transfer journeys; retained legacy/current worker PTYs also passed. Update preparation requires a full SQL checkpoint and propagates failure without finalizing the writer."
+        }
+      ],
+      "runtimeBudget": {
+        "p95Seconds": 60,
+        "scope": "Focused temporary SQLite and mocked updater suites; CI p95 not established."
+      },
+      "flakeHistory": {
+        "status": "not-started",
+        "evidence": "Local validation; cross-platform CI soak pending."
+      },
+      "redGreenEvidence": {
+        "status": "partial",
+        "evidence": "Routine JSON retirement assertions exercise real final flushes and maintenance; inactive-profile and updater regressions target production entry points. A full change-reverted run has not been recorded."
+      },
+      "performanceBudget": {
+        "required": true,
+        "evidence": "Deletes automatic full-profile JSON serialization, acceptance writes and file publication from shutdown/update/profile-switch paths. Adds no timer, polling, provider scan or subprocess to ordinary operation."
+      },
+      "knownGaps": [
+        "Physical Windows/Linux installers, remote-host upgrades and packaged old-build downgrade not exercised locally.",
+        "The offline conversion is explicit per profile; direct manual installation outside Manta cannot be intercepted."
+      ],
+      "promotionCriteria": [
+        "Collect cross-platform CI and crash-boundary soak evidence without weakening authority or durable-save assertions."
+      ],
+      "demotionRule": "Keep experimental until platform and soak evidence; investigate failures without extending waits or relaxing preservation/refusal assertions."
+    },
+    {
       "id": "terminal-preview.connection-settings-ownership",
       "title": "Terminal preview connections survive unrelated settings updates",
       "maturity": "experimental",
