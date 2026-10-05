@@ -206,6 +206,12 @@ const CROSS_VERSION_WIRE_PREFIXES = [
   'src/shared/structured-agent-session-agent-status',
   'src/shared/structured-agent-session-projection',
   'src/shared/workspace-session-sleeping-agents',
+  // A current desktop's launch route against a released server's capabilities (cross-version-paired-structured-launch).
+  'src/shared/structured-native-chat-launch-route.ts',
+  'src/renderer/src/lib/agent-launch-routing.ts',
+  'src/renderer/src/runtime/paired-host-client-capabilities.ts',
+  'src/shared/electron-remote-runtime-client-capabilities.ts',
+  'src/shared/remote-runtime-client-capabilities.ts',
   // An older app opening a newer orchestration database (orchestration-delivery-downgrade).
   'src/main/runtime/orchestration/db.ts',
   'src/main/runtime/orchestration/db/',
