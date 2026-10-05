@@ -17694,6 +17694,11 @@
         }
       }
     },
+    "jiraIssueAssigneeField": {
+      "label": "Assignee",
+      "automatic": "Automatic",
+      "assignToMe": "Assign to me ({{name}})"
+    },
     "jiraUserPicker": {
       "select": "Select {{value0}}",
       "search": "Search users",

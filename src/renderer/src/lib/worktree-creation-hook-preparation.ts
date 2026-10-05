@@ -14,7 +14,7 @@ export async function prepareWorktreeCreationHooks(
   }
 
   const isCancelled = (): boolean => !useAppStore.getState().pendingWorktreeCreations[creationId]
-  const confirm = (kind: 'setup' | 'vmRecipe'): Promise<'run' | 'skip'> =>
+  const confirmHook = (kind: 'setup' | 'vmRecipe'): Promise<'run' | 'skip'> =>
     ensureHooksConfirmed(
       useAppStore.getState,
       request.repoId,
@@ -23,7 +23,7 @@ export async function prepareWorktreeCreationHooks(
       undefined,
       isCancelled
     )
-  const trustDecision = await confirm('setup')
+  const trustDecision = await confirmHook('setup')
   if (isCancelled()) {
     return null
   }
@@ -48,7 +48,7 @@ export async function prepareWorktreeCreationHooks(
   }
 
   if (preparation.confirmVmRecipe) {
-    const decision = await confirm('vmRecipe')
+    const decision = await confirmHook('vmRecipe')
     if (isCancelled()) {
       return null
     }
