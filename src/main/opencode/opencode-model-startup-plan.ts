@@ -1,7 +1,10 @@
 import type { AgentStartupPlanInputs } from '../../shared/agent-startup-plan-inputs'
 import { buildAgentDraftLaunchPlan, buildAgentStartupPlan } from '../../shared/tui-agent-startup'
+import { buildSleepingAgentLaunchConfig } from '../../shared/sleeping-agent-launch-config'
 import type { SleepingAgentLaunchConfig } from '../../shared/agent-session-resume'
 import type { TuiAgent } from '../../shared/tui-agent'
+import { probeOpenCodeLaunchModelContext } from './opencode-launch-model-context'
+import { resolveOpenCodeLaunchModelConfig } from './opencode-launch-model-config'
 import { isVerifiedOpenCodeLegacyModelVersion } from './opencode-model-version-policy'
 import { getTuiAgentLaunchCommand, TUI_AGENT_CONFIG } from '../../shared/tui-agent-config'
 import { applyManagedDataAccountEnvironment } from '../managed-data-accounts/launch-environment'
@@ -84,7 +87,54 @@ export async function prepareOpenCodeModelStartupInputs(
     }
     return { inputs }
   }
-  refuseModel()
+  if (capabilities?.version !== '2.0.16' || inputs.agentArgs?.trim()) {
+    refuseModel()
+  }
+  const before = await probeOpenCodeLaunchModelContext({
+    executable,
+    cwd: options.cwd,
+    env,
+    signal: options.signal
+  }).catch(() => null)
+  if (!before?.availableModels.includes(model)) {
+    refuseModel()
+  }
+  const configContent = resolveOpenCodeLaunchModelConfig({
+    configContent: env.OPENCODE_CONFIG_CONTENT,
+    primaryAgent: before.primaryAgent,
+    model
+  })
+  if (configContent === null) {
+    refuseModel()
+  }
+  const after = await probeOpenCodeLaunchModelContext({
+    executable,
+    cwd: options.cwd,
+    env: { ...env, OPENCODE_CONFIG_CONTENT: configContent },
+    expectedPrimaryAgent: before.primaryAgent,
+    expectedPrimaryModel: model,
+    signal: options.signal
+  }).catch(() => null)
+  if (
+    after?.primaryAgent !== before.primaryAgent ||
+    after.primaryModel !== model ||
+    !after.availableModels.includes(model)
+  ) {
+    refuseModel()
+  }
+  return {
+    inputs: {
+      ...inputs,
+      agentArgs: '--standalone',
+      agentEnv: { ...inputs.agentEnv, OPENCODE_CONFIG_CONTENT: configContent },
+      sessionOptions: undefined
+    },
+    launchConfig: buildSleepingAgentLaunchConfig({
+      agentCommand: command,
+      agentArgs: inputs.agentArgs,
+      agentEnv: inputs.agentEnv
+    })
+  }
 }
 
 export async function buildExecutionHostAgentStartupPlan(
