@@ -13,7 +13,12 @@ vi.mock('@/runtime/runtime-file-client', () => ({ importExternalPathsToRuntime: 
 vi.mock('@/lib/connection-context', () => ({ getConnectionId: vi.fn(() => null) }))
 vi.mock('@/store', () => ({
   useAppStore: {
-    getState: vi.fn(() => ({ settings: null, folderWorkspaces: [], worktreesByRepo: {} }))
+    getState: vi.fn(() => ({
+      settings: null,
+      folderWorkspaces: [],
+      worktreesByRepo: {},
+      openFiles: []
+    }))
   }
 }))
 vi.mock('@/runtime/runtime-rpc-client', () => ({
