@@ -17954,6 +17954,12 @@
         "subtitle": "Los archivos se añaden a tu mensaje como rutas que el agente puede leer."
       },
       "copyCode": "Copiar código",
+      "context": {
+        "unavailable": "El uso del contexto aún no se conoce. Estará disponible cuando el agente vuelva a responder.",
+        "summary": "Contexto: {{used}} / {{window}} tokens ({{percent}} %), estimado a partir de la última respuesta.",
+        "used": "Contexto: {{used}} tokens usados, estimado a partir de la última respuesta.",
+        "unreported": "El uso del contexto no está disponible para esta sesión."
+      },
       "goal": {
         "placeholder": "Describe tu objetivo y define resultados medibles para obtener mejores resultados",
         "clear": "Borrar objetivo",

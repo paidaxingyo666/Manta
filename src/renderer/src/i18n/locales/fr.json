@@ -18016,6 +18016,12 @@
         "subtitle": "Les fichiers sont ajoutés à votre message sous forme de chemins que l'agent peut lire."
       },
       "copyCode": "Copier le code",
+      "context": {
+        "unavailable": "L'utilisation du contexte n'est pas encore connue. Elle sera disponible après la prochaine réponse de l'agent.",
+        "summary": "Contexte : {{used}} / {{window}} tokens ({{percent}} %), estimation basée sur la dernière réponse.",
+        "used": "Contexte : {{used}} tokens utilisés, estimation basée sur la dernière réponse.",
+        "unreported": "L'utilisation du contexte n'est pas disponible pour cette session."
+      },
       "goal": {
         "placeholder": "Décrivez votre objectif, définissez des résultats mesurables pour de meilleurs résultats",
         "clear": "Objectif clair",

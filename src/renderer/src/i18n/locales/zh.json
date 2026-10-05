@@ -17917,6 +17917,12 @@
         "subtitle": "文件将作为代理可以读取的路径添加到您的消息中。"
       },
       "copyCode": "复制代码",
+      "context": {
+        "unavailable": "上下文用量暂时未知，将在智能体下次响应后提供。",
+        "summary": "上下文：{{used}}/{{window}} token（{{percent}}%），根据上一次响应的估算值。",
+        "used": "上下文：已用 {{used}} token，根据上一次响应的估算值。",
+        "unreported": "此会话无法提供上下文用量。"
+      },
       "goal": {
         "placeholder": "描述您的目标，定义可衡量的结果以获得最佳结果",
         "clear": "明确的目标",
