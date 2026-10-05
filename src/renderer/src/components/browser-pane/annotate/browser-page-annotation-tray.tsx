@@ -1,3 +1,4 @@
+import { ImeTextarea } from '@/lib/ime-text-field'
 import { useEffect, useState } from 'react'
 import { CircleCheck, Copy, MessageSquarePlus, Pencil, Send, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -205,7 +206,7 @@ export function BrowserPageAnnotationTray({
                     }
                   }}
                 >
-                  <textarea
+                  <ImeTextarea
                     value={editComment}
                     onChange={(event) => setEditComment(event.target.value)}
                     maxLength={GRAB_BUDGET.annotationCommentMaxLength}

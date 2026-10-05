@@ -2,6 +2,7 @@ import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
+import { ImeTextarea } from '@/lib/ime-text-field'
 
 const textareaVariants = cva('', {
   variants: {
@@ -19,7 +20,7 @@ const Textarea = React.forwardRef<
   React.ComponentProps<'textarea'> & VariantProps<typeof textareaVariants>
 >(({ className, variant, ...props }, ref) => {
   return (
-    <textarea
+    <ImeTextarea
       ref={ref}
       data-slot="textarea"
       // Why scrollbar-sleek here: a textarea scrolls without an overflow class,
