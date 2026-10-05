@@ -2519,3 +2519,67 @@ catalog subjects and declared qualification inputs survive the rebase unchanged.
 These are fresh-process wall times for this cohort, excluding dependency setup,
 queues and other test shards. They do not measure full-shard balance, total PR
 runner demand, or a change to the dashboard's PR runtime percentiles.
+
+## October 5 fused terminal cursor row scans
+
+Readiness checks repeatedly read terminal rows to recognize composer text.
+The shared reader now collects undimmed text and the first visible glyph's style
+in one pass. The cursor suffix remains a separate scan; dim glyph attributes,
+empty cells, wide characters and wrapped spaces keep their existing behavior.
+No grid data is retained between calls.
+
+The [hosted comparison](https://github.com/stablyai/orca/actions/runs/37263358478)
+used source `1bec53ceb23b5f296a38ffa0e085778d32fc7849`, Linux ARM,
+Node 24.21.0, pnpm 12.8.1 and one worker. All six fresh processes ran the same
+49-case readiness census module, with separate empty Vite caches, filesystem
+transform caching disabled and Node compile caching disabled.
+
+| Complete focused process | Original | Candidate | Paired saving |
+| ------------------------ | -------- | --------- | ------------- |
+| Pair 1                   | 66.412s  | 60.464s   | 5.948s        |
+| Pair 2, reversed order   | 66.880s  | 61.061s   | 5.819s        |
+| Pair 3                   | 68.056s  | 65.821s   | 2.234s        |
+
+The median paired saving is 5.819 seconds, or 8.7% of this fixed workload.
+All 294 timed case outcomes passed. Separate qualification preserves complete
+context/composer outputs on 98 recordings and the logical cursor/projection
+outputs of all 192 Runtime census cases. Nine actual scanner faults fail the
+intended assertions; the 89-case IME/composer slice also passes. Blank-row tests
+bound cell reads to 72 instead of the original 132 for a 12-column, five-row grid,
+with and without a reusable cell adapter.
+
+The raw timer-driven polling trace differed and was excluded from equivalence
+evidence. Logical per-frame output captures match; no raw polling-count equality
+is claimed. These measurements exclude setup, queues and other modules and do
+not establish a change in full-shard balance, PR percentiles or runner demand.
+
+## October 5 Qoder test import guards
+
+The direct Qoder Runtime tests now import the existing unused-default-RPC guard
+before their Runtime fixture. Their complete test bodies remain unchanged.
+The guard rejects an unexpected registry access instead of loading the full
+default-method graph. The three real registry catalogs remain unmocked.
+
+The [hosted comparison](https://github.com/stablyai/orca/actions/runs/37266875139)
+used fixed source `1bec53ceb23b5f296a38ffa0e085778d32fc7849`, Linux ARM,
+Node 24.21.0, pnpm 12.8.1 and four isolated fork workers. Every fresh process ran
+both Qoder files and all three catalogs: 85 cases across five files. Each invocation
+used a distinct empty Vite cache, with results, filesystem transform and Node
+compile caching disabled. All 510 timed outcomes passed.
+
+| Complete five-file process | Original | Candidate | Paired saving |
+| -------------------------- | -------- | --------- | ------------- |
+| Pair 1                     | 17.677s  | 16.323s   | 1.354s        |
+| Pair 2, reversed order     | 16.827s  | 16.021s   | 0.806s        |
+| Pair 3                     | 17.324s  | 16.211s   | 1.113s        |
+
+The median paired saving is 1.113 seconds, or 6.4% of this fixed workload.
+Separate actual faults in retained launch recipes, Qoder command selection and
+method registration fail the same intended assertions before and after the
+imports. Generated launch IDs and shifted stack lines differ in the raw failure
+messages; they were preserved and are not claimed byte-identical.
+
+The single hosted trial occupied 134 runner-seconds including all six samples,
+shared setup and upload. That is trial cost, not a production saving. These
+focused process measurements do not establish full-shard savings, PR runtime
+percentiles, queue relief or a change in the organization's runner allowance.
