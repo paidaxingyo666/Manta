@@ -1,3 +1,4 @@
+import '../unused-default-rpc-methods.test-fixture'
 /**
  * Replay safety for `agent.launch`, against the real durable ledger.
  *

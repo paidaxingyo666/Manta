@@ -1,3 +1,4 @@
+import '../runtime/rpc/unused-default-rpc-methods.test-fixture'
 import { describe, expect, it, vi } from 'vitest'
 import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import { RpcDispatcher } from '../runtime/rpc/dispatcher'

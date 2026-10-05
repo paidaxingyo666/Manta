@@ -1,3 +1,4 @@
+import '../unused-default-rpc-methods.test-fixture'
 import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../../shared/agent-session-journal-types'
 // A chat at rest, through the RPC surface a client actually calls: opening it starts nothing, what
 // it can answer without an agent it answers, and the first send is what starts one.

@@ -8,10 +8,14 @@
  * Counting passes patch `Map`/`Set`/`Object.assign`/`Object.values`, which deoptimizes them, so
  * counts and timings are taken in separate passes and never from the same run.
  *
+ * Run: MANTA_BACKGROUND_LAUNCH=1 pnpm exec vitest run --config config/vitest.agent-status-benchmark.config.ts
+ *
  * Scale mirrors the reporting user rather than the 100-worktree fixture in
  * docs/reference/renderer-agent-status-performance.md: 423 worktrees, 634 terminal tabs.
  */
 import { writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { AppState } from '@/store/types'
 import type { AgentStatusBatchUpdate } from '@/store/slices/agent-status'
@@ -23,6 +27,7 @@ import {
   TEST_REPO
 } from '@/store/slices/store-test-helpers'
 import { makePaneKey } from '../../src/shared/stable-pane-id'
+import { getDefaultSettings } from '../../src/shared/constants'
 import {
   createAgentStatusPaneRoutingIndex,
   resolvePaneKeyFromRoutingIndex
@@ -39,25 +44,24 @@ const counters = { maps: 0, sets: 0, tabComparisons: 0 }
 
 const NativeMap = globalThis.Map
 const NativeSet = globalThis.Set
-const nativeArrayIterator = Array.prototype[Symbol.iterator]
 
 function withAllocationCounting<T>(run: () => T): T {
   class CountingMap<K, V> extends NativeMap<K, V> {
-    constructor(entries?: readonly (readonly [K, V])[] | null) {
+    constructor(entries?: Iterable<readonly [K, V]> | null) {
       super(entries)
       counters.maps += 1
     }
   }
   class CountingSet<V> extends NativeSet<V> {
-    constructor(values?: readonly V[] | null) {
+    constructor(values?: Iterable<V> | null) {
       super(values)
       counters.sets += 1
     }
   }
   counters.maps = 0
   counters.sets = 0
-  globalThis.Map = CountingMap as unknown as MapConstructor
-  globalThis.Set = CountingSet as unknown as SetConstructor
+  globalThis.Map = CountingMap
+  globalThis.Set = CountingSet
   try {
     return run()
   } finally {
@@ -68,34 +72,33 @@ function withAllocationCounting<T>(run: () => T): T {
 
 /** Tab list whose iteration is observable, so the nested-loop resolver's comparisons are countable. */
 class CountingTabList<T> extends Array<T> {
-  [Symbol.iterator](): IterableIterator<T> {
-    const inner = nativeArrayIterator.call(this) as IterableIterator<T>
-    const wrapped: IterableIterator<T> = {
-      next: () => {
-        const result = inner.next()
-        if (!result.done) {
-          counters.tabComparisons += 1
-        }
-        return result
-      },
-      [Symbol.iterator]: () => wrapped
+  [Symbol.iterator](): ArrayIterator<T> {
+    const iterator = super[Symbol.iterator]()
+    const next = iterator.next.bind(iterator)
+    iterator.next = (...args) => {
+      const result = next(...args)
+      if (!result.done) {
+        counters.tabComparisons += 1
+      }
+      return result
     }
-    return wrapped
+    return iterator
   }
 }
 
 function buildFixture(countTabIteration: boolean) {
   const store = createTestStore()
+  const settings = store.getState().settings ?? getDefaultSettings(tmpdir())
   const tabsByWorktree: AppState['tabsByWorktree'] = {}
   const unifiedTabsByWorktree: AppState['unifiedTabsByWorktree'] = {}
-  const worktrees = []
+  const worktrees: ReturnType<typeof makeWorktree>[] = []
   const paneKeys: string[] = []
   const owners: { tabId: string; worktreeId: string }[] = []
   for (let index = 0; index < WORKTREES; index += 1) {
     const worktreeId = `wt-${index}`
     worktrees.push(makeWorktree({ id: worktreeId, repoId: TEST_REPO.id }))
-    const tabs = []
-    const unified = []
+    const tabs: ReturnType<typeof makeTab>[] = []
+    const unified: ReturnType<typeof makeUnifiedTab>[] = []
     for (let tab = 0; tab < (index % 2 === 0 ? 1 : 2); tab += 1) {
       const tabId = `tab-${index}-${tab}`
       tabs.push(makeTab({ id: tabId, worktreeId, title: `Terminal ${index}-${tab}` }))
@@ -110,9 +113,7 @@ function buildFixture(countTabIteration: boolean) {
       paneKeys.push(makePaneKey(tabId, LEAF_ID))
       owners.push({ tabId, worktreeId })
     }
-    tabsByWorktree[worktreeId] = countTabIteration
-      ? (CountingTabList.from(tabs) as unknown as typeof tabs)
-      : tabs
+    tabsByWorktree[worktreeId] = countTabIteration ? CountingTabList.from(tabs) : tabs
     unifiedTabsByWorktree[worktreeId] = unified
   }
   store.setState({
@@ -122,8 +123,8 @@ function buildFixture(countTabIteration: boolean) {
     unifiedTabsByWorktree,
     terminalLayoutsByTabId: {},
     setGeneratedTabTitlesFromAgentPrompts: () => {},
-    settings: { ...store.getState().settings, tabAutoGenerateTitle: false }
-  } as Partial<AppState>)
+    settings: { ...settings, tabAutoGenerateTitle: false }
+  })
   return { store, paneKeys, owners }
 }
 
@@ -141,7 +142,7 @@ function per1k(value: number): number {
 function runIndexedRouting(store: ReturnType<typeof createTestStore>, paneKeys: string[]): void {
   for (let event = 0; event < EVENTS; event += 1) {
     if (event % BATCH_SIZE === 0) {
-      store.setState({ agentStatusEpoch: event } as Partial<AppState>)
+      store.setState({ agentStatusEpoch: event })
     }
     const index = createAgentStatusPaneRoutingIndex(store.getState())
     resolvePaneKeyFromRoutingIndex(index, paneKeys[event % paneKeys.length])
@@ -287,7 +288,8 @@ describe('agent-status hot path benchmark', () => {
     }
 
     const outputPath =
-      process.env.ORCA_AGENT_STATUS_BENCH_OUTPUT ?? '/tmp/agent-status-hot-path-benchmark.json'
+      process.env.ORCA_AGENT_STATUS_BENCH_OUTPUT ??
+      join(tmpdir(), 'agent-status-hot-path-benchmark.json')
     writeFileSync(
       outputPath,
       `${JSON.stringify({ worktrees: WORKTREES, events: EVENTS, report }, null, 2)}\n`

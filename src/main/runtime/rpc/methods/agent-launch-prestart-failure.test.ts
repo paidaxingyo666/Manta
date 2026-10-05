@@ -1,3 +1,4 @@
+import '../unused-default-rpc-methods.test-fixture'
 /**
  * A terminal launch that fails before its spawn is requested — no launch command, runtime
  * unavailable — created nothing, so a named operation settles as failed with its real cause.
