@@ -134,6 +134,7 @@ export class MantaRuntimeWithCreateAgentPromptRenderGate extends MantaRuntimeWit
       condition?: RuntimeTerminalWaitCondition
       timeoutMs?: number
       signal?: AbortSignal
+      launchReadiness?: boolean
     }
   ): Promise<RuntimeTerminalWait> {
     return this.terminalWait.wait(handle, options)

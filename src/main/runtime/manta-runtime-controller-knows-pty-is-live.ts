@@ -1,5 +1,6 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
 import { MantaRuntimeWithResolveTerminalPane } from './manta-runtime-resolve-terminal-pane'
+import { wrapTerminalBracketedPasteText } from '../../shared/terminal-bracketed-paste-text'
 import { PROVEN_ABSENT_LEAF_PTY_TTL_MS } from './manta-runtime-core'
 import { pruneExpiredProvenAbsentLeafPtyVerdicts } from './proven-absent-leaf-pty-verdicts'
 import type { RuntimeTerminalSend } from '../../shared/runtime-types'
@@ -158,6 +159,10 @@ export class MantaRuntimeWithControllerKnowsPtyIsLive extends MantaRuntimeWithRe
   ): Promise<RuntimeTerminalSend> {
     // Why the consuming agent: the foreground process reads the bytes; launchAgent covers startup.
     const payloadFor = (ptyId: string): string => {
+      // Why: a launch prompt replaced the desktop's draft paste, so it sends that paste's bytes.
+      if (options.inputKind === 'launch') {
+        return wrapTerminalBracketedPasteText(prompt)
+      }
       const pty = this.ptysById.get(ptyId)
       const agent = pty?.foregroundAgent ?? pty?.launchAgent
       return buildAgentPromptPasteBytes(
