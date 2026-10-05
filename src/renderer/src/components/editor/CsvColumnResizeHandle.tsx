@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { translate } from '@/i18n/i18n'
-
-export const CSV_MIN_COLUMN_WIDTH = 48
-export const CSV_MAX_COLUMN_WIDTH = 1200
+import { CSV_MIN_COLUMN_WIDTH, CSV_MAX_COLUMN_WIDTH } from './csv-column-width-limits'
+export { CSV_MIN_COLUMN_WIDTH, CSV_MAX_COLUMN_WIDTH } from './csv-column-width-limits'
 
 export function CsvColumnResizeHandle({
   index,

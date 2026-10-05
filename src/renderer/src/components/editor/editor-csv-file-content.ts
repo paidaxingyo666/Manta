@@ -6,8 +6,10 @@ import {
 } from '@/runtime/runtime-file-range-client'
 import type { FileContent } from './editor-panel-content-types'
 
+import { CSV_PAGED_PREVIEW_BYTES } from './csv-file-limits'
+export { CSV_PAGED_PREVIEW_BYTES } from './csv-file-limits'
+
 export type CsvFilePreview = { readArgs: RuntimeFileReadArgs; snapshot: RuntimeFileSnapshot }
-export const CSV_PAGED_PREVIEW_BYTES = 1024 * 1024
 
 export async function readEditorCsvFileContent(
   args: RuntimeFileReadArgs,

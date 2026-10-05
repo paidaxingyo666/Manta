@@ -8,15 +8,19 @@ import type { CsvFilePreview } from './editor-csv-file-content'
 import type { CsvDelimiterChoice } from './csv-delimiter-picker'
 import { useCsvPagedPreview } from './useCsvPagedPreview'
 import { EditorFileLoadErrorView } from './EditorFileLoadErrorView'
+import { useCsvColumnWidths } from './useCsvColumnWidths'
+import { buildFileViewPreferenceKey } from './file-view-preference-storage'
 import { openCsvHttpLink } from './csv-link-routing'
 
 export default function CsvPagedViewer({
   file,
   filePath,
+  preferenceKey,
   onReload
 }: {
   file: CsvFilePreview
   filePath: string
+  preferenceKey?: string
   onReload: () => void
 }): React.JSX.Element {
   const [sniff, setSniff] = useState<{ delimiter: string; error: string | null } | null>(null)
@@ -56,6 +60,7 @@ export default function CsvPagedViewer({
         <CsvPagedTable
           key={csvChosenDelimiter(choice, sniff.delimiter)}
           file={file}
+          preferenceKey={preferenceKey}
           delimiter={csvChosenDelimiter(choice, sniff.delimiter)}
           choice={choice}
           detected={sniff.delimiter}
@@ -73,6 +78,7 @@ export default function CsvPagedViewer({
 
 function CsvPagedTable({
   file,
+  preferenceKey,
   delimiter,
   choice,
   detected,
@@ -80,12 +86,24 @@ function CsvPagedTable({
   onReload
 }: {
   file: CsvFilePreview
+  preferenceKey?: string
   delimiter: string
   choice: CsvDelimiterChoice
   detected: string
   onChange: (choice: CsvDelimiterChoice) => void
   onReload: () => void
 }): React.JSX.Element {
+  const storedKey = JSON.stringify([
+    preferenceKey ??
+      buildFileViewPreferenceKey({
+        worktreeId: file.readArgs.worktreeId ?? '',
+        runtimeEnvironmentId: file.readArgs.settings?.activeRuntimeEnvironmentId,
+        externalSshTargetId: file.readArgs.connectionId,
+        filePath: file.readArgs.filePath
+      }),
+    delimiter
+  ])
+  const { widths, changeWidths } = useCsvColumnWidths(storedKey)
   const preview = useCsvPagedPreview(file, delimiter)
   const rowCount = Math.max(0, (preview.index?.rowCount ?? 0) - 1)
   return (
@@ -95,6 +113,8 @@ function CsvPagedTable({
       ) : preview.index ? (
         <CsvGrid
           header={preview.header}
+          columnWidths={widths}
+          onColumnWidthsChange={changeWidths}
           rowCount={rowCount}
           columnCount={preview.index.columnCount}
           sampleRows={preview.sample}

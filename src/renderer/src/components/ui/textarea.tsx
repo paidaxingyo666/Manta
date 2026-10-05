@@ -4,7 +4,13 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const textareaVariants = cva('', {
-  variants: { variant: { default: '', code: 'font-mono' } },
+  variants: {
+    variant: {
+      default: '',
+      code: 'font-mono',
+      cell: 'h-full min-h-0 resize-none rounded-none border-0 px-2 py-0 font-mono text-xs shadow-none md:text-xs focus-visible:ring-1 focus-visible:ring-inset'
+    }
+  },
   defaultVariants: { variant: 'default' }
 })
 

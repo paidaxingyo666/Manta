@@ -6,6 +6,9 @@ export type CsvParseLimits = {
   maxColumns?: number
   maxRecordLength?: number
   stripBom?: boolean
+  retainRows?: boolean
+  onField?: (start: number, end: number) => void
+  onRecord?: (start: number, contentEnd: number, end: number) => void
 }
 
 export function parseCsv(
@@ -17,6 +20,7 @@ export function parseCsv(
   let row: string[] = []
   let start = limits.stripBom !== false && source.charCodeAt(0) === 0xfeff ? 1 : 0
   let recordStart = start
+  let fieldStart = start
   let parts: string[] = []
   let fieldLength = 0
   let inQuotes = false
@@ -40,9 +44,11 @@ export function parseCsv(
     } else {
       row.push(source.slice(start, end))
     }
+    limits.onField?.(fieldStart, end)
     parts = []
     fieldLength = 0
     start = end + 1
+    fieldStart = start
   }
   const pushRow = (end: number, next: number): void => {
     if (end - recordStart > (limits.maxRecordLength ?? Infinity)) {
@@ -50,11 +56,15 @@ export function parseCsv(
     }
     pushField(end)
     maxColumns = Math.max(maxColumns, row.length)
-    rows.push(row)
+    if (limits.retainRows !== false) {
+      rows.push(row)
+    }
+    limits.onRecord?.(recordStart, end, next)
     row = []
     hasContent = false
     start = next
     recordStart = next
+    fieldStart = next
   }
   for (let i = start; i < source.length; i += 1) {
     const ch = source[i]

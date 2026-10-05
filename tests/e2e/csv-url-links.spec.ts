@@ -29,7 +29,7 @@ test('dense CSVs below 1 MiB remain visible and shrinking a later row window rec
     },
     { name, filePath }
   )
-  await expect(mantaPage.getByRole('table')).toHaveAttribute('aria-rowcount', '600001')
+  await expect(mantaPage.getByTestId('csv-grid')).toHaveAttribute('aria-rowcount', '600001')
   await mantaPage.getByRole('button', { name: 'Next rows' }).click()
   await expect(mantaPage.getByRole('rowheader', { name: '500001', exact: true })).toBeVisible()
   await mantaPage.getByTestId('csv-scroll').evaluate((element) => {
@@ -44,9 +44,9 @@ test('dense CSVs below 1 MiB remain visible and shrinking a later row window rec
     }
     state.setEditorDraft(file.id, 'id\nfirst\nsecond\nthird\n')
   })
-  await expect(mantaPage.getByRole('table')).toHaveAttribute('aria-rowcount', '4')
-  await expect(mantaPage.getByRole('cell', { name: 'first', exact: true })).toBeVisible()
-  await expect(mantaPage.getByRole('cell', { name: 'third', exact: true })).toBeVisible()
+  await expect(mantaPage.getByTestId('csv-grid')).toHaveAttribute('aria-rowcount', '4')
+  await expect(mantaPage.getByRole('gridcell', { name: 'first', exact: true })).toBeVisible()
+  await expect(mantaPage.getByRole('gridcell', { name: 'third', exact: true })).toBeVisible()
   await expect(mantaPage.getByRole('button', { name: 'Next rows' })).toHaveCount(0)
   await mantaPage.screenshot({ path: testInfo.outputPath('dense-after-shrink.png') })
   if (
@@ -99,11 +99,15 @@ test('CSV links navigate from small and paged previews without replacing the ren
       },
       { name, filePath: path.join(seededRepoPath, name) }
     )
-    const link = mantaPage.getByRole('table').getByRole('link', { name: url }).first()
+    const link = mantaPage.getByTestId('csv-grid').getByRole('link', { name: url }).first()
     await expect(link).toBeVisible({ timeout: 30_000 })
     await expect(link).toHaveAttribute('href', url)
     await expect(
-      mantaPage.getByRole('cell', { name: 'javascript:alert(1)', exact: true })
+      mantaPage
+        .getByTestId('csv-grid')
+        .locator('[data-csv-column="2"]')
+        .filter({ hasText: 'javascript:alert(1)' })
+        .first()
     ).toBeVisible()
     await mantaPage.screenshot({ path: testInfo.outputPath(`${name}.png`) })
     const rendererUrl = mantaPage.url()

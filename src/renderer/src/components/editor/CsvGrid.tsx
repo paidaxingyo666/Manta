@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import { CsvColumnResizeHandle } from './CsvColumnResizeHandle'
-import { CsvCellValue } from './CsvCellValue'
+import { CsvGridCell } from './CsvGridCell'
+import type { CsvGridInteraction } from './csv-grid-interaction'
+import type { CsvColumnWidths } from './csv-column-width-preferences'
 
 const ROW_HEIGHT = 28
 // Keep the scroll surface below Chromium's layout extent limit.
@@ -16,7 +18,10 @@ export function CsvGrid({
   sampleRows,
   getRow,
   onVisibleRows,
-  onOpenUrl
+  onOpenUrl,
+  interaction,
+  columnWidths,
+  onColumnWidthsChange
 }: {
   header: string[]
   rowCount: number
@@ -25,14 +30,23 @@ export function CsvGrid({
   getRow: (index: number) => string[] | undefined
   onVisibleRows?: (first: number, last: number) => void
   onOpenUrl?: (url: string, event: React.MouseEvent<HTMLAnchorElement>) => void
+  interaction?: CsvGridInteraction
+  columnWidths?: CsvColumnWidths
+  onColumnWidthsChange?: (widths: CsvColumnWidths) => void
 }): React.JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+  const gridId = useId()
+  const dragging = useRef(false)
+  const scrolledFocusVersion = useRef(-1)
+  const focusGrid = (): void => gridRef.current?.focus({ preventScroll: true })
   const [requestedWindowStart, setWindowStart] = useState(0)
   const windowStart = Math.min(
     requestedWindowStart,
     Math.floor(Math.max(0, rowCount - 1) / SCROLL_WINDOW_ROWS) * SCROLL_WINDOW_ROWS
   )
-  const [widthOverrides, setWidthOverrides] = useState<Record<number, number>>({})
+  const [localWidths, setLocalWidths] = useState<CsvColumnWidths>({})
+  const widthOverrides = columnWidths ?? localWidths
   const rowNumberWidth = Math.max(48, String(rowCount).length * 8 + 16)
   const widths = useMemo(() => {
     const result = Array.from({ length: columnCount }, () => 80)
@@ -60,7 +74,7 @@ export function CsvGrid({
     paddingStart: rowNumberWidth,
     overscan: 2
   })
-  useLayoutEffect(() => columns.measure(), [columns, widths])
+  useLayoutEffect(() => columns.measure(), [columns, widths, columnWidths])
   const virtualRows = rows.getVirtualItems()
   const virtualColumns = columns.getVirtualItems()
   const first = virtualRows[0]?.index
@@ -72,12 +86,82 @@ export function CsvGrid({
   }, [first, last, windowStart, onVisibleRows])
   const resize = useCallback(
     (index: number, width: number) => {
-      setWidthOverrides((previous) => ({ ...previous, [index]: width }))
+      const next = { ...widthOverrides, [index]: width }
+      if (onColumnWidthsChange) {
+        onColumnWidthsChange(next)
+      } else {
+        setLocalWidths(next)
+      }
       columns.resizeItem(index, width)
     },
-    [columns]
+    [columns, onColumnWidthsChange, widthOverrides]
   )
-  const reset = useCallback((index: number) => resize(index, widths[index] ?? 80), [resize, widths])
+  const reset = (index: number): void => {
+    const next = { ...widthOverrides }
+    delete next[index]
+    if (onColumnWidthsChange) {
+      onColumnWidthsChange(next)
+    } else {
+      setLocalWidths(next)
+    }
+    columns.resizeItem(index, widths[index] ?? 80)
+  }
+  const active = interaction?.selection?.focus
+  useLayoutEffect(() => {
+    if (!active || scrolledFocusVersion.current === interaction?.focusVersion) {
+      return
+    }
+    if (interaction?.editing) {
+      scrolledFocusVersion.current = interaction.focusVersion
+      return
+    }
+    const targetWindow =
+      Math.floor(Math.max(0, active.row - 1) / SCROLL_WINDOW_ROWS) * SCROLL_WINDOW_ROWS
+    if (targetWindow !== windowStart) {
+      setWindowStart(targetWindow)
+      return
+    }
+    if (active.row > 0) {
+      rows.scrollToIndex(active.row - 1 - windowStart, { align: 'auto' })
+    } else {
+      scrollRef.current?.scrollTo({ top: 0 })
+    }
+    columns.scrollToIndex(active.column, { align: 'auto' })
+    scrolledFocusVersion.current = interaction?.focusVersion ?? -1
+  }, [active, interaction?.editing, interaction?.focusVersion, rows, columns, windowStart])
+  useEffect(() => {
+    const finish = (): void => {
+      dragging.current = false
+    }
+    window.addEventListener('pointerup', finish)
+    window.addEventListener('pointercancel', finish)
+    window.addEventListener('blur', finish)
+    return () => {
+      window.removeEventListener('pointerup', finish)
+      window.removeEventListener('pointercancel', finish)
+      window.removeEventListener('blur', finish)
+    }
+  }, [])
+  const pointerCell = (event: React.PointerEvent): { row: number; column: number } | null => {
+    if (
+      !(event.target instanceof Element) ||
+      event.target.closest('a,textarea,[role="separator"]')
+    ) {
+      return null
+    }
+    const cell = event.target.closest('[data-csv-row]')
+    if (!cell) {
+      return null
+    }
+    const row = Number(cell.getAttribute('data-csv-row'))
+    const column = Number(cell.getAttribute('data-csv-column'))
+    return Number.isInteger(row) && Number.isInteger(column) ? { row, column } : null
+  }
+  const activeMounted =
+    active &&
+    virtualColumns.some((column) => column.index === active.column) &&
+    (active.row === 0 || virtualRows.some((row) => row.index + windowStart + 1 === active.row))
+
   const totalWidth = columns.getTotalSize()
   const gridTemplate = `${rowNumberWidth}px ${Math.max(0, (virtualColumns[0]?.start ?? rowNumberWidth) - rowNumberWidth)}px ${virtualColumns.map((column) => `${column.size}px`).join(' ')} ${Math.max(0, totalWidth - (virtualColumns.at(-1)?.end ?? rowNumberWidth))}px`
   const moveWindow = (start: number): void => {
@@ -90,9 +174,65 @@ export function CsvGrid({
         ref={scrollRef}
         data-testid="csv-scroll"
         className="relative min-h-0 flex-1 overflow-auto scrollbar-editor font-mono text-xs"
+        onScroll={(event) => {
+          if (!interaction?.editing) {
+            return
+          }
+          const position = interaction.editing.position
+          const cell = gridRef.current
+            ?.querySelector(
+              `[data-csv-row="${position.row}"][data-csv-column="${position.column}"]`
+            )
+            ?.getBoundingClientRect()
+          const viewport = event.currentTarget.getBoundingClientRect()
+          // Caret visibility can scroll a clipped input while the user is still typing.
+          if (
+            cell &&
+            cell.bottom > viewport.top + (position.row ? ROW_HEIGHT : 0) &&
+            cell.top < viewport.bottom &&
+            cell.right > viewport.left &&
+            cell.left < viewport.right
+          ) {
+            return
+          }
+          if (!interaction.commit()) {
+            if (position.row > 0) {
+              rows.scrollToIndex(position.row - 1 - windowStart, { align: 'auto' })
+            }
+            columns.scrollToIndex(position.column, { align: 'auto' })
+          }
+        }}
       >
         <div
-          role="table"
+          ref={gridRef}
+          role={interaction ? 'grid' : 'table'}
+          data-testid="csv-grid"
+          data-csv-owner={interaction?.ownerId}
+          tabIndex={interaction ? 0 : undefined}
+          aria-label={interaction ? translate('csv.editor', 'CSV editor') : undefined}
+          aria-activedescendant={
+            activeMounted ? `${gridId}-${active.row}-${active.column}` : undefined
+          }
+          onKeyDown={interaction?.keyDown}
+          onCopy={interaction?.copy}
+          onPaste={interaction?.paste}
+          onPointerDown={(event) => {
+            const cell = pointerCell(event)
+            if (!interaction || !cell || event.button !== 0) {
+              return
+            }
+            event.preventDefault()
+            if (interaction.select(cell.row, cell.column, event.shiftKey)) {
+              dragging.current = true
+              focusGrid()
+            }
+          }}
+          onPointerMove={(event) => {
+            const cell = pointerCell(event)
+            if (interaction && dragging.current && cell) {
+              interaction.select(cell.row, cell.column, true)
+            }
+          }}
           aria-rowcount={rowCount + 1}
           aria-colcount={columnCount + 1}
           className="relative min-w-full"
@@ -113,23 +253,23 @@ export function CsvGrid({
             </div>
             <div aria-hidden="true" />
             {virtualColumns.map((column) => (
-              <div
-                role="columnheader"
-                aria-colindex={column.index + 2}
-                aria-label={header[column.index] ?? ''}
+              <CsvGridCell
                 key={column.key}
-                className="relative flex min-w-0 items-center border-b border-r border-border/60 px-2 font-medium text-foreground"
+                id={`${gridId}-0-${column.index}`}
+                header
+                value={header[column.index] ?? ''}
+                row={0}
+                column={column.index}
+                interaction={interaction}
+                focusGrid={focusGrid}
               >
-                <span className="truncate" title={header[column.index] ?? ''}>
-                  {header[column.index] ?? ''}
-                </span>
                 <CsvColumnResizeHandle
                   index={column.index}
                   width={column.size}
                   onResize={resize}
                   onReset={reset}
                 />
-              </div>
+              </CsvGridCell>
             ))}
             <div aria-hidden="true" />
           </div>
@@ -164,20 +304,18 @@ export function CsvGrid({
                   </div>
                   <div aria-hidden="true" />
                   {virtualColumns.map((column) => (
-                    <div
-                      role="cell"
-                      aria-colindex={column.index + 2}
+                    <CsvGridCell
                       key={column.key}
-                      className="flex min-w-0 items-center overflow-hidden border-b border-r border-border/40 px-2 text-foreground"
-                      title={row?.[column.index] ?? ''}
-                    >
-                      <CsvCellValue
-                        value={
-                          row ? (row[column.index] ?? '') : translate('csv.loadingCell', 'Loading…')
-                        }
-                        onOpenUrl={onOpenUrl}
-                      />
-                    </div>
+                      id={`${gridId}-${index + 1}-${column.index}`}
+                      value={
+                        row ? (row[column.index] ?? '') : translate('csv.loadingCell', 'Loading…')
+                      }
+                      row={index + 1}
+                      column={column.index}
+                      interaction={interaction}
+                      focusGrid={focusGrid}
+                      onOpenUrl={onOpenUrl}
+                    />
                   ))}
                   <div aria-hidden="true" />
                 </div>
