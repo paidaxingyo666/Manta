@@ -29,6 +29,7 @@ export function BrowserPageAnnotationTray({
   activeGroupId,
   browserAnnotationsPrompt,
   handleBrowserAnnotationsSentToAgent,
+  handleBrowserAnnotationsHandedOff,
   handleCopyBrowserAnnotations,
   browserAnnotationsCopied,
   handleClearBrowserAnnotations,
@@ -43,6 +44,7 @@ export function BrowserPageAnnotationTray({
   activeGroupId: string | undefined
   browserAnnotationsPrompt: string
   handleBrowserAnnotationsSentToAgent: () => void
+  handleBrowserAnnotationsHandedOff: (delivered: Promise<unknown>) => void
   handleCopyBrowserAnnotations: () => void
   browserAnnotationsCopied: boolean
   handleClearBrowserAnnotations: () => void
@@ -111,7 +113,12 @@ export function BrowserPageAnnotationTray({
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <Button size="xs" variant="outline" className="gap-1.5">
+                <Button
+                  size="xs"
+                  variant="outline"
+                  className="gap-1.5"
+                  disabled={!browserAnnotationsPrompt}
+                >
                   <Send className="size-3" />
                   {translate('auto.components.browser.pane.BrowserPane.ac39b9366b', 'Send')}
                 </Button>
@@ -135,6 +142,7 @@ export function BrowserPageAnnotationTray({
               groupId={activeGroupId ?? worktreeId}
               prompt={browserAnnotationsPrompt}
               onPromptDelivered={handleBrowserAnnotationsSentToAgent}
+              onPromptHandedOff={handleBrowserAnnotationsHandedOff}
             />
           </DropdownMenuContent>
         </DropdownMenu>
