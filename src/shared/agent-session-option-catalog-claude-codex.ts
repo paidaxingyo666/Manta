@@ -17,7 +17,8 @@ function removeCodexAgentArgs(
   configKey: string
 ): string[] {
   return removeAgentArgOption(
-    removeAgentArgOption(tokens, flags),
+    'codex',
+    removeAgentArgOption('codex', tokens, flags),
     ['-c', '--config'],
     (value) => value?.startsWith(`${configKey}=`) === true
   )
@@ -53,7 +54,7 @@ function claudeEffortWithChoices(choices: typeof EXTENDED_EFFORT_CHOICES): Catal
     },
     apply: {
       launchArgs: (value) => ['--effort', String(value)],
-      removeAgentArgs: (tokens) => removeAgentArgOption(tokens, ['--effort']),
+      removeAgentArgs: (tokens) => removeAgentArgOption('claude', tokens, ['--effort']),
       midSession: { kind: 'command', build: (value) => `/effort ${String(value)}` }
     }
   }
@@ -130,7 +131,7 @@ export const CLAUDE_SESSION_OPTION_CATALOG: AgentSessionOptionCatalog = {
   ],
   modelApply: {
     launchArgs: (value) => ['--model', String(value)],
-    removeAgentArgs: (tokens) => removeAgentArgOption(tokens, ['--model']),
+    removeAgentArgs: (tokens) => removeAgentArgOption('claude', tokens, ['--model']),
     midSession: {
       kind: 'command',
       build: (value) => `/model ${String(value)}`,

@@ -46,13 +46,13 @@ describe('OpenCode launch options', () => {
     ).toEqual(['--log-level', 'DEBUG', '--', '--model', 'trailing'])
   })
 
-  it('does not record the selected model when later free-form arguments override it', () => {
+  it('does not send or record the selected model when free-form arguments override it', () => {
     expect(
       resolveAgentSessionOptionLaunch('opencode', { model: 'private-proof/model-b' }, [
         '-m',
         'private-proof/model-a'
       ])
-    ).toEqual({ args: ['--model', 'private-proof/model-b'], appliedValues: {} })
+    ).toEqual({ args: [], appliedValues: {} })
   })
 
   it('records the selected model when model-like arguments follow the terminator', () => {

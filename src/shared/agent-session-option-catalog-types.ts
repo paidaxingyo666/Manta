@@ -21,8 +21,7 @@ export type CatalogMidSessionApply =
 
 export type CatalogOptionApply = {
   launchArgs?: (value: SessionOptionValue) => string[]
-  /** Strips the free-form args that set this option. Why: later free-form args win, so
-   * anything this strips also tells the launch record to discard the picker value. */
+  /** Removes conflicting free-form args, or detects when to omit the pick from launch args and the record. */
   removeAgentArgs?: (tokens: readonly string[]) => string[]
   composedIntoModel?: true
   midSession?: CatalogMidSessionApply

@@ -81,11 +81,10 @@ export function resolveAgentSessionOptionLaunch(
     : modelId
   const modelOverridden = isOverriddenByAgentArgs(catalog.modelApply, trailingAgentArgs)
 
-  if (catalog.modelApply.launchArgs) {
+  // Why: a repeated model flag can prevent the CLI from starting.
+  if (catalog.modelApply.launchArgs && !modelOverridden) {
     args.push(...catalog.modelApply.launchArgs(composedModelId))
-    if (!modelOverridden) {
-      appliedValues.model = modelId
-    }
+    appliedValues.model = modelId
   }
   for (const option of modelOptions) {
     const value = modelValues[option.id]
@@ -98,13 +97,16 @@ export function resolveAgentSessionOptionLaunch(
       }
       continue
     }
-    if (!option.apply.launchArgs) {
+    // Why: options belong to the picked model and may be invalid for the user's model.
+    if (
+      !option.apply.launchArgs ||
+      modelOverridden ||
+      isOverriddenByAgentArgs(option.apply, trailingAgentArgs)
+    ) {
       continue
     }
     args.push(...option.apply.launchArgs(value))
-    if (!modelOverridden && !isOverriddenByAgentArgs(option.apply, trailingAgentArgs)) {
-      appliedValues[option.id] = value
-    }
+    appliedValues[option.id] = value
   }
   return { args, appliedValues }
 }

@@ -7,7 +7,7 @@ import {
 import { resolveAgentLaunchCommand } from './tui-agent-launch-command'
 
 describe('tui agent startup session options', () => {
-  it('emits catalog options before user arguments without recording an overridden model', () => {
+  it('sends neither the picked model nor its options when user arguments set the model', () => {
     const plan = buildAgentStartupPlan({
       agent: 'claude',
       prompt: '',
@@ -17,7 +17,7 @@ describe('tui agent startup session options', () => {
       sessionOptions: { model: 'opus', effort: 'xhigh', fastMode: true },
       agentArgs: '--model haiku'
     })
-    expect(plan?.launchCommand).toBe("claude '--model' 'opus' '--effort' 'xhigh' '--model' 'haiku'")
+    expect(plan?.launchCommand).toBe("claude '--model' 'haiku'")
     expect(plan?.sessionOptions).toBeUndefined()
   })
 
