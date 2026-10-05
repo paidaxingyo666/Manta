@@ -345,6 +345,79 @@ describe('a Codex send its turn ended without taking it', () => {
   })
 })
 
+describe('the turn a withdrawn Codex send was answered into', () => {
+  async function answeredInto(clientMessageId: string) {
+    await host.flushStreamedEvents(SESSION)
+    const snapshot = await host.journalSnapshot(SESSION)
+    const page = await host.history({ sessionId: SESSION, direction: 'tail' })
+    const onPage = page.ok
+      ? page.page.submissions.find((entry) => entry.clientMessageId === clientMessageId)
+      : undefined
+    return {
+      turnRecords: snapshot.items.flatMap((item) =>
+        item.body.kind === 'turn' ? [item.itemId] : []
+      ),
+      named: snapshot.submissions.find((entry) => entry.clientMessageId === clientMessageId)
+        ?.answeredInTurn,
+      onPage: onPage?.answeredInTurn
+    }
+  }
+
+  it("is that turn's record, started by the send that opened it and steered by a later one", async () => {
+    const opening = await send('look around')
+    await vi.waitFor(() => expect(answers).toBe(1))
+    turns.start()
+    const steered = await send('and check the tests')
+    await vi.waitFor(() => expect(steers).toBe(1))
+
+    await stop('turn-1')
+    await vi.waitFor(async () =>
+      expect(verdictOf((await settled()).submissions, steered)).toBe('withdrawn')
+    )
+
+    const { turnRecords } = await answeredInto(opening)
+    expect(turnRecords).toHaveLength(1)
+    const started = { turnItemId: turnRecords[0], via: 'start' }
+    const steeredIn = { turnItemId: turnRecords[0], via: 'steer' }
+    expect(await answeredInto(opening)).toEqual({ turnRecords, named: started, onPage: started })
+    expect(await answeredInto(steered)).toEqual({
+      turnRecords,
+      named: steeredIn,
+      onPage: steeredIn
+    })
+  })
+
+  it('is not named on a send the turn took', async () => {
+    const opening = await send('look around')
+    await vi.waitFor(() => expect(answers).toBe(1))
+    turns.start()
+    turns.echo(opening)
+
+    await stop('turn-1')
+    await vi.waitFor(async () =>
+      expect(verdictOf((await settled()).submissions, opening)).toBe('accepted')
+    )
+
+    expect(await answeredInto(opening)).toMatchObject({ named: undefined, onPage: undefined })
+  })
+
+  it('is named when the answer is read after that turn ended', async () => {
+    const release = turns.holdNextAnswer()
+    const sent = await send('look around')
+    await vi.waitFor(() => expect(turns.turnId).toBe('turn-1'))
+    turns.start()
+    turns.end('interrupted')
+    release()
+
+    await vi.waitFor(async () =>
+      expect(verdictOf((await settled()).submissions, sent)).toBe('withdrawn')
+    )
+    const { turnRecords, named } = await answeredInto(sent)
+    expect(turnRecords).toHaveLength(1)
+    expect(named).toEqual({ turnItemId: turnRecords[0], via: 'start' })
+  })
+})
+
 describe('a queued card sent now into the turn a Stop ends', () => {
   async function handoffs(messageId: string): Promise<AgentJournalSubmission[]> {
     return (await settled()).submissions.filter((entry) => entry.queuedMessageId === messageId)
