@@ -187,7 +187,7 @@ describe('insertRichMarkdownImageFromPath', () => {
         filePath,
         sourcePath: '/tmp/image.png',
         worktreeId: 'wt-1',
-        insertPos: 4
+        getInsertionRange: () => ({ from: 4, to: 4, requestOrder: 1 })
       })
 
       expect(vi.mocked(importExternalPathsToRuntime).mock.calls[0]?.[3]).toEqual({ access })
