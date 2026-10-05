@@ -200,5 +200,7 @@ export const CODEX_SESSION_OPTION_CATALOG: AgentSessionOptionCatalog = {
     // command and let its own picker apply the account-supported model.
     midSession: { kind: 'agent-picker', command: '/model', delivery: 'type' }
   },
-  unknownModelOptions: [codexEffort('xhigh')]
+  // Why: models newer than this seed often support max/ultra; Codex falls back
+  // to the model's default effort rather than failing on an unsupported one.
+  unknownModelOptions: [codexEffort('ultra')]
 }
