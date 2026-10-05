@@ -693,6 +693,89 @@ Their typed confirmations are `PAUSE_REGIONAL_REHOMING` and `DISABLE_REGIONAL_RE
 default 3,600,000 ms drain grace so existing splices can finish. The job summary contains only fresh
 aggregate active, receipt, registration, completion, and abort counts.
 
+### Director deploy driver
+
+`dev/scripts/drive-relay-director-deploy.mjs` runs a whole director deploy from an operator machine
+with `gh` and `gcloud` logged in. It only dispatches the workflows above and reads their results; it
+holds no credentials and changes no workflow. It never fills in a workflow's typed confirmation: the
+operator types each one when the driver reaches it.
+
+```bash
+cd cloud
+node dev/scripts/drive-relay-director-deploy.mjs --commit <reviewed main SHA> --dry-run
+node dev/scripts/drive-relay-director-deploy.mjs --commit <reviewed main SHA> \
+  [--configure production-gce-c34=sha256:<cell image digest>]
+```
+
+It keeps no state between runs. Every decision comes from live state read at the start of each run:
+
+- the serving director's digest and configured cells, from `gcloud`;
+- the admission selector, from an `Operate Relay Asia Admission` `inspect`;
+- the rehome control, from a rehome `inspect` at the generation the newest rehome run printed, or
+  at `--rehome-generation`.
+
+Steps already done are skipped: a serving digest that matches is not deployed again, and cells
+already configured are not configured again. It always reads rehome, even when nothing is left to
+do, so it never reports success over a pause it cannot explain.
+
+The sequence:
+
+1. **Preflight, read-only.** No `cloud-*` workflow is queued or running (all pages; the hourly
+   clock-skew monitor and `cloud-verify` excepted), and `main` is the reviewed commit.
+2. **Publish**, after the operator types `DEPLOY <commit prefix>`. It runs before rehome is touched,
+   so a moved `main` or a bad build needs no cleanup. The digest is the registry digest of
+   `relay:sha-<commit>`, and the run's own push line must name the same digest.
+3. **Pause**, only if rehome is enabled, after the operator types `PAUSE_REGIONAL_REHOMING`.
+4. **Deploy** with that digest, the paused generation, `preserve` for both regional inputs, no
+   prune, and the old serving digest as predecessor.
+5. **Soak**, with `--configure` only, while no wave is configured yet. It watches 5 minutes of
+   director 5xx and stops if they exceed twice the 5 minutes before the new revision existed, plus
+   25. The window starts at the traffic switch (a minute before the deploy run completed) when this
+   run deployed, otherwise at the time of the run, so a re-run judges fresh traffic. It is read a
+   minute late, to allow for log lag. Then the operator types `CONFIGURE_ASIA_DIRECTOR` and each
+   pending wave is configured.
+6. **Digest check.** A rehome `inspect` bound to the serving and rollback digests that `gcloud`
+   reports now. A wrong digest fails here, read-only, before 15 minutes of monitor evidence is
+   spent on it.
+7. **Monitor.** The operator types `ENABLE_REGIONAL_REHOMING`. The prompt says this arms an
+   automatic enable, sent about 17 minutes later, and only if the monitor is green and its evidence
+   is at most 150 s old. The monitor dry-run then starts. Its artifact passes the same
+   `relay-monitor-evidence.mjs verify-authority` check the enable job runs.
+8. **Enable** with the verified digests, within 150 s of the monitor completing.
+
+Steps 6 to 8 run only for a pause this driver owns.
+
+**Ownership.** The driver owns a pause only if it can name the run that made it, and the live
+control is still at that run's generation. Two kinds of line in a run's log prove it paused
+rehome:
+
+- `pause`;
+- `recover-enable` with `recovered: true`, meaning a failed enable that disabled rehome again itself.
+
+The run must be a rehome-control run by the same GitHub user. A `recover-enable` with
+`recovered: false` found rehome already disabled, for example by a director safety pause, and is
+never adopted. A failed enable run is never counted as an enable, whatever it printed last. A fresh run that finds rehome paused stops. It goes ahead only
+with:
+
+- `--pause-run <run>`, which an earlier run of this driver printed; or
+- `--leave-rehome-paused`, which deploys and leaves rehome paused. It refuses an enabled switch.
+
+A pause made by anything else is never lifted.
+
+**Stops.** On any failure, Ctrl-C, SIGTERM or SIGHUP, the driver prints what changed:
+
+- `REHOME IS CHANGING` when a pause or enable run is in flight and will apply on its own;
+- `PAUSE UNCONFIRMED` or `ENABLE UNCONFIRMED` when such a run printed no usable result;
+- `REHOME IS PAUSED by this driver` with the owning run;
+- the serving director, re-read;
+- the published digest;
+- the rollback point, with the `gh workflow run` command that redeploys it.
+
+It ends with the single command that finishes from where it stopped. That command carries
+`--publish-run` and `--pause-run`, and the driver re-verifies both against the runs' logs and live
+state. Each run writes a timestamped log under `~/.orca/relay-director-deploy/`
+(`--log-directory` overrides it).
+
 ## Mobile push gateway
 
 `Deploy Push Gateway Production` (`.github/workflows/cloud-push-deploy.yml`) is the deploy path
