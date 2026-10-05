@@ -36,6 +36,8 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   historyUnavailable: "Manta couldn't open this chat's history right now.",
   savedByNewerOrca: 'Chats were saved by a newer Manta.',
   updateOrcaToKeepUsing: 'Update Manta to keep using them.',
+  chatSavedByNewerOrca: 'This chat was saved by a newer Manta.',
+  updateOrcaToOpenChat: 'Update Manta to open it.',
   unsupported:
     'This needs a newer Manta on the computer running this chat. Update Manta there, then try again.',
   notAvailable: "This isn't available in this chat.",
@@ -88,4 +90,10 @@ export type AgentSessionWriteNoticePart =
 /** Causes that already say the history can't be read here, so no sentence after them says it
  *  again. */
 export const AGENT_SESSION_HISTORY_UNREAD_CAUSES: ReadonlySet<AgentSessionWriteNoticeSentence> =
-  new Set(['historyUnusable', 'historyUnavailable', 'historyUnreadable', 'savedByNewerOrca'])
+  new Set([
+    'historyUnusable',
+    'historyUnavailable',
+    'historyUnreadable',
+    'savedByNewerOrca',
+    'chatSavedByNewerOrca'
+  ])

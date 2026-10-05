@@ -17565,6 +17565,8 @@
         "historyUnavailable": "Manta no pudo abrir el historial de este chat en este momento.",
         "savedByNewerOrca": "Los chats se guardaron con una versión más reciente de Manta.",
         "updateOrcaToKeepUsing": "Actualice Manta para seguir usándolos.",
+        "chatSavedByNewerOrca": "Este chat se guardó con una versión más reciente de Manta.",
+        "updateOrcaToOpenChat": "Actualice Manta para abrirlo.",
         "unsupported": "Esto requiere una versión más reciente de Manta en el equipo que ejecuta este chat. Actualice Manta allí y vuelva a intentarlo.",
         "notAvailable": "Esto no está disponible en este chat.",
         "unreachable": "Manta no pudo comunicarse con el agente.",
@@ -17789,6 +17791,7 @@
         "sending": "Enviando…"
       },
       "approval": {
+        "needsNewerOrca": "Esta solicitud necesita una versión más reciente de Manta.",
         "title": "¿Permitir {{value0}}?",
         "allow": "Permitir",
         "deny": "Denegar",

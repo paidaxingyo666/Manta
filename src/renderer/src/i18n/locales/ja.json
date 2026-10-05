@@ -17600,6 +17600,8 @@
         "historyUnavailable": "Manta は現在このチャットの履歴を開けませんでした。",
         "savedByNewerOrca": "チャットは新しいバージョンの Manta で保存されました。",
         "updateOrcaToKeepUsing": "引き続き使用するには、Manta を更新してください。",
+        "chatSavedByNewerOrca": "このチャットは新しいバージョンの Manta で保存されました。",
+        "updateOrcaToOpenChat": "開くには Manta を更新してください。",
         "unsupported": "このチャットを実行しているコンピューターに新しいバージョンの Manta が必要です。そのコンピューターで Manta を更新してから、もう一度お試しください。",
         "notAvailable": "このチャットでは利用できません。",
         "unreachable": "Manta は Agent に接続できませんでした。",
@@ -17824,6 +17826,7 @@
         "sending": "送信中…"
       },
       "approval": {
+        "needsNewerOrca": "このリクエストには新しいバージョンの Manta が必要です。",
         "title": "{{value0}} を許可しますか?",
         "allow": "許可する",
         "deny": "拒否",

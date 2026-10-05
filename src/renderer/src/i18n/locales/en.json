@@ -17787,6 +17787,8 @@
         "historyUnavailable": "Manta couldn't open this chat's history right now.",
         "savedByNewerOrca": "Chats were saved by a newer Manta.",
         "updateOrcaToKeepUsing": "Update Manta to keep using them.",
+        "chatSavedByNewerOrca": "This chat was saved by a newer Manta.",
+        "updateOrcaToOpenChat": "Update Manta to open it.",
         "unsupported": "This needs a newer Manta on the computer running this chat. Update Manta there, then try again.",
         "notAvailable": "This isn't available in this chat.",
         "unreachable": "Manta couldn't reach the agent.",
@@ -18106,6 +18108,7 @@
         "reason": "Reason",
         "blockedPath": "Blocked path",
         "askRule": "Ask rule",
+        "needsNewerOrca": "This request needs a newer version of Manta.",
         "plan": {
           "file": "Plan file"
         }

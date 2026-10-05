@@ -17664,6 +17664,8 @@
         "historyUnavailable": "Manta n'a pas pu ouvrir l'historique de ce chat pour le moment.",
         "savedByNewerOrca": "Les chats ont été enregistrés par une version plus récente d'Manta.",
         "updateOrcaToKeepUsing": "Mettez à jour Manta pour continuer à les utiliser.",
+        "chatSavedByNewerOrca": "Ce chat a été enregistré par une version plus récente d'Manta.",
+        "updateOrcaToOpenChat": "Mettez à jour Manta pour l'ouvrir.",
         "unsupported": "Cela nécessite une version plus récente d'Manta sur l'ordinateur qui exécute ce chat. Mettez Manta à jour sur cet ordinateur, puis réessayez.",
         "notAvailable": "Ceci n'est pas disponible dans ce chat.",
         "unreachable": "Manta n'a pas pu joindre l'agent.",
@@ -17888,6 +17890,7 @@
         "sending": "Envoi…"
       },
       "approval": {
+        "needsNewerOrca": "Cette demande nécessite une version plus récente d'Manta.",
         "title": "Autoriser {{value0}} ?",
         "allow": "Autoriser",
         "deny": "Refuser",
