@@ -215,7 +215,9 @@ promote while a same-cap restore has just returned an empty general US cell: the
 would land there and the canary would roll the new cell back. Both cells are declared rehome
 sources and sit in the same-cap migration-only list until each one's canary promotes it, then move
 to the general list. The shadow gate's fleet pool list tracks the 16-connection Asia pools, so
-whether a US cell belongs there is decided at promotion, not assumed.
+whether a US cell belongs there is decided at promotion, not assumed. Both were promoted to general
+on 2026-10-01, so the same-cap job now rolls them as general cells. They stay out of the fleet pool
+list because their pool is the US default of 10.
 Rollback returns
 Asia cells to migration-only; it does not destroy the network or use
 existing-only. The production topology dispatch remains unavailable until the
