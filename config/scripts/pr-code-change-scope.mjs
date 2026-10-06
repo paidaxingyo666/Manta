@@ -173,6 +173,7 @@ const CROSS_VERSION_WIRE_PREFIXES = [
   'src/shared/structured-agent-session-send-mutation.ts',
   'src/shared/structured-agent-session-outbox.ts',
   'src/shared/agent-session-record',
+  'src/shared/agent-session-provider-handle',
   'src/shared/agent-session-journal-',
   'src/main/ai-vault/structured-session-ownership.ts',
   'src/main/native-chat/agent-session-journal/',
