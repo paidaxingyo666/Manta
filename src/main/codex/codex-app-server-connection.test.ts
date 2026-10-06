@@ -126,6 +126,26 @@ async function flushStreams(): Promise<void> {
   await new Promise((resolve) => setImmediate(resolve))
 }
 
+async function closeWithoutObservedExit(
+  connection: CodexAppServerConnection,
+  child: StubChild
+): Promise<boolean> {
+  const forcedKill = new Promise<void>((resolve) => {
+    child.kill.mockImplementation((signal) => {
+      if (signal === 'SIGKILL') {
+        resolve()
+      }
+    })
+  })
+  const closing = connection.close()
+  await flushStreams()
+  await vi.advanceTimersByTimeAsync(GRACEFUL_EXIT_MS)
+  await forcedKill
+  await vi.advanceTimersByTimeAsync(0)
+  await vi.advanceTimersByTimeAsync(1_000)
+  return closing
+}
+
 function rejection(promise: Promise<unknown>): Promise<Error> {
   return promise.then(
     () => {
@@ -511,21 +531,7 @@ describe('openCodexAppServerConnection', () => {
       spawnImpl
     )
 
-    const forcedKill = new Promise<void>((resolve) => {
-      child.kill.mockImplementation((signal) => {
-        if (signal === 'SIGKILL') {
-          resolve()
-        }
-      })
-    })
-    const closing = connection.close()
-    await flushStreams()
-    await vi.advanceTimersByTimeAsync(GRACEFUL_EXIT_MS)
-    await forcedKill
-    await vi.advanceTimersByTimeAsync(0)
-    await vi.advanceTimersByTimeAsync(1_000)
-
-    await expect(closing).resolves.toBe(false)
+    await expect(closeWithoutObservedExit(connection, child)).resolves.toBe(false)
     expect(vi.getTimerCount()).toBe(0)
   }, 10_000)
 
@@ -561,20 +567,7 @@ describe('openCodexAppServerConnection', () => {
       spawnImpl
     )
 
-    const forcedKill = new Promise<void>((resolve) => {
-      child.kill.mockImplementation((signal) => {
-        if (signal === 'SIGKILL') {
-          resolve()
-        }
-      })
-    })
-    const first = connection.close()
-    await flushStreams()
-    await vi.advanceTimersByTimeAsync(GRACEFUL_EXIT_MS)
-    await forcedKill
-    await vi.advanceTimersByTimeAsync(0)
-    await vi.advanceTimersByTimeAsync(1_000)
-    await expect(first).resolves.toBe(false)
+    await expect(closeWithoutObservedExit(connection, child)).resolves.toBe(false)
     child.emit('exit', 0, null)
 
     await expect(connection.close()).resolves.toBe(true)
