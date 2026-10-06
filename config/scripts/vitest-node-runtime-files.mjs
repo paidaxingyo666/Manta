@@ -1,5 +1,19 @@
+import { SQLITE_RUNTIME_INCLUDE } from './vitest-sqlite-runtime-files.mjs'
+
 // SQLite publication, native bindings, worker IPC, socket liveness, and V8 retention use Node.
 export const NODE_RUNTIME_INCLUDE = [
+  'config/scripts/vitest-sqlite-runtime-boundary.test.ts',
+  'config/scripts/cloud-security-history-workflow.test.mjs',
+  'config/scripts/skill-recipe-shell.test.mjs',
+  'src/main/ssh/ssh-relay-endpoint-incumbent-shell.integration.test.ts',
+  'src/shared/child-process/run-process.test.ts',
+  'tests/e2e/cursor-quota-transport.unit.test.ts',
+  'src/main/ai-vault-search/session-search-index-writer.test.ts',
+  'src/main/ai-vault/session-scanner-unlimited-dedup.test.ts',
+  'src/renderer/src/components/terminal-pane/pty-input-write-queue.test.ts',
+  'src/renderer/src/lib/react-commit-cascade-observer.test.ts',
+  'src/renderer/src/lib/react-commit-cascade-telemetry.test.ts',
+  ...SQLITE_RUNTIME_INCLUDE,
   'src/cli/**/*.test.ts',
   'src/main/persistence/**/*.test.ts',
   'src/main/persistence*.test.ts',

@@ -205,6 +205,7 @@ export function parseMantaYaml(content: string): MantaHooks | null {
   try {
     const document = parseDocument(content, {
       keepSourceTokens: false,
+      merge: true,
       logLevel: 'silent',
       prettyErrors: false,
       uniqueKeys: true
