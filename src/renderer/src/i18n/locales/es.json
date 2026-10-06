@@ -17869,6 +17869,10 @@
       "loadingEarlier": "Cargando…",
       "loadEarlier": "Cargar mensajes anteriores",
       "loadingEarlierMessages": "Cargando mensajes anteriores…",
+      "prompt": {
+        "collapse": "Contraer",
+        "expand": "Expandir"
+      },
       "question": {
         "step": "Paso {{value0}}",
         "other": "Otro…",

@@ -17968,6 +17968,10 @@
       "loadingEarlier": "Chargement…",
       "loadEarlier": "Charger les messages précédents",
       "loadingEarlierMessages": "Chargement des messages précédents…",
+      "prompt": {
+        "collapse": "Réduire",
+        "expand": "Développer"
+      },
       "question": {
         "step": "Étape {{value0}}",
         "other": "Autre…",

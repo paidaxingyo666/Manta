@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   NATIVE_CHAT_COMPOSER_SCOPE_CACHE_MAX,
   setBoundedScopeCacheEntry
-} from './native-chat-composer-scope-cache'
+} from './native-chat-scope-cache'
 
 describe('setBoundedScopeCacheEntry', () => {
   it('bounds the cache with LRU eviction, keeping re-set keys', () => {

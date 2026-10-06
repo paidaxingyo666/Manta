@@ -18175,6 +18175,10 @@
       "railLabel": "Your messages",
       "railImageMessage": "Image attachment",
       "railEmptyMessage": "Message",
+      "prompt": {
+        "collapse": "Collapse",
+        "expand": "Expand"
+      },
       "question": {
         "step": "Step {{value0}}",
         "other": "Other…",

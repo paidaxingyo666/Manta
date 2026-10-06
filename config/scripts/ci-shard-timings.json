@@ -5757,7 +5757,7 @@
       "src/renderer/src/components/native-chat/native-chat-composer-containment.test.ts": 38,
       "src/renderer/src/components/native-chat/native-chat-composer-drop-scope.test.tsx": 1320,
       "src/renderer/src/components/native-chat/native-chat-composer-reveal-focus.test.tsx": 622,
-      "src/renderer/src/components/native-chat/native-chat-composer-scope-cache.test.ts": 47,
+      "src/shared/native-chat-scope-cache.test.ts": 47,
       "src/renderer/src/components/native-chat/native-chat-composer-state.test.ts": 98,
       "src/renderer/src/components/native-chat/native-chat-composer-workspace-file-drop.test.tsx": 1742,
       "src/renderer/src/components/native-chat/native-chat-context-usage-summary.test.ts": 54,

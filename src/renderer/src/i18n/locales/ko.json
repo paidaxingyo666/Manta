@@ -17904,6 +17904,10 @@
       "loadingEarlier": "로드 중…",
       "loadEarlier": "이전 메시지 로드",
       "loadingEarlierMessages": "이전 메시지 로드 중…",
+      "prompt": {
+        "collapse": "접기",
+        "expand": "펼치기"
+      },
       "question": {
         "step": "{{value0}} 단계",
         "other": "다른…",
