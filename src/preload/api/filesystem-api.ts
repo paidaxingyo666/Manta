@@ -156,7 +156,10 @@ export type FilesystemApi = {
       nameFilter?: string
     }) => Promise<string[]>
     cancelListFiles: (args: { requestToken: string }) => Promise<void>
-    search: (args: SearchOptions & { connectionId?: string }) => Promise<SearchResult>
+    cancelSearch: (args: { requestToken: string }) => Promise<void>
+    search: (
+      args: SearchOptions & { connectionId?: string; requestToken?: string }
+    ) => Promise<SearchResult>
     importExternalPaths: (
       args: {
         sourcePaths: string[]

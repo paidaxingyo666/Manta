@@ -1,3 +1,5 @@
+import { createBrowserUuid } from '@/lib/browser-uuid'
+import { throwIfSignalAborted, waitForPromiseWithSignal } from '../../../shared/abort-signal-reason'
 import type { SearchOptions, SearchResult } from '../../../shared/code-search-types'
 import type { RuntimeFileListResult } from '../../../shared/runtime-types'
 import {
@@ -21,24 +23,40 @@ const QUICK_OPEN_REMOTE_UPDATE_REQUIRED_MESSAGE =
 
 export async function searchRuntimeFiles(
   context: RuntimeFileOperationArgs,
-  options: SearchOptions
+  options: SearchOptions,
+  signal?: AbortSignal
 ): Promise<SearchResult> {
+  throwIfSignalAborted(signal)
   if (getRuntimeFileSearchRejectedField(options)) {
     return createEmptyRuntimeFileSearchResult()
   }
   const target = getActiveRuntimeTarget(context.settings)
   if (target.kind !== 'environment' || !context.worktreeId) {
-    return window.api.fs.search({
+    const requestToken = createBrowserUuid()
+    const cancel = (): void => {
+      void window.api.fs.cancelSearch({ requestToken }).catch(() => undefined)
+    }
+    const request = window.api.fs.search({
       ...options,
-      connectionId: context.connectionId
+      connectionId: context.connectionId,
+      requestToken
     })
+    signal?.addEventListener('abort', cancel, { once: true })
+    try {
+      if (signal?.aborted) {
+        cancel()
+      }
+      return await waitForPromiseWithSignal(request, signal)
+    } finally {
+      signal?.removeEventListener('abort', cancel)
+    }
   }
   const { rootPath: _rootPath, ...runtimeOptions } = options
   return callRuntimeRpc<SearchResult>(
     target,
     'files.search',
     { worktree: toRuntimeWorktreeSelector(context.worktreeId), ...runtimeOptions },
-    { timeoutMs: 15_000 }
+    { timeoutMs: 15_000, signal }
   )
 }
 

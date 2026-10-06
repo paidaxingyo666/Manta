@@ -302,8 +302,9 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     return (await this.mux.request('fs.realpath', { filePath })) as string
   }
 
-  async search(opts: SearchOptions): Promise<SearchResult> {
-    return (await this.mux.request('fs.search', opts)) as SearchResult
+  async search(opts: SearchOptions, options?: { signal?: AbortSignal }): Promise<SearchResult> {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: fs.search returns the relay's SearchResult contract; signal stays in local transport options.
+    return (await this.mux.request('fs.search', opts, { signal: options?.signal })) as SearchResult
   }
 
   async listFiles(

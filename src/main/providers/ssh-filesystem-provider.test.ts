@@ -473,7 +473,7 @@ describe('SshFilesystemProvider', () => {
       caseSensitive: true
     }
     const result = await provider.search(opts)
-    expect(mux.request).toHaveBeenCalledWith('fs.search', opts)
+    expect(mux.request).toHaveBeenCalledWith('fs.search', opts, { signal: undefined })
     expect(result).toEqual(searchResult)
   })
 

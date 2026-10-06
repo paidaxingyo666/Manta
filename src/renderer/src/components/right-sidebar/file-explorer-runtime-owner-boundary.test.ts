@@ -18,7 +18,6 @@ describe('right sidebar file/git runtime ownership boundaries', () => {
     'src/renderer/src/components/right-sidebar/useFileDeletion.ts',
     'src/renderer/src/components/right-sidebar/use-file-explorer-ignored-paths.ts',
     'src/renderer/src/components/right-sidebar/useGitStatusPolling.ts',
-    'src/renderer/src/components/right-sidebar/useFileSearchRunner.ts',
     'src/renderer/src/components/quick-open-file-list.ts'
   ])('%s routes file/git requests by the selected worktree owner', (path) => {
     const text = source(path)
@@ -28,6 +27,17 @@ describe('right sidebar file/git runtime ownership boundaries', () => {
     )
     expect(text).not.toContain('settings: useAppStore.getState().settings')
     expect(text).not.toContain('const settings = useAppStore.getState().settings')
+  })
+
+  it('routes content search through both selected-worktree owner selectors', () => {
+    const text = source('src/renderer/src/components/right-sidebar/useFileSearchRunner.ts')
+    expect(text).toContain('getRuntimeEnvironmentIdForWorktree(state, activeWorktreeId)')
+    expect(text).toContain('getExecutionHostIdForWorktree(state, activeWorktreeId)')
+    expect(text).toContain('activeRuntimeEnvironmentId: runtimeEnvironmentId')
+    expect(text).toMatch(
+      /searchRuntimeFiles\(\s*\{\s*settings: runtimeSettings,\s*worktreeId: activeWorktreeId,/
+    )
+    expect(text).not.toContain('useAppStore.getState().settings')
   })
 
   it('derives owner settings through the shared worktree runtime owner helper', () => {

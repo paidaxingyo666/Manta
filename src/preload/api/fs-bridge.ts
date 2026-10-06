@@ -157,7 +157,10 @@ export const fsApi = {
   }): Promise<string[]> => ipcRenderer.invoke('fs:listFiles', args),
   cancelListFiles: (args: { requestToken: string }): Promise<void> =>
     ipcRenderer.invoke('fs:cancelListFiles', args),
+  cancelSearch: (args: { requestToken: string }): Promise<void> =>
+    ipcRenderer.invoke('fs:cancelSearch', args),
   search: (args: {
+    requestToken?: string
     query: string
     rootPath: string
     caseSensitive?: boolean

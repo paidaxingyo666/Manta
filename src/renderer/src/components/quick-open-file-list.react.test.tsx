@@ -162,6 +162,41 @@ afterEach(async () => {
 })
 
 describe('useRuntimeFileListForWorktree', () => {
+  it('settles a Windows folder listing failure and recovers after reopening', async () => {
+    const workspaceKey = folderWorkspaceKey('folder-workspace-1')
+    useAppStore.setState({
+      folderWorkspaces: [makeFolderWorkspace({ folderPath: 'C:\\fixture', connectionId: null })],
+      projectGroups: [makeProjectGroup({ parentPath: 'C:\\fixture', connectionId: null })],
+      repos: [],
+      worktreesByRepo: {}
+    })
+    listRuntimeFilesMock.mockRejectedValueOnce(new Error('fixture launcher failed'))
+    let state: RuntimeFileListState | undefined
+    const args = {
+      enabled: true,
+      worktreeId: workspaceKey,
+      onState: (value: RuntimeFileListState) => {
+        state = value
+      }
+    }
+    const root = await renderProbe(args)
+    await waitForListRuntimeFilesCall()
+    await flushEffects()
+    expect(state?.loading).toBe(false)
+    expect(state?.loadError).toBe('fixture launcher failed')
+    await act(async () => {
+      root.render(createElement(HookProbe, { ...args, enabled: false }))
+    })
+    listRuntimeFilesMock.mockResolvedValueOnce(['example.txt'])
+    await act(async () => {
+      root.render(createElement(HookProbe, args))
+    })
+    await flushEffects()
+    expect(state?.loading).toBe(false)
+    expect(state?.loadError).toBeNull()
+    expect(state?.files).toEqual(['example.txt'])
+  })
+
   it('lists a repo-less SSH folder workspace after folder metadata hydrates', async () => {
     const states: RuntimeFileListState[] = []
     const workspaceKey = folderWorkspaceKey('folder-workspace-1')

@@ -92,7 +92,6 @@ src/main/ipc/developer-permissions.ts
 src/main/ipc/filesystem-list-files.ts
 src/main/ipc/filesystem-watcher-wsl.ts
 src/main/ipc/filesystem/filesystem-handler-context.ts
-src/main/ipc/filesystem/filesystem-search-handlers.ts
 src/main/ipc/local-network-connection-test.ts
 src/main/ipc/macos-keyboard-layout-snapshot.ts
 src/main/ipc/notification-authorization-status.ts
