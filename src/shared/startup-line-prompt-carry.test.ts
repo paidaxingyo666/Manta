@@ -54,6 +54,13 @@ describe('whether a launch prompt rides the typed startup line', () => {
     expect(plan?.launchCommand).toContain('explain this repo')
   })
 
+  it('carries a short Windows multi-line prompt as one encoded physical launch line', () => {
+    const { plan, promptCarried } = offer('claude', linesOf(5, 40), { platform: 'win32' })
+    expect(promptCarried).toBe(true)
+    expect(plan?.launchCommand).not.toContain('\n')
+    expect(plan?.launchCommand).toContain('`n')
+  })
+
   it('carries a line of exactly the budget and refuses one byte past it', () => {
     const atBudget = offer('claude', promptForClaudeLineOf(TYPED_STARTUP_LINE_PROMPT_BUDGET_BYTES))
     expect(new TextEncoder().encode(atBudget.plan?.launchCommand ?? '').byteLength).toBe(
@@ -196,7 +203,7 @@ describe('on a host that cannot prove the launched agent is in front', () => {
     expect(promptCarried).toBe(true)
     expect(plan?.launchCommand).toContain(prompt.split('\n')[0])
     // Control: the same prompt is pasted where the host can prove the agent.
-    expect(offer('claude', prompt, { platform: 'win32' }).promptCarried).toBe(false)
+    expect(offer('claude', prompt, { platform: 'darwin' }).promptCarried).toBe(false)
   })
 })
 
