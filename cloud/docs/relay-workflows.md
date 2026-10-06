@@ -219,15 +219,20 @@ whether a US cell belongs there is decided at promotion, not assumed. Both were 
 on 2026-10-01, so the same-cap job now rolls them as general cells. They stay out of the fleet pool
 list because their pool is the US default of 10.
 
-C34 is an Asia spare at the C31 shape in `asia-east2-c`, so the six Asia cells spread 2/2/2. It is
-its own topology wave and registers alone as migration-only, then the director is configured with
-`cell-ids` set to C34. It has no promotion wave: the Asia admission script and workflow refuse
-`promote` for it, and placement and regional rehome select only general cells. It is a
-migration-only landing zone that only an explicit evacuation or migration naming it can target.
-Do not name it in the multi-target `promote-general-cell` or `retire-migration-cell` modes, which
-accept any migration-only cell. It is a declared rehome source, sits in the same-cap migration-only
-list, and stays out of the fleet pool list. Promoting it later takes its own reviewed change adding a
-promotion wave and canary entry.
+C34 is a sixth Asia cell at the C31 shape in `asia-east2-c`, so the six Asia cells spread 2/2/2. It
+was its own topology wave, registered alone as migration-only, and the director was configured with
+`cell-ids` set to C34, all on 2026-10-05. It launched as a migration-only spare and now has a
+promotion wave of its own, with the same five-minute canary C30 and C31 ran. The canary lands on
+C34 because it is the emptiest general Asia cell once promoted. Promotion compares the director's
+serving digest and C34's runtime digest with the one `image-digest` input, so C34 must first be
+rolled to the director's image. That roll is a same-cap wave that enters and leaves
+migration-only, so it moves nobody. C34 stays in the same-cap migration-only list until its promotion
+succeeds, because a same-cap job reads a cell's class from that list, not from the selector. It
+then moves to the general list and the fleet pool list together, as its own reviewed change,
+before any same-cap wave names C34 again. Between promotion and that change, do not run a same-cap
+wave on C34; a rollback there would demote it. Do not name it in the multi-target
+`promote-general-cell` or `retire-migration-cell` modes, which accept any migration-only cell. It
+is a declared rehome source.
 Rollback returns
 Asia cells to migration-only; it does not destroy the network or use
 existing-only. The production topology dispatch remains unavailable until the
