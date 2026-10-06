@@ -1,3 +1,4 @@
+import { decodeLegacyQuickOpenInventory, pruneLegacyInventoryCache } from './runtime-legacy-inventory-budget'
 import type { RuntimeFileListResult } from '../../../shared/runtime-types'
 import {
   buildExcludePathPrefixes,
@@ -19,6 +20,7 @@ type CacheEntry = {
   controller: AbortController
   activeConsumers: number
   settled: boolean
+  retainedBytes: number
 }
 
 const inventoryCache = new Map<string, CacheEntry>()
@@ -111,7 +113,7 @@ async function loadLegacyQuickOpenInventory(
     controller.abort()
   }
   // Share one inventory request; abort it only after every caller detaches.
-  const load = callRuntimeRpc<RuntimeFileListResult>(
+  const load = callRuntimeRpc<unknown>(
     target,
     'files.list',
     { worktree: worktreeSelector },
@@ -121,7 +123,10 @@ async function loadLegacyQuickOpenInventory(
       expectedEnvironmentPairingRevision
     }
   )
-    .then((result) => {
+    .then((value) => {
+      const { result, retainedBytes } = decodeLegacyQuickOpenInventory(value)
+      entry.retainedBytes = retainedBytes
+      pruneLegacyInventoryCache(inventoryCache, CACHE_LIMIT)
       entry.settled = true
       entry.expiresAt = Date.now() + CACHE_TTL_MS
       scheduleInventoryExpiry()
@@ -139,17 +144,12 @@ async function loadLegacyQuickOpenInventory(
     load,
     controller,
     activeConsumers: 0,
-    settled: false
+    settled: false,
+    retainedBytes: 0
   }
   inventoryCache.set(key, entry)
   scheduleInventoryExpiry()
-  while (inventoryCache.size > CACHE_LIMIT) {
-    const oldest = inventoryCache.keys().next().value as string | undefined
-    if (!oldest) {
-      break
-    }
-    inventoryCache.delete(oldest)
-  }
+  pruneLegacyInventoryCache(inventoryCache, CACHE_LIMIT)
   return awaitLegacyInventoryLoad(entry, signal)
 }
 

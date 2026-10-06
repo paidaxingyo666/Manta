@@ -42,8 +42,19 @@ export class RuntimeFileCommandsWithConstructor extends RuntimeFileCommandsWithA
     const route = runtimeFileRouteForTarget(target)
     const files =
       route.kind === 'ssh'
-        ? await this.listRemoteMobileFiles(worktree.path, route.provider, undefined, options.signal)
-        : await listQuickOpenFiles(worktree.path, store, undefined, options.signal)
+        ? await this.listRemoteMobileFiles(
+            worktree.path,
+            route.provider,
+            MOBILE_FILE_LIST_LIMIT + 1,
+            options.signal
+          )
+        : await listQuickOpenFiles(
+            worktree.path,
+            store,
+            undefined,
+            options.signal,
+            MOBILE_FILE_LIST_LIMIT + 1
+          )
     const entries = files
       .filter((relativePath) => isSafeMobileRelativePath(relativePath))
       .sort((a, b) => a.localeCompare(b))

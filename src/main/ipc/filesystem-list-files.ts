@@ -1,3 +1,4 @@
+import { FileInventoryBudget, FileInventoryCapacityError } from '../../shared/file-inventory-budget'
 import { getQuickOpenRgOutputMode } from '../../shared/quick-open-ripgrep-output-mode'
 import { RipgrepFilenameDecoder, RipgrepFilenameError } from '../../shared/ripgrep-filename-decoder'
 import { sep } from 'node:path'
@@ -56,12 +57,14 @@ export async function listQuickOpenFiles(
   const excludePathPrefixes = buildExcludePathPrefixes(authorizedRootPath, excludePaths)
   const wslDistroForOutput = parseWslPath(authorizedRootPath)?.distro ?? localGitOptions.wslDistro
 
+  const inventoryBudget =
+    maxResults === undefined && maxSerializedBytes === undefined ? new FileInventoryBudget() : null
   const files = new Set<string>()
   let serializedBytes = 2 // []
   const children: {
     child: ChildProcess
     isDone: () => boolean
-    finish: () => void
+    finish: (error?: Error) => void
   }[] = []
   // Why: WSL-routed rg can emit Linux-native absolute paths. UNC repos carry
   // their distro in the path; Windows-path repos carry it in project runtime.
@@ -124,6 +127,14 @@ export async function listQuickOpenFiles(
             return true
           }
           serializedBytes += nextBytes
+        }
+        try {
+          inventoryBudget?.record(relPath)
+        } catch (error) {
+          buf = ''
+          files.clear()
+          killSurvivors(error instanceof Error ? error : new FileInventoryCapacityError())
+          return true
         }
         files.add(relPath)
         return maxResults !== undefined && files.size >= maxResults
@@ -285,13 +296,13 @@ export async function listQuickOpenFiles(
     })
   }
 
-  const killSurvivors = (): void => {
+  const killSurvivors = (error?: Error): void => {
     // Failed listings must release any process still walking the tree.
     for (const entry of children) {
       if (entry.isDone()) {
         continue
       }
-      entry.finish()
+      entry.finish(error)
       if (entry.child.exitCode === null && entry.child.signalCode === null) {
         killSpawnedRipgrepProcess(entry.child)
       }

@@ -1,3 +1,5 @@
+import { retainRelayFileListingPath } from './fs-file-listing-paths'
+import { FileInventoryBudget } from '../shared/file-inventory-budget'
 import { RipgrepFilenameDecoder } from '../shared/ripgrep-filename-decoder'
 /**
  * Ripgrep-based file listing for Quick Open.
@@ -16,12 +18,7 @@ import { RipgrepFilenameDecoder } from '../shared/ripgrep-filename-decoder'
  */
 import { spawn, type ChildProcess } from 'node:child_process'
 import { fileListingCancellationError } from '../shared/file-listing-cancellation'
-import {
-  buildRgArgsForQuickOpen,
-  normalizeQuickOpenRgLine,
-  shouldExcludeQuickOpenRelPath,
-  shouldIncludeQuickOpenPath
-} from '../shared/quick-open-filter'
+import { buildRgArgsForQuickOpen } from '../shared/quick-open-filter'
 import {
   absorbPendingRipgrepSpawnError,
   classifyRipgrepLaunchFailure,
@@ -52,6 +49,8 @@ export function listFilesWithRg(
     return Promise.reject(fileListingCancellationError(signal))
   }
   return new Promise((resolve, reject) => {
+    const inventoryBudget =
+      maxResults === undefined && searchQuery === undefined ? new FileInventoryBudget() : null
     const files = new Set<string>()
     let rankedPaths: string[] | null = null
     let done = false
@@ -71,25 +70,26 @@ export function listFilesWithRg(
     })
 
     const processLine = (rawLine: string, attemptRanker: QuickOpenPathRanker | null): boolean => {
-      const relPath = normalizeQuickOpenRgLine(rawLine, { kind: 'cwd-relative' })
-      if (relPath === null) {
-        return false
-      }
-      // Why: correctness backstop. The rg globs prune most blocklisted dirs,
-      // but a glob edge case could still surface e.g. a .git/ or .npm/ hit.
-      const excluded = shouldExcludeQuickOpenRelPath(relPath, excludePathPrefixes)
-      if (!shouldIncludeQuickOpenPath(relPath) || excluded) {
+      try {
+        const included = retainRelayFileListingPath(
+          rawLine,
+          excludePathPrefixes,
+          attemptRanker,
+          files,
+          inventoryBudget
+        )
+        if (maxResults !== undefined && files.size >= maxResults) {
+          finishAtLimit()
+        }
+        return included
+      } catch (error) {
+        done = true
+        signal?.removeEventListener('abort', onAbort)
+        killSurvivors('File inventory capacity exceeded')
+        files.clear()
+        reject(error)
         return true
       }
-      if (attemptRanker) {
-        attemptRanker.consider(relPath)
-        return true
-      }
-      files.add(relPath)
-      if (maxResults !== undefined && files.size >= maxResults) {
-        finishAtLimit()
-      }
-      return true
     }
 
     const runPassOnce = (args: string[]): Promise<void> =>

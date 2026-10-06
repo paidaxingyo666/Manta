@@ -1,5 +1,6 @@
 // @ts-nocheck -- mechanically split class members.
 import { RuntimeFileCommandsWithCreateFileExplorerDirNoClobber } from './runtime-file-commands-create-file-explorer-dir-no-clobber'
+import { listFilesystemMarkdownDocuments } from '../providers/filesystem-markdown-listing'
 import type { SearchOptions, SearchResult } from '../../shared/code-search-types'
 import {
   requireRuntimeFileProvider,
@@ -9,10 +10,7 @@ import { QUICK_OPEN_LISTING_MAX_RESULTS } from '../../shared/quick-open-listing-
 import { limitQuickOpenFilesBySerializedBytes } from '../../shared/quick-open-transport-budget'
 import { listQuickOpenFiles } from '../ipc/filesystem-list-files'
 import type { MarkdownDocument } from '../../shared/filesystem-entry-types'
-import {
-  listMarkdownDocuments,
-  markdownDocumentsFromRelativePaths
-} from '../ipc/markdown-documents'
+import { listMarkdownDocuments } from '../ipc/markdown-documents'
 import { getLocalGitOptionsForRegisteredWorktree } from '../ipc/local-worktree-runtime-options'
 import {
   validatePathExistenceBatch,
@@ -80,8 +78,7 @@ export class RuntimeFileCommandsWithSearchRuntimeFiles extends RuntimeFileComman
     const target = await this.host.resolveRuntimeFileTarget(worktreeSelector)
     const provider = requireRuntimeFileProvider(target)
     if (provider) {
-      const relativePaths = await provider.listFiles(target.worktree.path)
-      return markdownDocumentsFromRelativePaths(target.worktree.path, relativePaths)
+      return listFilesystemMarkdownDocuments(provider, target.worktree.path)
     }
     return listMarkdownDocuments(
       target.worktree.path,

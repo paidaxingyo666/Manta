@@ -4,7 +4,7 @@ import type {
   DocPreviewFileAccessRequest,
   DocPreviewFileAccessResult
 } from '../../shared/doc-preview-file-access'
-import type { DirEntry, FsChangeEvent } from '../../shared/filesystem-entry-types'
+import type { DirEntry, FsChangeEvent, MarkdownDocument } from '../../shared/filesystem-entry-types'
 import type { WorkspaceSpaceDirectoryScanResult } from '../../shared/workspace-space-types'
 
 export type FileStat = {
@@ -108,6 +108,10 @@ export type IFilesystemProvider = {
       searchQuery?: string
     }
   ): Promise<string[]>
+  listMarkdownDocuments?(
+    rootPath: string,
+    options?: { signal?: AbortSignal }
+  ): Promise<MarkdownDocument[]>
   supportsQuickOpenSearch?(options?: { signal?: AbortSignal }): Promise<boolean>
   scanWorkspaceSpace?(
     rootPath: string,

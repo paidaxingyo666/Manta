@@ -1,9 +1,11 @@
+import { readSshDirectoryWithSftpFallback } from './ssh-directory-listing'
+import { readSshMarkdownDocuments } from './ssh-markdown-document-listing'
 import { readSshPathExistenceBatch } from './ssh-filesystem-path-existence'
 import type { PathExistenceResult } from '../../shared/path-existence-batch'
 import type { SshChannelMultiplexer } from '../ssh/ssh-channel-multiplexer'
 import { isMethodNotFoundError, readFileViaStream } from '../ssh/ssh-filesystem-stream-reader'
 import { uploadBuffer } from '../ssh/sftp-upload'
-import { requestGitStreamable } from '../ssh/ssh-git-response-stream-reader'
+import { listSshFiles } from './ssh-file-listing'
 import { lstatViaSftp } from './ssh-filesystem-provider-sftp'
 import {
   downloadFileViaSftp,
@@ -99,7 +101,7 @@ export class SshFilesystemProvider implements IFilesystemProvider {
   }
 
   async readDir(dirPath: string): Promise<DirEntry[]> {
-    return (await this.mux.request('fs.readDir', { dirPath })) as DirEntry[]
+    return readSshDirectoryWithSftpFallback(this.mux, dirPath, this.createSftp)
   }
 
   async readFile(filePath: string, limits?: FileReadLimits): Promise<FileReadResult> {
@@ -308,27 +310,13 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     rootPath: string,
     options?: Parameters<IFilesystemProvider['listFiles']>[1]
   ): Promise<string[]> {
-    const params: Record<string, unknown> = { rootPath }
-    if (options?.excludePaths && options.excludePaths.length > 0) {
-      params.excludePaths = options.excludePaths
-    }
-    if (options?.maxResults !== undefined) {
-      params.maxResults = options.maxResults
-    }
-    if (options?.searchQuery !== undefined) {
-      params.searchQuery = options.searchQuery
-    }
-    // Why #7721: the signal lets a workspace switch send rpc.cancel so the
-    // relay aborts the full-tree scan instead of stacking abandoned scans
-    // that starve interactive fs.readDir/fs.stat on the shared SSH channel.
-    // Why streamable: a monorepo listing serializes past the relay's 1 MiB control lane, and the
-    // lane it demotes to is refused under unrelated producer load. Opting in moves it to the bulk
-    // lane in chunks; an old relay ignores the flag and answers plainly, which the reader detects
-    // by the sentinel marker being absent.
-    return (await requestGitStreamable(this.mux, 'fs.listFiles', params, {
-      signal: options?.signal
-    })) as string[]
+    return listSshFiles(this.mux, rootPath, options)
   }
+
+  listMarkdownDocuments = (rootPath: string, options?: { signal?: AbortSignal }) =>
+    readSshMarkdownDocuments(this.mux, rootPath, options?.signal, () =>
+      this.listFiles(rootPath, { signal: options?.signal })
+    )
 
   supportsQuickOpenSearch = (options: { signal?: AbortSignal } = {}): Promise<boolean> =>
     probeSshQuickOpenSearchCapability(this.mux, options.signal)

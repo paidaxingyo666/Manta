@@ -68,7 +68,10 @@ describe('SshFilesystemProvider', () => {
       mux.request.mockResolvedValue(entries)
 
       const result = await provider.readDir('/home/user/project')
-      expect(mux.request).toHaveBeenCalledWith('fs.readDir', { dirPath: '/home/user/project' })
+      expect(mux.request).toHaveBeenCalledWith('fs.readDirBounded', {
+        dirPath: '/home/user/project',
+        __streamResponse: true
+      })
       expect(result).toEqual(entries)
     })
   })
@@ -488,6 +491,7 @@ describe('SshFilesystemProvider', () => {
   })
 
   it('listFiles forwards listing and query options', async () => {
+    mux.request.mockResolvedValue([])
     await provider.listFiles('/home/user/project', {
       excludePaths: ['/home/user/project/worktrees/b'],
       maxResults: 20_000,
