@@ -86,6 +86,16 @@ describe('closing duplicate document records', () => {
     expect(store.getState().recentlyClosedEditorTabsByWorktree['wt-1']).toHaveLength(1)
   })
 
+  it('removes both file and unified tab ids from the persisted tab order', () => {
+    const sibling = addSibling()
+    const tabIds = store.getState().unifiedTabsByWorktree['wt-1'].map((tab) => tab.id)
+    store.setState({
+      tabBarOrderByWorktree: { 'wt-1': [file.id, sibling.id, ...tabIds, 'survivor'] }
+    })
+    store.getState().closeFile(file.id)
+    expect(store.getState().tabBarOrderByWorktree['wt-1']).toEqual(['survivor'])
+  })
+
   it('document close removes every tab linked to that record', () => {
     addSplitView()
     store.getState().closeFile(file.id)
@@ -201,7 +211,69 @@ describe('closing duplicate document records', () => {
     expect(store.getState().unifiedTabsByWorktree['wt-1']).toEqual([])
   })
 
-  it.each(['edit', 'read-only', 'diff', 'old-generation', 'external-ssh'] as const)(
+  it.each(['closeFile', 'closeAllFiles'] as const)(
+    '%s retains the backing file when the selected untitled document has an empty draft',
+    async (action) => {
+      const stat = vi.fn(async () => ({ size: 0, isDirectory: false, mtime: 0 }))
+      const deletePath = vi.fn(async () => {})
+      vi.stubGlobal('window', { api: { fs: { stat, deletePath } } })
+      store.setState({
+        openFiles: [{ ...file, isUntitled: true }],
+        editorDrafts: { [file.id]: '' }
+      })
+      if (action === 'closeFile') {
+        store.getState().closeFile(file.id)
+      } else {
+        store.getState().closeAllFiles()
+      }
+      await new Promise<void>((resolve) => setImmediate(resolve))
+      expect(stat).not.toHaveBeenCalled()
+      expect(deletePath).not.toHaveBeenCalled()
+      expect(store.getState().recentlyClosedEditorTabsByWorktree['wt-1']).toHaveLength(1)
+    }
+  )
+
+  it.each(['closeFile', 'closeAllFiles'] as const)(
+    '%s cancels placeholder deletion when its document reopens during stat',
+    async (action) => {
+      let finishStat:
+        | ((value: { size: number; isDirectory: boolean; mtime: number }) => void)
+        | undefined
+      const stat = vi.fn(
+        () =>
+          new Promise<{ size: number; isDirectory: boolean; mtime: number }>((resolve) => {
+            finishStat = resolve
+          })
+      )
+      const deletePath = vi.fn(async () => {})
+      vi.stubGlobal('window', { api: { fs: { stat, deletePath } } })
+      store.setState({ openFiles: [{ ...file, isUntitled: true }] })
+      if (action === 'closeFile') {
+        store.getState().closeFile(file.id)
+      } else {
+        store.getState().closeAllFiles()
+      }
+      expect(stat).toHaveBeenCalledTimes(1)
+      store.getState().openFile(file)
+      if (!finishStat) {
+        throw new Error('Stat did not start')
+      }
+      finishStat({ size: 0, isDirectory: false, mtime: 0 })
+      await new Promise<void>((resolve) => setImmediate(resolve))
+      expect(deletePath).not.toHaveBeenCalled()
+      expect(store.getState().openFiles).toHaveLength(1)
+    }
+  )
+
+  it.each([
+    'edit',
+    'read-only',
+    'diff',
+    'old-generation',
+    'external-ssh',
+    'uncaptured-owner',
+    'other-workspace'
+  ] as const)(
     'keeps an untouched placeholder backing a surviving sibling draft: %s',
     async (view) => {
       const directory = await mkdtemp(join(tmpdir(), 'orca-close-draft-'))
@@ -249,7 +321,12 @@ describe('closing duplicate document records', () => {
         }
         store.setState({ openFiles: [file] })
         const overrides: Partial<OpenFile> = { isDirty: true }
-        if (view === 'read-only') {
+        if (view === 'other-workspace') {
+          overrides.worktreeId = 'folder:overlapping-workspace'
+        } else if (view === 'uncaptured-owner') {
+          overrides.readOnly = true
+          overrides.operationProvenance = undefined
+        } else if (view === 'read-only') {
           overrides.readOnly = true
         } else if (view === 'diff') {
           overrides.mode = 'diff'

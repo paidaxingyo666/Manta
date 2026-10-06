@@ -71,6 +71,34 @@ describe('notifyHostOfMirroredEditorClose', () => {
     })
   })
 
+  it('records and sends a close for every host tab linked to the document', async () => {
+    const state = buildState()
+    const original = state.unifiedTabsByWorktree['wt-1'][0]
+    if (!original) {
+      throw new Error('Missing editor tab')
+    }
+    state.unifiedTabsByWorktree['wt-1'].push(
+      { ...original, id: 'host-tab-2', groupId: 'second-pane' },
+      { ...original, id: 'unrelated-tab', entityId: 'another-document' }
+    )
+    expect(notifyHostOfMirroredEditorClose(state, 'wt-1', 'file-1')).toBe(true)
+    for (const tabId of ['host-tab-1', 'host-tab-2']) {
+      expect(
+        isWebSessionCloseIntentPending(
+          { environmentId: 'env-1' },
+          'wt-1',
+          toHostSessionTabId(tabId),
+          Date.now()
+        )
+      ).toBe(true)
+    }
+    await vi.waitFor(() => expect(closeWebRuntimeSessionTabMock).toHaveBeenCalledTimes(2))
+    expect(closeWebRuntimeSessionTabMock.mock.calls.map(([args]) => args.tabId)).toEqual([
+      'host-tab-1',
+      'host-tab-2'
+    ])
+  })
+
   it('does not route locally-opened (non-mirrored) files to the host', () => {
     const state = buildState({
       openFiles: [

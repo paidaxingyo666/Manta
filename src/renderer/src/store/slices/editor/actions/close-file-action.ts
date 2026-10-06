@@ -13,7 +13,7 @@ import {
   shouldDeleteUntouchedUntitledFile
 } from '../tabs/untitled-file-cleanup'
 import { unifiedTabsKeepWorktreeSelected } from './unified-tabs-keep-worktree-selected'
-import { isSameEditorOwner } from '../file-ids/editor-file-ids'
+import { isSameEditorOwner, mayShareEditorBackingFile } from '../file-ids/editor-file-ids'
 
 function isSameDocumentOwner(candidate: OpenFile, closedFile: OpenFile): boolean {
   const expectedRoute = closedFile.operationProvenance?.generation.route
@@ -93,14 +93,28 @@ export function createCloseFileAction(
               .map((file) => file.id)
           : [fileId]
       )
+      const unifiedTabIdsToClose = Object.values(get().unifiedTabsByWorktree ?? {}).flatMap(
+        (tabs) =>
+          tabs
+            .filter(
+              (entry) =>
+                fileIdsToClose.has(entry.entityId) &&
+                (entry.contentType === 'editor' ||
+                  entry.contentType === 'diff' ||
+                  entry.contentType === 'conflict-review' ||
+                  entry.contentType === 'check-details')
+            )
+            .map((entry) => entry.id)
+      )
+      const closedTabOrderIds = new Set([...fileIdsToClose, ...unifiedTabIdsToClose])
       const preCloseFiles = get().openFiles.filter((file) => fileIdsToClose.has(file.id))
       // Why: also check editorDrafts — isDirty is set by a debounced callback, so a draft can exist before isDirty flushes; a draft means the user typed something.
-      const hasDraft = !!get().editorDrafts[fileId]
+      const hasDraft = fileId in get().editorDrafts
       const shouldDeleteFromDisk =
         preClose !== undefined &&
         shouldDeleteUntouchedUntitledFile(preClose, hasDraft) &&
         !get().openFiles.some(
-          (file) => !fileIdsToClose.has(file.id) && isSameDocumentOwner(file, preClose)
+          (file) => !fileIdsToClose.has(file.id) && mayShareEditorBackingFile(file, preClose)
         )
 
       // Why: mirrored tabs are host-owned, so the host must close its copy or its next snapshot re-mirrors the file and the tab reopens.
@@ -217,7 +231,7 @@ export function createCloseFileAction(
             ? {
                 ...s.tabBarOrderByWorktree,
                 [worktreeId]: (s.tabBarOrderByWorktree[worktreeId] ?? []).filter(
-                  (entryId) => !fileIdsToClose.has(entryId)
+                  (entryId) => !closedTabOrderIds.has(entryId)
                 )
               }
             : s.tabBarOrderByWorktree
@@ -291,23 +305,10 @@ export function createCloseFileAction(
 
       // Why: untitled unedited files exist on disk only because createUntitledMarkdownFile() eagerly writes a bindable path; delete the clutter (fire-and-forget).
       if (shouldDeleteFromDisk && preClose && typeof window !== 'undefined') {
-        deleteUntouchedUntitledFile(get(), preClose)
+        deleteUntouchedUntitledFile(get, preClose)
       }
 
       // Why: route editor/diff closes through the unified close path (MRU + visual-neighbor fallback) so they match terminal/browser tab-close behavior.
-      const unifiedTabIdsToClose = Object.values(get().unifiedTabsByWorktree ?? {}).flatMap(
-        (tabs) =>
-          tabs
-            .filter(
-              (entry) =>
-                fileIdsToClose.has(entry.entityId) &&
-                (entry.contentType === 'editor' ||
-                  entry.contentType === 'diff' ||
-                  entry.contentType === 'conflict-review' ||
-                  entry.contentType === 'check-details')
-            )
-            .map((entry) => entry.id)
-      )
       for (const unifiedTabId of unifiedTabIdsToClose) {
         get().closeUnifiedTab(unifiedTabId)
       }

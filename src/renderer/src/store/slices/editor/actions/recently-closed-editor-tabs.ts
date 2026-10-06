@@ -46,7 +46,7 @@ export function createRecentlyClosedEditorTabs(
       // Why: like closeFile — untitled unedited files are empty placeholders that shouldn't survive close-all.
       const untitledToDelete = state.openFiles.filter(
         (f) =>
-          shouldDeleteUntouchedUntitledFile(f, !!state.editorDrafts[f.id]) &&
+          shouldDeleteUntouchedUntitledFile(f, f.id in state.editorDrafts) &&
           (!activeWorktreeId || f.worktreeId === activeWorktreeId)
       )
       const closingFiles = state.openFiles.filter(
@@ -152,7 +152,7 @@ export function createRecentlyClosedEditorTabs(
         for (const f of [...closingFiles].toReversed()) {
           // Why: skip untitled non-dirty files (deleted from disk after close) and ephemeral preview tabs so the reopen stack has no vanished/junk paths.
           if (
-            shouldDeleteUntouchedUntitledFile(f, !!s.editorDrafts[f.id]) ||
+            shouldDeleteUntouchedUntitledFile(f, f.id in s.editorDrafts) ||
             f.mode === 'markdown-preview'
           ) {
             continue
@@ -212,9 +212,8 @@ export function createRecentlyClosedEditorTabs(
         }
       })
       if (typeof window !== 'undefined') {
-        const postCloseState = get()
         for (const f of untitledToDelete) {
-          deleteUntouchedUntitledFile(postCloseState, f)
+          deleteUntouchedUntitledFile(get, f)
         }
       }
       for (const itemId of closingItemIds) {
