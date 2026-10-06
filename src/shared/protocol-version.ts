@@ -233,6 +233,14 @@ export const AGENT_SESSION_QUEUED_MESSAGES_RUNTIME_CAPABILITY =
 // journal and lifecycle surfaces independently from Codex support.
 export const CLAUDE_STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY =
   'agent-session.structured.claude.v1' as const
+// Why: a host's structured agents are the ones it registered, not a list every build ships. A host
+// advertising this accepts any agent it lists through `agentSession.agents` (with each agent's
+// capability record) in `agentSession.*` params, and refuses one it did not register; a client
+// offers an agent beyond Claude and Codex only to such a host. A client advertising it renders an
+// `agent-session` tab of any agent its host lists; the host withholds every other agent's tabs from
+// a client that does not (an older client would list them with an empty pane).
+export const STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY =
+  'agent-session.structured.registered-agents.v1' as const
 // Why: paired structured clients explicitly hold every visible session surface, allowing the host
 // to stop provider children after the last surface closes without tying lifetime to a transport.
 export const STRUCTURED_AGENT_SESSION_HOLD_RUNTIME_CAPABILITY =
@@ -404,6 +412,7 @@ export const RUNTIME_CAPABILITIES = [
   AGENT_SESSION_SEND_ANSWERS_PROOF_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_HOLD_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_REVEAL_RUNTIME_CAPABILITY,
+  STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY,
   STRUCTURED_AGENT_SESSION_RESUME_HISTORY_RUNTIME_CAPABILITY,
   AGENT_SESSION_STATUS_FEED_RUNTIME_CAPABILITY,
   AGENT_SESSION_TURN_COMPLETION_RUNTIME_CAPABILITY,

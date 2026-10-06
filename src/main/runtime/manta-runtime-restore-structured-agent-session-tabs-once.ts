@@ -27,6 +27,7 @@ import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import { isWslUncPath } from '../../shared/wsl-paths'
 import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
 import type { PtyProcessInspection } from '../providers/pty-process-inspection'
+import type { StructuredAgentId } from '../../shared/agent-session-provider-handle'
 
 export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends MantaRuntimeWithGetStructuredAgentSessionCreateSupport {
   /** Projects only: a replacement's chat already has its tab in the store, which the /clear commit
@@ -73,10 +74,8 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
       })
     }
     this.hydrateHeadlessMobileSessionTabsFromWorkspaceSession()
+    // Every session here is of an agent this host registered: its store holds no other agent's records.
     const restored = (host?.listSessionTabs() ?? []).flatMap((session) => {
-      if (session.agent !== 'codex' && session.agent !== 'claude') {
-        return []
-      }
       let sessionId = session.sessionId
       while (sessionId.startsWith('agent-session:')) {
         sessionId = sessionId.slice('agent-session:'.length)
@@ -111,7 +110,7 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
   async publishStructuredAgentSessionTab(input: {
     workspaceId: string
     sessionId: string
-    agent: 'claude' | 'codex'
+    agent: StructuredAgentId
     activate: boolean
     notify?: boolean
     replacesSessionId?: string
@@ -139,7 +138,7 @@ export class MantaRuntimeWithRestoreStructuredAgentSessionTabsOnce extends Manta
   projectStructuredAgentSessionTab(input: {
     workspaceId: string
     sessionId: string
-    agent: 'claude' | 'codex'
+    agent: StructuredAgentId
     activate: boolean
     notify?: boolean
     replacesSessionId?: string

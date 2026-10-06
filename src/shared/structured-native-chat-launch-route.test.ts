@@ -4,7 +4,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY } from './protocol-version'
+import {
+  STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY,
+  STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY
+} from './protocol-version'
 import {
   agentTabsDefaultToNativeChat,
   prefersStructuredNativeChatByDefault,
@@ -105,5 +108,40 @@ describe('per-launch structured feasibility', () => {
 
   it('supports a folder workspace without widening floating scope', () => {
     expect(support({ workspaceKind: 'folder' })).toEqual({ supported: true })
+  })
+})
+
+describe('agents beyond Claude and Codex', () => {
+  const REGISTERED = [
+    STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY,
+    STRUCTURED_AGENT_SESSION_REGISTERED_AGENTS_RUNTIME_CAPABILITY
+  ]
+
+  it('are offered only by a host that advertises and lists them', () => {
+    expect(
+      support({ agent: 'grok', hostCapabilities: REGISTERED, hostStructuredAgents: ['grok'] })
+    ).toEqual({ supported: true })
+  })
+
+  it('are not offered by a host that does not advertise its registered agents', () => {
+    expect(support({ agent: 'grok', hostStructuredAgents: ['grok'] })).toEqual({
+      supported: false,
+      blocker: 'runtime-capability'
+    })
+  })
+
+  it('are not offered when the host did not list them', () => {
+    expect(support({ agent: 'grok', hostCapabilities: REGISTERED })).toEqual({
+      supported: false,
+      blocker: 'agent-without-structured-session'
+    })
+    expect(
+      support({ agent: 'grok', hostCapabilities: REGISTERED, hostStructuredAgents: ['claude'] })
+    ).toEqual({ supported: false, blocker: 'agent-without-structured-session' })
+  })
+
+  it('leave Claude and Codex offered by hosts that predate the capability', () => {
+    expect(support({ agent: 'claude' })).toEqual({ supported: true })
+    expect(support({ agent: 'codex' })).toEqual({ supported: true })
   })
 })

@@ -130,6 +130,7 @@ describe('Codex session options through the host catalog store', () => {
     const service = createAgentModelCatalogService({
       store,
       getRecord: () => undefined,
+      drivesRecord: () => true,
       resolveAccountHome: async () => ({ variable: 'CODEX_HOME', path: '/homes/a' }),
       probes: { codex: hungProbe }
     })

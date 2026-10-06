@@ -20,7 +20,7 @@ export const AGENT_MODEL_CATALOG_VALIDATION_MIN_AGE_MS = 60_000
 export const AGENT_MODEL_CATALOG_MAX_ENTRIES = 256
 
 export type AgentModelCatalogEntry = {
-  agent: 'claude' | 'codex'
+  agent: string
   fingerprint: string
   models: AgentSessionModelOption[]
   fastModeSupport?: AgentSessionFastModeSupport
@@ -153,7 +153,7 @@ export class AgentModelCatalogStore {
 
   recordSuccess(
     fingerprint: string,
-    agent: 'claude' | 'codex',
+    agent: string,
     success: AgentModelCatalogSuccess
   ): AgentModelCatalogEntry | null {
     const entry = this.writeSuccess(fingerprint, agent, success, ++this.nextListingOrder)
@@ -163,7 +163,7 @@ export class AgentModelCatalogStore {
 
   private entryFromSuccess(
     fingerprint: string,
-    agent: 'claude' | 'codex',
+    agent: string,
     success: AgentModelCatalogSuccess
   ): AgentModelCatalogEntry | null {
     if (success.models.length === 0) {
@@ -184,7 +184,7 @@ export class AgentModelCatalogStore {
 
   private writeSuccess(
     fingerprint: string,
-    agent: 'claude' | 'codex',
+    agent: string,
     success: AgentModelCatalogSuccess,
     order: number
   ): AgentModelCatalogEntry | null {
@@ -216,7 +216,7 @@ export class AgentModelCatalogStore {
    *  whether this chat starts. Resolves with the entry on success, null on failure. */
   refresh(
     fingerprint: string,
-    agent: 'claude' | 'codex',
+    agent: string,
     lister: AgentModelCatalogLister,
     listModels: () => Promise<AgentModelCatalogSuccess>
   ): Promise<AgentModelCatalogEntry | null> {
