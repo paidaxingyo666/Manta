@@ -36,6 +36,7 @@ function card(
     paused: false,
     needsAttention: false,
     caption: null,
+    attribution: null,
     ...overrides
   }
 }

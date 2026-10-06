@@ -11,6 +11,7 @@ import { computeAgentSessionPayloadFingerprint } from '../../../shared/agent-ses
 import type { AgentJournalSubmission } from '../../../shared/agent-session-journal-types'
 import type { AgentSessionQueuePause } from '../../../shared/agent-session-wire'
 import type { AgentMessageSource } from '../../../shared/agent-session-message-source'
+import { agentSessionMessagePayload } from '../../../shared/structured-agent-session-send-mutation'
 import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-record-store-test-harness'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
 import { rotateStructuredAgentSessionHostInstanceForTests } from './structured-agent-session-queued-pause'
@@ -32,7 +33,7 @@ import {
 import { claudeAndCodexDeclared } from './structured-agent-session-adapter-router-test-support'
 
 export const QUEUED_RIG_CALLER = { callerKey: 'client-1' }
-type RigSendOptions = { internal?: true; source?: AgentMessageSource }
+type RigSendOptions = { internal?: true; from?: AgentMessageSource }
 
 export function eventually(assertion: () => void | Promise<void>): Promise<void> {
   return vi.waitFor(assertion, { timeout: 10_000 })
@@ -83,16 +84,18 @@ export async function createQueuedMessageTestRig(
   }
 
   /** A client's send, as the `agentSession.send` RPC hands it to the host;
-   *  `internal` is a host-side sender (orchestration mail, a restart continuation), and `source`
-   *  who it is from. */
+   *  `internal` is a host-side sender (orchestration mail, a restart continuation), and `from`
+   *  the agent it is from. */
   function send(text: string, delivery?: 'queue-if-active', options?: RigSendOptions) {
-    const body = hostTestMessage(text)
+    const body = { ...hostTestMessage(text), ...(options?.from ? { from: options.from } : {}) }
     const clientOperationId = hostTestOperationId()
-    const fields = { body, ...(delivery ? { delivery } : {}) }
+    // Fingerprinted as the host digests a send: the message without its sender.
+    const fields = { body: agentSessionMessagePayload(body), ...(delivery ? { delivery } : {}) }
     const result = host.send(QUEUED_RIG_CALLER, {
       envelope: envelope(fields, 'agentSession.send', clientOperationId),
       ...fields,
-      ...(options?.internal ? { source: options.source } : { userSend: true as const })
+      body,
+      ...(options?.internal ? {} : { userSend: true as const })
     })
     return { id: clientOperationId, result }
   }

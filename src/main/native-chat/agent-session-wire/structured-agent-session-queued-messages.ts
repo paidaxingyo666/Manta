@@ -9,18 +9,12 @@
 import { randomUUID } from 'node:crypto'
 import type { AgentJournalMessageItem } from '../../../shared/agent-session-journal-types'
 import {
-  USER_MESSAGE_SOURCE,
-  type AgentSessionMessageSource
-} from '../../../shared/agent-session-message-source'
-import {
   QUEUED_MESSAGE_PAUSED_SEND_FAILED,
   type AgentSessionSendResult,
   type AgentSessionWireRefusal
 } from '../../../shared/agent-session-wire'
-import {
-  createStructuredAgentSessionOperationId,
-  structuredAgentSessionPayloadFingerprint
-} from '../../../shared/structured-agent-session-mutation'
+import { createStructuredAgentSessionOperationId } from '../../../shared/structured-agent-session-mutation'
+import { agentSessionSendBodyFingerprint } from '../../../shared/structured-agent-session-send-mutation'
 import { queuedSendAnswer } from './structured-agent-session-queued-send-answer'
 import { structuredAgentSessionSendBlock } from './structured-agent-session-send-preparation'
 import { isUnsettledQueuedMessage } from '../agent-session-journal/queued-message-table'
@@ -151,16 +145,6 @@ export function shouldQueueStructuredAgentSessionSend(input: {
   return oldestActionableQueuedMessage(input.journal) !== null
 }
 
-/** A draft's payload fingerprint in the session that will send it: the reducer
- *  aliases the provider's echo to the submission by recomputing exactly this. */
-export function queuedMessageFingerprint(sessionId: string, body: AgentJournalMessageItem): string {
-  return structuredAgentSessionPayloadFingerprint({
-    method: 'agentSession.send',
-    sessionId,
-    fields: { body }
-  })
-}
-
 /** The accept-side budget refusal, or null when the draft fits. */
 export function queuedMessageBudgetRefusal(
   journal: AgentSessionJournal,
@@ -195,10 +179,6 @@ export async function maybeQueueStructuredAgentSessionSend(
     envelope: { clientOperationId: string }
     body: AgentJournalMessageItem
     delivery?: 'queue-if-active'
-    /** A person's send at a chat surface; it outranks any `source`. */
-    userSend?: true
-    /** Who a host-side send is from. */
-    source?: AgentSessionMessageSource
   }
 ): Promise<
   | { ok: true; value: AgentSessionSendResult }
@@ -238,9 +218,9 @@ export async function maybeQueueStructuredAgentSessionSend(
     {
       messageId: clientMessageId,
       body: params.body,
-      fingerprint: queuedMessageFingerprint(ctx.sessionId, params.body),
-      hostInstance: structuredAgentSessionHostInstance(),
-      source: params.userSend ? USER_MESSAGE_SOURCE : (params.source ?? USER_MESSAGE_SOURCE)
+      // In the session that will send it: the reducer aliases the provider's echo by exactly this.
+      fingerprint: agentSessionSendBodyFingerprint(ctx.sessionId, params.body),
+      hostInstance: structuredAgentSessionHostInstance()
     },
     ctx.operationReceipt
   )

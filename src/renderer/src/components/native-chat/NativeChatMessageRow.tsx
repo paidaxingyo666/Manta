@@ -19,6 +19,7 @@ import { NativeChatNoticeRow } from './NativeChatNoticeRow'
 import { nativeChatBlocksInOwnWords } from './native-chat-stopped-before-start-row'
 import { NativeChatCopyButton } from './NativeChatCopyButton'
 import { NativeChatMessageTimestamp } from './NativeChatMessageTimestamp'
+import { NativeChatAgentMessageSenders } from './NativeChatAgentMessageSenders'
 import {
   NativeChatAgentControls,
   NativeChatImageAttachments,
@@ -179,10 +180,29 @@ export const MessageRow = memo(function MessageRow({
   }
 
   if (isUser) {
+    // Another agent's message is the agent's turn input too, but is not the person's: it reads
+    // left-aligned under its sender rather than as their bubble.
+    const from = message.from
     return (
-      <div ref={rowRef} className="group relative flex flex-col items-end gap-0.5">
+      <div
+        ref={rowRef}
+        className={cn('group relative flex flex-col gap-0.5', from ? 'items-start' : 'items-end')}
+      >
+        {from ? (
+          <NativeChatAgentMessageSenders
+            from={from}
+            chatWorktreeId={runtimeContext?.worktreeId ?? null}
+          />
+        ) : null}
         {/* A distinct surface separates the user's prompt from the assistant's prose. */}
-        <div className="max-w-[80%] rounded-xl border border-chat-user-border bg-chat-user-surface px-3.5 py-2.5 text-sm native-chat-message-text text-chat-foreground-strong">
+        <div
+          className={cn(
+            'max-w-[80%] text-sm native-chat-message-text',
+            from
+              ? 'select-text border-l-2 border-border/60 pl-3 text-chat-foreground'
+              : 'rounded-xl border border-chat-user-border bg-chat-user-surface px-3.5 py-2.5 text-chat-foreground-strong'
+          )}
+        >
           {markdown ? (
             <>
               <NativeChatImageAttachments

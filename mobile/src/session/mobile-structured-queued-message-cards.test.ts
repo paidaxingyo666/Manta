@@ -48,7 +48,8 @@ describe('mobileQueuedMessageCards', () => {
       state: 'waiting',
       paused: false,
       needsAttention: false,
-      caption: null
+      caption: null,
+      attribution: null
     })
   })
 

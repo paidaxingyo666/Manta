@@ -33,7 +33,6 @@ import {
   type QueuedMessageHoldReason,
   type QueuedMessageRow
 } from './queued-message-table'
-import type { AgentSessionMessageSource } from '../../../shared/agent-session-message-source'
 import { draftsDeliveredByAppliedEcho } from './queued-message-delivered-echo'
 import { moveQueuedMessages, type QueuedMessagePositionMove } from './queued-message-positions'
 import { pruneQueuedMessages, retainedSubmissionVerdict } from './queued-message-retention'
@@ -117,7 +116,6 @@ export class JournalQueuedMessages {
       fingerprint: string
       hostInstance: string
       carriedFrom?: string
-      source: AgentSessionMessageSource
       holdReason?: QueuedMessageHoldReason
     },
     receipt?: JournalOperationReceipt

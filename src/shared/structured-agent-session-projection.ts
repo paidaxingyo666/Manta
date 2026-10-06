@@ -36,6 +36,7 @@ import {
 
 import type { NativeChatBlock, NativeChatMessage } from './native-chat-types'
 import { sha256 } from './sha256'
+import { readAgentMessageSource } from './agent-session-message-source'
 import { structuredAgentSessionStatusStartedAt } from './structured-agent-session-status-started-at'
 import { owesStructuredAgentSessionWork } from './structured-agent-session-owed-work'
 
@@ -183,6 +184,8 @@ export function projectStructuredItemToNativeChat(
   const sentAs = item.body.kind === 'message' ? item.body.sentAs : undefined
   const lifecycle = item.body.kind === 'message' ? messageLifecycle(item.body) : {}
   const command = item.body.kind === 'message' ? item.body.command : undefined
+  // Read here too: a client's journal comes off the wire, from a host of any version.
+  const from = item.body.kind === 'message' ? readAgentMessageSource(item.body.from) : undefined
   const message: NativeChatMessage | null = projected
     ? {
         ...agentJournalItemRowOrigin(item),
@@ -192,7 +195,8 @@ export function projectStructuredItemToNativeChat(
         // A send mode this build cannot name renders as an ordinary message.
         ...(sentAs !== undefined && isAgentJournalMessageSendMode(sentAs) ? { sentAs } : {}),
         ...lifecycle,
-        ...(command ? { command } : {})
+        ...(command ? { command } : {}),
+        ...(from && projected.role === 'user' ? { from } : {})
       }
     : null
   projectedItems.set(item, message)

@@ -246,3 +246,25 @@ describe('queued message cards', () => {
     expect(ids(outboxOutsideQueuedCards(sent, [], true, unknown))).toEqual(['plain'])
   })
 })
+
+describe("another agent's card", () => {
+  it('carries who it is from, read through the shared reader', () => {
+    const from = {
+      kind: 'agent' as const,
+      senders: [
+        {
+          party: { address: 'term_a', terminalHandle: 'term_a', orcaSessionId: null },
+          name: 'Coder'
+        }
+      ],
+      orchestration: null
+    }
+    const agentDraft = draft('a', 1)
+    const cards = projectQueuedMessageCards(
+      [{ ...agentDraft, body: { ...agentDraft.body, from } }, draft('b', 2)],
+      [],
+      { hasPendingPrompt: false }
+    )
+    expect(cards.map((card) => card.from)).toEqual([from, undefined])
+  })
+})

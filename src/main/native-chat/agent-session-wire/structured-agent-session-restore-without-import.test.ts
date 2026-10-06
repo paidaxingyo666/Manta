@@ -559,8 +559,7 @@ describe('startup restore of chats still in their per-chat files', () => {
       messageId: 'draft-1',
       body: { kind: 'message', role: 'user', blocks: [{ type: 'text', text: 'later' }] },
       fingerprint: 'fp-draft-1',
-      hostInstance: 'proc-1',
-      source: { kind: 'user' }
+      hostInstance: 'proc-1'
     })
 
     expect(journal.importPending).toBe(false)

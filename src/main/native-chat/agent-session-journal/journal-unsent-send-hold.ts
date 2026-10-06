@@ -16,7 +16,7 @@ import { QUEUED_MESSAGE_PAUSED_KEPT } from '../../../shared/agent-session-queued
 import { USER_MESSAGE_SOURCE } from '../../../shared/agent-session-message-source'
 import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import { agentSessionFailureWords } from '../../../shared/agent-session-failure-words'
-import { structuredAgentSessionPayloadFingerprint } from '../../../shared/structured-agent-session-mutation'
+import { agentSessionSendBodyFingerprint } from '../../../shared/structured-agent-session-send-mutation'
 import type { AgentSessionJournal } from './journal-store'
 import type { JournalRowTransactionHook } from './journal-row-writer'
 import type { QueuedMessagePositionMove } from './queued-message-positions'
@@ -46,8 +46,7 @@ export function unsentSendKeptAsCard(
     return null
   }
   const { source } = submission
-  // Exactly 'user': never `readAgentSessionMessageSource`, whose fallback for what it cannot read
-  // is the person.
+  // Exactly 'user': never a fallback that reads a kind it does not know as the person's.
   const persons =
     source?.kind === USER_MESSAGE_SOURCE.kind ||
     // A build before `source` was recorded: `client` was only ever a person's send.
@@ -117,15 +116,12 @@ export async function holdUnsentSends(
                 ? {
                     messageId: clientMessageId,
                     body: card.body,
-                    fingerprint: structuredAgentSessionPayloadFingerprint({
-                      method: 'agentSession.send',
-                      sessionId: journal.queuedMessages.sessionId,
-                      fields: { body: card.body }
-                    }),
+                    fingerprint: agentSessionSendBodyFingerprint(
+                      journal.queuedMessages.sessionId,
+                      card.body
+                    ),
                     hostInstance: input.hostInstance,
                     holdReason: QUEUED_MESSAGE_PAUSED_KEPT,
-                    // Only a person's send is kept.
-                    source: USER_MESSAGE_SOURCE,
                     queuedAt: { epoch, sequence: submission.acceptedSequence ?? 0 },
                     position: card.position
                   }

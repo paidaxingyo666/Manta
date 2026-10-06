@@ -22,6 +22,7 @@ import type {
 } from './agent-session-journal-types'
 import type { AgentType } from './agent-status-types'
 import type { NativeChatToolMetadata } from './native-chat-tool-identity'
+import type { AgentMessageSource } from './agent-session-message-source'
 
 export type { AgentType }
 
@@ -233,6 +234,8 @@ export type NativeChatMessage = AgentJournalProducerLinkage & {
   completedAt?: number
   /** On a conversation command the user sent, such as `/compact`: the command it names. */
   command?: { name: string }
+  /** On a user-role message another agent sent through Manta: who, as the journal recorded it. */
+  from?: AgentMessageSource
   /** Accepted but not yet handed to the agent: drawn after everything the agent has done. */
   queued?: true
   /** Shown as not sent: in no turn, so a newer turn's bar and clock never land on it. Drawn where

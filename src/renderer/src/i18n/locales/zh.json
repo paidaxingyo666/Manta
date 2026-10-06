@@ -18044,6 +18044,10 @@
         "used": "上下文：已用 {{used}} token，根据上一次响应的估算值。",
         "unreported": "此会话无法提供上下文用量。"
       },
+      "agentMessage": {
+        "messageFrom": "消息来自",
+        "unnamedSender": "一个智能体"
+      },
       "goal": {
         "placeholder": "描述您的目标，定义可衡量的结果以获得最佳结果",
         "clear": "明确的目标",
@@ -18096,7 +18100,8 @@
         "queuePausedRestarted": "因 Manta 重新启动，队列已暂停",
         "queuePausedCleared": "清除对话后，队列已暂停",
         "queuePaused": "队列已暂停",
-        "resume": "继续"
+        "resume": "继续",
+        "from": "来自 {{names}}"
       },
       "thought": "已思考",
       "thoughtForDuration": "思考了 {{duration}}",

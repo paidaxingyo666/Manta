@@ -18291,6 +18291,10 @@
         "used": "Context: {{used}} tokens used, estimated from the last response.",
         "unreported": "Context usage is not available for this session."
       },
+      "agentMessage": {
+        "messageFrom": "Message from",
+        "unnamedSender": "an agent"
+      },
       "goal": {
         "placeholder": "Describe your goal, define measurable outcomes for best results",
         "clear": "Clear goal",
@@ -18349,7 +18353,8 @@
         "queuePausedRestarted": "Queue paused because Manta restarted",
         "queuePausedCleared": "Queue paused after you cleared the conversation",
         "queuePaused": "Queue paused",
-        "resume": "Resume"
+        "resume": "Resume",
+        "from": "From {{names}}"
       },
       "thought": "Thought",
       "thoughtForDuration": "Thought for {{duration}}",

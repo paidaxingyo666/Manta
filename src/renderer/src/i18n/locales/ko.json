@@ -18079,6 +18079,10 @@
         "used": "컨텍스트: {{used}} 토큰 사용, 마지막 응답 기준 추정치입니다.",
         "unreported": "이 세션에서는 컨텍스트 사용량을 확인할 수 없습니다."
       },
+      "agentMessage": {
+        "messageFrom": "보낸 사람:",
+        "unnamedSender": "Agent"
+      },
       "goal": {
         "placeholder": "목표를 설명하고, 최상의 결과를 위해 측정 가능한 결과를 정의하세요.",
         "clear": "명확한 목표",
@@ -18131,7 +18135,8 @@
         "queuePausedRestarted": "Manta가 다시 시작되어 대기열이 일시 중지되었습니다",
         "queuePausedCleared": "대화를 지워서 대기열이 일시 중지되었습니다",
         "queuePaused": "대기열이 일시 중지되었습니다",
-        "resume": "재개"
+        "resume": "재개",
+        "from": "보낸 사람: {{names}}"
       },
       "thought": "생각함",
       "thoughtForDuration": "{{duration}} 동안 생각함",

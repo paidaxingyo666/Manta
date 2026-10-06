@@ -13,6 +13,8 @@ import {
   type AgentSessionQueuedMessage,
   type AgentSessionQueuePause
 } from '../../../src/shared/agent-session-wire'
+import { readAgentMessageSource } from '../../../src/shared/agent-session-message-source'
+import { agentMessageAttribution } from './mobile-agent-message-attribution'
 
 export type MobileQueuedMessageCard = {
   messageId: string
@@ -24,6 +26,8 @@ export type MobileQueuedMessageCard = {
   needsAttention: boolean
   /** Status under the text; null for a card plainly waiting its turn, the paused queue's too. */
   caption: string | null
+  /** "From <name>" on another agent's card; null on the person's. */
+  attribution: string | null
 }
 
 function queuedMessageBodyText(body: AgentSessionQueuedMessage['body']): string {
@@ -136,7 +140,8 @@ export function mobileQueuedMessageCards(
       needsAttention:
         draft.state === 'returned' ||
         (paused && draft.pausedReason === QUEUED_MESSAGE_PAUSED_SEND_FAILED),
-      caption
+      caption,
+      attribution: agentMessageAttribution('From', readAgentMessageSource(draft.body.from))
     })
     if (draft.state === 'returned') {
       behindReturned = true
