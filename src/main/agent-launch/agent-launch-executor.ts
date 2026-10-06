@@ -292,16 +292,7 @@ async function createSurface(
 }
 
 /**
- * A structured session cannot apply launch arguments, so a launch that carried some and got one
- * anyway has to say so.
- *
- * Reported rather than routed around: the arguments field is a TUI concern by an explicit decision
- * (the Agent SDK and app-server version their option sets independently of the interactive CLI's,
- * and the launch command names the CLI binary, so both apply to terminal launches only), so
- * downgrading here would override a stated user preference on the strength of a field that is not
- * evidence about the surface. `null` warns too: "no arguments" is also unapplied, and the structured
- * path still reads the bypass-permissions bit out of the user's *settings* default, so a caller that
- * asked for none can get a session running with more permission than it requested.
+ * Structured chat uses saved Arguments, so a per-call override still needs a truthful warning.
  */
 function ignoredStructuredAgentArgsWarning(
   intent: AgentLaunchIntent
@@ -310,7 +301,7 @@ function ignoredStructuredAgentArgsWarning(
     ? undefined
     : {
         warning:
-          'Started a structured chat session, which does not apply launch arguments; the requested arguments were ignored.'
+          'Started a structured chat session using saved agent Arguments; the per-launch argument override was ignored.'
       }
 }
 

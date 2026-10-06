@@ -26,6 +26,8 @@ import { nativeChatShellEnvironmentPolicy } from '../../shared/native-chat-shell
 import { claudeStructuredPermissionModeForSettings } from '../claude/claude-structured-permission-mode'
 import { codexStructuredPermissionPolicyForSettings } from '../codex/codex-structured-permission-policy'
 import { claudeStructuredAuthPolicyForSettings } from '../claude-accounts/claude-structured-auth-policy'
+import { resolveStructuredAgentCommand } from '../native-chat/structured-agent-command-resolution'
+import { structuredAgentConfiguredArgs } from '../native-chat/structured-agent-configured-args'
 import { claudeThinkingDisplaySupport } from '../claude/claude-thinking-display-support'
 
 export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleVisibleReadProbe {
@@ -151,6 +153,12 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleV
       // in a plain folder lands in the folder rather than failing to resolve.
       resolveWorkspacePath: async (workspaceId) =>
         (await this.resolveRuntimeFileTarget(`id:${workspaceId}`)).worktree.path,
+      resolveClaudeCommand: () =>
+        resolveStructuredAgentCommand('claude', this.requireStore().getSettings()),
+      resolveCodexCommand: (options) =>
+        resolveStructuredAgentCommand('codex', this.requireStore().getSettings(), options),
+      resolveLaunchArgs: (agent) =>
+        structuredAgentConfiguredArgs(agent, this.requireStore().getSettings()),
       resolveLaunchEnvOverlay: () =>
         resolveTuiAgentLaunchEnv('codex', this.requireStore().getSettings().agentDefaultEnv),
       resolveClaudeLaunchEnv: () =>
@@ -162,7 +170,7 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleV
       resolveClaudeAuthPolicy: () =>
         claudeStructuredAuthPolicyForSettings(this.requireStore().getSettings()),
       // Re-read per acquisition, like the auth policy above it: the Agent Permissions setting is
-      // the one copy of this fact, and the configured CLI arguments never reach a structured launch.
+      // the one copy of this fact, even when Arguments contain permission flags.
       resolveClaudePermissionMode: () =>
         claudeStructuredPermissionModeForSettings(this.requireStore().getSettings()),
       resolveCodexPermissionPolicy: () =>

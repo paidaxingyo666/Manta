@@ -504,10 +504,14 @@ describe('caller-supplied launch inputs', () => {
     expect(h.createStructuredSession).not.toHaveBeenCalled()
   })
 
-  // A custom launch command applies to terminal launches only; native chat ignores it.
+  // Command values never change the selected chat surface.
   it.each([
     ['claude', 'claude-wrapper'],
-    ['codex', 'codex-nightly']
+    ['codex', 'codex-nightly'],
+    ['claude', 'npx claude'],
+    ['codex', 'wrapper --arg'],
+    ['claude', '/missing/claude'],
+    ['codex', './codex']
   ] as const)('opens a structured %s session despite launch command %s', async (agent, command) => {
     const h = harness({
       settings: { ...STRUCTURED_PREFERENCE, agentCmdOverrides: { [agent]: command } }
@@ -587,7 +591,7 @@ describe('caller-supplied launch inputs', () => {
     const result = await h.run({ agent: 'claude', target: EXISTING, agentArgs: '--model opus' })
 
     expect(result.outcome.kind).toBe('structured')
-    expect(result.warning).toContain('does not apply launch arguments')
+    expect(result.warning).toContain('per-launch argument override was ignored')
   })
 
   it('warns when a structured session ignored an explicit "no arguments" too', async () => {
@@ -597,7 +601,7 @@ describe('caller-supplied launch inputs', () => {
     // The structured path reads the bypass-permissions bit from the user's SETTINGS default, so a
     // caller that asked for no arguments can still get a session with more permission than it asked
     // for. Staying silent about that is the failure mode worth a test.
-    expect(result.warning).toContain('does not apply launch arguments')
+    expect(result.warning).toContain('per-launch argument override was ignored')
   })
 
   it('leaves a structured launch unwarned when it carried no arguments at all', async () => {

@@ -6,6 +6,12 @@
 // value the provider wrote — never recovered from a string afterwards, since by then nothing can
 // tell a provider's sentence from Manta's.
 
+import {
+  readAgentSessionArgumentProblem,
+  type AgentSessionArgumentProblem
+} from './agent-session-argument-problem'
+export type { AgentSessionArgumentProblem } from './agent-session-argument-problem'
+
 import { structuralValuesEqualIgnoringUndefined } from './structural-value-equality'
 import {
   readAgentSessionRefusalReference,
@@ -135,6 +141,8 @@ export type AgentSessionFailureFact = {
   attachment?: AgentSessionAttachmentProblem
   /** On `providerRetrying`: why the provider is retrying. */
   retry?: AgentSessionProviderRetry
+  /** A safe option name from Manta's saved Arguments parser, never an error message. */
+  argumentProblem?: AgentSessionArgumentProblem
 }
 
 /** A fact as a row stores it: its kind may be one a newer host added, so only
@@ -166,6 +174,7 @@ export function agentSessionFailureFact<TKind extends AgentSessionFailureKind>(
     refusal?: AgentSessionRefusalReference
     attachment?: AgentSessionAttachmentProblem
     retry?: AgentSessionProviderRetry
+    argumentProblem?: AgentSessionArgumentProblem
   } = {}
 ): AgentSessionFailureFact & { kind: TKind } {
   // Re-bounded here, so no writer can store more than the cap however it built the detail.
@@ -177,7 +186,8 @@ export function agentSessionFailureFact<TKind extends AgentSessionFailureKind>(
     ...(detail ? { detail } : {}),
     ...(extra.refusal ? { refusal: extra.refusal } : {}),
     ...(extra.attachment ? { attachment: extra.attachment } : {}),
-    ...(extra.retry ? { retry: extra.retry } : {})
+    ...(extra.retry ? { retry: extra.retry } : {}),
+    ...(extra.argumentProblem ? { argumentProblem: extra.argumentProblem } : {})
   }
 }
 
@@ -234,11 +244,13 @@ export function readAgentSessionFailureFact(value: unknown): AgentSessionFailure
   const refusal = readAgentSessionRefusalReference(value.refusal)
   const attachment = readAttachmentProblem(value.attachment)
   const retry = readProviderRetry(value.retry)
+  const argumentProblem = readAgentSessionArgumentProblem(value.argumentProblem)
   return agentSessionFailureFact(value.kind, {
     ...(isProviderDiagnostic(value.detail) ? { detail: value.detail } : {}),
     ...(refusal ? { refusal } : {}),
     ...(attachment ? { attachment } : {}),
-    ...(retry ? { retry } : {})
+    ...(retry ? { retry } : {}),
+    ...(argumentProblem ? { argumentProblem } : {})
   })
 }
 

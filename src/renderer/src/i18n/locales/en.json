@@ -17822,7 +17822,12 @@
         "providerRateLimited": "{{agent}} is rate-limited and retrying.",
         "providerRetrying": "{{agent}} hit a temporary problem and is retrying.",
         "providerRetryingQuoted": "{{agent}} is retrying: {{detail}}.",
-        "previousExitUnverifiable": "Couldn't stop {{agent}} from before."
+        "previousExitUnverifiable": "Couldn't stop {{agent}} from before.",
+        "argumentsUnsupportedOption": "Saved Arguments contain an unsupported option ({{option}}).",
+        "argumentsMissingValue": "Saved Arguments need a value for {{option}}.",
+        "argumentsMultipleValues": "Saved Arguments give {{option}} more than one value.",
+        "argumentsPositionalPrompt": "Saved Arguments include a prompt.",
+        "editSavedArguments": "Edit them in Settings > Agents > Arguments."
       },
       "writeNotice": {
         "notDoneReadHistory": "This chat's history couldn't be loaded.",
