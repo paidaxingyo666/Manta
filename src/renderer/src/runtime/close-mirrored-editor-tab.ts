@@ -27,7 +27,11 @@ export function notifyHostOfMirroredEditorClose(
   if (!file?.mirroredFromRuntimeSession) {
     return false
   }
-  const runtimeEnvironmentId = getRuntimeEnvironmentIdForWorktree(state, worktreeId)
+  // Only legacy records need catalog inference; snapshots capture their authoritative runtime owner.
+  const runtimeEnvironmentId =
+    file.runtimeEnvironmentId === undefined
+      ? getRuntimeEnvironmentIdForWorktree(state, worktreeId)
+      : file.runtimeEnvironmentId
   if (!runtimeEnvironmentId?.trim()) {
     return false
   }

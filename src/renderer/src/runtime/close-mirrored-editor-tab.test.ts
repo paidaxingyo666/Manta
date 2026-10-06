@@ -99,6 +99,39 @@ describe('notifyHostOfMirroredEditorClose', () => {
     ])
   })
 
+  it('routes to the captured file owner when the workspace catalog disagrees', async () => {
+    const state = buildState()
+    state.openFiles = state.openFiles.map((file) => ({ ...file, runtimeEnvironmentId: 'env-2' }))
+
+    expect(notifyHostOfMirroredEditorClose(state, 'wt-1', 'file-1')).toBe(true)
+    expect(
+      isWebSessionCloseIntentPending(
+        { environmentId: 'env-2' },
+        'wt-1',
+        toHostSessionTabId('host-tab-1'),
+        Date.now()
+      )
+    ).toBe(true)
+    await vi.waitFor(() =>
+      expect(closeWebRuntimeSessionTabMock).toHaveBeenCalledWith({
+        worktreeId: 'wt-1',
+        tabId: 'host-tab-1',
+        environmentId: 'env-2',
+        reason: 'user'
+      })
+    )
+    expect(getRuntimeEnvironmentIdForWorktreeMock).not.toHaveBeenCalled()
+  })
+
+  it('does not infer a remote owner for an explicitly local file', () => {
+    const state = buildState()
+    state.openFiles = state.openFiles.map((file) => ({ ...file, runtimeEnvironmentId: null }))
+
+    expect(notifyHostOfMirroredEditorClose(state, 'wt-1', 'file-1')).toBe(false)
+    expect(getRuntimeEnvironmentIdForWorktreeMock).not.toHaveBeenCalled()
+    expect(closeWebRuntimeSessionTabMock).not.toHaveBeenCalled()
+  })
+
   it('does not route locally-opened (non-mirrored) files to the host', () => {
     const state = buildState({
       openFiles: [
