@@ -215,7 +215,6 @@ describe('revealing a diff from a turn rollup', () => {
         journalItems={items}
         isWorking={false}
         expandSignal={false}
-        fontScale={1}
       />
     )
     // The rollup rides the turn's last row, which is pinned; the diff it points

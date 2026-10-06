@@ -71,6 +71,7 @@ describe('tool sentence rows', () => {
     expect(screen.getByText('shell')).toBeInTheDocument()
     expect(screen.queryByText('Ran')).toBeNull()
     expect(screen.getByText('inspect')).not.toHaveClass('font-mono')
+    expect(screen.getByText('inspect')).not.toHaveAttribute('data-native-chat-code-content')
   })
 
   it('counts changed lines rather than unchanged lines in an edit', () => {

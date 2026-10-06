@@ -69,7 +69,6 @@ function view(items: AgentJournalRenderItem[], structured = true) {
       journalItems={structured ? items : undefined}
       isWorking={false}
       expandSignal={false}
-      fontScale={1}
     />
   )
 }

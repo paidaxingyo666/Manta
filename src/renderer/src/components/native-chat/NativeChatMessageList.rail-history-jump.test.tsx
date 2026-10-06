@@ -99,7 +99,6 @@ function PagedTranscript({
       railOutline={railOutline}
       isWorking={false}
       expandSignal={false}
-      fontScale={1}
     />
   )
 }
@@ -517,7 +516,6 @@ describe('revealing a diff while a rail jump pages', () => {
         railOutline={loadedOlder ? [] : [{ id: 'older', text: 'Oldest prompt', hasImages: false }]}
         isWorking={false}
         expandSignal={false}
-        fontScale={1}
       />
     )
   }

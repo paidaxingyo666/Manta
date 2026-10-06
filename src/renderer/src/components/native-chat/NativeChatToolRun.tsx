@@ -271,7 +271,7 @@ export function NativeChatToolRun({
               beside it is what gives way. */}
           <span
             className={cn(
-              'truncate text-sm leading-relaxed transition-colors',
+              'truncate text-sm native-chat-message-text leading-relaxed transition-colors',
               live
                 ? 'max-w-[72%] shrink-0 animate-pulse text-chat-foreground motion-reduce:animate-none'
                 : 'min-w-0 text-chat-foreground-faint group-hover/tool-run:text-chat-foreground'

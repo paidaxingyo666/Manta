@@ -215,6 +215,23 @@
           "statusItem": "status item",
           "activity": "activity"
         }
+      },
+      "chat": {
+        "title": "Chat",
+        "textSize": "Text size",
+        "textSizeDescription": "Messages, tool activity and the message box. {{increase}} / {{decrease}} in a chat change this too.",
+        "codeTextSize": "Code text size",
+        "codeTextSizeDescription": "Code blocks, inline code, commands and tool output.",
+        "width": "Width",
+        "widthDescription": "How wide messages and the message box can grow in a wide pane.",
+        "resetAppearance": "Reset chat appearance",
+        "resetDescription": "Restore the defaults above.",
+        "comfortable": "Comfortable",
+        "wide": "Wide",
+        "full": "Full",
+        "pixels": "px",
+        "reset": "Reset",
+        "summary": "{{fontSize}}px · {{width}} width"
       }
     },
     "browser": {
@@ -19121,5 +19138,6 @@
       "confirm": "Delete all listed worktrees",
       "preservedBranches": "Some nested worktree branches were kept"
     }
-  }
+  },
+  "settings.appearance.chat.title": "Chat"
 }

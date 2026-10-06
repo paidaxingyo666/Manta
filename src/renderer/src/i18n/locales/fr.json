@@ -151,6 +151,23 @@
           "statusItem": "élément de statut",
           "activity": "activité"
         }
+      },
+      "chat": {
+        "title": "Chat",
+        "textSize": "Taille du texte",
+        "textSizeDescription": "Messages, activité des outils et zone de message. {{increase}} / {{decrease}} dans un chat modifient aussi ce réglage.",
+        "codeTextSize": "Taille du texte du code",
+        "codeTextSizeDescription": "Blocs de code, code en ligne, commandes et sortie des outils.",
+        "width": "Largeur",
+        "widthDescription": "Largeur maximale des messages et de la zone de message dans un panneau large.",
+        "resetAppearance": "Réinitialiser l’apparence du chat",
+        "resetDescription": "Restaurer les valeurs par défaut ci-dessus.",
+        "comfortable": "Confortable",
+        "wide": "Large",
+        "full": "Pleine",
+        "pixels": "px",
+        "reset": "Réinitialiser",
+        "summary": "{{fontSize}}px · Largeur {{width}}"
       }
     },
     "browser": {

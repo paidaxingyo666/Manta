@@ -85,7 +85,6 @@ describe('revealing a diff from a turn rollup', () => {
         journalItems={withPrompts}
         isWorking={false}
         expandSignal={false}
-        fontScale={1}
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /1 changed file/ }))

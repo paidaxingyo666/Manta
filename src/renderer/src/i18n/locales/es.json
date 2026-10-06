@@ -52,6 +52,23 @@
           "statusItem": "elemento de estado",
           "activity": "actividad"
         }
+      },
+      "chat": {
+        "title": "Chat",
+        "textSize": "Tamaño del texto",
+        "textSizeDescription": "Mensajes, actividad de herramientas y cuadro de mensaje. {{increase}} / {{decrease}} en un chat también cambian este valor.",
+        "codeTextSize": "Tamaño del texto del código",
+        "codeTextSizeDescription": "Bloques de código, código en línea, comandos y salida de herramientas.",
+        "width": "Ancho",
+        "widthDescription": "Cuánto pueden ampliarse los mensajes y el cuadro de mensaje en un panel ancho.",
+        "resetAppearance": "Restablecer apariencia del chat",
+        "resetDescription": "Restaurar los valores predeterminados anteriores.",
+        "comfortable": "Cómodo",
+        "wide": "Amplio",
+        "full": "Completo",
+        "pixels": "px",
+        "reset": "Restablecer",
+        "summary": "{{fontSize}}px · Ancho {{width}}"
       }
     },
     "browser": {

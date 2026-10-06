@@ -92,7 +92,6 @@ function listOf(state: NativeChatSubagentState, waiting = false): React.JSX.Elem
       journalItems={items}
       isWorking={waiting}
       expandSignal={false}
-      fontScale={1}
     />
   )
 }
@@ -187,7 +186,6 @@ describe("a subagent's rows in the transcript", () => {
         journalItems={items}
         isWorking={false}
         expandSignal={false}
-        fontScale={1}
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /Ran 3 subagents/ }))
@@ -263,7 +261,6 @@ describe("a subagent's rows in the transcript", () => {
         journalItems={items}
         isWorking={false}
         expandSignal={false}
-        fontScale={1}
       />
     )
     const rollups = screen.getAllByRole('button', { name: /changed file/ })
@@ -306,7 +303,6 @@ describe("a subagent's rows in the transcript", () => {
           journalItems={shown}
           isWorking={false}
           expandSignal={false}
-          fontScale={1}
         />
       )
     }
@@ -361,7 +357,6 @@ describe("a subagent's rows in the transcript", () => {
         )}
         isWorking={false}
         expandSignal={false}
-        fontScale={1}
       />
     )
     expect(screen.getByRole('button', { name: /explore the lane/, expanded: false })).toBeVisible()

@@ -52,6 +52,23 @@
           "statusItem": "상태 항목",
           "activity": "활동"
         }
+      },
+      "chat": {
+        "title": "채팅",
+        "textSize": "텍스트 크기",
+        "textSizeDescription": "메시지, 도구 활동 및 메시지 입력란. 채팅에서 {{increase}} / {{decrease}} 키로도 변경할 수 있습니다.",
+        "codeTextSize": "코드 텍스트 크기",
+        "codeTextSizeDescription": "코드 블록, 인라인 코드, 명령 및 도구 출력.",
+        "width": "너비",
+        "widthDescription": "넓은 패널에서 메시지와 입력란이 확장될 수 있는 최대 너비입니다.",
+        "resetAppearance": "채팅 모양 초기화",
+        "resetDescription": "위의 기본값으로 복원합니다.",
+        "comfortable": "편안하게",
+        "wide": "넓게",
+        "full": "전체",
+        "pixels": "px",
+        "reset": "초기화",
+        "summary": "{{fontSize}}px · {{width}} 너비"
       }
     },
     "browser": {
