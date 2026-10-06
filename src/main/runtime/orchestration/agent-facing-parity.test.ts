@@ -187,7 +187,6 @@ describe('the orchestration guide an agent loads', () => {
 })
 
 describe('agent-read text about a Manta session ID', () => {
-  // CLI help, specs and status text: src/cli/manta-session-id-wording.test.ts.
   const guideDir = join(process.cwd(), 'skill-guides')
   const guide = [
     join(guideDir, 'orchestration.md'),
