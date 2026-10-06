@@ -17836,6 +17836,8 @@
         "moreCalls": "+{{value0}} plus",
         "failedCount": "{{value0}} a échoué",
         "failedCallsLabel": "Appels d'outil ayant échoué : {{value0}}",
+        "interruptedCount": "{{value0}} interrompu(s)",
+        "interruptedCallsLabel": "Appels d'outil interrompus : {{value0}}",
         "runningPreview": "Exécution de {{preview}}",
         "runningCommand": "Commande en cours d'exécution",
         "runningNamedPreview": "En cours d'exécution {{toolName}} {{preview}}",

@@ -164,8 +164,7 @@ export function decideTurnSettled(
     ends: { turnItemId: turn.itemId, current: true },
     settle: {
       what: 'turn-settled',
-      resolve: (journal) =>
-        providerTimelineSettlement(journal, { turnItemId: turn.itemId, promptsOnly: true })
+      resolve: (journal) => providerTimelineSettlement(journal, { turnItemId: turn.itemId })
     },
     commit: (next) => next.stopTurn(turn)
   }

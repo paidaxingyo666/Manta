@@ -175,7 +175,7 @@ describe('provider timeline items', () => {
     expect(rows[0]?.turnScope).toEqual({ kind: 'thread' })
   })
 
-  it('fails a tool call its turn left running, and leaves a background task it started running', async () => {
+  it('cuts short a tool call its interrupted turn left running, and leaves a background task it started running', async () => {
     const rig = await openProviderTimelineRig()
     rig.assembler.apply({ type: 'turn.open', turn: 'turn-1', at: 1_000 })
     rig.assembler.apply({ type: 'item.open', item: 'call-a', body: runningTool('read') })
@@ -191,7 +191,8 @@ describe('provider timeline items', () => {
       outcome: 'cancellation'
     })
     expect((await rig.row(providerItemId('item', 'call-a')))?.body).toMatchObject({
-      state: 'failed'
+      state: 'failed',
+      endedAs: 'interrupted'
     })
     expect(await backgroundTaskState(rig, 'bg-1')).toBe('working')
 

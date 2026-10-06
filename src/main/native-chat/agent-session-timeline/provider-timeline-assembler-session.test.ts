@@ -43,7 +43,8 @@ describe('provider timeline session end', () => {
     expect(turn).toMatchObject({ state: 'interrupted', completedAt: 4_000, startedAt: 1_000 })
     expect(turn).not.toHaveProperty('outcome')
     expect((await rig.row(providerItemId('item', 'call-a')))?.body).toMatchObject({
-      state: 'failed'
+      state: 'failed',
+      endedAs: 'interrupted'
     })
     expect((await rig.row(providerItemId('request', 'perm-1')))?.body).toMatchObject({
       resolution: { state: 'cancelled', selectedOptionId: null }

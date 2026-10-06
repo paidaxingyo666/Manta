@@ -17772,6 +17772,8 @@
         "moreCalls": "+{{value0}} 이상",
         "failedCount": "{{value0}} 실패",
         "failedCallsLabel": "도구 호출 실패: {{value0}}",
+        "interruptedCount": "{{value0}} 중단됨",
+        "interruptedCallsLabel": "중단된 도구 호출: {{value0}}",
         "runningPreview": "{{preview}} 실행 중",
         "runningCommand": "실행 명령",
         "runningNamedPreview": "{{toolName}} {{preview}} 실행 중",

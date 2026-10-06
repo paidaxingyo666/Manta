@@ -17772,6 +17772,8 @@
         "moreCalls": "+{{value0}} 詳細",
         "failedCount": "{{value0}} 件失敗",
         "failedCallsLabel": "失敗したツール呼び出し: {{value0}}",
+        "interruptedCount": "{{value0}} 件中断",
+        "interruptedCallsLabel": "中断されたツール呼び出し: {{value0}}",
         "runningPreview": "{{preview}} を実行中",
         "runningCommand": "コマンドの実行",
         "runningNamedPreview": "{{toolName}} {{preview}} を実行中",

@@ -45,6 +45,7 @@ import type {
   NativeChatSubagentRosterState
 } from './native-chat-subagent-sections'
 import { NativeChatToolRunIcon } from './NativeChatToolIcon'
+import { NativeChatToolRunCallCounts } from './NativeChatToolRunCallCounts'
 
 /** Stable empty default: a fresh array literal per render breaks memoization. */
 const NO_SUBAGENT_GROUPS: NativeChatSubagentGroupBlock[] = []
@@ -164,9 +165,11 @@ export function NativeChatToolRun({
   // not, so a call that finished in a frame still leaves its name until the next.
   const latestCall = live ? headerBlocks.findLast(isToolCallBlock) : undefined
   const latestCallLabel = latestCall ? describeLatestToolCall(latestCall) : null
-  const { succeeded: runSucceeded, failedCallCount } = nativeChatToolRunOutcome(headerBlocks, {
-    activeTurnIsWorking
-  })
+  const {
+    succeeded: runSucceeded,
+    failedCallCount,
+    interruptedCallCount
+  } = nativeChatToolRunOutcome(headerBlocks, { activeTurnIsWorking })
   // An externally opened run keeps child tools collapsed; normal callers leave
   // the run's own disclosure independent from the turn status bar.
   const expandToolLines = expandOverride === undefined ? open : false
@@ -279,28 +282,10 @@ export function NativeChatToolRun({
           >
             {runSentence ?? fallbackLabel}
           </span>
-          {failedCallCount > 0 ? (
-            /* Outside the truncating member list, so the one thing the reader
-               cannot afford to miss survives a pane too narrow to print it.
-               Quiet text in the header's own type, not a destructive tint or a
-               swapped glyph: a tool error is routine work, and the failing
-               line's own detail is one click away. */
-            <span
-              aria-label={translate(
-                'components.native-chat.tool.failedCallsLabel',
-                NATIVE_CHAT_TOOL_ACTIVITY_COPY.failedCallsLabel,
-                { value0: failedCallCount }
-              )}
-              className="shrink-0 font-sans text-xs tabular-nums text-chat-foreground-faint transition-colors group-hover/tool-run:text-chat-foreground"
-            >
-              <span aria-hidden> · </span>
-              {translate(
-                'components.native-chat.tool.failedCount',
-                NATIVE_CHAT_TOOL_ACTIVITY_COPY.failedCount,
-                { value0: failedCallCount }
-              )}
-            </span>
-          ) : null}
+          <NativeChatToolRunCallCounts
+            failed={failedCallCount}
+            interrupted={interruptedCallCount}
+          />
           {/* Only a stated success is marked done — see nativeChatToolRunOutcome —
               and never while live: between two calls nothing is running, and a
               mark that appeared then would flash on every call. */}

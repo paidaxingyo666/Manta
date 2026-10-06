@@ -13,7 +13,11 @@ import {
 import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
 import { partitionJournalLifecycleMutations } from '../agent-session-journal/journal-lifecycle-batch-partition'
 import type { JournalLifecycleMutationInput } from '../agent-session-journal/journal-row-builders'
-import { terminalAgentJournalBody } from '../agent-session-journal/journal-terminal-settlement'
+import {
+  requiresTerminalSettlement,
+  runningCallEnd,
+  terminalAgentJournalBody
+} from '../agent-session-journal/journal-terminal-settlement'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import {
   agentSessionFailureWords,
@@ -28,6 +32,7 @@ import type { AgentSessionDeathEvidence } from '../../../shared/agent-session-re
 import {
   endedByPersonsStop,
   provenUnverifiableTurnRevisions,
+  provenUnverifiedToolCallRevisions,
   runningTurnLifecycleRevisions,
   stopFoundTurnLiveAt,
   turnVerdictFromDeathEvidence,
@@ -173,9 +178,12 @@ export async function settleStructuredAgentSessionDeadGeneration(input: {
         turnScope: exitedRootTurnScope(items, input.verdict)
       })
     }
+    const bodies = new Map(items.map((item) => [item.itemId, item.body]))
     for (const item of items) {
       const identity = parseAgentJournalItemKey(item.itemId)
-      const body = terminalAgentJournalBody(item.body)
+      // Ended as its turn is: a proven death cuts a running call short.
+      const end = runningCallEnd(item.turnScope, (id) => bodies.get(id), input.verdict.state)
+      const body = terminalAgentJournalBody(item.body, end)
       if (identity && body) {
         mutations.push({
           kind: 'item',
@@ -206,8 +214,9 @@ export async function settleStructuredAgentSessionDeadGeneration(input: {
  * Settles whatever a generation with no child in this process left running: found when a new child
  * is acquired, or when a chat is reopened for reading. Derived from the journal and the lease's
  * death evidence each time, so nothing is owed in between. Proven death ends the turn interrupted,
- * and a proof written after an earlier settle revises what that settle left `unverifiable`. Must
- * run before a new child's buffered events land, or a live turn would be judged.
+ * and a proof written after an earlier settle revises what that settle left `unverifiable`, the
+ * turn and the calls it closed alike. Must run before a new child's buffered events land, or a
+ * live turn would be judged.
  */
 export async function settleStaleStructuredAgentSessionState(input: {
   journal: AgentSessionJournal
@@ -230,10 +239,14 @@ export async function settleStaleStructuredAgentSessionState(input: {
   // Per attempt: a retry re-partitions only what is left, and a reused chunk id would skip it.
   const generation = input.acquisitionGeneration ?? `seq-${journal.cursor().sequence}`
   const settlementId = `${STALE_SESSION_ROW_PREFIX}${input.sessionId}:${input.fence}:${generation}`
-  const mutations: JournalLifecycleMutationInput[] = []
+  // Calls an earlier settle closed with no proof, revised once a proof names their owner.
+  const mutations = provenUnverifiedToolCallRevisions(items, input.deathEvidence, journal)
   for (const item of items) {
     const identity = parseAgentJournalItemKey(item.itemId)
-    const body = terminalAgentJournalBody(item.body)
+    // A turn already settled (a person's Stop) ends its calls as it ended; only a turn still running
+    // leaves them to the evidence.
+    const end = runningCallEnd(item.turnScope, (id) => journal.itemBody(id), verdictFor(item).state)
+    const body = terminalAgentJournalBody(item.body, end)
     if (identity && body) {
       mutations.push({
         kind: 'item',
@@ -288,10 +301,7 @@ export async function settleStaleStructuredAgentSessionState(input: {
 }
 
 function isUnfinishedItem(item: AgentJournalRenderItem): boolean {
-  return (
-    readAgentJournalTurn(item.body)?.state === 'running' ||
-    terminalAgentJournalBody(item.body) !== null
-  )
+  return requiresTerminalSettlement(item.body)
 }
 
 /** Work that means the provider was MID-RESPONSE. A pending approval or question is the provider
