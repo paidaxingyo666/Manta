@@ -1,4 +1,4 @@
-// Every write to a Claude turn row is a revision of the row as the journal holds
+// Every write to a turn row is a revision of the row as the journal holds
 // it at execution: a writer overrides only the fields it owns and keeps the
 // rest, whoever wrote them. Nothing about ended turns is kept in memory, so a
 // restart or reattach revises the same rows a live translator would.
@@ -9,34 +9,36 @@ import {
   MAX_CONTEXT_MODEL_ID_CHARS,
   type AgentSessionContextUsage,
   type AgentSessionContextWindow
-} from '../../shared/agent-session-context-usage'
+} from '../../../shared/agent-session-context-usage'
 import {
   agentJournalItemKey,
   parseAgentJournalItemKey
-} from '../../shared/agent-session-journal-item-key'
+} from '../../../shared/agent-session-journal-item-key'
 import {
   AGENT_JOURNAL_THREAD_SCOPE,
   type AgentJournalItemIdentity,
   type AgentJournalTurnItem
-} from '../../shared/agent-session-journal-types'
-import { readAgentJournalTurn } from '../../shared/agent-session-turn-record'
-import { estimateStructuredAgentSessionItemBytes } from '../native-chat/agent-session-wire/structured-agent-session-event-sink-estimate'
+} from '../../../shared/agent-session-journal-types'
+import { readAgentJournalTurn } from '../../../shared/agent-session-turn-record'
+import { estimateStructuredAgentSessionItemBytes } from '../agent-session-wire/structured-agent-session-event-sink-estimate'
 import type {
   StructuredAgentSessionEventSink,
   StructuredAgentSessionRevisionJournal,
   StructuredAgentSessionRevisionOptions
-} from '../native-chat/agent-session-wire/structured-agent-session-event-sink'
+} from '../agent-session-wire/structured-agent-session-event-sink'
 
 /** The row a write revises: a known one, or the newest turn in the journal. */
-export type ClaudeTurnRowTarget = { identity: AgentJournalItemIdentity } | { newest: true }
+export type AgentJournalTurnRowTarget = { identity: AgentJournalItemIdentity } | { newest: true }
 
-export type ClaudeTurnRowWrite = {
+export type AgentJournalTurnRowWrite = {
   /** The lifecycle fields this turn has now; the lifecycle writer owns all of them. */
   lifecycle?: AgentJournalTurnItem
   /** Context parts, each replacing its namesake on the row. */
   contextUsage?: AgentSessionContextUsage
   /** A window written only while no row in the journal holds one. */
   windowIfNoneHeld?: AgentSessionContextWindow
+  /** Lands only while the row is absent or still running, so an ended turn is never rewritten. */
+  onlyWhileRunning?: true
 }
 
 function jsonBytes(value: unknown): number {
@@ -84,7 +86,7 @@ const TURN_ROW_BYTES_WITHOUT_CONTEXT = 8 * 1024
 /** `lifecycle` over the row's current body, keeping every field it does not own. */
 function reviseTurnBody(
   current: AgentJournalTurnItem | null,
-  write: ClaudeTurnRowWrite
+  write: AgentJournalTurnRowWrite
 ): AgentJournalTurnItem | null {
   const { lifecycle, contextUsage } = write
   const base =
@@ -113,8 +115,8 @@ function withoutLifecycle(turn: AgentJournalTurnItem) {
 /** The write with its fallback window resolved against every row, since any of them may hold the newest. */
 function withFallbackWindow(
   journal: StructuredAgentSessionRevisionJournal,
-  { windowIfNoneHeld, ...write }: ClaudeTurnRowWrite
-): ClaudeTurnRowWrite {
+  { windowIfNoneHeld, ...write }: AgentJournalTurnRowWrite
+): AgentJournalTurnRowWrite {
   if (!windowIfNoneHeld || write.contextUsage?.window) {
     return write
   }
@@ -129,7 +131,7 @@ function withFallbackWindow(
 
 function findTurnRow(
   journal: StructuredAgentSessionRevisionJournal,
-  target: ClaudeTurnRowTarget
+  target: AgentJournalTurnRowTarget
 ): { itemId: string; body: AgentJournalTurnItem } | null {
   if ('identity' in target) {
     const itemId = agentJournalItemKey(target.identity)
@@ -147,22 +149,59 @@ function findTurnRow(
 }
 
 /** How a turn-row write reaches live subscribers. */
-export type ClaudeTurnRowDelivery = {
+export type AgentJournalTurnRowDelivery = {
   /** False only for a writer that publishes each write itself right after queueing it. */
   publish: boolean
   options?: Omit<StructuredAgentSessionRevisionOptions, 'turnScope'>
 }
 
+/** Bytes a turn-row write may resolve to. */
+export function agentJournalTurnRowReservedBytes(
+  target: AgentJournalTurnRowTarget,
+  write: AgentJournalTurnRowWrite
+): number {
+  const known = 'identity' in target ? target.identity : null
+  return (
+    (known && write.lifecycle
+      ? estimateStructuredAgentSessionItemBytes(known, write.lifecycle)
+      : TURN_ROW_BYTES_WITHOUT_CONTEXT) + contextBytesBound(write.contextUsage)
+  )
+}
+
+/** The row a turn-row write lands as, read from the journal at execution; null writes nothing. */
+export function resolveAgentJournalTurnRowWrite(
+  journal: StructuredAgentSessionRevisionJournal,
+  target: AgentJournalTurnRowTarget,
+  write: AgentJournalTurnRowWrite,
+  reservedBytes: number
+): { identity: AgentJournalItemIdentity; body: AgentJournalTurnItem } | null {
+  const known = 'identity' in target ? target.identity : null
+  const row = findTurnRow(journal, target)
+  if (write.onlyWhileRunning && row && row.body.state !== 'running') {
+    return null
+  }
+  const identity = known ?? (row ? parseAgentJournalItemKey(row.itemId) : null)
+  const body = reviseTurnBody(row?.body ?? null, withFallbackWindow(journal, write))
+  if (!identity || !body) {
+    return null
+  }
+  if (estimateStructuredAgentSessionItemBytes(identity, body) <= reservedBytes) {
+    return { identity, body }
+  }
+  // Only a row grown by fields this build does not know gets here; the lifecycle still lands.
+  return write.lifecycle ? { identity, body: write.lifecycle } : null
+}
+
 /**
- * Queue one revision of a Claude turn row. A lifecycle write creates the row
+ * Queue one revision of a turn row. A lifecycle write creates the row
  * when it is absent; a context write only ever revises one that exists.
  * Without a journal-reading sink only the lifecycle is written, as it was built.
  */
-export function writeClaudeTurnRow(
+export function writeAgentJournalTurnRow(
   sink: StructuredAgentSessionEventSink,
-  target: ClaudeTurnRowTarget,
-  write: ClaudeTurnRowWrite,
-  { publish, options: delivery = {} }: ClaudeTurnRowDelivery
+  target: AgentJournalTurnRowTarget,
+  write: AgentJournalTurnRowWrite,
+  { publish, options: delivery = {} }: AgentJournalTurnRowDelivery
 ): void {
   // A turn record belongs to no turn.
   const options = { ...delivery, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
@@ -176,27 +215,11 @@ export function writeClaudeTurnRow(
     }
     return
   }
-  const known = 'identity' in target ? target.identity : null
-  const reservedBytes =
-    (known && write.lifecycle
-      ? estimateStructuredAgentSessionItemBytes(known, write.lifecycle)
-      : TURN_ROW_BYTES_WITHOUT_CONTEXT) + contextBytesBound(write.contextUsage)
+  const reservedBytes = agentJournalTurnRowReservedBytes(target, write)
   revise.call(
     sink,
     reservedBytes,
-    (journal) => {
-      const row = findTurnRow(journal, target)
-      const identity = known ?? (row ? parseAgentJournalItemKey(row.itemId) : null)
-      const body = reviseTurnBody(row?.body ?? null, withFallbackWindow(journal, write))
-      if (!identity || !body) {
-        return null
-      }
-      if (estimateStructuredAgentSessionItemBytes(identity, body) <= reservedBytes) {
-        return { identity, body }
-      }
-      // Only a row grown by fields this build does not know gets here; the lifecycle still lands.
-      return write.lifecycle ? { identity, body: write.lifecycle } : null
-    },
+    (journal) => resolveAgentJournalTurnRowWrite(journal, target, write, reservedBytes),
     options
   )
 }
