@@ -25,6 +25,7 @@ import { mintAgentSessionOperationId } from '../../orchestration/structured-poin
 import { structuredPointerCallerKey } from '../../orchestration/structured-mailbox-pointer-host'
 import { sendAgentTurn, type StructuredAgentTurnHost } from '../../orchestration/send-agent-turn'
 import { retireSettledStructuredWorkerTab } from '../../structured-agent-session-tab-retirement'
+import { structuredWorkerSession } from '../../structured-worker-authority'
 import {
   mintStructuredWorkerHandle,
   structuredWorkerHostScope,
@@ -49,19 +50,29 @@ const bindingsByDispatchId = new Map<string, StructuredWorkerBinding>()
  *
  * EVERY settlement has to reach this — stop, release AND abandon. A surviving subscription keeps
  * nudging a session no dispatch owns.
+ *
+ * Parked mail is forgotten on every session of the worker's `/clear` lineage, derived from
+ * `workerSessionId` when no binding survives (after a restart) — mail parks on whichever session
+ * ran the worker when it arrived.
  */
 export function releaseStructuredWorkerSession(
   dispatchId: string,
-  runtime?: Pick<MantaRuntimeService, 'forgetStructuredSessionMail'>
+  runtime?: Pick<MantaRuntimeService, 'forgetStructuredSessionMail'>,
+  workerSessionId?: string | null
 ): void {
   const binding = bindingsByDispatchId.get(dispatchId)
-  if (!binding) {
+  if (binding) {
+    bindingsByDispatchId.delete(dispatchId)
+    binding.disposeSubscription()
+    structuredWorkerIdentities.forget(binding.handle)
+  }
+  const rootSessionId = binding?.sessionId ?? workerSessionId
+  if (!rootSessionId || !runtime?.forgetStructuredSessionMail) {
     return
   }
-  bindingsByDispatchId.delete(dispatchId)
-  binding.disposeSubscription()
-  structuredWorkerIdentities.forget(binding.handle)
-  runtime?.forgetStructuredSessionMail?.(binding.sessionId)
+  for (const sessionId of structuredWorkerSession({ sessionId: rootSessionId }).lineage) {
+    runtime.forgetStructuredSessionMail(sessionId)
+  }
 }
 
 export async function createStructuredWorkerSession(args: {

@@ -9,7 +9,7 @@ import { ORCHESTRATION_SESSION_CALLER_ERROR_CODES as CODES } from '../../../shar
 import {
   isRecordedStructuredWorkerSession,
   resolveStructuredWorkerIdentity,
-  resolveStructuredWorkerIdentityForSession
+  resolveStructuredWorkerIdentityForRoot
 } from '../structured-worker-authority'
 import { canonicalOrcaSessionId } from './canonical-manta-session-id'
 import type { OrchestrationDb } from './db'
@@ -43,7 +43,7 @@ export function resolveOrcaSessionParty(
   db: OrchestrationDb | null | undefined
 ): OrchestrationSessionParty {
   const id = canonicalOrcaSessionId(orcaSessionId)
-  const worker = resolveStructuredWorkerIdentityForSession(id, db)
+  const worker = resolveStructuredWorkerIdentityForRoot(id, db)
   if (!worker && db && isRecordedStructuredWorkerSession(id, db)) {
     // Why: handle-less, it would split one worker into two parties and bind like a chat.
     throw new OrchestrationError(

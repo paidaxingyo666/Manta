@@ -4,15 +4,16 @@ import type { RuntimeLeafRecord, RuntimePtyWorktreeRecord } from './runtime-term
 import { isTerminalLeafId, makePaneKey, parsePaneKey } from '../../shared/stable-pane-id'
 import { detectAgentStatusFromTitle, isClaudeManagementTitle } from '../../shared/agent-detection'
 import { recognizeAgentProcess } from '../../shared/agent-process-recognition'
-import { resolveStructuredWorkerAuthority } from './structured-worker-authority'
-import { structuredWorkerIdentities } from './structured-worker-identity'
+import {
+  resolveStructuredWorkerAuthority,
+  resolveStructuredWorkerIdentityForSession
+} from './structured-worker-authority'
 import type { StructuredPointerTarget } from './orchestration/structured-mailbox-pointer-delivery'
 import {
   handleLessCoordinatorSessionId,
   structuredSessionAddressTarget,
   structuredSessionMailTarget,
-  structuredSessionIdleEdgeMailboxes,
-  structuredWorkerMailSessionId
+  structuredSessionIdleEdgeMailboxes
 } from './orchestration/structured-session-mail-target'
 import {
   resolveTerminalIdentityFromProbes,
@@ -179,7 +180,7 @@ export class MantaRuntimeWithGetPtyRecordForPaneKey extends MantaRuntimeWithPrun
    * — so it must never travel to a renderer to be echoed back.
    */
   getStructuredWorkerPaneKeyForSession(sessionId: string): string | null {
-    const identity = structuredWorkerIdentities.getBySessionId(sessionId)
+    const identity = resolveStructuredWorkerIdentityForSession(sessionId, this._orchestrationDb)
     return identity && resolveStructuredWorkerAuthority(identity.handle, this._orchestrationDb)
       ? identity.paneKey
       : null
@@ -296,20 +297,20 @@ export class MantaRuntimeWithGetPtyRecordForPaneKey extends MantaRuntimeWithPrun
     const db = this._orchestrationDb
     // Answers null for anything that is not a live structured worker of THIS runtime, so `run:`
     // and PTY handles fall through to the PTY lane exactly as before.
-    const identity = resolveStructuredWorkerAuthority(handle, db)?.identity
-    const sessionId = identity ? structuredWorkerMailSessionId(identity.sessionId) : null
-    if (!identity || !sessionId) {
+    const authority = resolveStructuredWorkerAuthority(handle, db)
+    if (!authority) {
       return null
     }
-    const dispatchId = db?.findActiveDispatchForAssignee?.(handle, identity.paneKey)?.id ?? null
-    return { sessionId, dispatchId }
+    const dispatchId =
+      db?.findActiveDispatchForAssignee?.(handle, authority.identity.paneKey)?.id ?? null
+    return { sessionId: authority.running.sessionId, dispatchId }
   }
 
-  /** The live session behind a structured worker handle of this runtime; see
-   *  `structuredWorkerMailSessionId`. */
+  /** The session running a structured worker of this runtime: its `/clear` successor, if any. */
   private liveStructuredWorkerSessionId(handle: string): string | null {
-    const identity = resolveStructuredWorkerAuthority(handle, this._orchestrationDb)?.identity
-    return identity ? structuredWorkerMailSessionId(identity.sessionId) : null
+    return (
+      resolveStructuredWorkerAuthority(handle, this._orchestrationDb)?.running.sessionId ?? null
+    )
   }
 
   protected scheduleRestoredMessageRepoints(): void {

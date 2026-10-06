@@ -13,14 +13,12 @@ import {
 } from '../../../shared/manta-session-address'
 import type { OrchestrationDb } from './db'
 import { currentRunCoordinatorOrcaSessionId } from './db/runs/run-coordinator-manta-session'
-import { structuredWorkerHostScope } from '../structured-worker-identity'
 import type { StructuredPointerTarget } from './structured-mailbox-pointer-delivery'
 import {
   addressableSessionParty,
   structuredSessionMailReach
 } from './structured-session-mail-address'
 import {
-  lineageLiveSession,
   readAgentSessionRecordStore,
   type AgentSessionRecordReader
 } from './structured-session-lineage'
@@ -64,18 +62,6 @@ export function structuredSessionMailTarget(
 }
 
 /**
- * The session a structured worker's mail reaches: the one minted for it, or that session's live
- * `/clear` successor, which carries on as the worker the way a terminal keeps its handle.
- */
-export function structuredWorkerMailSessionId(
-  mintedSessionId: string,
-  store: AgentSessionRecordReader | null = readAgentSessionRecordStore()
-): string | null {
-  const live = store ? lineageLiveSession(store, mintedSessionId) : null
-  return live && structuredWorkerHostScope(live.location) ? live.sessionId : null
-}
-
-/**
  * The target of an `orca_session_id:<id>` mailbox; `undefined` when the handle is not a session address at
  * all, so other address forms keep their own resolution.
  */
@@ -91,9 +77,10 @@ export function structuredSessionAddressTarget(
 }
 
 /**
- * Every mailbox a session reads for itself: the Runs it coordinates and its own direct mail.
- * Re-derived from the database on each idle edge rather than remembered, so mail that arrived
- * while the session could not take it (mid-turn, closed) is found again.
+ * Every mailbox a session reads for itself: the Runs it coordinates, its own direct mail and, for a
+ * worker, its active Dispatch; a `/clear` successor reads its worker's. Re-derived from the database
+ * on each idle edge rather than remembered, so mail that arrived while the session could not take
+ * it (mid-turn, closed) is found again.
  */
 export function structuredSessionOwnedMailboxes(sessionId: string, db: OrchestrationDb): string[] {
   const party = isOrcaSessionId(sessionId) ? addressableSessionParty(sessionId, db) : null
@@ -103,6 +90,13 @@ export function structuredSessionOwnedMailboxes(sessionId: string, db: Orchestra
   const mailboxes = db.runsBoundToCoordinator(party).map((run) => `run:${run.id}`)
   if (db.getUnreadDirectMessageTypes(party.address).length > 0) {
     mailboxes.push(party.address)
+  }
+  // Why: Dispatch mail parked on a session a /clear ended waits for an edge that never comes.
+  const dispatch = party.terminalHandle
+    ? db.findActiveDispatchForAssignee(party.terminalHandle, party.paneKey ?? undefined)
+    : undefined
+  if (dispatch) {
+    mailboxes.push(`dispatch:${dispatch.id}`)
   }
   return mailboxes
 }
