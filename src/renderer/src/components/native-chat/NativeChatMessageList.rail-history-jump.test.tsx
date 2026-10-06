@@ -195,7 +195,9 @@ describe('jumping from the rail while following the end', () => {
       configurable: true,
       get: () =>
         TOP_GUTTER_PX +
-        (screen.queryByRole('button', { name: /load earlier messages/i })?.closest('.max-w-4xl')
+        (screen
+          .queryByRole('button', { name: /load earlier messages/i })
+          ?.closest('[data-native-chat-transcript-column]')
           ? OLDER_HISTORY_ROW_PX
           : 0)
     })

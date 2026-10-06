@@ -249,7 +249,7 @@ describe('transcript with a hidden scroll root', () => {
       expect(container.querySelector('[data-native-chat-window]')).toBeInTheDocument()
       expect(container.querySelectorAll('[data-index]')).toHaveLength(0)
       expect(screen.queryByText(/^marker-/)).toBeNull()
-      const column = container.querySelector('.max-w-4xl')
+      const column = container.querySelector('[data-native-chat-transcript-column]')
       expect(column?.children).toHaveLength(1)
 
       viewportHeight = VIEWPORT_PX

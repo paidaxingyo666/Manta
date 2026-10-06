@@ -360,7 +360,7 @@ export function NativeChatMessageList({
 
   return (
     <NativeChatDisclosureContext.Provider value={disclosures}>
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-chat-canvas">
         <div className="relative min-h-0 flex-1">
           <div
             ref={scrollRef}
@@ -388,9 +388,10 @@ export function NativeChatMessageList({
             <div className="px-3 pt-10 pb-4 sm:px-4">
               <div
                 ref={contentRef}
-                // Why: matches composer column (max-w-4xl) with 5px horizontal inset
+                data-native-chat-transcript-column
+                // Why: matches composer width with 5px horizontal inset
                 // on each side so content is slightly narrower than the input box.
-                className="mx-auto flex w-full max-w-4xl flex-col gap-5 px-[5px]"
+                className="mx-auto flex w-full max-w-(--chat-content-max-width) flex-col gap-5 px-[5px]"
               >
                 <NativeChatTranscriptItems
                   slots={slots}
@@ -430,7 +431,10 @@ export function NativeChatMessageList({
         </div>
         {taskListState.list && taskListState.list.tasks.length > 0 ? (
           <div className="shrink-0 px-3 pb-2 sm:px-4">
-            <div className="mx-auto w-full max-w-4xl" style={{ zoom: fontScale }}>
+            <div
+              className="mx-auto w-full max-w-(--chat-content-max-width)"
+              style={{ zoom: fontScale }}
+            >
               <NativeChatTaskList
                 key={session.sessionId}
                 list={taskListState.list}
