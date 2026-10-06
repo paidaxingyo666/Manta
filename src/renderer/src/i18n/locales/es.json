@@ -17335,7 +17335,6 @@
         "notConfirmedOtherOne": "No se pudo confirmar que 1 otro chat se reanudó",
         "notConfirmedOtherMany": "No se pudo confirmar que {{value0}} otros chats se reanudaron",
         "show": "Mostrar",
-        "dismiss": "Descartar",
         "activityApproval": "Esperando tu aprobación: {{value0}}",
         "activityMidReply": "Estaba respondiendo",
         "activityMonitorMany": "Supervisando {{value0}} tareas en segundo plano",
@@ -17352,16 +17351,12 @@
         "listLabel": "Chats que se reanudarían",
         "dontAskAgain": "No volver a preguntar (reanudar automáticamente)",
         "dontAskAgainHint": "Puedes desactivarlo en Ajustes → Experimental → Interfaz de chat.",
-        "continuedOne": "Se reanudó 1 chat y se le pidió continuar",
-        "continuedMany": "Se reanudaron {{value0}} chats y se les pidió continuar",
+        "continuedOne": "Se reanudó 1 chat",
+        "continuedMany": "Se reanudaron {{value0}} chats",
         "selectAgent": "Reanudar {{value0}} chat \"{{value1}}\" en {{value2}}",
         "resumeSelected": "Reanudar {{value0}} chats",
         "resumeSelectedOne": "Reanudar 1 chat",
-        "continueUnconfirmed": "La entrega de la continuación no está confirmada para {{value0}} chats. Ábrelos para comprobarlo antes de enviar otro mensaje.",
-        "continueUnconfirmed_one": "La entrega de la continuación no está confirmada para {{value0}} chat. Ábrelo para comprobarlo antes de enviar otro mensaje.",
-        "continueUnconfirmed_other": "La entrega de la continuación no está confirmada para {{value0}} chats. Ábrelos para comprobarlo antes de enviar otro mensaje.",
-        "dismissAll": "Descartar todo",
-        "dismissUnconfirmed": "No se confirmó el descarte de la oferta de reanudación; es posible que siga en la barra de estado."
+        "dismissAll": "Descartar todo"
       },
       "NativeChatResumeOutcomeRow": {
         "openChat": "Abrir chat",
@@ -17376,8 +17371,8 @@
       "NativeChatResumeFailureGuidance": {
         "unconfirmed": "Manta no pudo confirmar que el mensaje “continue” se entregó. Abre el chat y compruébalo antes de enviar otro.",
         "superseded": "Abre el chat y responde. Llegó trabajo nuevo justo después del reinicio, así que Manta no envió su mensaje “continue”.",
-        "conflict": "Otra ventana de Manta o terminal aún conserva esta sesión. Ciérrala e inténtalo de nuevo.",
-        "ownershipUnknown": "Manta aún está determinando qué proceso posee esta sesión. Espera un momento e inténtalo de nuevo.",
+        "conflict": "Este chat está abierto en otra ventana de Manta o en una terminal. Ciérralo allí e inténtalo de nuevo.",
+        "ownershipUnknown": "Este chat aún no está listo para reanudarse. Espera un momento e inténtalo de nuevo.",
         "notAttached": "El chat no se reconectó. Reinténtalo o ábrelo para empezar un turno nuevo.",
         "dispatchRejected": "El agente rechazó el mensaje “continue”. Abre el chat y envía uno tú mismo.",
         "unsupported": "Manta no puede reanudar este chat. Ábrelo para ver dónde se detuvo.",
@@ -17897,8 +17892,7 @@
         "deny": "Denegar",
         "cancel": "Cancelar",
         "reason": "Motivo",
-        "blockedPath": "Ruta bloqueada",
-        "askRule": "Regla de solicitud",
+        "needsAccess": "Necesita acceso a",
         "plan": {
           "file": "Archivo de plan"
         }
