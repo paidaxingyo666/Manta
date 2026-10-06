@@ -34,7 +34,6 @@ import {
 } from './native-chat-transcript-slots'
 import { useNativeChatTranscriptSlots } from './use-native-chat-transcript-slots'
 import { useNativeChatTranscriptWindow } from './use-native-chat-transcript-window'
-import { nativeChatRowsInTranscriptOrder } from './native-chat-subagent-sections'
 import { useNativeChatSubagentSections } from './use-native-chat-subagent-sections'
 import { toggleNativeChatExpandedKey } from './native-chat-expanded-keys'
 import { useNativeChatTurnMembership } from './use-native-chat-turn-membership'
@@ -54,14 +53,11 @@ import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
 } from '../../../../shared/agent-session-journal-types'
+import type { AgentSessionLatestTurn } from '../../../../shared/agent-session-wire'
 import { isStructuredAgentSessionThinking } from '../../../../shared/structured-agent-session-live-turn'
 import type { NativeChatSettledTurns } from '../../../../shared/native-chat-turn-status'
-import {
-  nativeChatTurnDiffs,
-  type NativeChatDiffReveal,
-  type NativeChatDiffTarget,
-  type NativeChatTurnDiff
-} from './native-chat-turn-diffs'
+import type { NativeChatDiffReveal, NativeChatDiffTarget } from './native-chat-turn-diffs'
+import { useNativeChatTurnDiffs } from './use-native-chat-turn-diffs'
 
 /** The turn is blocked on the reader. `shown`: the pane draws the prompt itself, as a card;
  *  `unshown`: it cannot (the prompt is only in the agent's terminal). */
@@ -75,6 +71,7 @@ export function NativeChatMessageList({
   session,
   journalItems,
   journalSubmissions,
+  journalLatestTurn: latestTurn,
   subagentRoster,
   railOutline = null,
   isVisible = true,
@@ -93,6 +90,8 @@ export function NativeChatMessageList({
   journalItems?: readonly AgentJournalRenderItem[]
   /** With the items, what places each row in its turn (structured lane). */
   journalSubmissions?: readonly AgentJournalSubmission[]
+  /** The host's newest turn record, which places a live turn whose record is not loaded. */
+  journalLatestTurn?: AgentSessionLatestTurn | null
   /** Every subagent the session's rosters named, whether or not its roster row is loaded. */
   subagentRoster?: Parameters<typeof useNativeChatSubagentSections>[2]
   /** User messages older than the loaded window, from the host's outline. */
@@ -139,7 +138,8 @@ export function NativeChatMessageList({
   const { messages, subagentRows } = useNativeChatTranscriptProjection(
     session,
     journalItems,
-    journalSubmissions
+    journalSubmissions,
+    latestTurn
   )
   const {
     sections: subagentSections,
@@ -151,23 +151,23 @@ export function NativeChatMessageList({
   const taskListPredecessors = useMemo(() => nativeChatTaskListPredecessors(messages), [messages])
   const taskListState = useMemo(() => nativeChatTaskListState(messages), [messages])
   // Each row's turn, which turn is live, and the order the rows draw in, resolved once.
-  const {
-    messages: rows,
-    turnKeys,
-    liveTurnKey
-  } = useNativeChatTurnMembership(messages, journalItems, journalSubmissions)
-  const turnDiffs = useMemo(() => {
-    if (!journalItems) {
-      return new Map<string, NativeChatTurnDiff>()
-    }
-    const merged = nativeChatRowsInTranscriptOrder(rows, turnKeys, subagentRowsInOrder)
-    return nativeChatTurnDiffs(merged.messages, merged.turnKeys, subagentSections.pathOf)
-  }, [journalItems, rows, subagentRowsInOrder, subagentSections.pathOf, turnKeys])
+  const turnRows = useNativeChatTurnMembership(
+    messages,
+    journalItems,
+    journalSubmissions,
+    latestTurn
+  )
+  const { messages: rows, turnKeys, liveTurnKey } = turnRows
+  const turnDiffs = useNativeChatTurnDiffs(
+    journalItems ? turnRows : null,
+    subagentRowsInOrder,
+    subagentSections.pathOf
+  )
   // "Thinking" is real reasoning content at the tail of the turn, not the absence
   // of output — the latter reports thinking while the request is merely in flight.
   const thinking = useMemo(
-    () => (journalItems ? isStructuredAgentSessionThinking(journalItems) : false),
-    [journalItems]
+    () => isStructuredAgentSessionThinking({ items: journalItems ?? [], latestTurn }),
+    [journalItems, latestTurn]
   )
   const turnStatuses = useNativeChatTurnStatus({
     turnKeys,

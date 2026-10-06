@@ -767,6 +767,49 @@ describe('useMobileNativeChatTurnDisclosure', () => {
     expect(rows.map((row) => row.activeTurnIsWorking)).toEqual([false, false, true])
     expect(rows[0].turnStatus?.workedSeconds).toBe(4)
   })
+
+  it('draws the live bar on a turn whose record and opening message are not loaded', () => {
+    // The newest rows of a long turn; its record is above the page, named only by the host.
+    const items: AgentJournalRenderItem[] = ['a300', 'a301'].map((itemId, index) => ({
+      itemId,
+      revision: 0,
+      sequence: 300 + index,
+      observedAt: 300 + index,
+      body: { kind: 'message', role: 'assistant', blocks: [{ type: 'text', text: itemId }] },
+      turnScope: { kind: 'turn', turnItemId: 'turn-record' }
+    }))
+    const messages: NativeChatMessage[] = items.map((item) => ({
+      ...userMessage(item.itemId),
+      role: 'assistant'
+    }))
+    const rowsWith = (latestTurn: NativeChatTurnJournal['latestTurn']) => {
+      act(() => {
+        renderer = create(
+          createElement(Harness, {
+            messages,
+            enabled: true,
+            workingStartedAt: 1_000,
+            turnJournal: { items, submissions: [], latestTurn }
+          })
+        )
+      })
+      const disclosure = renderer!.root.findByType('result').props.disclosure
+      const rows = messages.map((message, index) => disclosure.resolveRow(index, message))
+      act(() => renderer?.unmount())
+      return rows
+    }
+
+    const hosted = rowsWith({
+      itemId: 'turn-record',
+      observedAt: 1,
+      turn: { turnId: 'turn-1', state: 'running', startedAt: 1_000, userItemId: 'user-1' }
+    })
+    expect(hosted[0]?.turnStatus).toMatchObject({ startedAt: 1_000 })
+    expect(hosted.map((row) => row.activeTurnIsWorking)).toEqual([true, true])
+
+    // From the loaded rows alone, nothing names the turn, so no bar draws.
+    expect(rowsWith(undefined).map((row) => row.turnStatus)).toEqual([null, null])
+  })
 })
 
 describe('the open reasoning block the live line discloses', () => {
