@@ -18600,7 +18600,9 @@
     "clientHosted": {
       "preparationFailed": "このデスクトップ上でリモートブラウザを起動できませんでした。ペアリングされた接続を確認して、もう一度試してください。",
       "unavailableTitle": "クライアントホスト型ブラウザは利用不可",
-      "unavailableDescription": "このページは別のデスクトップに接続されているか、もう利用できません。",
+      "unavailableDescription": "このページは現在このデスクトップでは利用できません。",
+      "unavailableOtherDesktopDescription": "このページは別のデスクトップで開かれています。",
+      "unavailableHostOfflineDescription": "{{host}} はオフラインです。再接続されると、このページはここで再読み込みされます。",
       "download": {
         "started": "{{filename}}をダウンロード中…",
         "completed": "{{filename}}をダウンロードしました",

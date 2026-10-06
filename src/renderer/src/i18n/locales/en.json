@@ -82,7 +82,9 @@
     "clientHosted": {
       "preparationFailed": "Couldn't start the remote browser on this desktop. Check the paired connection and try again.",
       "unavailableTitle": "Client-hosted browser unavailable",
-      "unavailableDescription": "This page is attached to a different desktop or is no longer available.",
+      "unavailableDescription": "This page isn't available on this desktop right now.",
+      "unavailableOtherDesktopDescription": "This page is open on another desktop.",
+      "unavailableHostOfflineDescription": "{{host}} is offline. This page will reload here once it reconnects.",
       "download": {
         "started": "Downloading {{filename}}…",
         "completed": "Downloaded {{filename}}",

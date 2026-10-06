@@ -18600,7 +18600,9 @@
     "clientHosted": {
       "preparationFailed": "No se pudo iniciar el navegador remoto en este escritorio. Comprueba la conexión emparejada y vuelve a intentarlo.",
       "unavailableTitle": "Navegador alojado en el cliente no disponible",
-      "unavailableDescription": "Esta página está asociada a otro escritorio o ya no está disponible.",
+      "unavailableDescription": "Esta página no está disponible en este escritorio en este momento.",
+      "unavailableOtherDesktopDescription": "Esta página está abierta en otro escritorio.",
+      "unavailableHostOfflineDescription": "{{host}} está sin conexión. Esta página se volverá a cargar aquí cuando se reconecte.",
       "download": {
         "started": "Descargando {{filename}}…",
         "completed": "{{filename}} descargado",

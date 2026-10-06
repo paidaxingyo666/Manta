@@ -18600,7 +18600,9 @@
     "clientHosted": {
       "preparationFailed": "无法在此桌面上启动远程浏览器。检查配对连接并重试。",
       "unavailableTitle": "客户端托管的浏览器不可用",
-      "unavailableDescription": "此页面已附加到其他桌面或不再可用。",
+      "unavailableDescription": "此页面目前在此桌面上不可用。",
+      "unavailableOtherDesktopDescription": "此页面已在另一台桌面上打开。",
+      "unavailableHostOfflineDescription": "{{host}} 已离线。重新连接后，此页面将在此处重新加载。",
       "download": {
         "started": "正在下载 {{filename}}...",
         "completed": "已下载{{filename}}",

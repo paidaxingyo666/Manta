@@ -18600,7 +18600,9 @@
     "clientHosted": {
       "preparationFailed": "이 데스크톱에서 원격 브라우저를 시작할 수 없습니다. 페어링된 연결을 확인하고 다시 시도하세요.",
       "unavailableTitle": "클라이언트 호스팅 브라우저를 사용할 수 없음",
-      "unavailableDescription": "이 페이지는 다른 데스크탑에 연결되어 있거나 더 이상 사용할 수 없습니다.",
+      "unavailableDescription": "이 페이지는 현재 이 데스크탑에서 사용할 수 없습니다.",
+      "unavailableOtherDesktopDescription": "이 페이지는 다른 데스크탑에서 열려 있습니다.",
+      "unavailableHostOfflineDescription": "{{host}}이(가) 오프라인입니다. 다시 연결되면 이 페이지가 여기에서 다시 로드됩니다.",
       "download": {
         "started": "{{filename}} 다운로드 중…",
         "completed": "{{filename}}을(를) 다운로드했습니다.",

@@ -38,7 +38,9 @@
     "clientHosted": {
       "preparationFailed": "Impossible de démarrer le navigateur distant sur ce bureau. Vérifiez la connexion couplée et réessayez.",
       "unavailableTitle": "Navigateur hébergé par le client indisponible",
-      "unavailableDescription": "Cette page est attachée à un autre bureau ou n'est plus disponible.",
+      "unavailableDescription": "Cette page n'est pas disponible sur ce bureau pour le moment.",
+      "unavailableOtherDesktopDescription": "Cette page est ouverte sur un autre bureau.",
+      "unavailableHostOfflineDescription": "{{host}} est hors ligne. Cette page se rechargera ici dès sa reconnexion.",
       "download": {
         "started": "Téléchargement de {{filename}}…",
         "completed": "Téléchargé {{filename}}",
