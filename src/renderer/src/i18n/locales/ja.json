@@ -17972,7 +17972,8 @@
         "details": "詳細",
         "plan": "プラン",
         "historyRepaired": "このチャットの履歴の一部を読み込めませんでした。",
-        "historyItemTooLarge": "チャットのこの部分は大きすぎるため表示できません。"
+        "historyItemTooLarge": "チャットのこの部分は大きすぎるため表示できません。",
+        "stoppedBeforeStart": "Agent の開始前に停止しました"
       },
       "providerFrame": {
         "byteLength": "{{value0}}バイト"

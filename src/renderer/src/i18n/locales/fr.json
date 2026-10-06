@@ -18038,7 +18038,8 @@
         "details": "Détails",
         "plan": "Plan",
         "historyRepaired": "Une partie de l'historique de ce chat n'a pas pu être chargée.",
-        "historyItemTooLarge": "Cette partie du chat était trop volumineuse pour être affichée."
+        "historyItemTooLarge": "Cette partie du chat était trop volumineuse pour être affichée.",
+        "stoppedBeforeStart": "Arrêté avant le démarrage de l'agent"
       },
       "providerFrame": {
         "byteLength": "{{value0}} octets"

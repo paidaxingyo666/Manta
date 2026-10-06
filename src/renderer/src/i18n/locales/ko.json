@@ -17972,7 +17972,8 @@
         "details": "세부",
         "plan": "계획",
         "historyRepaired": "이 채팅 기록의 일부를 불러올 수 없습니다.",
-        "historyItemTooLarge": "채팅의 이 부분은 너무 커서 표시할 수 없습니다."
+        "historyItemTooLarge": "채팅의 이 부분은 너무 커서 표시할 수 없습니다.",
+        "stoppedBeforeStart": "에이전트가 시작되기 전에 중지됨"
       },
       "providerFrame": {
         "byteLength": "{{value0}}바이트"

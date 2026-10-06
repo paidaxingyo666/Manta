@@ -18044,7 +18044,8 @@
         "details": "Detalles",
         "plan": "Plan",
         "historyRepaired": "No se pudo cargar parte del historial de este chat.",
-        "historyItemTooLarge": "Esta parte del chat era demasiado grande para mostrarla."
+        "historyItemTooLarge": "Esta parte del chat era demasiado grande para mostrarla.",
+        "stoppedBeforeStart": "Detenido antes de que el agente empezara"
       },
       "providerFrame": {
         "byteLength": "{{value0}} bytes"
