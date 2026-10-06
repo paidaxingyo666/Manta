@@ -114,7 +114,7 @@ export function NativeChatStructuredSession(
     }),
     [controller, historyPhase, props.agent, props.sessionId]
   )
-  const agentLabel = structuredAgentLabel(props.agent === 'codex' ? 'codex' : 'claude')
+  const agentLabel = structuredAgentLabel(props.agent)
   const deliveryNotices = useStructuredAgentSessionDeliveryNotices({
     outbox: controller.outbox,
     submissions: controller.submissions,

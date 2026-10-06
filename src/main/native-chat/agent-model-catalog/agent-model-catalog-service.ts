@@ -1,5 +1,9 @@
 import type { AgentSessionModelCatalogResult } from '../../../shared/agent-session-wire'
-import type { AgentSessionRecord } from '../../../shared/agent-session-record'
+import type {
+  AgentSessionAccountHome,
+  AgentSessionRecord
+} from '../../../shared/agent-session-record'
+import type { AgentSessionHandleProvider } from '../../../shared/agent-session-provider-handle'
 import {
   agentModelCatalogFingerprint,
   agentModelCatalogFingerprintForRecord
@@ -16,9 +20,7 @@ export type AgentModelCatalogServiceDeps = {
   /** The account home a structured launch for this agent would pin right now —
    *  the SAME resolver the create path fills `record.accountHome` with, so a
    *  record-less read can never answer from another account's listing. */
-  resolveAccountHome: (
-    agent: 'claude' | 'codex'
-  ) => Promise<{ variable: 'CLAUDE_CONFIG_DIR' | 'CODEX_HOME'; path: string }>
+  resolveAccountHome: (agent: AgentSessionHandleProvider) => Promise<AgentSessionAccountHome>
   /** Session-less listers, one per agent that has one on this host. */
   probes?: Partial<Record<'claude' | 'codex', AgentModelCatalogProbe>>
   /** Whether the workspace's own config could pick a model other than the listed default. */
@@ -99,7 +101,7 @@ export function createAgentModelCatalogService(
         // Probes spawn natively; a WSL-pinned record has no host-side lister.
         accountHomePath = scoped.location.wslDistro === null ? scoped.accountHome.path : null
       } else {
-        let resolved: { variable: 'CLAUDE_CONFIG_DIR' | 'CODEX_HOME'; path: string }
+        let resolved: AgentSessionAccountHome
         try {
           resolved = await deps.resolveAccountHome(params.agent)
         } catch {

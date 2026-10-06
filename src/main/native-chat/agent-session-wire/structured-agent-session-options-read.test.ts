@@ -9,6 +9,7 @@ import {
 } from '../agent-model-catalog/agent-model-catalog-store'
 import type { StructuredAgentSessionMutationContext } from './structured-agent-session-host-mutations'
 import { readStructuredAgentSessionOptions } from './structured-agent-session-options-read'
+import { NO_STRUCTURED_AGENTS } from './structured-agent-session-adapter-router-test-support'
 
 const SESSION = 'session-1'
 
@@ -35,7 +36,12 @@ describe('options at rest', () => {
     const resting = { child: null, params: { provider: 'codex' } }
     // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the resting read touches only these members.
     const context = {
-      deps: { adapter: {}, store: { getRecord: () => record }, modelCatalog },
+      deps: {
+        adapter: {},
+        agents: NO_STRUCTURED_AGENTS,
+        store: { getRecord: () => record },
+        modelCatalog
+      },
       serialize: (_sessionId: string, task: () => Promise<unknown>) => task(),
       openConversation: async () => resting,
       conversation: async () => resting

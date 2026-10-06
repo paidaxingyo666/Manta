@@ -27,11 +27,14 @@ import {
   type CodexStructuredSessionAdapterDeps
 } from '../codex/codex-structured-session-adapter'
 import type { ClaudeStructuredSessionAdapterDeps } from '../claude/claude-structured-session-adapter'
+import { CODEX_STRUCTURED_AGENT } from '../codex/codex-structured-agent-definition'
+import { CLAUDE_STRUCTURED_AGENT } from '../claude/claude-structured-agent-definition'
 import {
   StructuredAgentSessionHost,
   type StructuredAgentSessionHostDeps
 } from '../native-chat/agent-session-wire/structured-agent-session-host'
 import { StructuredAgentSessionAdapterRouter } from '../native-chat/agent-session-wire/structured-agent-session-adapter-router'
+import { StructuredAgentRegistry } from '../native-chat/agent-session-wire/structured-agent-registry'
 import { setStructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-registry'
 import {
   readClaudeManagedAccountGateSettings,
@@ -304,12 +307,17 @@ async function installOnJournal(
     ...(deps.readProcessStartTime ? { readProcessStartTime: deps.readProcessStartTime } : {}),
     modelCatalog: agentModelCatalogStore
   })
-  const adapter = new StructuredAgentSessionAdapterRouter({ codex, claude }, async () => {
+  const agents = new StructuredAgentRegistry([
+    { definition: CODEX_STRUCTURED_AGENT, adapter: codex },
+    { definition: CLAUDE_STRUCTURED_AGENT, adapter: claude }
+  ])
+  const adapter = new StructuredAgentSessionAdapterRouter(agents, async () => {
     await Promise.all([codex.closeAll(), claude.closeAll()])
   })
   host = new StructuredAgentSessionHost({
     store,
     adapter,
+    agents,
     recoveryCapsule: new AgentSessionRecoveryCapsule(deps.stateDirectory),
     journalDatabase,
     claimKeyId: deps.claimKeyId,

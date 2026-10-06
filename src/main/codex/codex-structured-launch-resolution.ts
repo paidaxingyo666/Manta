@@ -15,6 +15,7 @@ import type { CodexStructuredLaunch } from './codex-structured-session-adapter'
 import type { CodexStructuredPermissionPolicy } from './codex-structured-permission-policy'
 import { resolvePinnedCodexRolloutProof } from './codex-pinned-rollout-proof'
 import { isWindowsProcessStartTimeAvailable } from '../windows/windows-process-table'
+import { agentConfigDirectoryVariable } from '../../shared/agent-session-account-home'
 
 export type CodexStructuredLaunchResolverDeps = {
   store: AgentSessionRecordStore
@@ -85,8 +86,9 @@ export function createCodexStructuredLaunchResolver(
     ) {
       throw new Error('codex structured sessions require Windows process creation-time proof')
     }
-    if (accountHome.variable !== 'CODEX_HOME') {
-      throw new Error(`codex sessions pin CODEX_HOME, not ${accountHome.variable}`)
+    const pinned = agentConfigDirectoryVariable('codex')
+    if (accountHome.variable !== pinned) {
+      throw new Error(`codex sessions pin ${pinned}, not ${accountHome.variable}`)
     }
     const { command, environment } = await resolveCodexStructuredInvocation(deps)
     // `record.launchArgs` is deliberately not read: the configured CLI arguments are a terminal

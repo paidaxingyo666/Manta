@@ -34,6 +34,7 @@ import {
   openTestJournalHostDatabase,
   updateTestJournalRowJson
 } from '../../../native-chat/agent-session-journal/journal-host-database-test-support'
+import { claudeAndCodexDeclared } from '../../../native-chat/agent-session-wire/structured-agent-session-adapter-router-test-support'
 
 const CLIENT = {
   clientId: 'device-1',
@@ -386,9 +387,9 @@ describe('options at rest', () => {
 
   it('answers the provider-level features of a chat at rest (P2-17)', async () => {
     await restingChat()
+    // A runtime that declares Codex's goal and rewind, as production registers it.
+    setStructuredAgentSessionHost(await rig.restart({ agents: claudeAndCodexDeclared() }))
     Object.assign(rig.host.deps.adapter, {
-      supportsThreadGoal: (_id: string, agent?: string) => agent === 'codex',
-      recordsContextUsage: (_id: string, agent?: string) => agent === 'claude',
       rewindSupport: (_id: string, agent?: string) =>
         agent === 'codex' ? { supported: true } : { supported: false, reason: 'unsupported' }
     })

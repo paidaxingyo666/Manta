@@ -24,11 +24,16 @@ import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
 import { parseWslUncPath } from '../../shared/wsl-paths'
 import { parseWorkspaceKey } from '../../shared/workspace-scope'
 import { applyStructuredCodexWorkspaceTrust } from '../agent-workspace-trust-spawn'
+import {
+  agentSessionAccountHome,
+  type AgentSessionAccountHome
+} from '../../shared/agent-session-account-home'
+import type { AgentSessionHandleProvider } from '../../shared/agent-session-provider-handle'
 
 export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends MantaRuntimeWithGetWorktreePs {
   async getStructuredAgentSessionCreateSupport(
     worktreeSelector: string,
-    agent: 'claude' | 'codex'
+    agent: AgentSessionHandleProvider
   ): Promise<{ supported: boolean; reason?: 'agent' | 'remote' | 'wsl' }> {
     const location = await this.resolveStructuredAgentSessionLocation(worktreeSelector)
     return resolveStructuredAgentSessionCreateSupport({
@@ -45,7 +50,7 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
   /** The saved selection a new chat here starts with. createSupport reports it too, so a client's
    *  picker shows what create will run; one resolver keeps the two from drifting. */
   structuredAgentSessionLaunchSeedOptions(
-    agent: 'claude' | 'codex'
+    agent: AgentSessionHandleProvider
   ): Record<string, string> | undefined {
     return resolveStructuredLaunchSeedOptions(
       this.requireStore().getSettings().nativeChatSessionOptions,
@@ -93,7 +98,7 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
   async resolveStructuredAgentSessionCreateIntent(input: {
     envelope: { sessionId: string; clientOperationId: string }
     worktree: string
-    agent: 'claude' | 'codex'
+    agent: AgentSessionHandleProvider
     callerKey?: string
     resumeFrom?: { providerSessionId: string }
   }): Promise<AgentSessionAttachParams> {
@@ -125,38 +130,38 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
    * Same resolver as the create intent above — never a second copy.
    */
   async resolveStructuredAgentAccountHome(
-    agent: 'claude' | 'codex'
-  ): Promise<{ variable: 'CLAUDE_CONFIG_DIR' | 'CODEX_HOME'; path: string }> {
+    agent: AgentSessionHandleProvider
+  ): Promise<AgentSessionAccountHome> {
     const launchEnv = resolveTuiAgentLaunchEnv(
       agent,
       this.requireStore().getSettings().agentDefaultEnv
     )
     if (agent === 'claude') {
-      return {
-        variable: 'CLAUDE_CONFIG_DIR',
-        path: resolveStructuredClaudeAccountHomePath({
+      return agentSessionAccountHome(
+        agent,
+        resolveStructuredClaudeAccountHomePath({
           launchEnv,
           wslDistro: null,
           getClaudeConfigDirectory: (target) => this.accounts.getClaudeConfigDirectory(target)
         })
-      }
+      )
     }
-    return {
-      variable: 'CODEX_HOME',
+    return agentSessionAccountHome(
+      agent,
       // Read-only resolver, never launch prep: a picker mount or discovery read
       // must not sync homes, start bridges, or clear an account selection.
-      path: await resolveStructuredCodexAccountHomePath({
+      await resolveStructuredCodexAccountHomePath({
         launchEnv,
         resolveLaunchHome: this.resolveCodexStructuredLaunchHomeFn
       })
-    }
+    )
   }
 
   protected async resolveStructuredAgentSessionIntent(
     input: {
       envelope: { sessionId: string; clientOperationId: string }
       worktree: string
-      agent: 'claude' | 'codex'
+      agent: AgentSessionHandleProvider
       callerKey?: string
       resumeFrom?: { providerSessionId: string }
     },
@@ -215,10 +220,10 @@ export class MantaRuntimeWithGetStructuredAgentSessionCreateSupport extends Mant
       location,
       provider: input.agent,
       agent: input.agent,
-      accountHome: {
-        variable: input.agent === 'claude' ? 'CLAUDE_CONFIG_DIR' : 'CODEX_HOME',
-        path: adoption ? adoption.accountHomePath : selectedAccountHomePath
-      },
+      accountHome: agentSessionAccountHome(
+        input.agent,
+        adoption ? adoption.accountHomePath : selectedAccountHomePath
+      ),
       ...(options ? { options } : {}),
       ...(input.resumeFrom && adoption
         ? {

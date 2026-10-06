@@ -26,6 +26,12 @@ import {
   type AgentSessionProviderHandleLink
 } from './agent-session-provider-handle'
 import { agentSessionProviderHandleBelongsTo } from './agent-session-provider-handle-encoding'
+import {
+  isAgentConfigDirectoryVariable,
+  type AgentSessionAccountHome
+} from './agent-session-account-home'
+
+export type { AgentSessionAccountHome } from './agent-session-account-home'
 
 export const AGENT_SESSION_RECORD_SCHEMA_VERSION = 2 as const
 
@@ -42,13 +48,6 @@ export type AgentSessionExecutionLocation = {
   wslDistro: string | null
   workspaceId: string
   workspaceKind: AgentSessionWorkspaceKind
-}
-
-/** Account root pinned at launch by the account selector, so a resume cannot drift to another login. */
-export type AgentSessionAccountHome = {
-  variable: 'CLAUDE_CONFIG_DIR' | 'CODEX_HOME'
-  /** Host-resolved absolute path in the execution host's own path syntax. */
-  path: string
 }
 
 /** Provider launch environment captured by the host when the session is created. */
@@ -235,8 +234,7 @@ function isAgentSessionAccountHome(value: unknown): value is AgentSessionAccount
   }
   const home = value as Partial<AgentSessionAccountHome>
   return (
-    (home.variable === 'CLAUDE_CONFIG_DIR' || home.variable === 'CODEX_HOME') &&
-    isBoundedString(home.path, MAX_PATH_LENGTH)
+    isAgentConfigDirectoryVariable(home.variable) && isBoundedString(home.path, MAX_PATH_LENGTH)
   )
 }
 

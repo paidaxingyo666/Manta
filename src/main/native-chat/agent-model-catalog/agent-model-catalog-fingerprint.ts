@@ -4,6 +4,8 @@ import type {
   AgentModelCatalogSessionAccess,
   AgentModelCatalogStore
 } from './agent-model-catalog-store'
+import { agentConfigDirectoryVariable } from '../../../shared/agent-session-account-home'
+import type { AgentSessionHandleProvider } from '../../../shared/agent-session-provider-handle'
 
 /**
  * Everything that changes which models a listing can answer with: the agent,
@@ -55,7 +57,7 @@ export function agentModelCatalogFingerprintForRecord(
  *  Native only: both structured adapters refuse non-native locations at launch. */
 export function agentModelCatalogSessionAccess(
   store: AgentModelCatalogStore | undefined,
-  agent: 'claude' | 'codex',
+  agent: AgentSessionHandleProvider,
   accountHomePath: string | null
 ): AgentModelCatalogSessionAccess | undefined {
   if (!store || !accountHomePath) {
@@ -65,7 +67,7 @@ export function agentModelCatalogSessionAccess(
     store,
     fingerprint: agentModelCatalogFingerprint({
       agent,
-      accountHomeVariable: agent === 'claude' ? 'CLAUDE_CONFIG_DIR' : 'CODEX_HOME',
+      accountHomeVariable: agentConfigDirectoryVariable(agent),
       accountHomePath,
       wslDistro: null
     }),
