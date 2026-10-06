@@ -260,8 +260,7 @@ export class StructuredAgentSessionHost {
   }
 
   /** Test barrier: every write has landed by its call's return, so no production path needs it. */
-  flushStreamedEvents = (sessionId: string): Promise<void> =>
-    this.runtimeState.flushEventSink(sessionId)
+  flushStreamedEvents = (id: string): Promise<void> => this.runtimeState.flushEventSink(id)
 
   // Trigger inlined rather than imported: `AgentSessionResumeTrigger` in shared is the canonical
   // type, and this file has no line budget left for the import.
