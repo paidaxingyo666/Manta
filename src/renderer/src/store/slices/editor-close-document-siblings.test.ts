@@ -211,6 +211,26 @@ describe('closing duplicate document records', () => {
     expect(store.getState().unifiedTabsByWorktree['wt-1']).toEqual([])
   })
 
+  it.each([undefined, '', 'pending sibling text'])(
+    'close-all preserves the backing file of a dirty duplicate: %s',
+    async (draft) => {
+      const stat = vi.fn(async () => ({ size: 0, isDirectory: false, mtime: 0 }))
+      const deletePath = vi.fn(async () => {})
+      vi.stubGlobal('window', { api: { fs: { stat, deletePath } } })
+      file = { ...file, isUntitled: true }
+      store.setState({ openFiles: [file] })
+      const sibling = addSibling({ isDirty: draft === undefined })
+      if (draft !== undefined) {
+        store.setState({ editorDrafts: { [sibling.id]: draft } })
+      }
+      store.getState().closeAllFiles()
+      await new Promise<void>((resolve) => setImmediate(resolve))
+      expect(stat).not.toHaveBeenCalled()
+      expect(deletePath).not.toHaveBeenCalled()
+      expect(store.getState().openFiles).toEqual([])
+    }
+  )
+
   it.each(['closeFile', 'closeAllFiles'] as const)(
     '%s retains the backing file when the selected untitled document has an empty draft',
     async (action) => {

@@ -6,7 +6,12 @@ import {
   restoreRecentlyClosedTabPosition
 } from '../../recently-closed-tabs'
 import { notifyHostOfMirroredEditorClose } from '@/runtime/close-mirrored-editor-tab'
-import { type ClosedEditorTabSnapshot, MAX_RECENT_CLOSED_EDITOR_TABS } from '../types/open-file'
+import {
+  type ClosedEditorTabSnapshot,
+  MAX_RECENT_CLOSED_EDITOR_TABS,
+  type OpenFile
+} from '../types/open-file'
+import { mayShareEditorBackingFile } from '../file-ids/editor-file-ids'
 import {
   deleteUntouchedUntitledFile,
   shouldDeleteUntouchedUntitledFile
@@ -43,12 +48,24 @@ export function createRecentlyClosedEditorTabs(
       const state = get()
       const activeWorktreeId = state.activeWorktreeId
 
+      const pendingFilesByPath = new Map<string, OpenFile[]>()
+      for (const file of state.openFiles) {
+        if (file.isDirty || file.id in state.editorDrafts) {
+          const pendingFiles = pendingFilesByPath.get(file.filePath) ?? []
+          pendingFiles.push(file)
+          pendingFilesByPath.set(file.filePath, pendingFiles)
+        }
+      }
       // Why: like closeFile — untitled unedited files are empty placeholders that shouldn't survive close-all.
       const untitledToDelete = state.openFiles.filter(
         (f) =>
           shouldDeleteUntouchedUntitledFile(f, f.id in state.editorDrafts) &&
-          (!activeWorktreeId || f.worktreeId === activeWorktreeId)
+          (!activeWorktreeId || f.worktreeId === activeWorktreeId) &&
+          !(pendingFilesByPath.get(f.filePath) ?? []).some((candidate) =>
+            mayShareEditorBackingFile(candidate, f)
+          )
       )
+      const untitledIdsToDelete = new Set(untitledToDelete.map((file) => file.id))
       const closingFiles = state.openFiles.filter(
         (file) => !activeWorktreeId || file.worktreeId === activeWorktreeId
       )
@@ -151,10 +168,7 @@ export function createRecentlyClosedEditorTabs(
         const positionIndex = createRecentlyClosedTabPositionIndex(s, activeWorktreeId)
         for (const f of [...closingFiles].toReversed()) {
           // Why: skip untitled non-dirty files (deleted from disk after close) and ephemeral preview tabs so the reopen stack has no vanished/junk paths.
-          if (
-            shouldDeleteUntouchedUntitledFile(f, f.id in s.editorDrafts) ||
-            f.mode === 'markdown-preview'
-          ) {
+          if (untitledIdsToDelete.has(f.id) || f.mode === 'markdown-preview') {
             continue
           }
           const { id: _id, isDirty: _dirty, mirroredFromRuntimeSession: _mirrored, ...snap } = f
