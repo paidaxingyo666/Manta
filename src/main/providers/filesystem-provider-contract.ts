@@ -51,7 +51,7 @@ export class FileRangeReadUnsupportedError extends Error {
 }
 
 export type IFilesystemProvider = {
-  readDir(dirPath: string): Promise<DirEntry[]>
+  readDir(dirPath: string, options?: { followSymlinks?: boolean }): Promise<DirEntry[]>
   readFile(filePath: string, limits?: FileReadLimits): Promise<FileReadResult>
   readDocPreviewFile?(request: DocPreviewFileAccessRequest): Promise<DocPreviewFileAccessResult>
   /** Positional read. Optional because an older remote host cannot serve one.
@@ -106,13 +106,19 @@ export type IFilesystemProvider = {
       signal?: AbortSignal
       maxResults?: number
       searchQuery?: string
+      candidatePaths?: string[]
+      includeIgnored?: boolean
+      followSymlinks?: boolean
     }
   ): Promise<string[]>
   listMarkdownDocuments?(
     rootPath: string,
     options?: { signal?: AbortSignal }
   ): Promise<MarkdownDocument[]>
-  supportsQuickOpenSearch?(options?: { signal?: AbortSignal }): Promise<boolean>
+  supportsQuickOpenSearch?(options?: {
+    signal?: AbortSignal
+    minimumVersion?: number
+  }): Promise<boolean>
   scanWorkspaceSpace?(
     rootPath: string,
     options?: { signal?: AbortSignal }

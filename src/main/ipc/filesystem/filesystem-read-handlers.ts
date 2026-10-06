@@ -1,4 +1,5 @@
 import { listFilesystemMarkdownDocuments } from '../../providers/filesystem-markdown-listing'
+import { classifyFilesystemDirectoryEntries } from '../filesystem-symlink-directory-entries'
 import { markdownDocumentsFromRelativePaths } from '../../../shared/markdown-document-paths'
 import {
   capturePathExistence,
@@ -24,7 +25,6 @@ import { buildReadDirErrorBreadcrumb, type ReadDirThrowSite } from '../readdir-e
 import type { FilesystemHandlerContext } from './filesystem-handler-context'
 import { registerFilesystemChunkReadHandler } from './filesystem-chunk-read-handler'
 import {
-  isDirectoryEntry,
   readLocalFileContent,
   readLocalLogSnapshot,
   type LocalFileContent
@@ -36,7 +36,10 @@ export function registerFilesystemReadHandlers(context: FilesystemHandlerContext
 
   ipcMain.handle(
     'fs:readDir',
-    async (_event, args: { dirPath: string; connectionId?: string }): Promise<DirEntry[]> => {
+    async (
+      _event,
+      args: { dirPath: string; connectionId?: string; followSymlinks?: boolean }
+    ): Promise<DirEntry[]> => {
       // Why: fs:readDir throws surface as opaque IPC errors; record the throw site + redacted path shape to keep them diagnosable.
       let throwSite: ReadDirThrowSite = 'authorize'
       try {
@@ -44,16 +47,19 @@ export function registerFilesystemReadHandlers(context: FilesystemHandlerContext
           throwSite = 'ssh-provider'
           const provider = requireSshFilesystemProvider(args.connectionId)
           // Why: re-sort locally — the remote relay may be an older build with lexicographic ordering.
-          return sortDirEntries(await provider.readDir(args.dirPath))
+          return sortDirEntries(
+            await provider.readDir(args.dirPath, { followSymlinks: args.followSymlinks })
+          )
         }
         const dirPath = await resolveDesktopAuthorizedPath(args.dirPath, store)
         throwSite = 'readdir'
         const entries = await readdir(dirPath, { withFileTypes: true })
-        const mapped = entries.map((entry) => ({
-          name: entry.name,
-          isDirectory: isDirectoryEntry(entry),
-          isSymlink: entry.isSymbolicLink()
-        }))
+        const mapped = await classifyFilesystemDirectoryEntries(
+          args.dirPath,
+          entries,
+          args.followSymlinks ?? store.getSettings().followSymlinkedDirectories ?? false,
+          (path) => resolveDesktopAuthorizedPath(path, store)
+        )
         return sortDirEntries(mapped)
       } catch (error: unknown) {
         recordCrashBreadcrumb(

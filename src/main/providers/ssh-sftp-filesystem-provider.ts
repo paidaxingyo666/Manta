@@ -1,5 +1,6 @@
-import { DirectoryListingBudget } from '../../shared/directory-listing-budget'
+import { readSftpDirectory } from './ssh-sftp-directory-listing'
 import { SftpFilesystemChannel } from './ssh-sftp-filesystem-channel'
+export { readSftpDirectory } from './ssh-sftp-directory-listing'
 /**
  * Filesystem provider for plain SSH mode (design D6 rung D): read, list, stat and write over
  * one reused SFTP channel. Anything that needs the Manta remote server (search, file lists,
@@ -7,7 +8,6 @@ import { SftpFilesystemChannel } from './ssh-sftp-filesystem-channel'
  */
 import { extname } from 'node:path'
 import type { SFTPWrapper, Stats } from 'ssh2'
-import { sortDirEntries } from '../../shared/file-name-sort'
 import { IMAGE_FILE_MIME_TYPES } from '../../shared/image-file-extensions'
 import { capturePathExistence, type PathExistenceResult } from '../../shared/path-existence-batch'
 import type { SearchResult } from '../../shared/code-search-types'
@@ -20,12 +20,7 @@ import {
   type FolderDownloadOptions,
   type SftpFactory
 } from './ssh-filesystem-download'
-import {
-  fileStatFromSftpStats,
-  lstatViaSftp,
-  readDirectoryEntriesViaSftp,
-  statViaSftp
-} from './ssh-filesystem-provider-sftp'
+import { fileStatFromSftpStats, lstatViaSftp, statViaSftp } from './ssh-filesystem-provider-sftp'
 import type { FileReadLimits, FileReadResult, FileStat, IFilesystemProvider } from './types'
 
 // Why: same caps and probe window as the relay's fs.readFile so previews behave identically.
@@ -129,10 +124,10 @@ export class SshSftpFilesystemProvider implements IFilesystemProvider {
     return new PlainSshUnsupportedError(feature, this.mode)
   }
 
-  async readDir(dirPath: string): Promise<DirEntry[]> {
+  async readDir(dirPath: string, options?: { followSymlinks?: boolean }): Promise<DirEntry[]> {
     const path = toSftpPath(dirPath)
     return this.run(async (sftp) => {
-      return readSftpDirectory(sftp, path)
+      return readSftpDirectory(sftp, path, options)
     })
   }
 
@@ -303,21 +298,4 @@ export class SshSftpFilesystemProvider implements IFilesystemProvider {
   async watch(): Promise<() => void> {
     throw this.unsupported('Watching files for changes')
   }
-}
-
-export async function readSftpDirectory(sftp: SFTPWrapper, path: string): Promise<DirEntry[]> {
-  const budget = new DirectoryListingBudget()
-  const mapped: DirEntry[] = []
-  for await (const entry of readDirectoryEntriesViaSftp(sftp, path)) {
-    budget.record(entry.filename)
-    const isSymlink = entry.attrs.isSymbolicLink()
-    let isDirectory = entry.attrs.isDirectory()
-    if (isSymlink) {
-      isDirectory = await statViaSftp(sftp, `${path.replace(/\/$/, '')}/${entry.filename}`)
-        .then((stats) => stats.isDirectory())
-        .catch(() => false)
-    }
-    mapped.push({ name: entry.filename, isDirectory, isSymlink })
-  }
-  return sortDirEntries(mapped)
 }

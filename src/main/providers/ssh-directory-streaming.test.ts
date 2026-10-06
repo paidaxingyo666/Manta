@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SFTPWrapper } from 'ssh2'
-import { readDirectoryEntriesViaSftp, readDirViaSftp } from './ssh-filesystem-provider-sftp'
+import { readDirectoryEntriesViaSftp } from './ssh-filesystem-provider-sftp'
+import { readSftpDirectory } from './ssh-sftp-directory-listing'
 
 function fixture(packets: string[][]) {
   let next = 0
@@ -11,7 +12,10 @@ function fixture(packets: string[][]) {
       next < packets.length
         ? callback(
             null,
-            packets[next++].map((filename) => ({ filename, attrs: {} }))
+            packets[next++].map((filename) => ({
+              filename,
+              attrs: { isSymbolicLink: () => false, isDirectory: () => false }
+            }))
           )
         : callback(Object.assign(new Error('EOF'), { code: 1 }))
     ),
@@ -34,7 +38,7 @@ describe('SFTP directory handle ownership', () => {
 
   it('continues through empty filtered packets until the protocol EOF error', async () => {
     const { sftp, mock } = fixture([[], ['.', '..'], ['visible']])
-    expect((await readDirViaSftp(sftp, '/folder')).map((entry) => entry.filename)).toEqual([
+    expect((await readSftpDirectory(sftp, '/folder')).map((entry) => entry.name)).toEqual([
       'visible'
     ])
     expect(mock.close).toHaveBeenCalledTimes(1)
@@ -43,7 +47,7 @@ describe('SFTP directory handle ownership', () => {
   it('rejects capacity before fetching the remaining million-entry directory', async () => {
     const name = 'x'.repeat(1000)
     const { sftp, mock } = fixture(Array.from({ length: 1000 }, () => Array(100).fill(name)))
-    await expect(readDirViaSftp(sftp, '/folder')).rejects.toThrow('too large')
+    await expect(readSftpDirectory(sftp, '/folder')).rejects.toThrow('too large')
     expect(mock.readdir.mock.calls.length).toBeLessThan(50)
     expect(mock.close).toHaveBeenCalledTimes(1)
   })
@@ -136,7 +140,7 @@ it('preserves capacity failure when CLOSE never acknowledges', async () => {
   try {
     const { sftp, mock } = fixture([['x'.repeat(5 * 1024 * 1024)]])
     mock.close.mockImplementation(() => {})
-    const rejected = expect(readDirViaSftp(sftp, '/folder')).rejects.toThrow('too large')
+    const rejected = expect(readSftpDirectory(sftp, '/folder')).rejects.toThrow('too large')
     await vi.advanceTimersByTimeAsync(5000)
     await rejected
     expect(mock.close).toHaveBeenCalledTimes(1)
@@ -152,7 +156,7 @@ it('rejects explicit failed CLOSE and retires the persistent channel', async () 
   Object.assign(sftp, { end })
   const failure = new Error('CLOSE failed')
   mock.close.mockImplementation((_handle, callback) => callback(failure))
-  await expect(readDirViaSftp(sftp, '/folder')).rejects.toBe(failure)
+  await expect(readSftpDirectory(sftp, '/folder')).rejects.toBe(failure)
   expect(end).toHaveBeenCalledOnce()
 })
 
@@ -166,7 +170,7 @@ it('rejects EOF CLOSE timeout without claiming acknowledgement; late callback st
     mock.close.mockImplementation((_handle, callback) => {
       lateClose = () => callback(null)
     })
-    const rejected = expect(readDirViaSftp(sftp, '/folder')).rejects.toThrow('CLOSE timed out')
+    const rejected = expect(readSftpDirectory(sftp, '/folder')).rejects.toThrow('CLOSE timed out')
     await vi.advanceTimersByTimeAsync(5000)
     await rejected
     expect(end).toHaveBeenCalledOnce()
@@ -195,7 +199,7 @@ it.each(['EOF callback', 'CLOSE callback'])(
         callback(null)
       })
     }
-    await expect(readDirViaSftp(sftp, '/folder', { signal: controller.signal })).rejects.toBe(
+    await expect(readSftpDirectory(sftp, '/folder', { signal: controller.signal })).rejects.toBe(
       reason
     )
   }
@@ -204,13 +208,42 @@ it.each(['EOF callback', 'CLOSE callback'])(
 it('preserves a consumer capacity failure when CLOSE explicitly fails', async () => {
   const { sftp, mock } = fixture([['x'.repeat(5 * 1024 * 1024)]])
   mock.close.mockImplementation((_handle, callback) => callback(new Error('cleanup failed')))
-  await expect(readDirViaSftp(sftp, '/folder')).rejects.toThrow('too large')
+  await expect(readSftpDirectory(sftp, '/folder')).rejects.toThrow('too large')
 })
 
 it('keeps the persistent channel for acknowledged normal EOF', async () => {
   const { sftp } = fixture([['visible']])
   const end = vi.fn()
   Object.assign(sftp, { end })
-  await expect(readDirViaSftp(sftp, '/folder')).resolves.toHaveLength(1)
+  await expect(readSftpDirectory(sftp, '/folder')).resolves.toHaveLength(1)
   expect(end).not.toHaveBeenCalled()
+})
+
+it('cancels a silent symlink STAT and closes its directory handle', async () => {
+  vi.useFakeTimers()
+  try {
+    const { sftp, mock } = fixture([['linked']])
+    mock.readdir.mockImplementationOnce((_handle, callback) =>
+      callback(null, [
+        {
+          filename: 'linked',
+          attrs: { isSymbolicLink: () => true, isDirectory: () => false }
+        }
+      ])
+    )
+    const stat = vi.fn()
+    Object.assign(sftp, { stat })
+    const controller = new AbortController()
+    const reason = new Error('canceled during STAT')
+    const pending = readSftpDirectory(sftp, '/folder', { signal: controller.signal })
+    await vi.waitFor(() => expect(stat).toHaveBeenCalledOnce())
+    const rejected = expect(pending).rejects.toBe(reason)
+    controller.abort(reason)
+    await vi.advanceTimersByTimeAsync(5000)
+    await rejected
+    expect(mock.close).toHaveBeenCalledOnce()
+    expect(vi.getTimerCount()).toBe(0)
+  } finally {
+    vi.useRealTimers()
+  }
 })

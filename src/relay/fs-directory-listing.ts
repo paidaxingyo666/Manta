@@ -7,7 +7,8 @@ import { expandTilde } from './context'
 
 export async function readRelayDirectoryBounded(
   dirPath: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options?: { followSymlinks?: boolean }
 ): Promise<DirEntry[]> {
   signal?.throwIfAborted()
   const root = expandTilde(dirPath)
@@ -21,7 +22,7 @@ export async function readRelayDirectoryBounded(
       isDirectory: entry.isDirectory(),
       isSymlink: entry.isSymbolicLink()
     }
-    if (mapped.isSymlink && !mapped.isDirectory) {
+    if (mapped.isSymlink && !mapped.isDirectory && options?.followSymlinks !== false) {
       try {
         mapped.isDirectory = (await stat(join(root, entry.name))).isDirectory()
       } catch {

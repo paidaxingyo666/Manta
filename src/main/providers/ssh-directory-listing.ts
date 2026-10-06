@@ -9,7 +9,8 @@ import type { SftpFactory } from './ssh-filesystem-download'
 export function readSshDirectoryWithSftpFallback(
   mux: SshChannelMultiplexer,
   dirPath: string,
-  createSftp?: SftpFactory
+  createSftp?: SftpFactory,
+  options?: { followSymlinks?: boolean }
 ): Promise<DirEntry[]> {
   return readSshDirectoryBounded(
     mux,
@@ -18,26 +19,28 @@ export function readSshDirectoryWithSftpFallback(
       ? async () => {
           const sftp = await createSftp()
           try {
-            return await readSftpDirectory(sftp, dirPath)
+            return await readSftpDirectory(sftp, dirPath, options)
           } finally {
             sftp.end()
           }
         }
-      : undefined
+      : undefined,
+    options
   )
 }
 
 export async function readSshDirectoryBounded(
   mux: SshChannelMultiplexer,
   dirPath: string,
-  fallback?: () => Promise<DirEntry[]>
+  fallback?: () => Promise<DirEntry[]>,
+  options?: { followSymlinks?: boolean }
 ) {
   try {
     return validateDirectoryListing(
       await requestGitStreamable(
         mux,
         'fs.readDirBounded',
-        { dirPath },
+        { dirPath, ...options },
         { maxResponseBytes: 16 * 1024 * 1024 }
       )
     )
@@ -51,7 +54,7 @@ export async function readSshDirectoryBounded(
         await requestGitStreamable(
           mux,
           'fs.readDir',
-          { dirPath },
+          { dirPath, ...options },
           {
             maxResponseBytes: 16 * 1024 * 1024
           }

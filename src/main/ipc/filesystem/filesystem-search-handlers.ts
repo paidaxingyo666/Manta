@@ -1,3 +1,4 @@
+import { resolveSshQuickOpenDiscoveryOptions } from '../../providers/ssh-quick-open-discovery-options'
 import { ipcMain } from 'electron'
 import { getSshFilesystemProvider } from '../../providers/ssh-filesystem-dispatch'
 import { listQuickOpenFiles } from '../filesystem-list-files'
@@ -27,7 +28,11 @@ export function registerFilesystemSearchHandlers(context: FilesystemHandlerConte
         excludePaths?: string[]
         requestToken?: string
         maxResults?: number
+        candidatePaths?: string[]
         searchQuery?: string
+        includeIgnored?: boolean
+        allowLegacyIncludeIgnored?: boolean
+        followSymlinks?: boolean
         /** Local only: keep paths containing every whitespace-separated word, like the Explorer filter. */
         nameFilter?: string
       }
@@ -40,14 +45,32 @@ export function registerFilesystemSearchHandlers(context: FilesystemHandlerConte
           if (!provider) {
             return []
           }
+          const discovery = await resolveSshQuickOpenDiscoveryOptions(
+            provider,
+            args,
+            controller?.signal
+          )
+          if (
+            args.candidatePaths !== undefined &&
+            !(await provider.supportsQuickOpenSearch?.({
+              signal: controller?.signal,
+              minimumVersion: 3
+            }))
+          ) {
+            throw new Error('Update the remote host to validate Quick Open recent files.')
+          }
           // Why: forward excludePaths or nested linked worktrees get double-scanned over SSH, causing timeout-induced partial results.
           if (
             args.searchQuery !== undefined &&
             provider.supportsQuickOpenSearch &&
-            !(await provider.supportsQuickOpenSearch({ signal: controller?.signal }))
+            !(await provider.supportsQuickOpenSearch({
+              signal: controller?.signal,
+              minimumVersion: 1
+            }))
           ) {
             const legacyFiles = await provider.listFiles(args.rootPath, {
               excludePaths: args.excludePaths,
+              ...discovery,
               maxResults: QUICK_OPEN_SSH_LEGACY_RESULT_LIMIT,
               signal: controller?.signal
             })
@@ -61,7 +84,9 @@ export function registerFilesystemSearchHandlers(context: FilesystemHandlerConte
             return ranker.result().paths
           }
           return await provider.listFiles(args.rootPath, {
+            candidatePaths: args.candidatePaths,
             excludePaths: args.excludePaths,
+            ...discovery,
             ...(args.maxResults === undefined ? {} : { maxResults: args.maxResults }),
             ...(args.searchQuery === undefined ? {} : { searchQuery: args.searchQuery }),
             signal: controller?.signal
@@ -80,7 +105,8 @@ export function registerFilesystemSearchHandlers(context: FilesystemHandlerConte
           undefined,
           nameFilterTokens.length > 0
             ? (relativePath) => pathMatchesFileNameFilterTokens(relativePath, nameFilterTokens)
-            : undefined
+            : undefined,
+          args
         )
       } finally {
         listFilesCancellations.finish(event, args.requestToken, controller)

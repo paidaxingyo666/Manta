@@ -2,7 +2,8 @@ import { generateKeyPairSync } from 'node:crypto'
 import { Client, Server } from 'ssh2'
 import type { SFTPWrapper } from 'ssh2'
 import { describe, expect, it } from 'vitest'
-import { readDirectoryEntriesViaSftp, readDirViaSftp } from './ssh-filesystem-provider-sftp'
+import { readDirectoryEntriesViaSftp } from './ssh-filesystem-provider-sftp'
+import { readSftpDirectory } from './ssh-sftp-directory-listing'
 
 async function createServer() {
   const { privateKey } = generateKeyPairSync('rsa', {
@@ -94,7 +95,7 @@ describe('real SFTP directory packet contract', () => {
         break
       }
       expect(fixture.counts()).toEqual({ reads: 1, closes: 1 })
-      expect(await readDirViaSftp(fixture.sftp, '/complete')).toHaveLength(1000)
+      expect(await readSftpDirectory(fixture.sftp, '/complete')).toHaveLength(1000)
       expect(fixture.counts()).toEqual({ reads: 12, closes: 2 })
     } finally {
       await fixture.close()

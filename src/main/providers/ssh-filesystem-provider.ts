@@ -100,8 +100,8 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     return this.connectionId
   }
 
-  async readDir(dirPath: string): Promise<DirEntry[]> {
-    return readSshDirectoryWithSftpFallback(this.mux, dirPath, this.createSftp)
+  async readDir(dirPath: string, options?: { followSymlinks?: boolean }): Promise<DirEntry[]> {
+    return readSshDirectoryWithSftpFallback(this.mux, dirPath, this.createSftp, options)
   }
 
   async readFile(filePath: string, limits?: FileReadLimits): Promise<FileReadResult> {
@@ -319,8 +319,10 @@ export class SshFilesystemProvider implements IFilesystemProvider {
       this.listFiles(rootPath, { signal: options?.signal })
     )
 
-  supportsQuickOpenSearch = (options: { signal?: AbortSignal } = {}): Promise<boolean> =>
-    probeSshQuickOpenSearchCapability(this.mux, options.signal)
+  supportsQuickOpenSearch = (
+    options: { signal?: AbortSignal; minimumVersion?: number } = {}
+  ): Promise<boolean> =>
+    probeSshQuickOpenSearchCapability(this.mux, options.signal, options.minimumVersion)
   async watch(
     rootPath: string,
     callback: (events: FsChangeEvent[]) => void,

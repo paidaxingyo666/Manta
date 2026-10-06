@@ -1,3 +1,4 @@
+import { sshFilesystemListingParams } from './ssh-filesystem-listing-params'
 import { FileInventoryBudget, FILE_INVENTORY_MAX_BYTES } from '../../shared/file-inventory-budget'
 import type { SshChannelMultiplexer } from '../ssh/ssh-channel-multiplexer'
 import type { IFilesystemProvider } from './types'
@@ -8,16 +9,7 @@ export async function listSshFiles(
   rootPath: string,
   options?: Parameters<IFilesystemProvider['listFiles']>[1]
 ): Promise<string[]> {
-  const params: Record<string, unknown> = { rootPath }
-  if (options?.excludePaths && options.excludePaths.length > 0) {
-    params.excludePaths = options.excludePaths
-  }
-  if (options?.maxResults !== undefined) {
-    params.maxResults = options.maxResults
-  }
-  if (options?.searchQuery !== undefined) {
-    params.searchQuery = options.searchQuery
-  }
+  const params = sshFilesystemListingParams(rootPath, options)
   // Why #7721: the signal lets a workspace switch send rpc.cancel so the
   // relay aborts the full-tree scan instead of stacking abandoned scans
   // that starve interactive fs.readDir/fs.stat on the shared SSH channel.

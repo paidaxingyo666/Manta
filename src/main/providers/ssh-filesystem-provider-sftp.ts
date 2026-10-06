@@ -1,5 +1,4 @@
 import { closeSftpDirectoryHandle } from './ssh-sftp-directory-close'
-import { DirectoryListingBudget } from '../../shared/directory-listing-budget'
 import type { FileEntryWithStats, SFTPWrapper, Stats } from 'ssh2'
 import type { FileStat } from './types'
 
@@ -156,21 +155,6 @@ export async function* readDirectoryEntriesViaSftp(
       throw closeError
     }
   }
-}
-
-export async function readDirViaSftp(
-  sftp: SFTPWrapper,
-  dirPath: string,
-  options?: { signal?: AbortSignal }
-): Promise<FileEntryWithStats[]> {
-  const budget = new DirectoryListingBudget()
-  const entries: FileEntryWithStats[] = []
-  for await (const entry of readDirectoryEntriesViaSftp(sftp, dirPath, options)) {
-    budget.record(entry.filename)
-    entries.push(entry)
-  }
-  options?.signal?.throwIfAborted()
-  return entries
 }
 
 export function statViaSftp(

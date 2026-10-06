@@ -1,4 +1,8 @@
-import { decodeLegacyQuickOpenInventory, pruneLegacyInventoryCache } from './runtime-legacy-inventory-budget'
+import {
+  decodeLegacyQuickOpenInventory,
+  pruneLegacyInventoryCache
+} from './runtime-legacy-inventory-budget'
+import { quickOpenRecentCandidateSet } from '../../../shared/quick-open-recent-candidates'
 import type { RuntimeFileListResult } from '../../../shared/runtime-types'
 import {
   buildExcludePathPrefixes,
@@ -94,13 +98,14 @@ async function loadLegacyQuickOpenInventory(
   target: EnvironmentTarget,
   worktreeSelector: string,
   worktreePath: string | null | undefined,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  refreshSettled = false
 ): Promise<RuntimeFileListResult> {
   const key = cacheKey(target, worktreeSelector, worktreePath)
   const now = Date.now()
   const expectedEnvironmentPairingRevision = getRuntimeEnvironmentRevision(target.environmentId)
   const cached = inventoryCache.get(key)
-  if (cached && cached.expiresAt > now) {
+  if (cached && cached.expiresAt > now && !(refreshSettled && cached.settled)) {
     inventoryCache.delete(key)
     inventoryCache.set(key, cached)
     return awaitLegacyInventoryLoad(cached, signal)
@@ -233,4 +238,33 @@ export async function searchLegacyQuickOpenInventory(args: {
     files: matches.paths,
     truncated: result.truncated || matches.totalCount > args.limit
   }
+}
+
+export async function validateLegacyQuickOpenRecentCandidates(args: {
+  target: EnvironmentTarget
+  worktreeSelector: string
+  worktreePath: string | null | undefined
+  excludePaths: string[] | undefined
+  candidatePaths: string[]
+  signal?: AbortSignal
+}): Promise<string[]> {
+  const result = await loadLegacyQuickOpenInventory(
+    args.target,
+    args.worktreeSelector,
+    args.worktreePath,
+    args.signal,
+    true
+  )
+  if (result.truncated) {
+    throw new Error('Update the remote host to check recent files beyond its inventory limit.')
+  }
+  const candidates = quickOpenRecentCandidateSet(args.candidatePaths)
+  const excluded = buildExcludePathPrefixes(args.worktreePath ?? result.rootPath, args.excludePaths)
+  return result.files
+    .filter(
+      (entry) =>
+        candidates.has(entry.relativePath) &&
+        !shouldExcludeQuickOpenRelPath(entry.relativePath, excluded)
+    )
+    .map((entry) => entry.relativePath)
 }
