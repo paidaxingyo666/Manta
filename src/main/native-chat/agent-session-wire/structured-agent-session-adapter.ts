@@ -128,7 +128,10 @@ export type AgentSessionAcquisition = {
 /** A refusal before spawn that a person can act on; the site that refused names it. */
 export type AgentSessionPreSpawnReason = Extract<
   AgentSessionRefusalReason<'agent_session_operation_invalid'>,
-  'managedAccountEnvOverride' | 'accountSwitchInProgress' | 'managedAccountUnsupported'
+  | 'managedAccountEnvOverride'
+  | 'accountSwitchInProgress'
+  | 'managedAccountUnsupported'
+  | 'launchFolderMissing'
 >
 
 /** Acquisition failed with first-hand proof that no provider process existed. */

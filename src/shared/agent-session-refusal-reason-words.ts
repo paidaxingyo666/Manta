@@ -96,6 +96,7 @@ const REASON_WORDS = {
     managedAccountEnvOverride: { fact: 'managedAccountEnvOverride', action: 'actFirst' },
     accountSwitchInProgress: { fact: 'accountSwitchInProgress', action: 'wait' },
     managedAccountUnsupported: { fact: 'managedAccountUnsupported', action: 'actFirst' },
+    launchFolderMissing: { fact: 'launchFolderMissing', action: 'actFirst' },
     attachFailed: codeWords('retry')
   },
   agent_session_ownership_unknown: {
