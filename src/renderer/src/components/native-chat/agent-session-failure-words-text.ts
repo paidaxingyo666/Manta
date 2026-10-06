@@ -263,6 +263,24 @@ const PIECES: Record<AgentSessionFailureCopyId, (values: AgentSessionFailureCopy
         COPY.providerRetryingQuoted,
         values
       ),
+    providerRetryNumber: (values) =>
+      translate(
+        'components.native-chat.failureWords.providerRetryNumber',
+        COPY.providerRetryNumber,
+        values
+      ),
+    providerRetryNumberOf: (values) =>
+      translate(
+        'components.native-chat.failureWords.providerRetryNumberOf',
+        COPY.providerRetryNumberOf,
+        values
+      ),
+    providerRetryLastError: (values) =>
+      translate(
+        'components.native-chat.failureWords.providerRetryLastError',
+        COPY.providerRetryLastError,
+        values
+      ),
     previousExitUnverifiable: (values) =>
       translate(
         'components.native-chat.failureWords.previousExitUnverifiable',
