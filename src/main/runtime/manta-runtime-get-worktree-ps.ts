@@ -14,7 +14,12 @@ import { compareWorktreePs } from './runtime-worktree-status-projection'
 import type { Repo } from '../../shared/repo-types'
 import { enrichMissingRepoGitRemoteIdentities } from '../repo-git-remote-identity-enrichment'
 import { ensureStructuredAgentSessionHost as installStructuredAgentSessionHost } from './structured-agent-session-runtime'
-import { createStructuredAgentSessionLogger } from '../native-chat/agent-session-wire/structured-agent-session-logger'
+import {
+  createStructuredAgentSessionLogger,
+  neverThrowingStructuredAgentSessionLogger
+} from '../native-chat/agent-session-wire/structured-agent-session-logger'
+import { openAgentSessionRecordStoreOnce } from './agent-session-record-store-slot'
+import type { AgentSessionRecordStore } from './agent-session-record-store'
 import { maybeAutoRenameWorkspaceOnFirstStructuredTurn } from '../agent-hooks/first-work-structured-session-rename'
 import { firstWorkRenameDeps } from '../agent-hooks/first-work-rename-runtime'
 import { getProfileUserDataPath } from '../manta-profiles/profile-storage-paths'
@@ -136,11 +141,23 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleV
     })
   }
 
+  /** The durable record store alone, without the chat host: launch admission needs only its
+   *  ledger. A host installed later is built on this same store. */
+  async openAgentSessionRecordStore(): Promise<AgentSessionRecordStore> {
+    const { store } = await openAgentSessionRecordStoreOnce({
+      stateDirectory: getProfileUserDataPath(),
+      hostId: LOCAL_EXECUTION_HOST_ID,
+      logger: neverThrowingStructuredAgentSessionLogger(createStructuredAgentSessionLogger())
+    })
+    return store
+  }
+
   /**
    * Installs the structured agent-session host on first use. Lazy for the same
    * reason the orchestration DB is: the profile's user-data path is not final
-   * until the app is ready, and a runtime nobody drives a chat session on
-   * should never open the record store.
+   * until the app is ready, and a runtime nobody drives a chat session on never
+   * builds the chat host. The record store it sits on may already be open, from
+   * a launch's admission.
    */
   async ensureStructuredAgentSessionHost(): Promise<void> {
     await installStructuredAgentSessionHost({

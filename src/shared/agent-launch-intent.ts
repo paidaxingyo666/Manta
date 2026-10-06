@@ -151,6 +151,13 @@ export type AgentLaunchPromptDisposal =
   | { outcome: 'handed-to-terminal' }
   /** Not delivered by this call; the caller still owns the text. */
   | { outcome: 'not-delivered' }
+  /**
+   * Only ever replayed, never a live answer: the host recorded the running agent, then stopped
+   * before the delivery reported back, so the text may or may not have arrived. The caller must not
+   * resend. Sent only to a caller advertising `agent.launch.prompt-unconfirmed.v1`; every other
+   * caller is refused with `agent_session_operation_unknown` instead.
+   */
+  | { outcome: 'unconfirmed' }
 
 export type AgentLaunchPromptReceipt = {
   delivery: AgentLaunchPromptDelivery
@@ -241,7 +248,9 @@ function isAgentLaunchPromptReceipt(value: unknown): value is AgentLaunchPromptR
   }
   return value.outcome === 'journaled'
     ? 'messageId' in value && typeof value.messageId === 'string'
-    : value.outcome === 'handed-to-terminal' || value.outcome === 'not-delivered'
+    : value.outcome === 'handed-to-terminal' ||
+        value.outcome === 'not-delivered' ||
+        value.outcome === 'unconfirmed'
 }
 
 function isAgentLaunchOutcome(value: unknown): value is AgentLaunchOutcome {
