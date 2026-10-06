@@ -300,6 +300,31 @@ describe('release checkout materialization', () => {
     expect(relative(cacheRoot, checkout.root)).not.toMatch(/^\.\./)
   }, 180_000)
 
+  // v1.4.221 imports @streamparser/json, which the current tree no longer installs.
+  // Default cache root: package resolution must walk up into the repo's node_modules.
+  it('loads release source that imports a package the current tree dropped', async () => {
+    const checkout = await materializeReleaseCheckout('v1.4.221')
+    const ripgrep = await importReleaseCheckoutModule(
+      checkout,
+      '/src/shared/ripgrep-dense-match-json.ts'
+    )
+    const callExport = (name: string, ...args: unknown[]): unknown => {
+      const exported = ripgrep[name]
+      if (typeof exported !== 'function') {
+        throw new Error(`v1.4.221 ripgrep-dense-match-json has no ${name} export`)
+      }
+      return exported(...args)
+    }
+    const limits = { structuralTokens: 64, nestingDepth: 8 }
+
+    expect(callExport('parseRipgrepMatchJson', '{"type":"match"}', 1, limits)).toEqual({
+      type: 'match'
+    })
+    expect(() => callExport('parseDenseRipgrepMatchJson', '{"type":"match"}', 1, 8)).toThrow(
+      /imports '@streamparser\/json'.*does not install/
+    )
+  }, 180_000)
+
   it('keeps an import live while another colliding release label materializes', async () => {
     // Squash-merged history has no merge parents; create two distinct refs with colliding labels.
     const scope = `refs/orca-checkout-test/${randomUUID()}`
