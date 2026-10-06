@@ -196,7 +196,6 @@ async function writeLegacyChat(
   await mkdir(dirname(path), { recursive: true })
   const db = new Database(path)
   try {
-    db.pragma('journal_mode = WAL')
     db.exec(`
 CREATE TABLE journal_rows (session_id TEXT NOT NULL, epoch TEXT NOT NULL, seq INTEGER NOT NULL,
   ts INTEGER NOT NULL, row_json TEXT NOT NULL, PRIMARY KEY (session_id, epoch, seq));
