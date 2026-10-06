@@ -14,6 +14,7 @@ import type { PermissionMode } from '@anthropic-ai/claude-agent-sdk'
 import { existsSync } from 'node:fs'
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
 import type { AgentSessionResumeTrigger } from '../../shared/agent-session-resume-marker'
+import type { StructuredAttentionMobileDelivery } from './structured-agent-session-mobile-attention'
 import {
   structuredAgentSessionTeardownTrigger,
   tearDownRuntime,
@@ -130,6 +131,8 @@ export type StructuredAgentSessionRuntimeDeps = {
   statusSink?: StructuredAgentSessionHostDeps['statusSink']
   /** See `StructuredAgentSessionHostDeps.hasOpenDispatch`. */
   hasOpenDispatch?: StructuredAgentSessionHostDeps['hasOpenDispatch']
+  /** Host-owned phone delivery and reconciliation from the current journal projection. */
+  attentionDelivery?: StructuredAttentionMobileDelivery
   /** The account home a structured launch would pin right now, for catalog
    *  reads with no session record. Absent disables the catalog surface. */
   resolveAgentAccountHome?: RuntimeAgentAccountHomeResolver
@@ -298,6 +301,24 @@ async function installOnJournal(
     ...(deps.hasOpenDispatch ? { hasOpenDispatch: deps.hasOpenDispatch } : {}),
     ...(await modelCatalogHostDeps({ store, agents, deps, envResolvers }))
   })
+  if (deps.attentionDelivery) {
+    const installed = host
+    const delivery = deps.attentionDelivery
+    // Lives exactly as long as the host: teardown drops the host and its subscribers together.
+    installed.subscribeTurnCompletions({
+      id: 'host-attention-delivery',
+      includePrompts: true,
+      emit: (event) => {
+        if (event.type === 'end') {
+          return
+        }
+        const sessionId =
+          event.type === 'prompt' ? event.prompt.sessionId : event.completion.sessionId
+        delivery.deliver(event, installed.readStatusSummary(sessionId))
+      },
+      onState: delivery.reconcile
+    })
+  }
   setStructuredAgentSessionHost(host)
   return {
     host,

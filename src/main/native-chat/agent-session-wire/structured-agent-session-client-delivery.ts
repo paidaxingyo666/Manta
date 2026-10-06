@@ -1,3 +1,4 @@
+import type { AgentSessionStatusSummary } from '../../../shared/agent-session-wire'
 import { AgentSessionRefusalError } from '../../../shared/agent-session-wire-refusals'
 import type { AgentChildWorkEvidence } from '../../../shared/agent-status-child-work-evidence'
 import type { AgentChildWorkView } from '../../../shared/agent-status-child-work-view'
@@ -106,12 +107,17 @@ export class StructuredAgentSessionClientDelivery {
     }
   }
 
-  publishRestored = (sessionId: string): void =>
+  publishRestored = (sessionId: string): void => {
     this.statusFeed.publish(sessionId, undefined, { replay: true })
+    this.turnCompletionFeed.observe(sessionId, undefined, { historical: true })
+  }
 
   subscribeStatus = (subscriber: StructuredAgentSessionStatusSubscriber): (() => void) =>
     this.statusFeed.subscribe(subscriber)
   forgetStatus = (sessionId: string): void => this.statusFeed.forget(sessionId)
+
+  readStatusSummary = (sessionId: string): AgentSessionStatusSummary | undefined =>
+    this.statusFeed.readPublished(sessionId)
 
   subscribeTurnCompletions = (
     subscriber: StructuredAgentSessionTurnCompletionSubscriber

@@ -33,18 +33,22 @@ export type StructuredAgentSessionReadOwner = {
   subscribe: (listener: () => void) => () => void
 }
 
-const owners = new Map<string, StructuredAgentSessionReadOwner>()
+import {
+  adoptStructuredReadOwner,
+  getOrCreateStructuredReadOwner,
+  forgetStructuredReadOwner,
+  structuredReadOwnerKey
+} from './structured-agent-session-read-owner-registry'
+export {
+  findStructuredAgentSessionReadOwner,
+  resetStructuredAgentSessionReadOwnersForTests
+} from './structured-agent-session-read-owner-registry'
 
 /** Bounded so a busy stream cannot turn one scroll-to-top into an endless read chain. */
 const OLDER_PAGE_ANCHOR_ATTEMPTS = 3
 
 function countsTowardInitialHistory(item: AgentJournalRenderItem): boolean {
   return item.body.kind !== 'status' || !item.body.providerFrame
-}
-
-function ownerKey(sessionId: string, target: RuntimeClientTarget): string {
-  const targetKey = target.kind === 'local' ? 'local' : `environment:${target.environmentId}`
-  return `${targetKey}:${sessionId}`
 }
 
 function createReadOwner(
@@ -240,12 +244,14 @@ function createReadOwner(
 
   let owner: StructuredAgentSessionReadOwner
   const deleteIfUnused = (): void => {
-    if (activations.size === 0 && listeners.size === 0 && owners.get(key) === owner) {
-      owners.delete(key)
+    if (activations.size === 0 && listeners.size === 0) {
+      forgetStructuredReadOwner(key, owner)
     }
   }
   owner = {
     activate: () => {
+      // Remounts and StrictMode re-run setup on an owner whose cleanup just forgot it.
+      adoptStructuredReadOwner(key, owner)
       const token = Symbol(sessionId)
       activations.add(token)
       if (activations.size === 1) {
@@ -293,6 +299,7 @@ function createReadOwner(
       return page.promise
     },
     subscribe: (listener) => {
+      adoptStructuredReadOwner(key, owner)
       listeners.add(listener)
       return () => {
         listeners.delete(listener)
@@ -307,18 +314,6 @@ export function getStructuredAgentSessionReadOwner(
   sessionId: string,
   target: RuntimeClientTarget
 ): StructuredAgentSessionReadOwner {
-  const key = ownerKey(sessionId, target)
-  let owner = owners.get(key)
-  if (!owner) {
-    owner = createReadOwner(key, sessionId, target)
-    owners.set(key, owner)
-  }
-  return owner
-}
-
-export function resetStructuredAgentSessionReadOwnersForTests(): void {
-  for (const owner of owners.values()) {
-    owner.dispose()
-  }
-  owners.clear()
+  const key = structuredReadOwnerKey(sessionId, target)
+  return getOrCreateStructuredReadOwner(key, () => createReadOwner(key, sessionId, target))
 }

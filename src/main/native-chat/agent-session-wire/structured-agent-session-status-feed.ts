@@ -208,6 +208,10 @@ export class StructuredAgentSessionStatusFeed {
     })
   }
 
+  /** The summary last published for the session, as every status subscriber last saw it. */
+  readPublished = (sessionId: string): AgentSessionStatusSummary | undefined =>
+    this.published.get(sessionId)?.summary
+
   /** The projection behind the session's row, cached per commit: the latest request it read, so
    *  the completion feed follows it without snapshotting the journal again, and its `stopping`,
    *  which the steer hold reads instead of deriving it again. */
