@@ -720,11 +720,14 @@ do, so it never reports success over a pause it cannot explain.
 
 The sequence:
 
-1. **Preflight, read-only.** No `cloud-*` workflow is queued or running (all pages; the hourly
-   clock-skew monitor and `cloud-verify` excepted), and `main` is the reviewed commit.
-2. **Publish**, after the operator types `DEPLOY <commit prefix>`. It runs before rehome is touched,
-   so a moved `main` or a bad build needs no cleanup. The digest is the registry digest of
-   `relay:sha-<commit>`, and the run's own push line must name the same digest.
+1. **Publish.** No `cloud-*` workflow is queued or running (all pages; the hourly clock-skew
+   monitor and `cloud-verify` excepted), and `main` is the reviewed commit. The publish workflow
+   builds whatever `main` is when it is dispatched, so the driver dispatches it straight after that
+   check, before the inspects and the typed phrase. It changes nothing serving, so a bad build needs
+   no cleanup. The digest is the registry digest of `relay:sha-<commit>`, and the run's own push
+   line must name the same digest. If `main` still moved in those seconds, the driver stops and
+   names the `--commit <built> --publish-run <run>` that deploys that build once it is reviewed.
+2. **Preflight, read-only**, then the operator types `DEPLOY <commit prefix>`.
 3. **Pause**, only if rehome is enabled, after the operator types `PAUSE_REGIONAL_REHOMING`.
 4. **Deploy** with that digest, the paused generation, `preserve` for both regional inputs, no
    prune, and the old serving digest as predecessor.
