@@ -552,7 +552,7 @@ describe('openCodexAppServerConnection', () => {
   })
 
   it('allows a later close to observe exit after an unproven attempt', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     const { child, spawnImpl } = stubChild({ exitOnStdinEnd: false })
     answerInitialize(child)
     const connection = await openCodexAppServerConnection(
@@ -561,8 +561,19 @@ describe('openCodexAppServerConnection', () => {
       spawnImpl
     )
 
+    const forcedKill = new Promise<void>((resolve) => {
+      child.kill.mockImplementation((signal) => {
+        if (signal === 'SIGKILL') {
+          resolve()
+        }
+      })
+    })
     const first = connection.close()
-    await vi.advanceTimersByTimeAsync(GRACEFUL_EXIT_MS + 3_500)
+    await flushStreams()
+    await vi.advanceTimersByTimeAsync(GRACEFUL_EXIT_MS)
+    await forcedKill
+    await vi.advanceTimersByTimeAsync(0)
+    await vi.advanceTimersByTimeAsync(1_000)
     await expect(first).resolves.toBe(false)
     child.emit('exit', 0, null)
 
