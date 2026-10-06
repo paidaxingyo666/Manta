@@ -103,7 +103,7 @@ describe('a status-hook problem never moves the system default off ~/.codex', ()
     })
     await _internals.settledForTesting()
 
-    expect(service.isHostSystemDefaultRealHome()).toBe(true)
+    expect(service.isHostSystemDefaultRealHomeSelected()).toBe(true)
     // The resolver headless serve and the PTY launch both use: null keeps CODEX_HOME unset.
     expect(service.resolveHostCodexHomePathForLaunchReadOnly()).toBeNull()
     await expect(service.prepareForCodexLaunchAsync()).resolves.toBeNull()

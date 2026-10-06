@@ -61,7 +61,8 @@ export async function prepareCodexSessionResumeForLaunch(args: {
             codexHome: sessionSource.homePath
           },
           {
-            isHostSystemDefaultRealHome: () => runtimeHome.isHostSystemDefaultRealHome(),
+            isHostSystemDefaultRealHomeSelected: () =>
+              runtimeHome.isHostSystemDefaultRealHomeSelected(),
             systemCodexHomePath: systemHomePath
           }
         )

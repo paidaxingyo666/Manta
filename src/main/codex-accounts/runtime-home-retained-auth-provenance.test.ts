@@ -474,7 +474,6 @@ describe('CodexRuntimeHomeService', () => {
         }
       )
       const restartedService = new CodexRuntimeHomeService(store as never)
-      restartedService.setRealHomeLaneGate(() => true)
 
       expect(existsSync(getRuntimeCodexAuthPath())).toBe(false)
       writeFileSync(getSystemCodexAuthPath(), reloginAuth, 'utf-8')
@@ -525,7 +524,6 @@ describe('CodexRuntimeHomeService', () => {
       }
     )
     const restartedService = new CodexRuntimeHomeService(store as never)
-    restartedService.setRealHomeLaneGate(() => true)
     restartedService.reconcileLegacySharedHomeForRetainedPanes()
 
     settings.activeCodexManagedAccountId = 'account-1'

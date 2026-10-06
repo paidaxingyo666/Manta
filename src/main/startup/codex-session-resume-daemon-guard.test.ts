@@ -46,7 +46,7 @@ vi.mock('../codex/codex-legacy-session-resume', () => ({
 vi.mock('./main-process-state', () => ({
   mainProcessState: {
     codexRuntimeHome: {
-      isHostSystemDefaultRealHome: () => false,
+      isHostSystemDefaultRealHomeSelected: () => false,
       getHostCodexHomePathsForSessionDiscovery: () => [],
       resolveSelectedHostAccountCodexHomePathForResume: () => null
     },

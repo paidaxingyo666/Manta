@@ -57,7 +57,6 @@ vi.mock('./main-process-state', () => ({
     codexRuntimeHome: {
       prepareForCodexLaunchAsync: mocks.prepareForCodexLaunchAsync,
       isHostSystemDefaultRealHomeSelected: mocks.isHostSystemDefaultRealHomeSelected,
-      isHostSystemDefaultRealHome: () => false,
       getHostCodexHomePathsForSessionDiscovery: () => [],
       resolveSelectedHostAccountCodexHomePathForResume: () => null
     },

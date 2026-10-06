@@ -31,10 +31,7 @@ import {
   startCodexHooks
 } from './codex-hook-reconcile'
 import { getMantaManagedCodexHomePath } from './codex-home-paths'
-import {
-  resolveStartupManagedHookAction,
-  shouldInstallStartupManagedAgentHook
-} from '../agent-hooks/managed-agent-hook-controls'
+import { resolveStartupManagedHookAction } from '../agent-hooks/managed-agent-hook-controls'
 
 // Why this file: every Manta on one HOME shares the current entry in ~/.codex.
 // Opening any pane once stripped it (4139 -> 18 bytes) and its trust; only the
@@ -143,9 +140,8 @@ describe('the shared real-home Codex entry', () => {
     const before = snapshotRealCodexHome()
     const settings = { agentStatusHooksEnabled: false, disabledTuiAgents: [] }
 
-    // Startup: the real-home install and the managed installs are both skipped.
+    // Startup: the managed installs are skipped.
     expect(resolveStartupManagedHookAction(settings)).toBe('skip')
-    expect(shouldInstallStartupManagedAgentHook(settings, 'codex')).toBe(false)
     // First pane: both lanes run with hooks off.
     await reconcileWithHooksOff()
     await new CodexHookService().prepareRuntimeHomeForLaunch(

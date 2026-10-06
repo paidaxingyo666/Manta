@@ -8,7 +8,7 @@ vi.mock('electron', () => ({ app: { getPath: () => homes.system } }))
 vi.mock('./main-process-state', () => ({
   mainProcessState: {
     codexRuntimeHome: {
-      isHostSystemDefaultRealHome: () => false,
+      isHostSystemDefaultRealHomeSelected: () => false,
       getHostCodexHomePathsForSessionDiscovery: () => [homes.original, homes.selected],
       resolveSelectedHostAccountCodexHomePathForResume: () => homes.selected || null
     },
