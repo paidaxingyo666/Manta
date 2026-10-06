@@ -70,7 +70,15 @@
         "wide": "Amplio",
         "full": "Completo",
         "pixels": "px",
-        "reset": "Restablecer"
+        "reset": "Restablecer",
+        "matchTerminalInterface": "Usar la interfaz del terminal",
+        "matchTerminalInterfaceDescription": "Usa la fuente y los colores de la interfaz del terminal para todo el chat. Se mantiene sincronizado si cambias el tema del terminal.",
+        "contrast": "Contraste",
+        "contrastDescription": "Ajusta el brillo del texto del chat sobre el fondo. El extremo derecho recupera el aspecto anterior, más brillante.",
+        "softer": "Más suave",
+        "sharper": "Más nítido",
+        "terminalControlledHint": "Lo controla la interfaz del terminal.",
+        "terminalControlledTooltip": "Coincide con la interfaz del terminal. Desactiva Usar la interfaz del terminal para cambiarlo."
       }
     },
     "browser": {

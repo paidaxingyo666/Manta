@@ -1,8 +1,6 @@
 import { cn } from '@/lib/utils'
-import {
-  NATIVE_CHAT_APPEARANCE_ROOT_CLASS,
-  useNativeChatAppearanceStyle
-} from './native-chat-appearance-style'
+import { NATIVE_CHAT_APPEARANCE_ROOT_CLASS } from './native-chat-appearance-style'
+import { useNativeChatStoreAppearanceStyle } from './use-native-chat-store-appearance-style'
 import { useMemo, useRef, useState } from 'react'
 import { agentSessionPromptQuestions } from '../../../../shared/agent-session-question-answer'
 import { dispatchStructuredAgentSessionComposerCommand } from '../../../../shared/structured-agent-session-composer'
@@ -145,8 +143,7 @@ export function NativeChatStructuredSession(
     viewState.kind === 'ready' && props.isVisible && props.isFocusedGroup,
     rootRef
   )
-  const appearanceSettings = useAppStore((state) => state.settings?.nativeChatAppearance)
-  const appearanceStyle = useNativeChatAppearanceStyle({ nativeChatAppearance: appearanceSettings })
+  const appearanceStyle = useNativeChatStoreAppearanceStyle()
   const imageRuntimeContext = useNativeChatImageRuntimeContext(props.tabId)
   const { onLinkClick, linkActionRequest, closeLinkActions } = useNativeChatLinkActions(
     fileLinkContext,
@@ -265,6 +262,7 @@ export function NativeChatStructuredSession(
         'flex h-full min-h-0 w-full flex-col focus:outline-none'
       )}
       style={appearanceStyle}
+      data-native-chat-scheme={appearanceStyle.colorScheme}
     >
       <div className="flex min-h-0 flex-1 flex-col">
         {viewState.kind === 'loading' ? (

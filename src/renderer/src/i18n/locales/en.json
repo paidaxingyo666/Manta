@@ -233,7 +233,15 @@
         "wide": "Wide",
         "full": "Full",
         "pixels": "px",
-        "reset": "Reset"
+        "reset": "Reset",
+        "matchTerminalInterface": "Match terminal interface",
+        "matchTerminalInterfaceDescription": "Use your terminal interface's font and colors for the whole chat. Stays in sync if you change your terminal theme later.",
+        "contrast": "Contrast",
+        "contrastDescription": "How bright chat text is against the background. The right end matches the older, brighter look.",
+        "softer": "Softer",
+        "sharper": "Sharper",
+        "terminalControlledHint": "Set by terminal interface.",
+        "terminalControlledTooltip": "Matching your terminal interface. Turn off Match terminal interface to change this."
       }
     },
     "browser": {

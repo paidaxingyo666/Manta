@@ -70,7 +70,15 @@
         "wide": "宽",
         "full": "全宽",
         "pixels": "px",
-        "reset": "重置"
+        "reset": "重置",
+        "matchTerminalInterface": "匹配终端外观",
+        "matchTerminalInterfaceDescription": "整个聊天使用与终端相同的字体和配色。更改终端主题后，聊天会自动同步。",
+        "contrast": "对比度",
+        "contrastDescription": "调整聊天文字相对于背景的亮度。滑到最右端可恢复以前更明亮的外观。",
+        "softer": "更柔和",
+        "sharper": "更清晰",
+        "terminalControlledHint": "由终端界面设置。",
+        "terminalControlledTooltip": "正在匹配终端外观。要更改此项，请关闭“匹配终端外观”。"
       }
     },
     "browser": {

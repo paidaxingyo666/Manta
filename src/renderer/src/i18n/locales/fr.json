@@ -169,7 +169,15 @@
         "wide": "Large",
         "full": "Pleine",
         "pixels": "px",
-        "reset": "Réinitialiser"
+        "reset": "Réinitialiser",
+        "matchTerminalInterface": "Utiliser l’interface du terminal",
+        "matchTerminalInterfaceDescription": "Utilise la police et les couleurs de l’interface du terminal pour tout le chat. Les changements de thème du terminal sont appliqués automatiquement.",
+        "contrast": "Contraste",
+        "contrastDescription": "Ajuste la luminosité du texte du chat sur le fond. L’extrémité droite retrouve l’ancien aspect, plus lumineux.",
+        "softer": "Plus doux",
+        "sharper": "Plus net",
+        "terminalControlledHint": "Défini par l’interface du terminal.",
+        "terminalControlledTooltip": "Suit l’interface du terminal. Désactivez Utiliser l’interface du terminal pour le modifier."
       }
     },
     "browser": {

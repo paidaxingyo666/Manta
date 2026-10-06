@@ -1,8 +1,6 @@
 import { cn } from '@/lib/utils'
-import {
-  NATIVE_CHAT_APPEARANCE_ROOT_CLASS,
-  useNativeChatAppearanceStyle
-} from './native-chat-appearance-style'
+import { NATIVE_CHAT_APPEARANCE_ROOT_CLASS } from './native-chat-appearance-style'
+import { useNativeChatStoreAppearanceStyle } from './use-native-chat-store-appearance-style'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNativeChatComposerRevealFocus } from './use-native-chat-composer-reveal-focus'
 import { useAppStore } from '../../store'
@@ -327,8 +325,7 @@ export function NativeChatResolvedView({
 
   // Only the focused conversation accepts chat text-size shortcuts.
   useNativeChatFontSize(isConversation && isVisible && isFocusedGroup, rootRef)
-  const appearanceSettings = useAppStore((state) => state.settings?.nativeChatAppearance)
-  const appearanceStyle = useNativeChatAppearanceStyle({ nativeChatAppearance: appearanceSettings })
+  const appearanceStyle = useNativeChatStoreAppearanceStyle()
 
   return (
     <div
@@ -371,6 +368,7 @@ export function NativeChatResolvedView({
         'flex h-full min-h-0 w-full flex-col focus:outline-none'
       )}
       style={appearanceStyle}
+      data-native-chat-scheme={appearanceStyle.colorScheme}
     >
       <div className="flex min-h-0 flex-1 flex-col">
         {viewState.kind === 'loading' ? (
