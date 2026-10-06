@@ -265,7 +265,7 @@ describe('ExperimentalPane', () => {
     expect(container.textContent).toContain('Chats that already exist stay as they are.')
     // Paired Manta servers run structured chats too; only WSL and SSH stay on terminal chat.
     expect(container.textContent).toContain(
-      'Runs on this machine and on paired Manta servers running a version that supports it; older servers keep terminal chat. WSL and SSH hosts continue to use terminal chat, and Windows falls back to it unless Manta can read process start times.'
+      'Runs on this machine and on paired Manta servers running a version that supports it; older servers keep terminal chat. WSL and SSH hosts continue to use terminal chat.'
     )
     expect(container.textContent).toContain('Default view')
     root.unmount()

@@ -7181,7 +7181,7 @@
             "resumeCopy": "Cuando Manta se cierra o instala una actualización, los chats que estaban trabajando se reanudan automáticamente al volver a abrir Manta.",
             "structuredTitle": "Utilice el chat nativo estructurado actualizado",
             "structuredCopy": "Abra nuevos agentes de Codex y Claude como chats estructurados. Si está desactivado, los abre en el chat respaldado por la terminal. Los chats que ya existen permanecen como están.",
-            "structuredScope": "Se ejecuta en esta máquina y en servidores Manta emparejados que ejecutan una versión que lo admita; los servidores más antiguos mantienen el chat de terminal. Los hosts WSL y SSH continúan usando el chat de terminal y Windows recurre a él a menos que Manta pueda leer las horas de inicio del proceso.",
+            "structuredScope": "Se ejecuta en esta máquina y en servidores Manta emparejados que ejecutan una versión que lo admita; los servidores más antiguos mantienen el chat de terminal. Los hosts WSL y SSH continúan usando el chat de terminal.",
             "structuredToggleLabel": "Alternar chat nativo estructurado actualizado",
             "resumeTitle": "Reanudar los chats de trabajo automáticamente después de reiniciar",
             "resumeToggleLabel": "Alternar reanudación automática después de un reinicio"

@@ -207,7 +207,7 @@ async function readStructuredCreateSupport(
 
 /**
  * Applies the executing host's `agentSession.createSupport` answer, which is the authority on WSL,
- * remoteness and the Windows process-start-time gate for the resolved workspace.
+ * remoteness and per-agent support for the resolved workspace.
  */
 export function downgradeAgentLaunchModeForHost(
   receipt: AgentLaunchModeReceipt,

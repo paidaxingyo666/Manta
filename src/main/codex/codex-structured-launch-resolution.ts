@@ -15,7 +15,6 @@ import { resolveAgentSessionLaunchDirectory } from '../runtime/agent-session-lau
 import type { CodexStructuredLaunch } from './codex-structured-session-adapter'
 import type { CodexStructuredPermissionPolicy } from './codex-structured-permission-policy'
 import { resolvePinnedCodexRolloutProof } from './codex-pinned-rollout-proof'
-import { isWindowsProcessStartTimeAvailable } from '../windows/windows-process-table'
 import { CODEX_STRUCTURED_AGENT } from './codex-structured-agent-definition'
 
 export type CodexStructuredLaunchResolverDeps = {
@@ -28,8 +27,6 @@ export type CodexStructuredLaunchResolverDeps = {
   /** Fresh shell/configured environment for this spawn; never written to the session record. */
   resolveEnvironment?: () => Promise<NodeJS.ProcessEnv>
   resolveRollout?: typeof resolvePinnedCodexRolloutProof
-  /** Test seam for the host capability; production uses the native process table. */
-  isWindowsProcessStartTimeAvailable?: () => boolean
   /** The user's Agent Permissions setting as thread policy, re-read per acquisition.
    *  States both postures outright — a resume inherits the last one for any field left absent. */
   resolvePermissionPolicy?: () => CodexStructuredPermissionPolicy
@@ -79,13 +76,6 @@ export function createCodexStructuredLaunchResolver(
       throw new Error(
         `codex structured sessions run on the local host, not ${location.executionHostId}`
       )
-    }
-    // Refuse before resolving launch data; a PID alone cannot prove Windows ownership.
-    if (
-      process.platform === 'win32' &&
-      !(deps.isWindowsProcessStartTimeAvailable ?? isWindowsProcessStartTimeAvailable)()
-    ) {
-      throw new Error('codex structured sessions require Windows process creation-time proof')
     }
     const pinned = CODEX_STRUCTURED_AGENT.accountHomeVariable
     if (accountHome.variable !== pinned) {

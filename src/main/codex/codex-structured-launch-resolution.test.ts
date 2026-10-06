@@ -10,6 +10,15 @@ import { createCodexStructuredLaunchResolver } from './codex-structured-launch-r
 import { codexStructuredPermissionPolicyForSettings } from './codex-structured-permission-policy'
 import { codexProviderHandle } from '../../shared/agent-session-provider-handle-encoding'
 
+const { isWindowsProcessStartTimeAvailable } = vi.hoisted(() => ({
+  isWindowsProcessStartTimeAvailable: vi.fn(() => true)
+}))
+
+vi.mock('../windows/windows-process-table', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  isWindowsProcessStartTimeAvailable
+}))
+
 const SESSION_ID = 'session-1'
 const IDENTITY = { sessionId: SESSION_ID } as Parameters<
   ReturnType<typeof createCodexStructuredLaunchResolver>
@@ -52,7 +61,6 @@ function resolverFor(
     resolveWorkspacePath,
     resolveCommand: () => '/usr/local/bin/codex',
     resolveRollout,
-    isWindowsProcessStartTimeAvailable: () => true,
     resolvePermissionPolicy: () => codexStructuredPermissionPolicyForSettings({ agentDefaultArgs })
   })
 }
@@ -83,8 +91,7 @@ describe('codex structured launch resolution', () => {
         pinLaunchDirectory
       },
       resolveWorkspacePath: async () => '/floating/start-folder',
-      resolveCommand: () => '/usr/local/bin/codex',
-      isWindowsProcessStartTimeAvailable: () => true
+      resolveCommand: () => '/usr/local/bin/codex'
     })
 
     await expect(resolveLaunch({ identity: IDENTITY })).resolves.toMatchObject({
@@ -114,8 +121,7 @@ describe('codex structured launch resolution', () => {
       const resolveLaunch = createCodexStructuredLaunchResolver({
         store: { getRecord: () => record(), pinLaunchDirectory: vi.fn() },
         resolveWorkspacePath: async () => String.raw`C:\workspaces\manta`,
-        resolveCommand: () => command,
-        isWindowsProcessStartTimeAvailable: () => true
+        resolveCommand: () => command
       })
 
       await expect(resolveLaunch({ identity: IDENTITY })).resolves.toMatchObject({
@@ -125,19 +131,19 @@ describe('codex structured launch resolution', () => {
     })
   })
 
-  it('fails closed before resolving a Windows launch without creation-time proof', async () => {
+  it('resolves a Windows launch on a host that cannot read process creation times', async () => {
+    isWindowsProcessStartTimeAvailable.mockReturnValue(false)
     await withPlatform('win32', async () => {
-      const resolveWorkspacePath = vi.fn(async () => String.raw`C:\workspaces\manta`)
       const resolveLaunch = createCodexStructuredLaunchResolver({
         store: { getRecord: () => record(), pinLaunchDirectory: vi.fn() },
-        resolveWorkspacePath,
-        isWindowsProcessStartTimeAvailable: () => false
+        resolveWorkspacePath: async () => String.raw`C:\workspaces\manta`,
+        resolveCommand: () => 'codex.exe'
       })
 
-      await expect(resolveLaunch({ identity: IDENTITY })).rejects.toThrow(
-        'Windows process creation-time proof'
-      )
-      expect(resolveWorkspacePath).not.toHaveBeenCalled()
+      await expect(resolveLaunch({ identity: IDENTITY })).resolves.toMatchObject({
+        command: 'codex.exe',
+        args: ['app-server']
+      })
     })
   })
 
