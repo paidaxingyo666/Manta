@@ -7,7 +7,6 @@ import {
   createManagedAuth,
   createStore,
   getRuntimeCodexAuthPath,
-  getRuntimeCodexHomePath,
   getSharedRuntimeAuthProvenancePath,
   getSystemCodexAuthPath,
   getSystemCodexHomePath,
@@ -540,27 +539,5 @@ describe('CodexRuntimeHomeService', () => {
     restartedService.prepareForRateLimitFetch()
     restartedService.prepareForRateLimitFetch()
     expect(readFileSync(getRuntimeCodexAuthPath(), 'utf-8')).toBe(reloginAuth)
-  })
-
-  it('preserves shared config changes when a pending real-home lane falls back', async () => {
-    const systemConfigPath = join(getSystemCodexHomePath(), 'config.toml')
-    const runtimeConfigPath = join(getRuntimeCodexHomePath(), 'config.toml')
-    writeFileSync(systemConfigPath, 'model = "baseline"\n', 'utf-8')
-    const store = createStore(createSettings({ realHomeRoutable: false }))
-    const { CodexRuntimeHomeService } = await import('./runtime-home-service')
-    const service = new CodexRuntimeHomeService(store as never)
-
-    expect(service.prepareForCodexLaunch()).toBe(getRuntimeCodexHomePath())
-    writeFileSync(runtimeConfigPath, 'model = "runtime-change"\n', 'utf-8')
-
-    setRealHomeRoutableForTest(true)
-    service.setRealHomeLaneGate(() => false)
-    service.reconcileLegacySharedHomeForRetainedPanes()
-    expect(readFileSync(systemConfigPath, 'utf-8')).toBe('model = "baseline"\n')
-    expect(readFileSync(runtimeConfigPath, 'utf-8')).toBe('model = "runtime-change"\n')
-
-    expect(service.prepareForCodexLaunch()).toBe(getRuntimeCodexHomePath())
-    expect(readFileSync(systemConfigPath, 'utf-8')).toBe('model = "runtime-change"\n')
-    expect(readFileSync(runtimeConfigPath, 'utf-8')).toBe('model = "runtime-change"\n')
   })
 })

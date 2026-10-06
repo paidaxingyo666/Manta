@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { isDefinitiveAbsence } from '../../shared/definitive-filesystem-absence'
 import { dirname, join } from 'node:path'
-import { getMantaManagedCodexHomePath } from './codex-home-paths'
+import { resolveMantaManagedCodexHomePath } from './codex-home-paths'
 import { normalizeCodexProjectPathForLookup } from './config-toml-trust'
 
 // Why: an inline grant session blocks launch prep, and a background one still
@@ -33,8 +33,9 @@ type CodexTrustGrantLedgerFile = {
   homes: Record<string, CodexTrustGrantLedgerHome>
 }
 
+// Why resolved, not created: a read for ~/.codex must not make Manta's own home; a write makes the folder.
 export function getCodexTrustGrantLedgerPath(): string {
-  return join(dirname(getMantaManagedCodexHomePath()), 'trust-grant-ledger.json')
+  return join(dirname(resolveMantaManagedCodexHomePath()), 'trust-grant-ledger.json')
 }
 
 export function getCodexTrustGrantHomeKey(runtimeHomePath: string): string {

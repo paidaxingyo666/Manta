@@ -121,9 +121,6 @@ export abstract class CodexRuntimeHomeRouting extends CodexRuntimeHomeManagedHom
     return [...homes.values()]
   }
 
-  // Why: the real-home hook installer flips this gate off when the trust-grant
-  // client reports the host incapable, keeping that host byte-identical to the
-  // managed lane instead of shipping status-blind panes.
   protected realHomeLaneGate: () => boolean = () => true
 
   setRealHomeLaneGate(gate: () => boolean): void {
