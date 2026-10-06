@@ -41,6 +41,7 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   unsupported:
     'This needs a newer Manta on the computer running this chat. Update Manta there, then try again.',
   notAvailable: "This isn't available in this chat.",
+  cannotRunHere: "Manta can't run this agent in a chat here.",
   unreachable: "Manta couldn't reach the agent.",
   recordFailed: "Manta couldn't save this to the chat's history.",
   conversationCleared: 'This conversation has been cleared.',
