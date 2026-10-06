@@ -132,6 +132,7 @@ export function NativeChatResolvedView({
   })
   const contextMenu = useNativeChatContextMenu({
     rootRef,
+    enabled: isVisible,
     onSwitchToTerminal,
     splitShortcutLabels: {
       right: formatShortcutLabel('terminal.splitRight', keybindings),
