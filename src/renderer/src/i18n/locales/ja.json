@@ -17895,6 +17895,7 @@
         "toggleDetails": "ターンの詳細を切り替えます"
       },
       "jumpToLatest": "最新にジャンプ",
+      "transcriptLabel": "会話",
       "toggle": {
         "showTerminal": "ターミナルを表示",
         "showChat": "チャットビューを表示"
