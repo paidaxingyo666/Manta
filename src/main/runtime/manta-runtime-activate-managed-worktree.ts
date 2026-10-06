@@ -1,7 +1,11 @@
 // @ts-nocheck -- mechanically split from MantaRuntimeService; behavior is covered by AST equivalence and characterization tests.
 import { MantaRuntimeWithListManagedWorktrees } from './manta-runtime-list-managed-worktrees'
 import type { RuntimeNavigationTarget } from '../../shared/runtime-navigation'
-import { navigationTargetsClients, navigationTargetsHost } from '../../shared/runtime-navigation'
+import {
+  navigationTargetsClients,
+  navigationTargetsHost,
+  resolveRuntimeNavigationTarget
+} from '../../shared/runtime-navigation'
 import { getRepoExecutionHostId } from '../../shared/execution-host'
 import type { Repo } from '../../shared/repo-types'
 import type { TuiAgent } from '../../shared/tui-agent'
@@ -61,7 +65,7 @@ export class MantaRuntimeWithActivateManagedWorktree extends MantaRuntimeWithLis
     if (!repo) {
       throw new Error('repo_not_found')
     }
-    const navigation = opts.navigation ?? (opts.notifyClients === false ? 'caller' : 'all')
+    const navigation = resolveRuntimeNavigationTarget({ ...opts, defaultTarget: 'host' })
     const targetsHost = navigationTargetsHost(navigation)
     const targetsClients = navigationTargetsClients(navigation)
 
@@ -81,7 +85,14 @@ export class MantaRuntimeWithActivateManagedWorktree extends MantaRuntimeWithLis
         this.notifyHostActivateWorktree(repo.id, worktree.id)
       }
       if (targetsClients) {
-        this.notifyClientsActivateWorktree(repo.id, worktree.id)
+        this.notifyClientsActivateWorktree(
+          repo.id,
+          worktree.id,
+          undefined,
+          undefined,
+          undefined,
+          navigation
+        )
       }
     }
     if (!targetsHost) {
