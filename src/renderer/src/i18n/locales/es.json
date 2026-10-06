@@ -12,7 +12,18 @@
   },
   "settings": {
     "chat": {
-      "description": "Elige el aspecto de los chats."
+      "description": "Elige cómo se ven y se nombran los chats.",
+      "names": {
+        "title": "Nombres de chats",
+        "description": "Usa un agente para nombrar los chats nuevos a partir de su primer mensaje. Si no se genera un nombre, se mantienen como Claude Chat o Codex Chat.",
+        "enable": "Nombrar chats automáticamente",
+        "recipe": "Nombre del chat",
+        "recipeDescription": "Genera un nombre breve a partir del primer mensaje de un chat nuevo.",
+        "customCommandDescription": "Línea de comandos compartida por las recetas que seleccionan Comando personalizado. Usa {prompt} para pasar la entrada como argumento; de lo contrario, se envía por la entrada estándar.",
+        "saveFailed": "No se pudo guardar la configuración de nombres de chats.",
+        "searchAgent": "agente",
+        "searchTemplate": "plantilla de comandos"
+      }
     },
     "terminal": {
       "optionLayoutAlt": "ABC o EE. UU. — Option envía secuencias Alt/Esc",
@@ -8307,8 +8318,8 @@
           "3c88ec55d6": "No se encontraron configuraciones para \"",
           "c7ad095d96": "Cargando ajustes...",
           "acc7bbdefd": "Presiona ESC de nuevo para salir de ajustes",
-          "43b68e10f0": "Tienes cambios no guardados de Git AI Author. Al salir se descartarán.",
-          "17bdee4ff1": "¿Descartar cambios no guardados de Git AI Author?",
+          "43b68e10f0": "Hay cambios de IA sin guardar. Se descartarán al salir.",
+          "17bdee4ff1": "¿Descartar los cambios de IA sin guardar?",
           "084d8fac5b": "Privacidad y seguridad",
           "23931df7e8": "Hosts remotos",
           "mobile_group": "Móvil",
