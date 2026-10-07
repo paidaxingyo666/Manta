@@ -17750,11 +17750,6 @@
       },
       "native": {
         "chat": {
-          "NativeChatStructuredSession": {
-            "1f772bb5d0": "Message delivery is unconfirmed.",
-            "93ef441197": "Message was not sent.",
-            "a5e7f14068": "Retry"
-          },
           "NativeChatLaunchRetry": {
             "failed": "Chat could not be started.",
             "unknown": "Chat connection could not be confirmed.",

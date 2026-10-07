@@ -17416,11 +17416,6 @@
       },
       "native": {
         "chat": {
-          "NativeChatStructuredSession": {
-            "1f772bb5d0": "メッセージの配信は未確認です。",
-            "93ef441197": "メッセージは送信されませんでした。",
-            "a5e7f14068": "再試行"
-          },
           "NativeChatLaunchRetry": {
             "failed": "チャットを開始できませんでした。",
             "unknown": "チャット接続が確認できませんでした。",

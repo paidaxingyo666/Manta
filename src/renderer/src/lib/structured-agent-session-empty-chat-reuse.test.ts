@@ -9,7 +9,7 @@ import type { StructuredAgentSessionLaunchIntent } from '@/lib/launch-structured
 const mocks = vi.hoisted(() => ({
   createIntent: vi.fn(),
   launch: vi.fn(),
-  callStructuredAgentSession: vi.fn(),
+  callRuntimeRpc: vi.fn(),
   refreshTabs: vi.fn(),
   activateTab: vi.fn(),
   focusGroup: vi.fn(),
@@ -62,7 +62,13 @@ vi.mock('@/runtime/local-structured-session-tabs-sync', () => ({
   refreshLocalStructuredSessionTabs: mocks.refreshTabs
 }))
 vi.mock('@/runtime/structured-agent-session-client', () => ({
-  callStructuredAgentSession: mocks.callStructuredAgentSession
+  // Sends reach the runtime RPC through this wrapper, as in the app.
+  callStructuredAgentSession: (target: unknown, method: string, params?: unknown) =>
+    mocks.callRuntimeRpc(target, method, params)
+}))
+vi.mock('@/runtime/runtime-rpc-client', () => ({
+  callRuntimeRpc: mocks.callRuntimeRpc,
+  ensureRuntimeEnvironmentCompatible: vi.fn(async () => undefined)
 }))
 vi.mock('@/runtime/structured-agent-session-status-feed', () => ({
   getStructuredAgentSessionStatusFeed: () => ({
@@ -104,9 +110,9 @@ vi.mock('@/store', () => ({
 }))
 
 import {
-  appendStructuredAgentSessionOutboxMessage,
-  readOutbox
-} from '@/components/native-chat/structured-agent-session-outbox-storage'
+  resetStructuredAgentSessionSendsForTests,
+  sendStructuredAgentSessionMessage
+} from '@/components/native-chat/structured-agent-session-message-sender'
 import {
   appendNativeChatAttachmentCache,
   clearNativeChatAttachmentCacheForTests
@@ -130,6 +136,10 @@ import {
   type StructuredAgentSessionProvisionalLaunch
 } from './structured-agent-session-provisional-tab'
 import { getStructuredAgentSessionLaunchLifecycle } from './structured-agent-session-launch'
+import {
+  discardStructuredLaunchPrompts,
+  hasStagedStructuredLaunchPrompt
+} from './structured-agent-session-launch-prompt'
 import { resetStructuredAgentLaunchPersistenceForTests } from './structured-agent-session-launch-persistence'
 import { resetStructuredAgentLaunchRegistryForTests } from './structured-agent-session-launch-registry'
 
@@ -232,6 +242,10 @@ beforeEach(() => {
   clearNativeChatAttachmentCacheForTests()
   resetStructuredAgentLaunchPersistenceForTests()
   resetStructuredAgentLaunchRegistryForTests()
+  resetStructuredAgentSessionSendsForTests()
+  for (const sessionId of ['session-first', 'session-second', 'session-third']) {
+    discardStructuredLaunchPrompts(sessionId)
+  }
   mocks.statusBySession.clear()
   mocks.liveSessions.clear()
   store.state = emptyStoreState()
@@ -243,7 +257,7 @@ beforeEach(() => {
     Promise.resolve({ sessionId: intent.sessionId, fence: 1 })
   )
   mocks.refreshTabs.mockResolvedValue(published(first.sessionId, second.sessionId))
-  mocks.callStructuredAgentSession.mockResolvedValue({
+  mocks.callRuntimeRpc.mockResolvedValue({
     ok: true,
     value: { submission: { dispatchState: 'accepted' } }
   })
@@ -328,7 +342,13 @@ describe('a second "new chat" with no text', () => {
   it('opens a new chat when the starting chat has a message queued', () => {
     mocks.launch.mockImplementation(() => new Promise(() => undefined))
     const firstPick = pick('plus-pick-1')
-    appendStructuredAgentSessionOutboxMessage(firstPick.sessionId, 'my own question')
+    // The chat is not up yet, so its user's own send is still waiting on it.
+    mocks.callRuntimeRpc.mockImplementation(() => new Promise(() => undefined))
+    sendStructuredAgentSessionMessage({
+      sessionId: firstPick.sessionId,
+      target: { kind: 'local' },
+      text: 'my own question'
+    })
 
     expect(pick('plus-pick-2').sessionId).toBe(second.sessionId)
   })
@@ -472,10 +492,8 @@ describe('a "new chat" with text', () => {
       )?.groupId
     ).toBe('group-right')
     expect(mocks.focusGroup).not.toHaveBeenCalled()
-    expect(readOutbox(blank.sessionId)).toEqual([])
-    expect(readOutbox(second.sessionId).map((entry) => entry.body.blocks)).toEqual([
-      [{ type: 'text', text: 'review notes' }]
-    ])
+    expect(hasStagedStructuredLaunchPrompt(blank.sessionId)).toBe(false)
+    expect(hasStagedStructuredLaunchPrompt(second.sessionId)).toBe(true)
   })
 
   it('takes an empty chat starting in its own split', () => {
@@ -493,7 +511,7 @@ describe('a "new chat" with text', () => {
     writeNativeChatDraftCache(structuredAgentSessionDraftScopeKey(blank.sessionId), 'my words')
 
     expect(pick('notes-send', { prompt: 'review notes' }).sessionId).toBe(second.sessionId)
-    expect(readOutbox(blank.sessionId)).toEqual([])
+    expect(hasStagedStructuredLaunchPrompt(blank.sessionId)).toBe(false)
   })
 
   it('never takes over or reuses a chat whose saved draft holds text or only an image', async () => {
@@ -504,7 +522,7 @@ describe('a "new chat" with text', () => {
     await hydrateNativeChatComposerDrafts()
     const taken = pick('notes-send', { prompt: 'review notes' })
     expect(taken.sessionId).not.toBe(typed.sessionId)
-    expect(readOutbox(typed.sessionId)).toEqual([])
+    expect(hasStagedStructuredLaunchPrompt(typed.sessionId)).toBe(false)
 
     appendNativeChatAttachmentCache(structuredAgentSessionDraftScopeKey(taken.sessionId), [
       { id: 'shot', path: '/tmp/shot.png' }

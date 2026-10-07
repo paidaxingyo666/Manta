@@ -17408,11 +17408,6 @@
       },
       "native": {
         "chat": {
-          "NativeChatStructuredSession": {
-            "a5e7f14068": "Reintentar",
-            "1f772bb5d0": "La entrega del mensaje no está confirmada.",
-            "93ef441197": "El mensaje no se envió."
-          },
           "NativeChatLaunchRetry": {
             "retry": "Reintentar",
             "failed": "No se pudo iniciar el chat.",

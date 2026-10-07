@@ -63,6 +63,8 @@ export type LaunchAgentInNewTabArgs = LaunchAgentInNewTabRequest & {
   launchPlatform?: NodeJS.Platform
   /** Called after the prompt is actually delivered to the agent input path. */
   onPromptDelivered?: () => void
+  /** The caller keeps the prompt's text if it does not go out (notes), so no composer gets it. */
+  promptKeptByCaller?: true
   /**
    * Called before `onPromptDelivered` when the paste was written without ever observing the
    * agent's composer, so the launch cannot claim the prompt arrived. Fires only on the
@@ -192,7 +194,8 @@ function launchAgentInNewTabInternal(args: LaunchAgentInNewTabArgs): LaunchAgent
           promptDelivery: viewModePromptDelivery,
           tuiCustomization: { cwd: initialCwd },
           initialSessionOptions: startupPlan.sessionOptions,
-          onPromptDelivered
+          onPromptDelivered,
+          ...(args.promptKeptByCaller ? { promptKeptByCaller: true as const } : {})
         })
   if (plan?.route === 'structured-native-chat') {
     const structured = launchStructuredAgentFromNewTab({

@@ -12,9 +12,9 @@ import { attachFingerprintFields } from '../../../src/main/native-chat/agent-ses
 import type { AgentSessionAttachParams } from '../../../src/main/native-chat/agent-session-wire/structured-agent-session-attach'
 import { computeAgentSessionPayloadFingerprint } from '../../../src/shared/agent-session-mutation-envelope'
 import {
-  createStructuredAgentSessionOutboxEntry,
-  structuredAgentSessionSendRequest
-} from '../../../src/shared/structured-agent-session-outbox'
+  structuredAgentSessionMessageSendMutation,
+  structuredAgentSessionSendBody
+} from '../../../src/shared/structured-agent-session-send-mutation'
 
 export const SESSION = 'session-alpha'
 export const WORKSPACE = 'workspace-1'
@@ -266,21 +266,20 @@ export function createIntentParams(): Record<string, unknown> {
   return { envelope: envelope({ method: 'agentSession.create', fields, fence: null }), ...fields }
 }
 
-/** Built by the outbox clients send from, so an older host is handed exactly what a current
- *  client puts on the wire, fingerprint included. */
+/** Built by the sender clients use, so an older host is handed exactly what a current client puts
+ *  on the wire, fingerprint included. */
 export function sendParams(
   text: string,
   fence: number,
   sentDelivery?: 'queue-if-active'
 ): Record<string, unknown> {
-  const entry = createStructuredAgentSessionOutboxEntry({
-    clientMessageId: operationId(),
+  return structuredAgentSessionMessageSendMutation({
     sessionId: SESSION,
-    text,
-    attachments: [],
-    queuedAt: NOW
+    clientOperationId: operationId(),
+    expectedRuntimeFence: fence,
+    body: structuredAgentSessionSendBody(text, []),
+    ...(sentDelivery ? { delivery: sentDelivery } : {})
   })
-  return structuredAgentSessionSendRequest({ ...entry, sentDelivery }, fence)
 }
 
 /** Schema-valid params per method; values only need to survive validation. */
