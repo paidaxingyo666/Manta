@@ -17883,7 +17883,6 @@
           "title": "无法加载对话",
           "subtitle": "无法读取记录。请切回终端继续工作。"
         },
-        "reconnecting": "正在重新连接此聊天…",
         "pairHost": "配对主机以查看智能体聊天记录。",
         "notAgent": {
           "title": "这里没有对话",
@@ -18129,7 +18128,12 @@
       "structuredSessionHostDeclined": "已在终端中打开 {{value0}}",
       "structuredSessionHostDeclinedDescription": "此服务器无法在此工作区中运行 {{value0}} 聊天。",
       "structuredSessionHostUnreachable": "无法连接到 {{value0}}",
-      "structuredSessionHostUnreachableDescription": "Manta 未打开 {{value0}} 聊天。请检查与服务器的连接，然后重试。"
+      "structuredSessionHostUnreachableDescription": "Manta 未打开 {{value0}} 聊天。请检查与服务器的连接，然后重试。",
+      "hostOutage": {
+        "offline": "{{hostName}} 已离线",
+        "reconnecting": "正在重新连接 {{hostName}}…",
+        "reconnect": "重新连接"
+      }
     },
     "tab": {
       "bar": {

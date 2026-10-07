@@ -18195,7 +18195,6 @@
           "title": "Could not load conversation",
           "subtitle": "The transcript could not be read. Toggle back to the terminal to keep working."
         },
-        "reconnecting": "Reconnecting to this chat…",
         "pairHost": "Pair a host to view agent chat history.",
         "notAgent": {
           "title": "No conversation here",
@@ -18382,7 +18381,12 @@
       "structuredSessionHostDeclined": "Opened {{value0}} in a terminal",
       "structuredSessionHostDeclinedDescription": "This server can't run a {{value0}} chat in this workspace.",
       "structuredSessionHostUnreachable": "Could not reach {{value0}}",
-      "structuredSessionHostUnreachableDescription": "Manta did not open a {{value0}} chat. Check the connection to the server and try again."
+      "structuredSessionHostUnreachableDescription": "Manta did not open a {{value0}} chat. Check the connection to the server and try again.",
+      "hostOutage": {
+        "offline": "{{hostName}} is offline",
+        "reconnecting": "{{hostName}} is reconnecting…",
+        "reconnect": "Reconnect"
+      }
     },
     "tab": {
       "bar": {

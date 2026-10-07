@@ -17918,7 +17918,6 @@
           "title": "会話を読み込めませんでした",
           "subtitle": "トランスクリプトを読み取ることができませんでした。作業を続けるには、ターミナルに切り替えてください。"
         },
-        "reconnecting": "このチャットに再接続しています…",
         "pairHost": "ホストをペアリングして、Agent のチャット履歴を表示します。",
         "notAgent": {
           "title": "ここでは会話はありません",
@@ -18164,7 +18163,12 @@
       "structuredSessionHostDeclined": "{{value0}} をターミナルで開きました",
       "structuredSessionHostDeclinedDescription": "このサーバーはこのワークスペースで {{value0}} チャットを実行できません。",
       "structuredSessionHostUnreachable": "{{value0}} に接続できませんでした",
-      "structuredSessionHostUnreachableDescription": "Manta は {{value0}} チャットを開きませんでした。サーバーへの接続を確認して、もう一度お試しください。"
+      "structuredSessionHostUnreachableDescription": "Manta は {{value0}} チャットを開きませんでした。サーバーへの接続を確認して、もう一度お試しください。",
+      "hostOutage": {
+        "offline": "{{hostName}} はオフラインです",
+        "reconnecting": "{{hostName}} に再接続しています…",
+        "reconnect": "再接続"
+      }
     },
     "tab": {
       "bar": {
