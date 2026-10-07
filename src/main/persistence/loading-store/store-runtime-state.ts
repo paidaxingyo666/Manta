@@ -81,6 +81,8 @@ export class StoreRuntimeState {
     ) => void
   >()
   uiChangeListeners = new Set<(ui: PersistedState['ui']) => void>()
+  /** Observers of persisted workspace-session writes; see notifyWorkspaceSessionWritten. */
+  readonly workspaceSessionWriteListeners = new Set<() => void>()
   projectHostOperations: ProjectHostPersistenceOperations | null = null
   projectGroupOperations: ProjectGroupPersistenceOperations | null = null
   folderWorkspaceOperations: FolderWorkspacePersistenceOperations | null = null
