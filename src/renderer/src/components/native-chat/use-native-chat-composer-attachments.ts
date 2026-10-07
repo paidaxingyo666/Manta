@@ -1,4 +1,5 @@
 import type { NativeChatComposerInput } from './native-chat-composer-input'
+import { appendNativeChatAttachmentCache } from './native-chat-draft-cache'
 import {
   useCallback,
   useEffect,
@@ -15,8 +16,6 @@ import {
 } from './native-chat-composer-target'
 import type { NativeChatComposerImageAttachment } from './NativeChatComposerField'
 import {
-  appendToNativeChatComposerDraft,
-  clearNativeChatComposerDraftsForTests,
   isKeptLocalPaste,
   readNativeChatComposerDraft,
   subscribeToNativeChatComposerDraft,
@@ -293,34 +292,8 @@ function releasePreviewUrl(previewUrl: string | undefined): void {
   }
 }
 
-export function readNativeChatAttachmentCache(
-  scopeKey: string
-): NativeChatComposerImageAttachment[] {
-  return readNativeChatComposerDraft(scopeKey).images.map((image) => ({ ...image }))
-}
-
-/** Adds settled images after the ones the draft holds now, durably at once: when Stop gives images
- *  back, the copy they came from goes right after this. Only an image the user attaches
- *  (`fromUser`) takes the place of a placeholder with its file name, as a re-pick does. */
-export function appendNativeChatAttachmentCache(
-  scopeKey: string,
-  appended: readonly NativeChatComposerImageAttachment[],
-  options?: { fromUser?: boolean }
-): void {
-  if (appended.length === 0) {
-    return
-  }
-  // Preview URLs can retain the full clipboard Blob, so only the path is kept.
-  appendToNativeChatComposerDraft(scopeKey, {
-    images: appended.map(({ id, path, connectionId }) => ({
-      id,
-      path,
-      ...(connectionId ? { connectionId } : {})
-    })),
-    ...(options?.fromUser ? { fromUser: true } : {})
-  })
-}
-
-export function clearNativeChatAttachmentCacheForTests(): void {
-  clearNativeChatComposerDraftsForTests()
-}
+export {
+  readNativeChatAttachmentCache,
+  appendNativeChatAttachmentCache,
+  clearNativeChatAttachmentCacheForTests
+} from './native-chat-draft-cache'
