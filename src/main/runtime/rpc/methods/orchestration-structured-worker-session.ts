@@ -13,6 +13,7 @@
 
 import { randomUUID } from 'node:crypto'
 import { isDefinitiveAgentSessionCreateRefusal } from '../../../../shared/agent-session-definitive-refusal'
+import type { AgentMessageSource } from '../../../../shared/agent-session-message-source'
 import type {
   AgentJournalMessageItem,
   AgentJournalSubmission
@@ -227,11 +228,14 @@ export async function sendStructuredWorkerPreamble(args: {
   sessionId: string
   dispatchId: string
   preamble: string
+  /** Who the task is from (`dispatchTaskSource`), shown on the worker's turn. */
+  from: AgentMessageSource
 }): Promise<'accepted' | 'pending'> {
   const body: AgentJournalMessageItem = {
     kind: 'message',
     role: 'user',
-    blocks: [{ type: 'text', text: args.preamble }]
+    blocks: [{ type: 'text', text: args.preamble }],
+    from: args.from
   }
   const fence = args.host.deps.store.getRecord(args.sessionId)?.lease.runtimeFence
   if (fence === undefined) {
@@ -260,7 +264,8 @@ export async function sendStructuredWorkerPreamble(args: {
   }
 }
 
-function preambleDispatchState(
+/** A sent preamble's verdict: acknowledged, or held for its agent; anything else throws. */
+export function preambleDispatchState(
   submission: AgentJournalSubmission | undefined
 ): 'accepted' | 'pending' {
   if (submission?.dispatchState === 'accepted' || submission?.dispatchState === 'pending') {

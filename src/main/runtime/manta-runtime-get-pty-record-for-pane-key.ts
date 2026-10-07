@@ -10,11 +10,14 @@ import {
 } from './structured-worker-authority'
 import type { StructuredPointerTarget } from './orchestration/structured-mailbox-pointer-delivery'
 import {
+  chatDispatchMailTarget,
   handleLessCoordinatorSessionId,
   structuredSessionAddressTarget,
   structuredSessionMailTarget,
   structuredSessionIdleEdgeMailboxes
 } from './orchestration/structured-session-mail-target'
+import { exitedChatDispatchesForSession } from './orchestration/chat-assignee'
+import { OPERATOR_CLOSE_EXIT_CAUSE } from '../../shared/terminal-exit-cause'
 import {
   resolveTerminalIdentityFromProbes,
   type RuntimeTerminalIdentity
@@ -221,6 +224,24 @@ export class MantaRuntimeWithGetPtyRecordForPaneKey extends MantaRuntimeWithPrun
     }
   }
 
+  /**
+   * A chat tab left the screen. If that chat worked a Dispatch and has now ended, the Dispatch
+   * settles as a terminal the operator closed does; a /clear moves the tab, so its successor keeps
+   * the work.
+   */
+  onStructuredSessionTabHidden(sessionId: string): void {
+    try {
+      const db = this.getExistingOrchestrationDb()
+      for (const dispatch of db ? exitedChatDispatchesForSession(sessionId, db) : []) {
+        this.failActiveDispatchOnExit(dispatch.assignee_handle, null, 0, OPERATOR_CLOSE_EXIT_CAUSE)
+      }
+    } catch (error) {
+      console.warn('[orchestration] settling a closed chat worker failed', {
+        error: error instanceof Error ? error.message : String(error)
+      })
+    }
+  }
+
   /** Settlement drops anything parked for the session; nothing will ever redrive it again. */
   forgetStructuredSessionMail(sessionId: string): void {
     this.orchestrationStructuredMailboxPointerDelivery.forgetSession(sessionId)
@@ -247,9 +268,14 @@ export class MantaRuntimeWithGetPtyRecordForPaneKey extends MantaRuntimeWithPrun
       return this.resolveStructuredWorkerDirectMailboxTarget(mailboxHandle)
     }
     const dispatchId = mailboxHandle.slice('dispatch:'.length)
-    const assignee = this._orchestrationDb?.getDispatchContextById?.(dispatchId)?.assignee_handle
+    const dispatch = this._orchestrationDb?.getDispatchContextById?.(dispatchId)
+    const assignee = dispatch?.assignee_handle
     if (!assignee) {
       return null
+    }
+    const chat = chatDispatchMailTarget(dispatch, this._orchestrationDb)
+    if (chat !== undefined) {
+      return chat
     }
     const sessionId = this.liveStructuredWorkerSessionId(assignee)
     return sessionId ? { sessionId, dispatchId } : null

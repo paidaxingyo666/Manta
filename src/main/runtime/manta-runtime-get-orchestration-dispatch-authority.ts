@@ -15,6 +15,7 @@ import type { ProjectExecutionRuntimeResolution } from '../../shared/project-exe
 import { resolveLocalProjectRuntimeForWorktreeId } from '../local-project-runtime-resolution'
 import type { RuntimePtyWorktreeRecord } from './runtime-terminal-state-records'
 import {
+  localOrchestrationCliCommand,
   resolveTerminalOrchestrationCliCommand,
   runtimeOrchestrationCliCommand,
   type OrchestrationCliCommand
@@ -22,6 +23,8 @@ import {
 import type { FleetAgentStatusEvidence } from '../../shared/orchestration-fleet-agent-status-evidence'
 import { readOrchestrationFleetAgentStatusSnapshot } from './orchestration-fleet-agent-status-snapshot'
 import { resolveStructuredWorkerAuthority } from './structured-worker-authority'
+import { isStructuredWorkerHandle } from './structured-worker-identity'
+import { parseOrcaSessionAddress } from '../../shared/manta-session-address'
 import { matchesProcessIncarnation } from './orchestration/worker-terminal-process-liveness'
 
 export class MantaRuntimeWithGetOrchestrationDispatchAuthority extends MantaRuntimeWithVerifyOrchestrationCompatibilityCaller {
@@ -250,6 +253,10 @@ export class MantaRuntimeWithGetOrchestrationDispatchAuthority extends MantaRunt
   }
 
   getTerminalOrchestrationCliCommand(handle: string): OrchestrationCliCommand {
+    // A structured session runs in this process: it is told what the structured mail lane types.
+    if (isStructuredWorkerHandle(handle) || parseOrcaSessionAddress(handle)) {
+      return localOrchestrationCliCommand()
+    }
     let pty: RuntimePtyWorktreeRecord | null = null
     try {
       const ptyId = this.resolveLeafForHandle(handle)?.ptyId

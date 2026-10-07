@@ -22,7 +22,8 @@ import {
   readAgentSessionRecordStore,
   type AgentSessionRecordReader
 } from './structured-session-lineage'
-import type { RunRow } from './types'
+import type { DispatchContextRow, RunRow } from './types'
+import { chatAssigneeSessionId } from './chat-assignee'
 
 /**
  * The session a Run's coordinator binding names when that binding has no handle. A structured
@@ -62,6 +63,22 @@ export function structuredSessionMailTarget(
 }
 
 /**
+ * The target of a `dispatch:<id>` mailbox whose assignee is a chat: its live session, under the
+ * Dispatch's budget. `undefined` when the assignee is not a chat, so a worker keeps its own lookup.
+ */
+export function chatDispatchMailTarget(
+  dispatch: Pick<DispatchContextRow, 'id' | 'assignee_handle'>,
+  db: OrchestrationDb | null | undefined
+): StructuredPointerTarget | null | undefined {
+  const sessionId = chatAssigneeSessionId(dispatch.assignee_handle)
+  if (!sessionId) {
+    return undefined
+  }
+  const target = structuredSessionMailTarget(sessionId, db)
+  return target ? { ...target, dispatchId: dispatch.id } : null
+}
+
+/**
  * The target of an `orca_session_id:<id>` mailbox; `undefined` when the handle is not a session address at
  * all, so other address forms keep their own resolution.
  */
@@ -77,8 +94,8 @@ export function structuredSessionAddressTarget(
 }
 
 /**
- * Every mailbox a session reads for itself: the Runs it coordinates, its own direct mail and, for a
- * worker, its active Dispatch; a `/clear` successor reads its worker's. Re-derived from the database
+ * Every mailbox a session reads for itself: the Runs it coordinates, its own direct mail and its
+ * active Dispatch, a worker's or a chat's; a `/clear` successor reads its root's. Re-derived from the database
  * on each idle edge rather than remembered, so mail that arrived while the session could not take
  * it (mid-turn, closed) is found again.
  */
@@ -91,10 +108,9 @@ export function structuredSessionOwnedMailboxes(sessionId: string, db: Orchestra
   if (db.getUnreadDirectMessageTypes(party.address).length > 0) {
     mailboxes.push(party.address)
   }
-  // Why: Dispatch mail parked on a session a /clear ended waits for an edge that never comes.
-  const dispatch = party.terminalHandle
-    ? db.findActiveDispatchForAssignee(party.terminalHandle, party.paneKey ?? undefined)
-    : undefined
+  // Why: Dispatch mail parked on a session a /clear or restart ended waits for an edge that never
+  // comes. A party's address is what its Dispatch names it by: a worker's handle, a chat's root.
+  const dispatch = db.findActiveDispatchForAssignee(party.address, party.paneKey ?? undefined)
   if (dispatch) {
     mailboxes.push(`dispatch:${dispatch.id}`)
   }

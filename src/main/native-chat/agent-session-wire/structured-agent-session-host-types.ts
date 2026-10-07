@@ -141,6 +141,8 @@ export type StructuredAgentSessionHostDeps = {
   idleSweep?: { intervalMs?: number; idleMs?: number }
   /** Whether an orchestration dispatch still owns this session's worker; absent answers no. */
   hasOpenDispatch?: (record: AgentSessionRecord) => boolean
+  /** A chat tab left the screen: closed, or its workspace removed. Advisory; a throw is logged. */
+  onSessionTabHidden?: (sessionId: string) => void
   /** Where every failure the host carries on past is reported. Required: a host without one would
    *  drop exactly the failures nobody sees in the UI. */
   logger: StructuredAgentSessionLogger

@@ -112,7 +112,9 @@ describe('agent turn send boundary', () => {
         'runtime/rpc/methods/orchestration/worker/deliver-worker-dispatch-preamble.ts',
         'runtime/rpc/methods/orchestration/runs/dispatch-methods.ts',
         'runtime/orchestration/coordinator-task-dispatch.ts',
-        'runtime/rpc/methods/orchestration/federation/federation.ts'
+        'runtime/rpc/methods/orchestration/federation/federation.ts',
+        // A chat assignee's task, from `dispatch --inject` and `worker-start --terminal`.
+        'runtime/rpc/methods/orchestration/chat-task-delivery.ts'
       ].sort()
     )
   })

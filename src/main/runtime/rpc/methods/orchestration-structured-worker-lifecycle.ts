@@ -47,6 +47,10 @@ import type { StructuredWorkerIdentity } from '../../structured-worker-identity'
 import type { WorkerTerminalReleaseState } from '../../orchestration/worker-terminal-ownership'
 import { releaseStructuredWorkerSession } from './orchestration-structured-worker-session'
 import { closeStructuredAgentSessionChild } from '../../structured-agent-session-close'
+import {
+  chatAssigneeJournal,
+  type StructuredJournalSource
+} from './orchestration-chat-assignee-journal'
 
 export { observeStructuredWorker, structuredWorkerOwned, type StructuredWorkerObservation }
 
@@ -129,7 +133,10 @@ export async function readStructuredWorkerOutput(args: {
   limit?: number
 }): Promise<OrchestrationWorkerReadTranscriptResult | null> {
   const identity = resolveStructuredWorkerForDispatch(args.db, args.dispatchId)
-  if (!identity) {
+  const journal = identity
+    ? { source: identity, agent: structuredWorkerAgent(identity) }
+    : chatAssigneeJournal(args.db, args.dispatchId)
+  if (!journal) {
     return null
   }
   if (args.source === 'terminal') {
@@ -141,11 +148,11 @@ export async function readStructuredWorkerOutput(args: {
     )
   }
   return readStructuredWorkerJournal({
-    identity,
+    identity: journal.source,
     dispatchId: args.dispatchId,
     workerState: args.workerState,
     liveness: args.liveness,
-    agent: structuredWorkerAgent(identity),
+    agent: journal.agent,
     ...(args.cursor === undefined ? {} : { cursor: args.cursor }),
     ...(args.limit === undefined ? {} : { limit: args.limit })
   })
@@ -153,7 +160,7 @@ export async function readStructuredWorkerOutput(args: {
 
 /** Journal page in the shape `worker-read --source transcript` already serves. */
 export async function readStructuredWorkerJournal(args: {
-  identity: StructuredWorkerIdentity
+  identity: StructuredJournalSource
   dispatchId: string
   workerState: string
   liveness: StructuredWorkerObservation['status']
@@ -223,7 +230,7 @@ export async function readStructuredWorkerJournal(args: {
  * The oldest item stays in the anchor as the window-slide detector: a slide shifts every index.
  */
 function structuredJournalPrefixIdentity(args: {
-  identity: StructuredWorkerIdentity
+  identity: StructuredJournalSource
   page: StructuredLineageJournalPage
   position: number
 }): string {

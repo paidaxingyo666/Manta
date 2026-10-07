@@ -67,40 +67,44 @@ export function readSessionRecipient(
     : null
 }
 
-/** Null when mail to this session can be stored and delivered here; otherwise why not. */
+/**
+ * Null when mail to this session can be stored and delivered here; otherwise why not. A Dispatch
+ * to a chat asks the same question, since its task and its mail reach the chat the same way.
+ */
 export function refuseUndeliverableSessionRecipient(
   recipient: SessionRecipient,
   store: AgentSessionRecordReader | null,
-  db: OrchestrationDb
+  db: OrchestrationDb,
+  noEffect = 'No message was sent.'
 ): SessionRecipientRefusal | null {
   const { sessionId } = recipient
   if (!store) {
     return {
       code: CODES.unknown,
-      message: `Agent session ${sessionId} cannot be verified: this Manta is not running its agent-session host. No message was sent.`
+      message: `Agent session ${sessionId} cannot be verified: this Manta is not running its agent-session host. ${noEffect}`
     }
   }
   const found = lookupOrcaAgentSession(store, sessionId)
   if (found.kind === 'provider-id') {
-    return providerIdRefusal(sessionId, found.orcaSessionId, store)
+    return providerIdRefusal(sessionId, found.orcaSessionId, store, noEffect)
   }
   if (found.kind === 'unknown') {
     return {
       code: CODES.unknown,
-      message: `No Manta agent session ${sessionId} exists on this host. No message was sent.`
+      message: `No Manta agent session ${sessionId} exists on this host. ${noEffect}`
     }
   }
   const reach = structuredSessionMailReach(store, found.record, db)
   if (reach.kind === 'other-host') {
     return {
       code: CODES.hostBoundary,
-      message: `Agent session ${sessionId} runs on another host; mail reaches a session only on the host that runs it. Send from that host. No message was sent.`
+      message: `Agent session ${sessionId} runs on another host; mail reaches a session only on the host that runs it. Send from that host. ${noEffect}`
     }
   }
   if (reach.kind === 'unverifiable') {
     return {
       code: CODES.notLive,
-      message: `The session continuing agent session ${sessionId} after a /clear cannot be verified: ${reach.reason} No message was sent.`
+      message: `The session continuing agent session ${sessionId} after a /clear cannot be verified: ${reach.reason} ${noEffect}`
     }
   }
   if (reach.kind === 'ended') {
@@ -108,8 +112,8 @@ export function refuseUndeliverableSessionRecipient(
       code: CODES.notLive,
       message:
         reach.reason === 'worker-identity-lost'
-          ? `Agent session ${sessionId} is a structured worker whose worker identity this host no longer has, so it can never read that mail. No message was sent.`
-          : `Agent session ${sessionId} has ended: its chat was closed. No message was sent.`
+          ? `Agent session ${sessionId} is a structured worker whose worker identity this host no longer has, so it can never read that mail. ${noEffect}`
+          : `Agent session ${sessionId} has ended: its chat was closed. ${noEffect}`
     }
   }
   return null
@@ -118,7 +122,8 @@ export function refuseUndeliverableSessionRecipient(
 function providerIdRefusal(
   id: string,
   orcaSessionId: string,
-  store: AgentSessionRecordReader | null
+  store: AgentSessionRecordReader | null,
+  noEffect = 'No message was sent.'
 ): SessionRecipientRefusal {
   // The conversation's Manta session ID, which a `/clear`ed session keeps; not the live session's.
   const root = isOrcaSessionId(orcaSessionId)
@@ -127,6 +132,6 @@ function providerIdRefusal(
   const address = `${ORCA_SESSION_ADDRESS_PREFIX}${root}`
   return {
     code: CODES.providerId,
-    message: `${id} is the provider's own session id, which changes on /clear. This session's Manta session ID is ${address}; address it by that instead. No message was sent.`
+    message: `${id} is the provider's own session id, which changes on /clear. This session's Manta session ID is ${address}; address it by that instead. ${noEffect}`
   }
 }

@@ -72,14 +72,16 @@ function runtime(prompts: string[]): MantaRuntimeService {
   const fake: Pick<
     MantaRuntimeService,
     'getNestedWorkerMaxDepth' | 'getTerminalOrchestrationCliCommand' | 'sendTerminalAgentPrompt'
-  > = {
-    getNestedWorkerMaxDepth: () => 2,
-    getTerminalOrchestrationCliCommand: () => 'manta',
-    sendTerminalAgentPrompt: async (handle, text) => {
-      prompts.push(text)
-      return { handle, accepted: true, bytesWritten: text.length }
+  > & { orchestrationSenderNames: Pick<MantaRuntimeService['orchestrationSenderNames'], 'nameOf'> } =
+    {
+      orchestrationSenderNames: { nameOf: () => null },
+      getNestedWorkerMaxDepth: () => 2,
+      getTerminalOrchestrationCliCommand: () => 'manta',
+      sendTerminalAgentPrompt: async (handle, text) => {
+        prompts.push(text)
+        return { handle, accepted: true, bytesWritten: text.length }
+      }
     }
-  }
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: preamble delivery reads only the members the fake implements.
   return fake as MantaRuntimeService
 }
@@ -101,6 +103,7 @@ async function renderPreamble(worker: 'chat' | 'terminal'): Promise<string> {
     terminalHandle: worker === 'chat' ? CHAT_WORKER_HANDLE : TERMINAL_HANDLE,
     dispatchId: 'ctx_1',
     dispatchDepth: 1,
+    runId: 'run_1',
     taskId: 'task_1',
     taskSpec: 'do it',
     coordinatorHandle: 'term_coord',
