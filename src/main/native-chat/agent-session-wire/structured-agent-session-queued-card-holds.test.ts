@@ -385,16 +385,13 @@ describe('after a restart, nothing sends by itself', () => {
     await rig.settleAccepted(working, 'stopped')
     // The agent at rest goes; Resume's hand-off of A must start a new one, which never starts.
     await rig.host.collaboratorsForTests().lifetime.idleSweep.tick()
-    let release: () => void = () => undefined
-    rig.awaitStarted.mockImplementation(
-      () => new Promise<undefined>((resolve) => (release = () => resolve(undefined)))
-    )
+    // The hand-off is recorded, never handed over: the new child stays in its spawn.
+    const release = rig.holdNextStart()
     expect(await rig.resume()).toMatchObject({ ok: true, value: { resumed: true } })
     await eventually(async () => expect(await rig.handoff(first)).toBeDefined())
     const cutShort = await rig.handoffId(first)
     expect((await rig.handoff(first))?.handedOverAt).toBeUndefined()
     rig.crashRestartHostProcess()
-    rig.awaitStarted.mockImplementation(async () => undefined)
     release()
     await published()
     // The new host refuses the leftover hand-off, and A waits again in its own place.

@@ -14,12 +14,14 @@ import { projectStructuredAgentSessionStatus } from '../../../shared/structured-
 import { ClaudeStructuredSessionAdapter } from '../../claude/claude-structured-session-adapter'
 import {
   fakeClaude,
-  PROVIDER_SESSION_ID
+  PROVIDER_SESSION_ID,
+  claudeStartupSettled
 } from '../../claude/claude-structured-session-test-support'
 import type { AgentSessionRecordStore } from '../../runtime/agent-session-record-store'
 import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-record-store-test-harness'
 import { structuredClaudeLifecycleEvent } from '../../runtime/structured-claude-runtime-adapter'
 import { openTestJournalHostDatabase } from '../agent-session-journal/journal-host-database-test-support'
+import { holdDelivery } from './structured-agent-session-delivery-hold.test-fixture'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
 import {
   HOST_TEST_NOW as NOW,
@@ -100,7 +102,7 @@ beforeEach(async () => {
     providerHandle: { kind: 'claude', sessionId: PROVIDER_SESSION_ID, leafUuid: null }
   })
   expect(await host.attach(CALLER, params)).toMatchObject({ ok: true })
-  await adapter.awaitStarted(SESSION)
+  await claudeStartupSettled(adapter, SESSION)
   await Promise.all(lifecycle)
 })
 
@@ -253,22 +255,19 @@ it('withdraws a follow-up still queued on the host when the turn the Stop names 
   const connection = claude.connections[0]!
   const turnId = await openFirstTurn(connection)
   await endFirstTurn(connection)
-  // Holds the delivery loop between its start check and the handover, with the follow-up queued.
-  let release!: () => void
-  const held = new Promise<void>((resolve) => (release = resolve))
-  const awaitStarted = vi.spyOn(adapter, 'awaitStarted').mockImplementationOnce(async () => {
-    await held
-  })
+  // Holds the delivery loop ahead of the handover, with the follow-up queued.
+  const { held, release } = holdDelivery()
   const followUp = await send('And then this.')
-  await eventually(() => expect(awaitStarted).toHaveBeenCalled())
+  await held
   const submission = (await host.journalSnapshot(SESSION)).submissions.find(
     (entry) => entry.clientMessageId === followUp
   )
   expect(submission && isQueuedAgentJournalSubmission(submission)).toBe(true)
 
   // Nothing reached Claude, so the host's withdrawal is the whole Stop, as with no turn named.
-  expect(await stop(turnId)).toMatchObject({ ok: true, value: { cancelled: true } })
+  const stopped = stop(turnId)
   release()
+  expect(await stopped).toMatchObject({ ok: true, value: { cancelled: true } })
   await eventually(async () =>
     expect(await dispatch(followUp)).toEqual({
       state: 'rejected',
@@ -297,16 +296,13 @@ it('withdraws a host-queued follow-up but leaves a newer turn running when the S
   const newerTurnId = await liveTurnId()
   expect(newerTurnId).not.toBeNull()
   expect(newerTurnId).not.toBe(olderTurnId)
-  let release!: () => void
-  const held = new Promise<void>((resolve) => (release = resolve))
-  const awaitStarted = vi.spyOn(adapter, 'awaitStarted').mockImplementationOnce(async () => {
-    await held
-  })
+  const { held, release } = holdDelivery()
   const followUp = await send('And then this.')
-  await eventually(() => expect(awaitStarted).toHaveBeenCalled())
+  await held
 
-  expect(await stop(olderTurnId)).toMatchObject({ ok: true, value: { cancelled: false } })
+  const stopped = stop(olderTurnId)
   release()
+  expect(await stopped).toMatchObject({ ok: true, value: { cancelled: false } })
   await eventually(async () =>
     expect(await dispatch(followUp)).toEqual({
       state: 'rejected',

@@ -103,27 +103,23 @@ async function queuedDraft(text: string): Promise<string> {
  *  behind the start, which the Stop holds. */
 async function stopOfStart(options: { held?: true } = {}): Promise<string | undefined> {
   rig = await createQueuedMessageTestRig({ starting: true, restartable: true })
-  let release: () => void = () => undefined
-  rig.awaitStarted.mockImplementation(
-    () => new Promise<undefined>((resolve) => (release = () => resolve(undefined)))
-  )
+  // Handed over at once to a child that never proves its start; nothing echoes it.
   rig.send('work on this')
   await eventually(() => expect(childPhase()).toBe('starting'))
   const held = options.held ? await queuedDraft('queued behind the start') : undefined
   expect(await rig.stop()).toMatchObject({ ok: true })
-  release()
   expect(stopEvents()).toEqual([expect.objectContaining({ reason: 'user-stop' })])
   expect(stopEvents()[0]).not.toHaveProperty('turnId')
   await eventually(() => expect(childPhase()).toBeUndefined())
-  rig.awaitStarted.mockImplementation(async () => undefined)
   return held
 }
 
 /** Orchestration mail after the Stop starts a new child and its turn runs. */
 async function mailTurn(): Promise<void> {
+  const handedOver = rig.dispatch.mock.calls.length
   const mail = rig.send('mail for the worker')
   await mail.result
-  await eventually(() => expect(rig.dispatch).toHaveBeenCalled())
+  await eventually(() => expect(rig.dispatch).toHaveBeenCalledTimes(handedOver + 1))
   await turnOpenedBy(mail.id)
 }
 

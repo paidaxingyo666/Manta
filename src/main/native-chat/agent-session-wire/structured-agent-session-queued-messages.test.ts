@@ -31,16 +31,16 @@ import {
   hostTestMessage,
   hostTestOperationId
 } from './structured-agent-session-host-test-data'
+import { holdDelivery } from './structured-agent-session-delivery-hold.test-fixture'
 
 let rig: QueuedMessageTestRig
 let host: QueuedMessageTestRig['host']
 let store: QueuedMessageTestRig['store']
 let dispatch: QueuedMessageTestRig['dispatch']
-let awaitStarted: QueuedMessageTestRig['awaitStarted']
 
 beforeEach(async () => {
   rig = await createQueuedMessageTestRig()
-  ;({ host, store, dispatch, awaitStarted } = rig)
+  ;({ host, store, dispatch } = rig)
 })
 
 afterEach(() => rig.dispose())
@@ -378,29 +378,27 @@ describe('Stop and Delete', () => {
     expect(await drafts()).toHaveLength(2)
   })
 
-  /** A draft consumed into a submission the delivery loop has not handed over:
-   *  the loop is held at the child's start proof until the returned release. */
+  /** A draft consumed into a submission the delivery loop has not handed over: its delivery step
+   *  is held until the returned release, so a step asked for meanwhile runs ahead of the handover. */
   async function consumedButNotHandedOver(): Promise<{ draftId: string; release: () => void }> {
     const working = await workingSend()
     const queued = await send('stopped in flight', 'queue-if-active').result
     if (!queued.ok || !('queued' in queued.value)) {
       throw new Error('expected a queued receipt')
     }
-    let release: () => void = () => undefined
-    awaitStarted.mockImplementationOnce(
-      () => new Promise<undefined>((resolve) => (release = () => resolve(undefined)))
-    )
+    const { release } = holdDelivery()
     await settleAccepted(working, 'a')
     const draftId = queued.value.queued.messageId
     await eventually(async () => expect(await rig.handoff(draftId)).toBeDefined())
     expect((await rig.handoff(draftId))?.handedOverAt).toBeUndefined()
-    return { draftId, release: () => release() }
+    return { draftId, release }
   }
 
   it("a Stop between consume and the agent's receipt sends the draft back to waiting, paused like the rest", async () => {
     const { draftId, release } = await consumedButNotHandedOver()
-    const stopped = await stop()
+    const stopping = stop()
     release()
+    const stopped = await stopping
     expect(stopped).toMatchObject({ ok: true })
     expect(await drafts()).toEqual([{ messageId: draftId, state: 'waiting' }])
     expect(await rig.queuePause()).toEqual({ reason: 'stopped' })

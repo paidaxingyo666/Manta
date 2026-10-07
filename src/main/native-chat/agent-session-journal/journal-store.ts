@@ -338,7 +338,7 @@ export class AgentSessionJournal {
     return markJournalPendingSubmissionsUnknown(this, fence, reason)
   }
 
-  /** Reject unanswered sends after an owner that never proved its start ended: none was written. */
+  /** Reject sends a child that ended in its start was handed and never echoed: none ran. */
   async rejectPendingSubmissions(
     fence: number,
     rejection: AgentJournalDispatchRejection

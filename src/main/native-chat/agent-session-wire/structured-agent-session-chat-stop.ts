@@ -102,8 +102,9 @@ export function mutateWithChatStop<TValue>(
           return { ok: true, value: { ...named, cancelled: await withdrew } }
         }
         if (child?.phase === 'starting') {
-          // A start that may never land is the one thing here Stop has to end; the chat stays.
-          // The event is issued first and lands behind the withdrawal, in the journal's queue order.
+          // A start that may never land takes no interrupt, so Stop ends it; the chat stays. Its end
+          // settles what the child was handed as stopped (`unrunRejection`). The event is
+          // issued first and lands behind the withdrawal, in the journal's queue order.
           const effect = tookEffect()
           try {
             await stopChild()

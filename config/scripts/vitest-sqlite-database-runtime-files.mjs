@@ -29,7 +29,7 @@ export const SQLITE_DATABASE_RUNTIME_INCLUDE = [
   'src/main/runtime/claude-structured-exit-mid-response.test.ts',
   'src/main/runtime/claude-structured-failed-start-resume.test.ts',
   'src/main/runtime/claude-structured-resumed-start-failure.test.ts',
-  'src/main/runtime/claude-structured-send-held-for-startup.test.ts',
+  'src/main/runtime/claude-structured-send-during-startup.test.ts',
   'src/main/runtime/claude-structured-send-restart-dies-before-dispatch.test.ts',
   'src/main/runtime/claude-structured-session-integration.test.ts',
   'src/main/runtime/claude-structured-startup-fault-is-not-an-exit.test.ts',

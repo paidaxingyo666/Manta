@@ -52,6 +52,8 @@ export type StructuredAgentSessionProviderChildIdentity = {
 export type StructuredAgentSessionChildClose = {
   /** The first stop's, which the child's end keeps however many asks join it. */
   readonly cause: StructuredAgentSessionStopCause
+  /** Asked for by quit, whose leftovers the next open settles as a crash's. */
+  readonly quit?: true
   readonly reason: string | null
   /** The Stop event that stop wrote, folded before the work it ends is settled, with the settle a
    *  person's close that named no turn opens; a repeated ask reopens it. */

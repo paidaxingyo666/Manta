@@ -15,6 +15,7 @@ import {
   eventually,
   type QueuedMessageTestRig
 } from './structured-agent-session-queued-message-rig.test-fixture'
+import { holdDelivery } from './structured-agent-session-delivery-hold.test-fixture'
 
 let rig: QueuedMessageTestRig
 
@@ -167,27 +168,27 @@ describe("a message sent while a person's Stop ends the turn", () => {
     await eventually(() => expect(rig.dispatch.mock.calls.length).toBe(dispatched + 1))
   })
 
-  // The delivery step that judged the send waits on the child's start outside the session's lane.
-  it('holds a send that a Stop overtook while its delivery step waited on the agent', async () => {
+  // The delivery step that judged the send and its handover are two turns of the session's lane.
+  it('holds a send that a Stop overtook between its delivery step and the handover', async () => {
     rig = await createQueuedMessageTestRig()
     const sent = await rig.workingSend()
     await rig.settleAccepted(sent, 'sent')
     await turn('turn-1', sent, 'running')
+    await laneDrained()
     const status = watchStatus()
-    const started = Promise.withResolvers<undefined>()
-    const awaited = rig.awaitStarted.mock.calls.length
-    rig.awaitStarted.mockImplementationOnce(() => started.promise)
+    const step = holdDelivery()
     const first = rig.send('steer this in')
     expect(await first.result).toMatchObject({ ok: true })
-    await eventually(() => expect(rig.awaitStarted.mock.calls.length).toBe(awaited + 1))
+    await step.held
     const dispatched = rig.dispatch.mock.calls.length
 
-    // The Stop withdraws the first send; a second one arrives before the step resumes.
-    expect(await rig.stop()).toMatchObject({ ok: true })
-    await eventually(() => expect(status()).toMatchObject({ stopping: true }))
+    // The Stop withdraws the first send; a second one arrives before the handover.
+    const stopped = rig.stop()
     const second = rig.send('and this one')
+    step.release()
+    expect(await stopped).toMatchObject({ ok: true })
     expect(await second.result).toMatchObject({ ok: true })
-    started.resolve(undefined)
+    await eventually(() => expect(status()).toMatchObject({ stopping: true }))
     await laneDrained()
 
     expect(rig.dispatch.mock.calls.length).toBe(dispatched)

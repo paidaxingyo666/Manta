@@ -1,9 +1,10 @@
-// A Claude chat is published the moment its child spawns, before the CLI has answered initialize.
-// A send in that window — into a fresh start, or into the restart the delivery loop makes for a
-// send after a start that failed — is accepted and stays queued until the child proves its start.
-// When the CLI dies first, the queued message is rejected with the CLI's own diagnostic, the chat
-// shows the cause once, and nothing is left as a delivery nobody can confirm. Against the production runtime,
-// adapter, record store and host, with only the CLI process scripted.
+// A Claude chat is published the moment its child spawns, before the CLI has answered initialize,
+// and launched with the chat's saved options. A send in that window — into a fresh start, or into
+// the restart the delivery loop makes for a send after a start that failed — is written to the CLI
+// at once, which takes it behind its own start. When the CLI dies before answering, the message is
+// rejected with the CLI's own diagnostic, the chat shows the cause once, and nothing is left as a
+// delivery nobody can confirm. Against the production runtime, adapter, record store and host, with
+// only the CLI process scripted.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../shared/agent-session-mutation-envelope'
@@ -43,7 +44,7 @@ async function send(host: StructuredAgentSessionHost, text: string): Promise<str
     },
     body
   })
-  // Accepted and queued for the start, never refused: the message shows as sent.
+  // Accepted, never refused: the message shows as sent.
   expect(sent, JSON.stringify(sent)).toMatchObject({
     ok: true,
     replayed: false,
@@ -79,7 +80,7 @@ async function failLatestStart(host: StructuredAgentSessionHost, count: number):
 }
 
 describe('a send into a Claude chat whose CLI keeps failing at startup', () => {
-  it('restarts once, rejects the held message with the diagnostic when that start dies too, then delivers once the CLI is healthy', async () => {
+  it('restarts once, rejects the message it wrote with the diagnostic when that start dies too, then delivers once the CLI is healthy', async () => {
     claude.behave(SESSION, { initHangs: true })
     const host = await claude.install()
     await expect(host.attach(CALLER, claude.attachParams(SESSION, null))).resolves.toMatchObject({
@@ -89,10 +90,11 @@ describe('a send into a Claude chat whose CLI keeps failing at startup', () => {
     expect(await statusRows(host)).toEqual([STARTUP_TEXT])
     const releasedFence = fence(host)
 
-    // The delivery loop asks for the child back and the message waits for its start; the CLI
-    // dies again first.
+    // The delivery loop asks for the child back and writes the message to it at once; the CLI
+    // dies again before it answers initialize.
     const held = await send(host, 'hello?')
     await vi.waitFor(() => expect(claude.children(SESSION)).toHaveLength(2))
+    await vi.waitFor(() => expect(claude.child(SESSION).calls).toContain('send'))
     await vi.waitFor(() =>
       expect(host.deps.store.getRecord(SESSION)?.lease.claimStatus).toBe('live')
     )
@@ -111,7 +113,6 @@ describe('a send into a Claude chat whose CLI keeps failing at startup', () => {
     // The restart moved the fence twice: its acquisition, and the exit that released it.
     expect(fence(host)).toBe(releasedFence + 2)
     expect(claude.children(SESSION)).toHaveLength(2)
-    expect(claude.child(SESSION).calls).not.toContain('send')
 
     // The user signs in and retries: one restart, proven, written to the CLI.
     claude.behave(SESSION, {})
@@ -127,29 +128,53 @@ describe('a send into a Claude chat whose CLI keeps failing at startup', () => {
 })
 
 describe('a send while the first Claude start is still answering initialize', () => {
-  it('is queued, and written once the CLI proves its start', async () => {
+  it('is written to the CLI at once, before it answers', async () => {
     claude.behave(SESSION, { initHangs: true })
     const host = await claude.install()
     await host.attach(CALLER, claude.attachParams(SESSION, null))
 
-    await send(host, 'hello')
-    expect(claude.child(SESSION).calls).not.toContain('send')
+    const sent = await send(host, 'hello')
+    await vi.waitFor(() => expect(claude.child(SESSION).calls).toContain('send'))
+    expect(host.collaboratorsForTests().sessions.get(SESSION)?.child?.phase).toBe('starting')
 
-    // The CLI answers: startup lands and the queued message is written to the proven child.
+    // The CLI answers: the start lands under the message already written, and nothing fails.
     claude.child(SESSION).answerInit()
 
-    await vi.waitFor(() => expect(claude.child(SESSION).calls).toContain('send'))
+    await vi.waitFor(() =>
+      expect(host.collaboratorsForTests().sessions.get(SESSION)?.child?.phase).toBe('ready')
+    )
+    expect(claude.child(SESSION).calls.filter((call) => call === 'send')).toHaveLength(1)
+    expect((await submission(host, sent))?.dispatchState).not.toBe('rejected')
     expect(claude.children(SESSION)).toHaveLength(1)
     expect(await statusRows(host)).toEqual([])
   })
 
-  it('is rejected with the diagnostic when the CLI dies first, and restarts nothing', async () => {
+  // Only a SessionStart hook makes the CLI name its session before the first turn, and that hook
+  // comes from status hooks a user can turn off; the initialize answer alone starts the chat.
+  it('is written at once, and the start lands, with no start frame before the first turn', async () => {
+    claude.behave(SESSION, { initHangs: true, sendsNoStartFrame: true })
+    const host = await claude.install()
+    await host.attach(CALLER, claude.attachParams(SESSION, null))
+
+    await send(host, 'hello')
+    await vi.waitFor(() => expect(claude.child(SESSION).calls).toContain('send'))
+    claude.child(SESSION).answerInit()
+
+    await vi.waitFor(() =>
+      expect(host.collaboratorsForTests().sessions.get(SESSION)?.child?.phase).toBe('ready')
+    )
+    expect(claude.children(SESSION)).toHaveLength(1)
+    expect(await statusRows(host)).toEqual([])
+  })
+
+  it('is rejected with the diagnostic when the CLI dies before answering, and restarts nothing', async () => {
     claude.behave(SESSION, { initHangs: true })
     const host = await claude.install()
     await host.attach(CALLER, claude.attachParams(SESSION, null))
     const startedFence = fence(host)
 
     const held = await send(host, 'hello')
+    await vi.waitFor(() => expect(claude.child(SESSION).calls).toContain('send'))
     await failLatestStart(host, 1)
 
     await vi.waitFor(async () =>
@@ -163,6 +188,5 @@ describe('a send while the first Claude start is still answering initialize', ()
     expect(await statusRows(host)).toEqual([STARTUP_TEXT])
     expect(fence(host)).toBe(startedFence + 1)
     expect(claude.children(SESSION)).toHaveLength(1)
-    expect(claude.child(SESSION).calls).not.toContain('send')
   })
 })

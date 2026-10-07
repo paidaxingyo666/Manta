@@ -87,9 +87,9 @@ function invalid(
 }
 
 /** A thrown adapter error is indistinguishable from a lost reply, so it settles as `unknown`
- *  rather than as a rejection — unless the child had not proven its start. Such a child has
- *  accepted nothing (input is written only after it initializes), so a dispatch it could not
- *  take is provably unwritten and is rejected with the cause the adapter gave. */
+ *  rather than as a rejection — unless the child had not proven its start. A dispatch to such a
+ *  child throws only when the start failed before the write (a write's own failure is an outcome,
+ *  not a throw), so it is provably unwritten and is rejected with the cause the adapter gave. */
 async function dispatchSafely(
   ctx: AgentSessionHandoverContext,
   clientMessageId: string,

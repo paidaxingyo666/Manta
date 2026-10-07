@@ -11,6 +11,7 @@ import {
   hostTestMessage,
   hostTestOperationId
 } from './structured-agent-session-host-test-data'
+import { holdDelivery } from './structured-agent-session-delivery-hold.test-fixture'
 import {
   QUEUED_RIG_CALLER,
   createQueuedMessageTestRig,
@@ -393,13 +394,16 @@ describe('a card handed off after a restart', () => {
     )
     await rig.restartHostProcess()
     // Sent again in this process, then withdrawn by a Stop before the agent had it.
-    let release: () => void = () => undefined
-    rig.awaitStarted.mockImplementationOnce(
-      () => new Promise<undefined>((resolve) => (release = () => resolve(undefined)))
-    )
-    expect(await rig.sendNow(draftId)).toMatchObject({ ok: true })
-    await rig.stop()
+    // Its delivery is held, so the Stop runs ahead of the handover.
+    const { held, release } = holdDelivery()
+    const handedOver = rig.dispatch.mock.calls.length
+    const sending = rig.sendNow(draftId)
+    await held
+    const stopping = rig.stop()
     release()
+    expect(await sending).toMatchObject({ ok: true })
+    await stopping
+    expect(rig.dispatch).toHaveBeenCalledTimes(handedOver)
     await eventually(async () =>
       expect(await rig.drafts()).toEqual([{ messageId: draftId, state: 'waiting' }])
     )
