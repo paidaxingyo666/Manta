@@ -213,6 +213,13 @@ describe('the worktree factory', () => {
     expect(result.outcome.kind).toBe('structured')
   })
 
+  it('lets the create fall back to a local base when the launch carries no automation provenance', async () => {
+    const runtime = runtimeStub()
+    await launch(CREATE_LAUNCH, runtime)
+
+    expect(createArgs(runtime).allowLocalBaseFallback).toBe(true)
+  })
+
   it('deduplicates concurrent launches through surface creation', async () => {
     const runtime = runtimeStub()
 
