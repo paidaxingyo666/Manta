@@ -220,6 +220,8 @@ const FAILURE_SENTENCES = {
   managedAccountEnvOverride: (_context, _fact, _surface, say) => say('managedAccountEnvOverride'),
   accountSwitchInProgress: (_context, _fact, _surface, say) => say('accountSwitchInProgress'),
   launchFolderMissing: (_context, _fact, _surface, say) => say('launchFolderMissing'),
+  agentCommandNotRunnable: (context, _fact, _surface, say) =>
+    say('agentCommandNotRunnable', agent(say, context)),
   managedAccountUnsupported: (context, _fact, _surface, say) =>
     joinSentences([
       say('managedAccountUnsupported'),

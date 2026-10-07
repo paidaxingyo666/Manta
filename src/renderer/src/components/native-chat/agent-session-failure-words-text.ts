@@ -108,6 +108,12 @@ const PIECES: Record<AgentSessionFailureCopyId, (values: AgentSessionFailureCopy
         'components.native-chat.failureWords.launchFolderMissing',
         COPY.launchFolderMissing
       ),
+    agentCommandNotRunnable: (values) =>
+      translate(
+        'components.native-chat.failureWords.agentCommandNotRunnable',
+        COPY.agentCommandNotRunnable,
+        values
+      ),
     chooseClaudeAccount: () =>
       translate(
         'components.native-chat.failureWords.chooseClaudeAccount',
