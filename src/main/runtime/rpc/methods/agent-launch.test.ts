@@ -493,7 +493,7 @@ describe('the terminal factory', () => {
   it('takes an existing workspace without creating one', async () => {
     const runtime = runtimeStub()
     const result = await launch(
-      { agent: 'grok', target: { kind: 'existing', worktree: 'id:wt-7' } },
+      { agent: 'gemini', target: { kind: 'existing', worktree: 'id:wt-7' } },
       runtime
     )
 
@@ -504,8 +504,9 @@ describe('the terminal factory', () => {
     // Resolved to an id first: everything below re-prefixes it, so a raw selector reaches the
     // runtime as `id:id:wt-7`.
     expect(runtime.createTerminal).toHaveBeenCalledWith('id:wt-7', {
-      startupAgent: 'grok',
-      viewMode: 'chat',
+      startupAgent: 'gemini',
+      // No native chat renderer for this agent, so its tab opens as the terminal.
+      viewMode: 'terminal',
       onPtySpawnDispatched: expect.any(Function)
     })
     expect(result.worktreeId).toBe('wt-7')

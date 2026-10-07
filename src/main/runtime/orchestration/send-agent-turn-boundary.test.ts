@@ -157,8 +157,9 @@ describe('agent turn send boundary', () => {
         'native-chat/agent-session-wire/structured-conversation-command-controller.ts',
         // The pointer lane's port, whose `send` is sendAgentTurn in structured-mailbox-pointer-host.
         'runtime/orchestration/structured-mailbox-pointer-delivery.ts',
-        // A real-host test rig the shared scan does not count as a test file.
+        // Real-host test rigs the shared scan does not count as test files.
         'native-chat/agent-session-wire/structured-agent-session-rest-test-rig.ts',
+        'acp/acp-structured-host.test-support.ts',
         // An Electron WebContents IPC send, not a chat.
         'browser/doc-preview-guest-policy.ts'
       ].sort()

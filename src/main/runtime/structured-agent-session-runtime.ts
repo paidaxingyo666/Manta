@@ -115,6 +115,10 @@ export type StructuredAgentSessionRuntimeDeps = {
   resolveClaudePermissionMode?: () => Promise<PermissionMode> | PermissionMode
   /** The same setting for Codex, as app-server thread policy. */
   resolveCodexPermissionPolicy?: () => CodexStructuredPermissionPolicy
+  /** The same setting for a protocol-driven (ACP) agent: whether it runs with full access. */
+  resolveAgentFullAccess?: (agent: string) => boolean
+  /** The user's per-agent environment overlay, for agents with no lane-specific resolver. */
+  resolveAgentLaunchEnv?: (agent: string) => Record<string, string>
   /** Raw settings getter; the reader that fails closed around it is built here, in checked code. */
   getClaudeManagedAccountGateSettings?: () => ClaudeManagedAccountGateSettings
   resolveEnvironment?: () => Promise<NodeJS.ProcessEnv>
@@ -272,6 +276,7 @@ async function installOnJournal(
   const context: StructuredAgentAdapterContext = {
     deps,
     store,
+    journalDatabase,
     environment: envResolvers,
     deliverLifecycle: lifecycle.deliver,
     followUps: createStructuredAgentSessionDispatchFollowUps({

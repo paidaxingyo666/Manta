@@ -73,9 +73,11 @@ export type StructuredAgentSessionDeliveryLoopDeps = {
 
 type Step = 'continue' | 'stop'
 
+type RefusedStart = Extract<StructuredAgentSessionResumeOutcome, { ok: false }>
+
 type Prepared =
   | 'stop'
-  | Extract<StructuredAgentSessionResumeOutcome, { ok: false }>
+  | RefusedStart
   | { ok: true; awaited: StructuredAgentSessionProviderChildIdentity | null }
 
 /** A failed start before it is worded; `fail` words it once, through the one wording point. */
@@ -116,6 +118,11 @@ export class StructuredAgentSessionDeliveryLoop {
           return
         }
         if (!prepared.ok) {
+          if (prepared.aborted) {
+            // A close, Stop or quit stopped this start on purpose, and settled what it was for; a
+            // message accepted since gets its own start, and quit's next step stops the loop.
+            continue
+          }
           await this.deps.serialize(sessionId, () =>
             this.fail(sessionId, this.refusedStart(sessionId, prepared))
           )
@@ -258,11 +265,7 @@ export class StructuredAgentSessionDeliveryLoop {
   /** A start the session refused, as the failure every queued message it was for is rejected with. */
   private refusedStart(
     sessionId: string,
-    {
-      refusal,
-      diagnostic,
-      argumentProblem
-    }: Extract<StructuredAgentSessionResumeOutcome, { ok: false }>
+    { refusal, diagnostic, argumentProblem }: RefusedStart
   ): StartFailure {
     // A conversation no agent ever ran, such as a cleared chat's, failed to start, not restart.
     const newSession = this.deps.record(sessionId)?.providerHandleChain.length === 0

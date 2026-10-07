@@ -96,7 +96,9 @@ export const AGENT_SESSION_FAILURE_COPY = {
   providerRetryNumber: 'Retry {{attempt}}.',
   providerRetryNumberOf: 'Retry {{attempt}} of {{maxRetries}}.',
   providerRetryLastError: 'Last error: {{detail}}.',
-  previousExitUnverifiable: "Couldn't stop {{agent}} from before."
+  previousExitUnverifiable: "Couldn't stop {{agent}} from before.",
+  sessionNotRestored:
+    "{{agent}} couldn't reopen its earlier session, so this chat continues in a new one. {{agent}} doesn't remember the earlier messages."
 } as const
 
 export type AgentSessionFailureCopyId = keyof typeof AGENT_SESSION_FAILURE_COPY

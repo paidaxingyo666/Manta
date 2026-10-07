@@ -31,7 +31,10 @@ import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/electr
 import { remoteRuntimeClientCapabilities } from '../../shared/remote-runtime-client-capabilities'
 import { supportsAgentLaunch } from '../runtime/rpc/methods/agent-launch'
 import { readsAgentLaunchTabClosed } from '../runtime/rpc/methods/agent-launch-replay'
-import { createSupportFollowsHostSetting } from '../runtime/rpc/methods/structured-agent-session-policy'
+import {
+  createSupportFollowsHostSetting,
+  structuredAgentsReadBy
+} from '../runtime/rpc/methods/structured-agent-session-policy'
 import { DESKTOP_RENDERER_RUNTIME_CLIENT_CAPABILITIES } from './desktop-renderer-runtime-capabilities'
 
 // Every paired transport sends the shared base plus the Electron list, so compare the union.
@@ -119,6 +122,21 @@ describe('desktop renderer runtime client capabilities', () => {
     expect(createSupportFollowsHostSetting({ clientKind: 'runtime', clientCapabilities })).toBe(
       false
     )
+  })
+
+  // The renderer reads `agentSession.agents` (host-structured-agents.ts) and renders any listed
+  // agent's chat, so each host serves it every agent's tabs.
+  it.each([
+    ['a paired host', PAIRED_HOST_RECEIVES],
+    ['its own main process', DESKTOP_RENDERER_RUNTIME_CLIENT_CAPABILITIES]
+  ] as const)('reads every agent %s registered', (_host, clientCapabilities) => {
+    expect(
+      structuredAgentsReadBy({ clientKind: 'runtime', clientCapabilities }, [
+        'claude',
+        'codex',
+        'grok'
+      ])
+    ).toBeUndefined()
   })
 
   it('diverges from what a paired host receives only where a decision was recorded', () => {

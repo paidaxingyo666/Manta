@@ -7183,7 +7183,7 @@
             "shellEnvCopy": "Codex と Claude のチャットは、ターミナルと同じく、ログインシェルがエクスポートするすべての変数を引き継いで開始します。オフにすると、渡す変数を選択できます。",
             "shellEnvToggleLabel": "シェル環境の使用の切り替え",
             "structuredTitle": "更新された構造化ネイティブチャットを使用する",
-            "structuredCopy": "新規の Codex および Claude の Agent を構造化チャットとして開きます。オフにすると、ターミナルを使用したチャットで開きます。既存のチャットはそのまま残ります。",
+            "structuredCopy": "対応している場合、新規の Agent を構造化チャットとして開きます。オフにすると、ターミナルを使用したチャットで開きます。既存のチャットはそのまま残ります。",
             "structuredScope": "このマシンと、対応するバージョンを実行しているペアリング済みの Manta サーバーで動作します。古いサーバーはターミナルチャットのままです。WSL および SSH ホストは引き続きターミナルチャットを使用します。",
             "structuredToggleLabel": "更新された構造化ネイティブチャットの切り替え",
             "resumeTitle": "再起動後に作業中のチャットを自動的に再開する",
@@ -17660,7 +17660,8 @@
         "providerRetryNumber": "{{attempt}} 回目の再試行です。",
         "providerRetryNumberOf": "{{maxRetries}} 回中 {{attempt}} 回目の再試行です。",
         "providerRetryLastError": "直近のエラー: {{detail}}。",
-        "previousExitUnverifiable": "以前の {{agent}} を停止できませんでした。"
+        "previousExitUnverifiable": "以前の {{agent}} を停止できませんでした。",
+        "sessionNotRestored": "{{agent}} は以前のセッションを再開できなかったため、このチャットは新しいセッションで続行します。{{agent}} は以前のメッセージを覚えていません。"
       },
       "writeNotice": {
         "notDoneReadHistory": "このチャットの履歴を読み込めませんでした。",

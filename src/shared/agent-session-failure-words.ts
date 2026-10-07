@@ -286,7 +286,9 @@ const FAILURE_SENTENCES = {
         )
       : providerRetryWords(say, agent(say, context), retry),
   previousExitUnverifiable: (context, _fact, _surface, say) =>
-    say('previousExitUnverifiable', agent(say, context))
+    say('previousExitUnverifiable', agent(say, context)),
+  sessionNotRestored: (context, _fact, _surface, say) =>
+    say('sessionNotRestored', agent(say, context))
 } satisfies Record<AgentSessionFailureKind, Sentence>
 
 /** The sentence a person reads for this fact on this surface; never a marker. */

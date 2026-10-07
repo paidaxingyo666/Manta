@@ -5,6 +5,7 @@
  */
 
 import type { AgentLaunchPrompt } from '../../shared/agent-launch-intent'
+import type { StructuredAgentId } from '../../shared/agent-session-provider-handle'
 import type { TuiAgent } from '../../shared/tui-agent'
 
 /** How a surface is built once the executor has decided which one. Injected because an
@@ -13,7 +14,8 @@ import type { TuiAgent } from '../../shared/tui-agent'
 export type AgentLaunchSurfaceFactory = {
   createStructuredSession(args: {
     worktreeId: string
-    agent: 'claude' | 'codex'
+    /** An agent this host registered as structured; the launch mode already checked it. */
+    agent: StructuredAgentId
     options?: Readonly<Record<string, unknown>>
     /** The caller-minted session id; refused with `AgentLaunchSessionAlreadyExistsError` if taken. */
     sessionId?: string

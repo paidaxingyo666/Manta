@@ -54,6 +54,7 @@ export const SQLITE_RUNTIME_INCLUDE = [
   'src/main/native-chat/agent-session-wire/structured-agent-session-claude-stop-exit-ends-record.test.ts',
   'src/main/native-chat/agent-session-wire/structured-agent-session-claude-stop-note-end.test.ts',
   'src/main/native-chat/agent-session-wire/structured-agent-session-claude-stop-turn-end.test.ts',
+  'src/main/native-chat/agent-session-wire/structured-agent-session-close-aborts-start.test.ts',
   'src/main/native-chat/agent-session-wire/structured-agent-session-close-verdict.test.ts',
   'src/main/native-chat/agent-session-wire/structured-agent-session-codex-stop-note-end.test.ts',
   'src/main/native-chat/agent-session-wire/structured-agent-session-codex-stop-row.test.ts',

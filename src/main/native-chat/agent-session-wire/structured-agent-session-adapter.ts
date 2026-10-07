@@ -259,6 +259,10 @@ export type StructuredAgentSessionAcquireInput = {
   /** Durably records the child's identity the moment it exists, before any handshake, so a crash
    *  mid-start leaves an owner recovery can stop. The acquisition's `process` must match it. */
   onSpawned?: (process: AgentSessionProcessIdentity) => Promise<void>
+  /** Aborted by a close, or by a Stop admitted now, that must not wait behind this acquire: the
+   *  adapter stops what it started and the acquire fails. An adapter whose acquire never waits on
+   *  the provider's handshake may ignore it. */
+  signal?: AbortSignal
 }
 
 export type StructuredAgentSessionSetOptionInput = {
@@ -266,6 +270,9 @@ export type StructuredAgentSessionSetOptionInput = {
   key: string
   value: string
   fence: number
+  /** Aborted by a close, a Stop admitted now, or quit, which must not wait behind a pick the
+   *  provider never answers: the write fails. An adapter that bounds its own write may ignore it. */
+  signal?: AbortSignal
 }
 
 export type StructuredAgentSessionAdapter = StructuredAgentSessionAdapterStop & {

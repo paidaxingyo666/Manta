@@ -7303,7 +7303,7 @@
             "shellEnvCopy": "Les chats Codex et Claude démarrent avec toutes les variables exportées par votre shell de connexion, comme un terminal. Désactivez pour choisir celles qu'ils reçoivent.",
             "shellEnvToggleLabel": "Activer l'utilisation de l'environnement de votre shell",
             "structuredTitle": "Utiliser le chat natif structuré mis à jour",
-            "structuredCopy": "Ouvre les nouveaux agents Codex et Claude sous forme de discussions structurées. Désactivé, ils s'ouvrent dans le chat basé sur le terminal. Les discussions existantes restent telles quelles.",
+            "structuredCopy": "Ouvre les nouveaux agents sous forme de discussions structurées lorsque c'est possible. Désactivé, ils s'ouvrent dans le chat basé sur le terminal. Les discussions existantes restent telles quelles.",
             "structuredScope": "Fonctionne sur cette machine et sur les serveurs Manta appairés dont la version le prend en charge ; les serveurs plus anciens conservent le chat du terminal. WSL et les hôtes SSH continuent d'utiliser le chat du terminal.",
             "structuredToggleLabel": "Basculer le chat natif structuré mis à jour",
             "resumeTitle": "Reprendre automatiquement les discussions de travail après un redémarrage",
@@ -17726,7 +17726,8 @@
         "providerRetryNumber": "Nouvelle tentative {{attempt}}.",
         "providerRetryNumberOf": "Nouvelle tentative {{attempt}} sur {{maxRetries}}.",
         "providerRetryLastError": "Dernière erreur : {{detail}}.",
-        "previousExitUnverifiable": "Impossible d'arrêter l'exécution précédente de {{agent}}."
+        "previousExitUnverifiable": "Impossible d'arrêter l'exécution précédente de {{agent}}.",
+        "sessionNotRestored": "{{agent}} n'a pas pu rouvrir sa session précédente, cette discussion continue donc dans une nouvelle. {{agent}} ne se souvient pas des messages précédents."
       },
       "writeNotice": {
         "notDoneReadHistory": "L'historique de ce chat n'a pas pu être chargé.",

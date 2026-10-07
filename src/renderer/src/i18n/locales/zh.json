@@ -7183,7 +7183,7 @@
             "shellEnvCopy": "Codex 和 Claude 聊天启动时会带上登录 shell 导出的所有变量，与终端一致。关闭后可选择传递哪些变量。",
             "shellEnvToggleLabel": "切换使用 shell 环境",
             "structuredTitle": "使用更新的结构化本机聊天",
-            "structuredCopy": "将新的 Codex 和 Claude 智能体作为结构化聊天打开。关闭时会在基于终端的聊天中打开。已有的聊天保持不变。",
+            "structuredCopy": "在支持的情况下，将新的智能体作为结构化聊天打开。关闭时会在基于终端的聊天中打开。已有的聊天保持不变。",
             "structuredScope": "在本机和运行支持该功能版本的已配对 Manta 服务器上运行；较旧的服务器保留终端聊天。WSL 和 SSH 主机继续使用终端聊天。",
             "structuredToggleLabel": "切换更新的结构化本机聊天",
             "resumeTitle": "重启后自动恢复工作聊天",
@@ -17625,7 +17625,8 @@
         "providerRetryNumber": "第 {{attempt}} 次重试。",
         "providerRetryNumberOf": "第 {{attempt}} 次重试，共 {{maxRetries}} 次。",
         "providerRetryLastError": "上次错误：{{detail}}。",
-        "previousExitUnverifiable": "无法停止之前的 {{agent}}。"
+        "previousExitUnverifiable": "无法停止之前的 {{agent}}。",
+        "sessionNotRestored": "{{agent}} 无法重新打开之前的会话，因此此聊天将在新会话中继续。{{agent}} 不记得之前的消息。"
       },
       "writeNotice": {
         "notDoneReadHistory": "无法加载此聊天的历史记录。",

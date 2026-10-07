@@ -54,8 +54,13 @@ import {
   selectAgentLaunchTabForCaller
 } from './agent-launch-caller-selection'
 import { agentLaunchWorkspaceFactory } from './agent-launch-worktree-creation'
+import { clientRendersStructuredAgent } from './structured-agent-session-policy'
 import { resolveUnlaunchedIntent } from './agent-launch-intent-resolution'
-import { publishEarlyTab, withPlacement, type AgentLaunchView } from './agent-launch-tab-publication'
+import {
+  publishEarlyTab,
+  withPlacement,
+  type AgentLaunchView
+} from './agent-launch-tab-publication'
 
 /**
  * Advertising `agent.launch.v2` is a client's statement that it understands EITHER outcome — a
@@ -71,6 +76,23 @@ export function supportsAgentLaunch(
   return (
     context.clientKind === undefined ||
     context.clientCapabilities?.includes(AGENT_LAUNCH_RUNTIME_CAPABILITY) === true
+  )
+}
+
+/**
+ * `agent.launch.v2` was defined when Claude and Codex were the only chats, so it vouches for those
+ * two. Any other agent's chat needs the client to say it reads it, by the rule tabs and restart
+ * offers use; a client that does not gets that agent as a terminal.
+ */
+function callerRendersLaunchedChat(
+  context: Pick<RpcContext, 'clientKind' | 'clientCapabilities'>,
+  agent: string
+): boolean {
+  return (
+    context.clientKind === undefined ||
+    agent === 'claude' ||
+    agent === 'codex' ||
+    clientRendersStructuredAgent(context.clientCapabilities, agent)
   )
 }
 
@@ -104,6 +126,7 @@ async function runAgentLaunch(
       view.early
     ),
     workspaces: agentLaunchWorkspaceFactory(context, intent.agent),
+    ...(callerRendersLaunchedChat(context, intent.agent) ? {} : { callerRendersStructured: false }),
     // The tab is shown as it is published, not after a prompt that can take a minute to land.
     onSurfacePublished: (surface) => {
       view.early?.surfacePublished(surface)

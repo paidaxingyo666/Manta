@@ -633,7 +633,7 @@ describe('a quit with a message still queued', () => {
     expect(await keptCards()).toEqual([])
   })
 
-  it('waits for the start already in flight and stops the child it produced (R2)', async () => {
+  it('stops a start already in flight before it launches a child (R2)', async () => {
     const starting = deferred<void>()
     const closeSession = vi.fn(async () => true)
     adapterExtras = { closeSession }
@@ -647,13 +647,20 @@ describe('a quit with a message still queued', () => {
     })
     const id = await accept('hello', { person: true })
     await eventually(() => expect(recovering).toHaveBeenCalled())
+    const acquiresBefore = acquire.mock.calls.length
 
     const quit = host.flushAllStreamedEvents()
     starting.resolve()
     await quit
 
-    expect(closeSession).toHaveBeenCalledWith(SESSION)
-    expect(store.getRecord(SESSION)?.lease).toMatchObject({ claimStatus: 'released' })
+    // Quit aborts the start, so nothing is launched behind it and nothing is left to stop.
+    expect(acquire).toHaveBeenCalledTimes(acquiresBefore)
+    expect(closeSession).not.toHaveBeenCalled()
+    expect(store.getRecord(SESSION)?.lease).toMatchObject({
+      claimStatus: 'released',
+      ownerProcess: null,
+      deathEvidence: { detail: 'reservation failed before spawn' }
+    })
     expect(dispatch).not.toHaveBeenCalled()
     expect(await afterRelaunch(id)).toMatchObject({ dispatchState: 'rejected', ...HOST_RESTARTED })
     expect(await keptCards()).toEqual([id])

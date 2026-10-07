@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { shallow } from 'zustand/shallow'
 import type { GitFileStatus } from '../../../../shared/git-status-types'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
-import type { TuiAgent } from '../../../../shared/tui-agent'
-import { isAgentSessionHandleProvider } from '../../../../shared/agent-session-provider-handle'
+import { isTuiAgent } from '../../../../shared/tui-agent-config'
 import type { OpenFile } from '../../store/slices/editor'
 import SortableTab from './SortableTab'
 import EditorFileTab from './EditorFileTab'
@@ -119,8 +118,8 @@ function TabBarItemRow({
       color: item.data.color,
       sortOrder: item.data.sortOrder,
       createdAt: item.data.createdAt,
-      ...(isAgentSessionHandleProvider(item.data.agentSessionAgent)
-        ? { launchAgent: item.data.agentSessionAgent as TuiAgent }
+      ...(isTuiAgent(item.data.agentSessionAgent)
+        ? { launchAgent: item.data.agentSessionAgent }
         : {})
     }
     return (

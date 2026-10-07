@@ -252,9 +252,20 @@ describe('a launch into a workspace that already exists', () => {
 describe('an agent with no structured session', () => {
   it('stays a terminal without asking the host', async () => {
     const h = harness({})
-    const result = await h.run({ agent: 'grok', target: { kind: 'existing', worktree: 'wt-7' } })
+    const result = await h.run({ agent: 'gemini', target: { kind: 'existing', worktree: 'wt-7' } })
     expect(h.calls).toEqual(['createTerminalAgent'])
     expect(result.receipt).toMatchObject({ reason: 'agent_without_structured_session' })
+  })
+
+  it('asks the host for an agent it registered beyond Claude and Codex', async () => {
+    const h = harness({})
+    const result = await h.run({ ...CREATE_INTENT, agent: 'grok' })
+    expect(h.calls).toEqual([
+      'createWorktree(startupAgent=undefined)',
+      'createSupport',
+      'createStructuredSession'
+    ])
+    expect(result.receipt).toMatchObject({ mode: 'structured' })
   })
 })
 
