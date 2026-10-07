@@ -38,6 +38,7 @@ import {
 import { getOptionalLinearIssueLinkFlag } from './worktree-linear-issue-link'
 import { getOptionalWorktreeUnreadFlag } from './worktree-unread-flag'
 import { getReviewTargetLinkFlags } from './worktree-review-link-flags'
+import { withSetupDecisionRecovery } from './worktree-setup-decision-recovery'
 import { assertGitLabLinkFlagProjectsMatch } from './worktree-gitlab-link-context'
 
 function getEnvParentWorkspace(): string | undefined {
@@ -206,37 +207,39 @@ export const WORKTREE_HANDLERS: Record<string, CommandHandler> = {
     const name = getRequiredStringFlag(flags, 'name')
     const repo = await getCreateRepoSelector(flags, cwdParentWorktree, client)
     await assertGitLabLinkFlagProjectsMatch(flags, client, { repo })
-    const result = await client.call<RuntimeWorktreeCreateResult>('worktree.create', {
-      repo,
-      name,
-      displayName: name,
-      displayNameKind: 'user',
-      baseBranch: getOptionalStringFlag(flags, 'base-branch'),
-      ...reviewLinks,
-      ...linearIssueLink,
-      comment: getOptionalStringFlag(flags, 'comment'),
-      runHooks: flags.get('run-hooks') === true,
-      activate,
-      // CLI activation targets its runtime's desktop, never unrelated paired viewers.
-      ...(activate ? { navigation: 'host' as const } : {}),
-      ...(setupDecision ? { setupDecision } : {}),
-      parentWorktree: explicitParentWorktree,
-      ...(explicitParentWorkspace ? { parentWorkspace: explicitParentWorkspace } : {}),
-      ...(envParentWorkspace ? { envParentWorkspace } : {}),
-      ...(cwdParentWorktree ? { cwdParentWorktree } : {}),
-      noParent,
-      callerTerminalHandle,
-      // Why: marks the workspace as CLI-created so the sidebar can badge and
-      // filter it. Sent on every `worktree create` — hand-typed or agent-run.
-      cliProvenanceRequest: callerTerminalHandle ? { callerTerminalHandle } : {},
-      ...(startupAgent
-        ? {
-            startupAgent,
-            startupPrompt: getPresentStringFlag(flags, 'prompt', { allowEmpty: true }) ?? '',
-            launchSource: 'cli'
-          }
-        : {})
-    })
+    const result = await withSetupDecisionRecovery(
+      client.call<RuntimeWorktreeCreateResult>('worktree.create', {
+        repo,
+        name,
+        displayName: name,
+        displayNameKind: 'user',
+        baseBranch: getOptionalStringFlag(flags, 'base-branch'),
+        ...reviewLinks,
+        ...linearIssueLink,
+        comment: getOptionalStringFlag(flags, 'comment'),
+        runHooks: flags.get('run-hooks') === true,
+        activate,
+        // CLI activation targets its runtime's desktop, never unrelated paired viewers.
+        ...(activate ? { navigation: 'host' as const } : {}),
+        ...(setupDecision ? { setupDecision } : {}),
+        parentWorktree: explicitParentWorktree,
+        ...(explicitParentWorkspace ? { parentWorkspace: explicitParentWorkspace } : {}),
+        ...(envParentWorkspace ? { envParentWorkspace } : {}),
+        ...(cwdParentWorktree ? { cwdParentWorktree } : {}),
+        noParent,
+        callerTerminalHandle,
+        // Why: marks the workspace as CLI-created so the sidebar can badge and
+        // filter it. Sent on every `worktree create` — hand-typed or agent-run.
+        cliProvenanceRequest: callerTerminalHandle ? { callerTerminalHandle } : {},
+        ...(startupAgent
+          ? {
+              startupAgent,
+              startupPrompt: getPresentStringFlag(flags, 'prompt', { allowEmpty: true }) ?? '',
+              launchSource: 'cli'
+            }
+          : {})
+      })
+    )
     printHookWarning(result.result, json)
     printLineageSummary(result.result, json)
     printResult(result, json, formatWorktreeShow)

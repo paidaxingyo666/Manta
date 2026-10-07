@@ -1,4 +1,6 @@
 import { worktreeCreateGit } from '../git/worktree-create-git-executor'
+import { shouldRunSetupForCreate } from '../effective-hook-config'
+import { getEffectiveHooks } from '../hooks'
 import type { Repo } from '../../shared/repo-types'
 import type { Worktree } from '../../shared/worktree/types'
 import type { Store } from '../persistence'
@@ -19,6 +21,7 @@ import { hasLocalWorktreeBaseRef } from '../git/worktree-base-ref-probe'
 import { resolveRuntimeLocalWorktreeCreateCandidate } from './runtime-local-worktree-create-candidate'
 import { createRuntimeLocalGitWorktree } from './runtime-local-git-worktree-create'
 import { materializeRuntimeLocalWorktree } from './runtime-local-worktree-materialization'
+import { resolveRuntimeSetupDecision } from './runtime-local-worktree-setup'
 import type { PreparationRearmHolder } from '../worktree-create-preparation'
 import {
   localWorktreeCreateExecutionHost,
@@ -63,6 +66,11 @@ async function performRuntimeLocalWorktreeCreate<T>(args: RuntimeLocalWorktreeCr
   const gitExecOptions = getLocalProjectGitExecOptions(store, repo)
   const worktreeGitOptions = getLocalProjectWorktreeGitOptions(store, repo)
   args.timing.recordExecutionHost(localWorktreeCreateExecutionHost(gitExecOptions))
+  // Why before any git work: an `ask` repo with no decision must refuse with nothing created, as
+  // the desktop create does; checked after the add, it left an orphan worktree behind.
+  if (getEffectiveHooks(repo)?.scripts.setup) {
+    shouldRunSetupForCreate(repo, resolveRuntimeSetupDecision(request))
+  }
   // Username and base resolution are independent read-only probes. Starting
   // both before awaiting removes one serial git/config round trip from create.
   const usernamePromise =
