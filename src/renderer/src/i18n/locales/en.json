@@ -1166,7 +1166,6 @@
         "workspaceHostUnresolved": "The target workspace spans more than one host, so this run has no single host to use."
       },
       "useComposerState": {
-        "7eb3f44ff7": "Selected agent is disabled. Choose an enabled agent before creating.",
         "b2ead86962": "Failed to resolve PR base.",
         "3db83fc58a": "No project path is available on this host for attachments.",
         "ba6cb77082": "Failed to connect to project.",
