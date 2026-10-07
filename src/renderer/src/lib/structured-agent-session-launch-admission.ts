@@ -8,7 +8,11 @@ import {
   adoptAgentSessionLaunchVerdict,
   type AgentSessionLaunchPlan
 } from '@/lib/agent-session-launch-plan'
-import { admitStructuredLaunchOnHost } from '@/lib/structured-agent-session-host-admission'
+import {
+  admitStructuredLaunchOnHost,
+  type StructuredLaunchAdmission
+} from '@/lib/structured-agent-session-host-admission'
+import { holdEmptyWorkspaceDefaultSurfaceForLaunch } from '@/lib/empty-workspace-default-surface-claims'
 import { StructuredAgentSessionCreateRefusalError } from '@/lib/structured-agent-session-launch-errors'
 import { structuredAgentLabel } from '@/lib/structured-agent-session-launch-label'
 import type {
@@ -26,8 +30,8 @@ export type StructuredLaunchTerminal = {
   promptDeliveryResult?: Promise<StructuredPromptDeliveryResult>
 }
 
-/** A chat launch on a paired server. Nothing of it exists here until the server admits it. */
-export type PairedStructuredLaunch = {
+/** A chat launch its owning host has not admitted yet. Nothing of it exists here until it does. */
+export type HostAdmittedStructuredLaunch = {
   sessionId: null
   tab: null
   settlement: Promise<StructuredAgentLaunchSettlement>
@@ -121,12 +125,13 @@ export async function openDeclinedStructuredLaunchTerminal(args: {
 }
 
 /**
- * Asks the paired server that would run a chat before committing any of it here: no tab, launch
- * record, queued prompt or focus intent exists until it answers. Admitted opens the chat as a local
- * launch would; declined opens the caller's terminal with a notice (a resume, which has no terminal
- * equivalent, fails); unreachable opens nothing and says so. There is nothing to undo either way.
+ * Asks the host that would run a chat, this machine or a paired server, before committing any of it
+ * here: no tab, launch record, queued prompt or focus intent exists until it answers. Admitted opens
+ * the chat; declined opens the caller's terminal (a resume, which has no terminal equivalent,
+ * fails); an unreachable server opens nothing and says so. There is nothing to undo either way.
+ * This machine's "can't answer" or "not resolvable yet" opens the chat, whose own create reports.
  */
-export function beginPairedStructuredLaunch(args: {
+export function beginHostAdmittedStructuredLaunch(args: {
   plan: AgentSessionLaunchPlan & { agent: TuiAgent }
   hooks: StructuredAgentLaunchHooks
   worktreeId: string
@@ -135,9 +140,13 @@ export function beginPairedStructuredLaunch(args: {
   /** Commits the admitted chat: the local launch path, told which host admitted it and the saved
    *  selection that host said create will seed. */
   openAdmitted: (seedOptions?: Readonly<Record<string, string>>) => AdmittedLaunch | null
-  onHostDeclined: () => Promise<StructuredLaunchTerminal> | StructuredLaunchTerminal
-}): PairedStructuredLaunch {
+  /** Told which host declined, since where its terminal opens can depend on it. */
+  onHostDeclined: (
+    target: RuntimeClientTarget
+  ) => Promise<StructuredLaunchTerminal> | StructuredLaunchTerminal
+}): HostAdmittedStructuredLaunch {
   const { plan } = args
+  const paired = args.target.kind === 'environment'
   let cancelled = false
   let admitted: AdmittedLaunch | null = null
   const isCancelled = (): boolean => cancelled || args.hooks.signal?.aborted === true
@@ -148,52 +157,72 @@ export function beginPairedStructuredLaunch(args: {
         resolveDelivery = resolve
       })
     : undefined
+  // Released once the surface that answers the launch has opened, or nothing will.
+  const releaseHold = holdEmptyWorkspaceDefaultSurfaceForLaunch(args.worktreeId)
   const settlement = (async (): Promise<StructuredAgentLaunchSettlement> => {
-    const admission = await admitStructuredLaunchOnHost(
-      args.target,
-      toRuntimeWorktreeSelector(args.worktreeId),
-      plan.agent
-    )
-    if (isCancelled()) {
-      resolveDelivery(NOT_DELIVERED)
-      return { kind: 'cancelled', sessionId: null }
-    }
-    if (admission.kind === 'unreachable') {
-      notifyHostUnreachable(plan.agent, args.executionHostId)
-      resolveDelivery({ delivered: false, failureNotified: true })
-      return {
-        kind: 'failed',
-        error: new Error('structured chat host unreachable'),
-        notified: true
-      }
-    }
-    if (admission.kind === 'declined') {
-      if (plan.resumeFrom) {
+    try {
+      const asked = await admitStructuredLaunchOnHost(
+        args.target,
+        toRuntimeWorktreeSelector(args.worktreeId),
+        plan.agent
+      )
+      if (isCancelled()) {
         resolveDelivery(NOT_DELIVERED)
+        return { kind: 'cancelled', sessionId: null }
+      }
+      // A server that cannot resolve the workspace yet keeps its terminal fallback; this machine has
+      // no connection to lose, so its "can't answer" leaves the report to the chat's own create.
+      const admission: StructuredLaunchAdmission =
+        asked.kind !== 'workspace-unresolved'
+          ? asked
+          : paired
+            ? { kind: 'declined' }
+            : { kind: 'unreachable' }
+      if (admission.kind === 'unreachable' && paired) {
+        notifyHostUnreachable(plan.agent, args.executionHostId)
+        resolveDelivery({ delivered: false, failureNotified: true })
         return {
           kind: 'failed',
-          error: new StructuredAgentSessionCreateRefusalError(
-            'structured_agent_session_unsupported'
-          )
+          error: new Error('structured chat host unreachable'),
+          notified: true
         }
       }
-      notifyHostDeclined(plan.agent)
-      const terminal = await args.onHostDeclined()
-      void (
-        terminal.promptDeliveryResult ??
-        Promise.resolve(terminal.opened ? DELIVERED : NOT_DELIVERED)
-      ).then(resolveDelivery, () => resolveDelivery(NOT_DELIVERED))
-      return terminal.opened ? { kind: 'terminal' } : { kind: 'cancelled', sessionId: null }
+      if (admission.kind === 'declined') {
+        if (plan.resumeFrom) {
+          resolveDelivery(NOT_DELIVERED)
+          return {
+            kind: 'failed',
+            error: new StructuredAgentSessionCreateRefusalError(
+              'structured_agent_session_unsupported'
+            )
+          }
+        }
+        // The notice explains a server's refusal; on this machine the terminal opening is the answer.
+        if (paired) {
+          notifyHostDeclined(plan.agent)
+        }
+        const terminal = await args.onHostDeclined(args.target)
+        void (
+          terminal.promptDeliveryResult ??
+          Promise.resolve(terminal.opened ? DELIVERED : NOT_DELIVERED)
+        ).then(resolveDelivery, () => resolveDelivery(NOT_DELIVERED))
+        return terminal.opened ? { kind: 'terminal' } : { kind: 'cancelled', sessionId: null }
+      }
+      admitted = args.openAdmitted(
+        admission.kind === 'admitted' ? admission.seedOptions : undefined
+      )
+      if (!admitted) {
+        resolveDelivery(NOT_DELIVERED)
+        return { kind: 'cancelled', sessionId: null }
+      }
+      void (admitted.promptDeliveryResult ?? Promise.resolve(DELIVERED)).then(resolveDelivery, () =>
+        resolveDelivery(NOT_DELIVERED)
+      )
+      // Not awaited: the hold ends when the chat opens, not when it settles.
+      return admitted.settlement
+    } finally {
+      releaseHold()
     }
-    admitted = args.openAdmitted(admission.seedOptions)
-    if (!admitted) {
-      resolveDelivery(NOT_DELIVERED)
-      return { kind: 'cancelled', sessionId: null }
-    }
-    void (admitted.promptDeliveryResult ?? Promise.resolve(DELIVERED)).then(resolveDelivery, () =>
-      resolveDelivery(NOT_DELIVERED)
-    )
-    return admitted.settlement
   })().catch((error: unknown): StructuredAgentLaunchSettlement => {
     resolveDelivery(NOT_DELIVERED)
     return { kind: 'failed', error }

@@ -151,7 +151,7 @@ describe('QuickLaunchAgentMenuItems launches', () => {
   it('gives each pick its own request, so a second pick opens its own chat', () => {
     launchMock.mockReset()
     launchMock.mockReturnValue({
-      surface: { kind: 'local-agent-session', tabId: 'tab-1', sessionId: 'codex-session' }
+      surface: { kind: 'host-published' }
     })
     render(
       <QuickLaunchAgentMenuItems
@@ -175,7 +175,7 @@ describe('QuickLaunchAgentMenuItems launches', () => {
   it("hands the launch's own delivery outcome to the notes menu", async () => {
     const delivery = Promise.resolve({ delivered: true, failureNotified: false })
     launchMock.mockReturnValue({
-      surface: { kind: 'local-agent-session', tabId: 'tab-1', sessionId: 'codex-session' },
+      surface: { kind: 'host-published' },
       promptDeliveryResult: delivery
     })
     const onPromptHandedOff = vi.fn()
@@ -199,7 +199,7 @@ describe('QuickLaunchAgentMenuItems launches', () => {
   // The notes keep their text, so they are the one place that says it did not go.
   it('tells the notes menu once why its notes did not reach the new agent', async () => {
     launchMock.mockReturnValue({
-      surface: { kind: 'local-agent-session', tabId: 'tab-1', sessionId: 'codex-session' },
+      surface: { kind: 'host-published' },
       promptDeliveryResult: Promise.resolve({
         delivered: false,
         failureNotified: false,

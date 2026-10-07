@@ -20,8 +20,12 @@ import { launchStructuredWorktreeSession } from './worktree-creation-structured-
 
 const initial = useAppStore.getState()
 
-function worktree(name: string): Worktree {
+function worktree(name: string, host: 'paired' | 'local' = 'paired'): Worktree {
   const worktreePath = path.join('workspace', name)
+  const owner: Pick<Worktree, 'hostId' | 'runtimeOwnerEnvironmentId'> =
+    host === 'paired'
+      ? { hostId: 'runtime:server-1', runtimeOwnerEnvironmentId: 'server-1' }
+      : { hostId: 'local' }
   return {
     id: `repo-1::${worktreePath}`,
     repoId: 'repo-1',
@@ -41,8 +45,7 @@ function worktree(name: string): Worktree {
     sortOrder: 0,
     lastActivityAt: 0,
     createdWithAgent: 'claude',
-    hostId: 'runtime:server-1',
-    runtimeOwnerEnvironmentId: 'server-1'
+    ...owner
   }
 }
 
@@ -121,5 +124,62 @@ describe('a background worktree create whose paired server declines the chat', (
       )
     )
     expect(useAppStore.getState().activeWorktreeId).toBe(OTHER.id)
+  })
+})
+
+const LOCAL_OTHER = worktree('local-other', 'local')
+const LOCAL_CREATED = worktree('local-created', 'local')
+
+function seedThisMachine(): void {
+  useAppStore.setState({
+    repos: [
+      {
+        id: 'repo-1',
+        path: path.join('workspace', 'repo'),
+        displayName: 'repo',
+        badgeColor: '#000',
+        addedAt: 0
+      }
+    ],
+    worktreesByRepo: { 'repo-1': [LOCAL_OTHER, LOCAL_CREATED] },
+    tabsByWorktree: {},
+    ptyIdsByTabId: {},
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the launch only checks the creation is still pending.
+    pendingWorktreeCreations: { 'creation-1': {} as never },
+    settings: getDefaultSettings(path.join('workspace', '.manta')),
+    // The user moved to another workspace while the create ran.
+    activeWorktreeId: LOCAL_OTHER.id
+  })
+}
+
+describe('a background worktree create whose own machine declines the chat', () => {
+  it("opens the request's agent terminal in place, with no chat, leaving the user where they are", async () => {
+    mocks.createSupport.mockResolvedValue({ supported: false, reason: 'wsl' })
+    seedThisMachine()
+
+    await launchStructuredWorktreeSession({
+      creationId: 'creation-1',
+      request: REQUEST,
+      agentLaunchRoute: 'structured-native-chat',
+      worktreeId: LOCAL_CREATED.id,
+      shouldActivateOnCompletion: false,
+      activation: false,
+      primaryTabId: null
+    })
+
+    await vi.waitFor(() =>
+      expect(useAppStore.getState().tabsByWorktree[LOCAL_CREATED.id]).toHaveLength(1)
+    )
+    const state = useAppStore.getState()
+    const tab = state.tabsByWorktree[LOCAL_CREATED.id]![0]!
+    expect(state.pendingStartupByTabId[tab.id]).toMatchObject({
+      command: "claude --model opus 'fix the flaky test'"
+    })
+    expect(
+      (state.unifiedTabsByWorktree[LOCAL_CREATED.id] ?? []).filter(
+        (candidate) => candidate.contentType === 'agent-session'
+      )
+    ).toEqual([])
+    expect(state.activeWorktreeId).toBe(LOCAL_OTHER.id)
   })
 })

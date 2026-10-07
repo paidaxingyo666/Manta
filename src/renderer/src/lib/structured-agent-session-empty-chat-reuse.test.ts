@@ -5,6 +5,7 @@ import type { RuntimeMobileSessionTabsResult } from '../../../shared/runtime-ses
 import type { Tab, TabGroup } from '../../../shared/tab-types'
 import type { AgentSessionStatusSummary } from '../../../shared/agent-session-wire'
 import type { StructuredAgentSessionLaunchIntent } from '@/lib/launch-structured-agent-session'
+import type * as LaunchAdmissionModule from './structured-agent-session-launch-admission'
 
 const mocks = vi.hoisted(() => ({
   createIntent: vi.fn(),
@@ -58,6 +59,11 @@ vi.mock('@/lib/launch-structured-agent-session', () => {
     StructuredAgentSessionOwnerUnresolvedError
   }
 })
+// Reuse is decided where an admitted launch opens its chat; here this machine admits at once.
+vi.mock('@/lib/structured-agent-session-launch-admission', async (importOriginal) => ({
+  ...(await importOriginal<typeof LaunchAdmissionModule>()),
+  beginHostAdmittedStructuredLaunch: (args: { openAdmitted: () => unknown }) => args.openAdmitted()
+}))
 vi.mock('@/runtime/local-structured-session-tabs-sync', () => ({
   refreshLocalStructuredSessionTabs: mocks.refreshTabs
 }))
