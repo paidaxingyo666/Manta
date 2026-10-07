@@ -236,8 +236,7 @@ export function NativeChatResolvedView({
     canSend,
     transcriptSettled: session.readPhase === 'ready'
   })
-  const shownPromptCard = promptCardPresentation.card
-  const collapsedCard = promptCardPresentation.collapsedCard
+  const { card: shownPromptCard, collapsedCard } = promptCardPresentation
   const mountedPromptCard = shownPromptCard ?? collapsedCard
   useNativeChatComposerRevealFocus({
     rootRef,
@@ -441,6 +440,7 @@ export function NativeChatResolvedView({
           onSwitchToTerminal={onSwitchToTerminal}
           readTerminalScreen={readTerminalScreen}
           launchSeed={{ ...launchDraftSignal, ownsTabWideLaunchDraft }}
+          recallSource={{ messages: sessionWithPending.messages, commands: commandMarkers }}
         />
       </div>
       {contextMenu.menu}

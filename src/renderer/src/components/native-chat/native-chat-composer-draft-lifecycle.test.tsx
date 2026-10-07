@@ -158,7 +158,6 @@ function composer(
       structuredTransport: transport,
       isComposing: () => false,
       clearSkillOrigin: () => {},
-      setHistory: () => {},
       setDraft,
       setCaret
     })

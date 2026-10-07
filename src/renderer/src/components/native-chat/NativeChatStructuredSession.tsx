@@ -352,6 +352,7 @@ export function NativeChatStructuredSession(
               structuredTransport={structuredTransport}
               launchSeed={{ ...launchDraftSignal, ownsTabWideLaunchDraft: true }}
               notices={notices}
+              recallSource={{ messages: session.messages }}
             />
           ) : null}
         </>
