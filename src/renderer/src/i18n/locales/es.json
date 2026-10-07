@@ -19192,5 +19192,10 @@
       "confirm": "Eliminar todos los worktrees indicados",
       "preservedBranches": "Se conservaron algunas ramas de worktrees anidados"
     }
+  },
+  "mediaPreview": {
+    "unavailable": "No se puede reproducir este archivo multimedia. El archivo puede no estar disponible o usar un códec no compatible.",
+    "openFailed": "No se pudo abrir el archivo en la aplicación predeterminada.",
+    "openDefault": "Abrir en la aplicación predeterminada"
   }
 }
