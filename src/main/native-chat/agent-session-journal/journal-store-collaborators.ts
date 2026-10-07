@@ -69,7 +69,8 @@ export function createJournalStoreCollaborators(host: JournalStoreHost): Journal
     queuePauseRestatement: () =>
       journalQueuePauseRestatement(
         host.state().queuePauseMarks,
-        host.state().latestAcceptedTurnSequence
+        host.state().latestAcceptedTurnSequence,
+        host.journal().queuedMessages.pauses()
       ),
     cursor: host.cursor,
     adopt: host.adopt
@@ -81,7 +82,7 @@ export function createJournalStoreCollaborators(host: JournalStoreHost): Journal
     database: host.database,
     readOnly: host.readOnly,
     state: host.state,
-    wroteBeforeOpen: (sequence) => host.journal().wroteBeforeOpen(sequence),
+    reopenFloor: () => host.journal().reopenFloor(),
     committed: host.notifyCommitted
   })
   const rowWriter = new JournalRowWriter({
