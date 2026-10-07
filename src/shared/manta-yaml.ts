@@ -1,4 +1,5 @@
 import { parseDocument } from 'yaml'
+import { isMantaYamlConversionWithinLimit } from './manta-yaml-merge-expansion'
 import type {
   MantaDefaultTabTemplate,
   MantaHooks,
@@ -210,7 +211,7 @@ export function parseMantaYaml(content: string): MantaHooks | null {
       prettyErrors: false,
       uniqueKeys: true
     })
-    if (document.errors.length > 0) {
+    if (document.errors.length > 0 || !isMantaYamlConversionWithinLimit(document)) {
       return null
     }
     root = document.toJS({ maxAliasCount: MAX_MANTA_YAML_ALIAS_COUNT })
