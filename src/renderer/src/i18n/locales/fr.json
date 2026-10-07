@@ -17834,6 +17834,8 @@
         "options": "Options",
         "sessionOptions": "Options de session",
         "chooseInAgentPicker": "Choisir dans le sélecteur d'agents…",
+        "searchModels": "Rechercher des modèles…",
+        "noModelsMatch": "Aucun modèle ne correspond à votre recherche.",
         "toggleOption": "Basculer {{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
         "sentNotConfirmed": "Envoyé à l'agent — non confirmé",

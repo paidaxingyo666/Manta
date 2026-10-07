@@ -17722,6 +17722,8 @@
         "options": "Opciones",
         "sessionOptions": "Opciones de sesión",
         "chooseInAgentPicker": "Elegir en el selector del agente…",
+        "searchModels": "Buscar modelos…",
+        "noModelsMatch": "Ningún modelo coincide con la búsqueda.",
         "toggleOption": "Alternar {{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
         "sentNotConfirmed": "Enviado al agente — sin confirmar",

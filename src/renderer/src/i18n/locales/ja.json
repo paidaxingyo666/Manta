@@ -17753,6 +17753,8 @@
         "options": "オプション",
         "sessionOptions": "セッションオプション",
         "chooseInAgentPicker": "Agent の選択画面で選ぶ…",
+        "searchModels": "モデルを検索…",
+        "noModelsMatch": "検索に一致するモデルはありません。",
         "toggleOption": "{{value0}}を切り替える",
         "pillAccessibleName": "{{value0}} {{value1}}",
         "sentNotConfirmed": "Agent に送信済み — 未確認",

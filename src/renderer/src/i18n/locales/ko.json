@@ -17753,6 +17753,8 @@
         "options": "옵션",
         "sessionOptions": "세션 옵션",
         "chooseInAgentPicker": "에이전트 선택기에서 선택…",
+        "searchModels": "모델 검색…",
+        "noModelsMatch": "검색어와 일치하는 모델이 없습니다.",
         "toggleOption": "{{value0}} 전환",
         "pillAccessibleName": "{{value0}} {{value1}}",
         "sentNotConfirmed": "에이전트에 전송됨 — 확인되지 않음",

@@ -17718,6 +17718,8 @@
         "options": "选项",
         "sessionOptions": "会话选项",
         "chooseInAgentPicker": "在智能体选择器中选择…",
+        "searchModels": "搜索模型…",
+        "noModelsMatch": "没有符合搜索条件的模型。",
         "toggleOption": "切换{{value0}}",
         "pillAccessibleName": "{{value0}} {{value1}}",
         "sentNotConfirmed": "已发送给智能体 — 尚未确认",
