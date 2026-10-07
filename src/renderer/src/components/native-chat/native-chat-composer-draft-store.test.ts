@@ -608,10 +608,11 @@ describe('native-chat composer draft store', () => {
         failures-- > 0 ? Promise.reject(new Error('backing store')) : storage.loadAll()
     }
     const reloaded = await reload({ using: flaky, hydrate: false })
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     await reloaded.store.waitForNativeChatComposerDrafts(1)
     reloaded.drafts.appendNativeChatDraftCache('agent-session:s1', 'given back')
     await reloaded.store.nativeChatComposerDraftWritesSettled()
-    await new Promise((resolve) => setTimeout(resolve, 1_200))
+    await vi.advanceTimersByTimeAsync(1_200)
     await reloaded.store.hydrateNativeChatComposerDrafts()
     await reloaded.store.nativeChatComposerDraftWritesSettled()
 
@@ -639,10 +640,11 @@ describe('native-chat composer draft store', () => {
       }
     }
     const reloaded = await reload({ using: flaky, hydrate: false })
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     await reloaded.store.waitForNativeChatComposerDrafts(1)
     reloaded.drafts.appendNativeChatDraftCache('agent-session:s1', 'first')
     await reloaded.store.nativeChatComposerDraftWritesSettled()
-    await new Promise((resolve) => setTimeout(resolve, 1_200))
+    await vi.advanceTimersByTimeAsync(1_200)
     reloaded.drafts.appendNativeChatDraftCache('agent-session:s1', 'second')
     await reloaded.store.nativeChatComposerDraftWritesSettled()
 
