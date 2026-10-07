@@ -22,7 +22,7 @@ import type { DirectSshAuthority, SshProviderEpoch } from '../../../shared/ssh-t
 import type { DirectSshPreparationInput } from '../hooks/direct-ssh-reconnect-coordinator'
 import { createRemoteWorkspaceTargetSync } from '../hooks/remote-workspace-target-sync'
 import { isDirectSshRemoteWorkspaceApplyInProgress } from '../hooks/remote-workspace-snapshot-apply'
-import { makeWorktree } from '../store/slices/store-test-helpers'
+import { makeWorktree } from '../store/slices/worktrees-slice-test-fixtures'
 
 vi.mock('sonner', () => ({ toast: { info: vi.fn(), success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/lib/agent-status', async (importOriginal) => {
