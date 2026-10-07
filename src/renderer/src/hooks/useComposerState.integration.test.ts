@@ -4,6 +4,8 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAppStore } from '@/store'
 import { useComposerState } from './useComposerState'
+import * as publicComposerDecisions from './useComposerState'
+import * as composerDecisions from './composer-state/composer-decisions'
 
 let originalApiDescriptor: PropertyDescriptor | undefined
 
@@ -31,6 +33,33 @@ afterEach(() => {
 })
 
 describe('useComposerState integrated lifecycle', () => {
+  it('keeps the public composer decisions bound to the canonical decision module', () => {
+    expect(publicComposerDecisions.canResolveFolderSmartGitHubSubmit).toBe(
+      composerDecisions.canResolveFolderSmartGitHubSubmit
+    )
+    expect(publicComposerDecisions.getInitialAutoManagedWorkspaceName).toBe(
+      composerDecisions.getInitialAutoManagedWorkspaceName
+    )
+    expect(publicComposerDecisions.getInitialGitHubPrStartPointSelection).toBe(
+      composerDecisions.getInitialGitHubPrStartPointSelection
+    )
+    expect(publicComposerDecisions.getMatchingLinkedTaskSourceContext).toBe(
+      composerDecisions.getMatchingLinkedTaskSourceContext
+    )
+    expect(publicComposerDecisions.isExplicitWorkspaceNameInput).toBe(
+      composerDecisions.isExplicitWorkspaceNameInput
+    )
+    expect(publicComposerDecisions.resolveInitialWorkspaceRunSeed).toBe(
+      composerDecisions.resolveInitialWorkspaceRunSeed
+    )
+    expect(publicComposerDecisions.resolveSmartGitHubCreateNames).toBe(
+      composerDecisions.resolveSmartGitHubCreateNames
+    )
+    expect(publicComposerDecisions.retargetGitHubPrStartPointSelection).toBe(
+      composerDecisions.retargetGitHubPrStartPointSelection
+    )
+  })
+
   it('composes two live composers and exposes the parent-worktree control state', () => {
     useAppStore.setState({
       repos: [],
