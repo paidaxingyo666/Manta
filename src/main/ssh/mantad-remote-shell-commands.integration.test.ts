@@ -486,12 +486,19 @@ describe('liveness and stop commands, run for real', () => {
 
   it('reports a permission-denied liveness probe as UNKNOWN in any locale', () => {
     writeFileSync(join(versionDir, MANTAD_PID_FILENAME), '4242')
+    // Keep the permission branch independent of unrelated host PID reuse.
+    const matchingPs =
+      'ps() { [ "$#" = 4 ] && [ "$1" = -o ] && [ "$2" = args= ] && ' +
+      '[ "$3" = -p ] && [ "$4" = 4242 ] || return 1; ' +
+      `printf 'node %s\\n' ${shellEscape(join(versionDir, 'mantad.js'))}; };`
     const deniedKill =
       'kill() { if [ "$LC_ALL" = C ]; then echo "kill: Operation not permitted" >&2; ' +
       'else echo "kill: Vorgang nicht zulässig" >&2; fi; return 1; };'
     expect(
       parseOrcadLiveness(
-        sh(`LC_ALL=de_DE.UTF-8; ${deniedKill} ${orcadLivenessProbeCommand(host, versionDir)}`)
+        sh(
+          `LC_ALL=de_DE.UTF-8; ${matchingPs} ${deniedKill} ${orcadLivenessProbeCommand(host, versionDir)}`
+        )
       )
     ).toBe('UNKNOWN')
   })
