@@ -71,6 +71,7 @@ const result = spawnSync(
     'tests/e2e/ssh-docker-transport-drop-recovery.spec.ts',
     'tests/e2e/ssh-external-image-preview.spec.ts',
     'tests/e2e/ssh-lost-kill-tab-resurrection.spec.ts',
+    'tests/e2e/ssh-native-chat-phone-history.spec.ts',
     'tests/e2e/ssh-pi-compatible-agent-title.spec.ts',
     'tests/e2e/ssh-port-forward-lifecycle.spec.ts',
     'tests/e2e/ssh-reattach-home-partition.spec.ts',
