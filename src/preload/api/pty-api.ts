@@ -20,6 +20,7 @@ import type { AgentKind, LaunchSource, RequestKind } from '../../shared/telemetr
 import type { TerminalSideEffectBatch } from '../../shared/terminal-side-effect-facts'
 import type { TerminalViewAttributes } from '../../shared/terminal-view-attributes'
 import type { TuiAgent } from '../../shared/tui-agent'
+import type { TerminalPanePlacement } from '../../shared/terminal-pane-placement'
 import type { PtyManagementApi } from './pty-management-api'
 import type { TerminalProcessInspection } from '../../shared/terminal-process-inspection'
 import type { CodexSharedServerStatus } from '../../shared/codex-shared-server-command'
@@ -54,6 +55,8 @@ export type PtyApi = {
     leafId?: string
     // Why: a pane with a live owner is otherwise reattached; a restart names the PTY main must stop first.
     replacesPtyId?: string
+    // Which tab and leaf a fresh PTY joins; older mains ignore it.
+    placement?: TerminalPanePlacement
     // Why: main fires `agent_started` only on spawn success, so launch metadata rides this field (telemetry-plan.md §Agent launch semantics).
     telemetry?: { agent_kind: AgentKind; launch_source: LaunchSource; request_kind: RequestKind }
   }) => Promise<{

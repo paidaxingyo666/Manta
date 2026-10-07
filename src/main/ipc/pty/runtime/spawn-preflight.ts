@@ -173,7 +173,8 @@ export async function prepareRuntimePtySpawn(
       worktreeId: args.worktreeId,
       tabId: args.tabId,
       leafId: args.leafId,
-      ...(args.expectedSourceBinding ? { expectedSourceBinding: args.expectedSourceBinding } : {})
+      ...(args.expectedSourceBinding ? { expectedSourceBinding: args.expectedSourceBinding } : {}),
+      ...(args.placement ? { placement: args.placement } : {})
     }
   }
   const sshScopedEnv = stripRemotePaneEnvWhenHooksDisabled(args.connectionId, args.env)
