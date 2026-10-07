@@ -682,6 +682,20 @@ describe('a Stop in that window that the turn never opens for', () => {
 })
 
 describe("a Stop pressed while Codex's turn/start is in flight", () => {
+  async function stopWhenItsTurnNeverOpens(release?: () => void): Promise<void> {
+    await host.flushStreamedEvents(SESSION)
+    const began = Promise.withResolvers<void>()
+    openWaits.began = began.resolve
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] })
+    const stopping = settledWithin(stop(), CODEX_TURN_OPEN_WAIT_MS + 2_000)
+    release?.()
+    await began.promise
+    await vi.advanceTimersByTimeAsync(CODEX_TURN_OPEN_WAIT_MS - 1)
+    expect(openWaits.ended).toEqual([])
+    await vi.advanceTimersByTimeAsync(2_001)
+    expect(await stopping).not.toBe('held')
+  }
+
   function turnRow(
     items: Awaited<ReturnType<StructuredAgentSessionHost['journalSnapshot']>>['items']
   ) {
@@ -738,13 +752,7 @@ describe("a Stop pressed while Codex's turn/start is in flight", () => {
   })
 
   it('ends the child when its interrupt was refused and the turn has not opened by the end of its wait', async () => {
-    const release = turns.holdNextAnswer()
-    await send('look around')
-    await vi.waitFor(() => expect(answers).toBe(1))
-    const stopping = stop()
-    release()
-
-    expect(await settledWithin(stopping, CODEX_TURN_OPEN_WAIT_MS + 2_000)).not.toBe('held')
+    await stoppedBeforeItsTurnOpened()
 
     expect(interrupts).toBe(1)
     expect(childCloses).toBe(1)
@@ -758,9 +766,7 @@ describe("a Stop pressed while Codex's turn/start is in flight", () => {
     const release = turns.holdNextAnswer()
     const sent = await send('look around')
     await vi.waitFor(() => expect(answers).toBe(1))
-    const stopping = stop()
-    release()
-    expect(await settledWithin(stopping, CODEX_TURN_OPEN_WAIT_MS + 2_000)).not.toBe('held')
+    await stopWhenItsTurnNeverOpens(release)
     return sent
   }
 
@@ -793,9 +799,7 @@ describe("a Stop pressed while Codex's turn/start is in flight", () => {
     const release = turns.holdNextAnswer()
     const sent = await send('look around')
     await vi.waitFor(() => expect(answers).toBe(2))
-    const stopping = stop()
-    release()
-    expect(await settledWithin(stopping, CODEX_TURN_OPEN_WAIT_MS + 2_000)).not.toBe('held')
+    await stopWhenItsTurnNeverOpens(release)
 
     expect(verdictOf((await settled()).submissions, sent)).toBe('withdrawn')
     expect(await statusRows()).toEqual([])
@@ -870,7 +874,7 @@ describe("a Stop pressed while Codex's turn/start is in flight", () => {
     // The stopped turn's own end arrives after the next send was handed over.
     turns.end('interrupted')
 
-    expect(await settledWithin(stop(), CODEX_TURN_OPEN_WAIT_MS + 2_000)).not.toBe('held')
+    await stopWhenItsTurnNeverOpens()
 
     expect(childCloses).toBe(1)
     expect(verdictOf((await settled()).submissions, next)).toBe('withdrawn')
