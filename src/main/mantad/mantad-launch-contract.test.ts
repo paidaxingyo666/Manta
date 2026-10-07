@@ -13,7 +13,7 @@ import { startOrcadWithLifecycle } from './mantad-lifecycle'
 import { MantadBindAddressError } from './mantad-bind-address'
 import { MantadInstanceLockError } from './mantad-instance-lock'
 import { ProfileStateAccessError } from '../persistence/profile-state/profile-state-access'
-import { OrcadBundledRuntimeError } from './orcad-bundled-runtime'
+import { OrcadBundledRuntimeError } from './mantad-bundled-runtime'
 
 describe('parseArgs', () => {
   it('accepts --bind and leaves it unset when absent', () => {
@@ -24,6 +24,25 @@ describe('parseArgs', () => {
       bind: '10.0.0.5',
       json: true
     })
+  })
+
+  it('takes the desktop serve flags manta serve forwards', () => {
+    expect(
+      parseArgs([
+        '--mobile-pairing',
+        '--recipe-json',
+        '--project-root',
+        '/work/app',
+        '--no-pairing'
+      ])
+    ).toEqual({
+      mobilePairing: true,
+      recipeJson: true,
+      projectRoot: '/work/app',
+      noPairing: true
+    })
+    expect(() => parseArgs(['--recipe-json'])).toThrow('--recipe-json requires --project-root')
+    expect(() => parseArgs(['--project-root'])).toThrow('--project-root expects a value')
   })
 
   it('rejects --bind with no value rather than silently binding the default', () => {

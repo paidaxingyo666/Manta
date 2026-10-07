@@ -118,5 +118,8 @@ it('mantad installs the trace file before its runtime and closes it after every 
   expect(install).toBeLessThan(entry.indexOf('new MantaRuntimeService('))
   const quit = entry.indexOf('      runMantadQuitHandlers()\n')
   expect(quit).toBeGreaterThan(-1)
-  expect(entry.indexOf('      closeOrcadObservability()\n', quit)).toBeGreaterThan(quit)
+  const close = entry.indexOf('      closeOrcadObservability()\n', quit)
+  expect(close).toBeGreaterThan(quit)
+  // A failing quit handler must not skip the close.
+  expect(entry.slice(quit, close)).toContain('} finally {')
 })

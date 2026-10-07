@@ -16,6 +16,7 @@ import { createProfileStateStoreForStartup } from '../persistence/profile-state/
 import { initializeBrowserClientHostId } from '../browser/browser-client-host-id'
 import { scheduleSecretProtectionGapReport } from '../host/deferred-secret-protection-report'
 import { initSshHostKeyStoreFile } from '../ssh/ssh-host-key-store'
+import { initOrcadHeldFenceTokenFile } from '../ssh/orcad-held-fence-tokens'
 import { neutralizeLegacyTerminalShimDir } from '../pty/legacy-terminal-shim-dir'
 import { createWindowsShellPathHydration } from './windows-shell-path-hydration'
 import {
@@ -186,6 +187,7 @@ export async function initializeReadyFoundation(): Promise<void> {
   // it. Left unbound it reports nothing trusted, which is safe but silently discards our own
   // accept records on every launch.
   initSshHostKeyStoreFile(profile.dataFile)
+  initOrcadHeldFenceTokenFile(profile.dataFile)
   // Why: must precede PTY handler registration and run in headless serve too, which returns before openMainWindow.
   neutralizeLegacyTerminalShimDir(app.getPath('userData'))
   const windowsShellPathHydration = createWindowsShellPathHydration()

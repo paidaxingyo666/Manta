@@ -53,6 +53,8 @@ const ALLOWED_REFERENCES: Record<string, readonly string[]> = {
   patchWorkspaceSession: ['ipc/session.ts'],
   stageWorkspaceSessionBeforeUnload: ['ipc/renderer-shutdown-checkpoint.ts'],
   setWorkspaceSessionForWorktree: [
+    // Headless editor-tab retirement, like the headless mobile-session tab writers below.
+    'runtime/mobile-session-editor-projection.ts',
     'runtime/manta-runtime-adopt-terminal-orphans-from-inventory.ts',
     'runtime/manta-runtime-apply-mobile-session-tab-navigation.ts',
     'runtime/manta-runtime-build-headless-mobile-session-browser-tabs.ts',

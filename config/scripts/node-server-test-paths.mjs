@@ -14,6 +14,12 @@ export function nodeServerTestPaths({ artifact = false, crossRuntime = false } =
     'src/main/sqlite',
     'src/main/mantad/mantad-entry.test.ts',
     'src/main/mantad/mantad-push-startup.test.ts',
+    // The mantad server's identity and stop path, which Windows SSH hosts rely on (W2).
+    'src/main/mantad/mantad-instance-lock.test.ts',
+    'src/main/mantad/mantad-process-start-time.test.ts',
+    'src/main/mantad/mantad-stop-request-listener.test.ts',
+    'src/main/mantad/mantad-managed-stop.test.ts',
+    'src/main/mantad/mantad-managed-stop-cancellation.test.ts',
     // The directory, not a prefix: its siblings are POSIX-host unit tests pr.yml already runs.
     'src/main/daemon/pty-subprocess/',
     'src/main/daemon/pty-subprocess-spawn-file-foreground.test.ts',
@@ -25,6 +31,9 @@ export function nodeServerTestPaths({ artifact = false, crossRuntime = false } =
           'src/main/mantad/mantad-packaged-node-pty.integration.test.ts',
           'src/main/providers/agent-foreground-process-git-bash.win32.test.ts',
           'src/main/mantad/mantad-node-launcher.integration.test.ts',
+          'src/main/mantad/mantad-stop-request-shutdown.integration.test.ts',
+          'src/main/mantad/mantad-windows-conpty-breakaway.integration.test.ts',
+          'src/main/mantad/mantad-serve-parity.integration.test.ts',
           'config/scripts/zip-extractor-command.test.mjs'
         ]
       : []),

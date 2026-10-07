@@ -7,10 +7,17 @@ import {
   parseOrcadProfilePreflight
 } from '../../shared/mantad-profile-preflight'
 import { assertPosixOrcadHost } from './mantad-remote-host-support'
+import {
+  orcadWindowsBaseDir,
+  orcadWindowsHostOpCommand,
+  orcadWindowsNodeCommandLine,
+  readOrcadWindowsEncodedAnswer
+} from './mantad-remote-windows-node'
+import { ORCAD_WINDOWS_RUNTIME_MARKER } from './mantad-windows-host-script'
 import { orcadNodeSlotRuntimeCommand } from './mantad-remote-runtime'
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { shellEscape } from './ssh-connection-utils'
-import { joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
+import { isWindowsRemoteHost, joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
 
 export function orcadProfilePreflightCommand(
@@ -40,10 +47,47 @@ export async function preflightInstalledOrcad(options: {
   signal?: AbortSignal
 }): Promise<void> {
   const nonce = randomUUID()
-  const output = await execCommand(
-    options.conn,
-    orcadProfilePreflightCommand(options.host, options.remoteInstallDir, nonce),
-    { signal: options.signal, timeoutMs: ORCAD_PROFILE_PREFLIGHT_TIMEOUT_MS }
-  )
+  const command = isWindowsRemoteHost(options.host)
+    ? await windowsOrcadProfilePreflightCommand(options, nonce)
+    : orcadProfilePreflightCommand(options.host, options.remoteInstallDir, nonce)
+  const output = await execCommand(options.conn, command, {
+    signal: options.signal,
+    timeoutMs: ORCAD_PROFILE_PREFLIGHT_TIMEOUT_MS,
+    wrapCommand: !isWindowsRemoteHost(options.host)
+  })
   parseOrcadProfilePreflight(output, nonce, ORCAD_NODE_RUNTIME_IDENTITY, options.fullVersion)
+}
+
+/**
+ * Windows: resolve the slot's node.exe, then run its `mantad.js` with plain argv. No
+ * MANTA_BACKGROUND_LAUNCH here: mantad opens no window, and argv cannot set environment.
+ */
+async function windowsOrcadProfilePreflightCommand(
+  options: {
+    conn: SshConnection
+    host: RemoteHostPlatform
+    remoteInstallDir: string
+    signal?: AbortSignal
+  },
+  nonce: string
+): Promise<string> {
+  const { host, remoteInstallDir } = options
+  const runtime = readOrcadWindowsEncodedAnswer(
+    await execCommand(
+      options.conn,
+      orcadWindowsHostOpCommand(host, orcadWindowsBaseDir(host, remoteInstallDir), 'slot-runtime', [
+        remoteInstallDir
+      ]),
+      { signal: options.signal, wrapCommand: false }
+    ),
+    ORCAD_WINDOWS_RUNTIME_MARKER
+  )
+  if (!runtime) {
+    throw new Error('The Windows host did not name the runtime this mantad slot needs.')
+  }
+  return orcadWindowsNodeCommandLine(runtime, [
+    joinRemotePath(host, remoteInstallDir, 'mantad.js'),
+    ORCAD_PROFILE_PREFLIGHT_FLAG,
+    nonce
+  ])
 }

@@ -58,6 +58,11 @@ on:
         description: Version to package, without the leading v
         required: true
         type: string
+      orcad_template:
+        description: Ship the mantad-template artifact the calling run built (adhoc does; hourly and daily do not yet)
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       channel:
@@ -264,6 +269,14 @@ jobs:
           # is correct for unvetted artifacts. Same as the mac dev channels.
           MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
 
+      # After the app build so nothing that cleans out/ can drop it; electron-builder ships it.
+      - name: Download the mantad deployment template
+        if: inputs.orcad_template
+        uses: actions/download-artifact@v8
+        with:
+          name: mantad-template
+          path: out/mantad-template
+
       # Why the token is minted here and not at the top: installation tokens live
       # one hour and nothing before this point writes anything.
       - name: Mint dev channel repo token
@@ -301,6 +314,8 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           MANTA_BUILD_COMMIT: ${{ inputs.ref }}
+          # beforePack and afterPack fail the package when the template is absent.
+          ORCA_REQUIRE_ORCAD_TEMPLATE: ${{ inputs.orcad_template && '1' || '' }}
           # Why: electron-publish refuses to upload into a release published more
           # than two hours ago (gitHubPublisher.getOrCreateRelease). The mac leg
           # publishes the draft live as soon as *it* finishes, so a slow notary

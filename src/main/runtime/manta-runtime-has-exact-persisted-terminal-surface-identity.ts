@@ -205,6 +205,10 @@ export class MantaRuntimeWithHasExactPersistedTerminalSurfaceIdentity extends Ma
     this.automation.setService(service)
   }
 
+  releaseFinishedAutomationRunTerminals(): Promise<number> {
+    return this.automation.releaseFinishedRunTerminals()
+  }
+
   setArtifactService(service: ArtifactCloudService): void {
     this.artifacts.setService(service)
   }

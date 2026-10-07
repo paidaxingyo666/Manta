@@ -1,5 +1,5 @@
 import { installRuntimeLinearCommandSurface } from './runtime-linear-command-surface'
-import { MantaRuntimeWithResolveWaiter } from './manta-runtime-resolve-waiter'
+import { MantaRuntimeWithMigrationCatalog } from './manta-runtime-migration-catalog'
 import type { RuntimeCommandSurfaceHost } from './manta-runtime-core'
 import type {
   AgentLaunchTabPublished,
@@ -15,8 +15,8 @@ import { peekOpenedAgentSessionRecordStore } from './agent-session-record-store-
 import { createAgentLaunchRecordWarmupGate } from './agent-launch-record-warmup-gate'
 import { registerDetectedWorktreeScanInvalidation } from '../ipc/worktrees/listing/register-detected-worktree-scan-invalidation'
 
-class MantaRuntimeService extends MantaRuntimeWithResolveWaiter {
-  constructor(...args: ConstructorParameters<typeof MantaRuntimeWithResolveWaiter>) {
+class MantaRuntimeService extends MantaRuntimeWithMigrationCatalog {
+  constructor(...args: ConstructorParameters<typeof MantaRuntimeWithMigrationCatalog>) {
     super(...args)
     // Why: the runtime listing re-runs a scan the worktree-change generation overtook and re-lists
     // through this runtime's scan cache, so a worktree change must reach both. The desktop IPC
