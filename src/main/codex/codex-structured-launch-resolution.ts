@@ -17,6 +17,7 @@ import type { CodexStructuredPermissionPolicy } from './codex-structured-permiss
 import { resolvePinnedCodexRolloutProof } from './codex-pinned-rollout-proof'
 import { codexStructuredLaunchArgs } from './codex-structured-launch-args'
 import { CODEX_STRUCTURED_AGENT } from './codex-structured-agent-definition'
+import type { PrepareNativeChatVisuals } from '../native-chat/native-chat-visuals-delivery'
 
 export type CodexStructuredLaunchResolverDeps = {
   store: Pick<AgentSessionRecordStore, 'getRecord' | 'pinLaunchDirectory'>
@@ -32,6 +33,8 @@ export type CodexStructuredLaunchResolverDeps = {
   /** The user's Agent Permissions setting as thread policy, re-read per acquisition.
    *  States both postures outright — a resume inherits the last one for any field left absent. */
   resolvePermissionPolicy?: () => CodexStructuredPermissionPolicy
+  /** This chat's visuals folder and skill; absent or null ⇒ the chat gets neither. */
+  prepareVisuals?: PrepareNativeChatVisuals
 }
 
 export type CodexStructuredInvocation = {
@@ -91,6 +94,7 @@ export function createCodexStructuredLaunchResolver(
     const resumeThreadId = head?.handle.nativeId ?? null
     // The same saved options every turn sends, so the thread and its turns name one model.
     const model = record.options?.model
+    const visuals = (await deps.prepareVisuals?.(record.sessionId)) ?? null
     return {
       command,
       args: [...args, 'app-server'],
@@ -105,6 +109,7 @@ export function createCodexStructuredLaunchResolver(
       ...(resumeThreadId && head?.origin === 'created' ? { supersedeIfUnsaved: true } : {}),
       ...(permissionPolicy ? { permissionPolicy } : {}),
       ...(model ? { model } : {}),
+      ...(visuals ? { visuals } : {}),
       ...(resumeThreadId
         ? {
             resumePath: await (deps.resolveRollout ?? resolvePinnedCodexRolloutProof)(

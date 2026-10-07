@@ -17,6 +17,8 @@ export type InstalledRuntime = {
   /** Resolves after every observed adapter exit has published, and every
    *  recovery callback it raised has settled. */
   waitForRecovery: () => Promise<void>
+  /** Host bookkeeping that runs on timers, stopped before anything else. */
+  stopBackgroundWork?: () => void
 }
 
 /** Why the app is going away, for the resume markers teardown stamps. A module-level latch rather
@@ -41,6 +43,7 @@ export async function tearDownRuntime(
   recordAgentSessionRuntimeEnd(trigger)
   // An exit settled while recovery drains wakes delivery, which would start a fresh child for
   // teardown to kill; queued messages wait for the next launch instead.
+  installed.stopBackgroundWork?.()
   installed.host.stopDelivery()
   // Drain an in-flight recovery before stopping children; recovery may still
   // be writing lifecycle rows or acquiring a replacement child.

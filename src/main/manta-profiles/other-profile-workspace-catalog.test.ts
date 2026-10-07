@@ -10,8 +10,11 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { folderWorkspaceKey } from '../../shared/workspace-scope'
 import { importProfileStateJson } from '../persistence/profile-state/profile-state-documents'
 import { openProfileStateDatabase } from '../persistence/profile-state/profile-state-database'
-import { getMantaProfileStateDatabaseFile } from '../manta-profiles/profile-storage-paths'
-import { getOtherProfileWorktreeIdsForHistoryGc } from './history-gc-profile-worktree-ids'
+import { getMantaProfileStateDatabaseFile } from './profile-storage-paths'
+import {
+  getOtherProfileWorktreeIdsForHistoryGc,
+  readOtherProfileWorkspaceCatalog
+} from './other-profile-workspace-catalog'
 
 const roots: string[] = []
 
@@ -263,5 +266,50 @@ describe('getOtherProfileWorktreeIdsForHistoryGc', () => {
       ids: new Set(),
       unreadableProfiles: 0
     })
+  })
+})
+
+describe('readOtherProfileWorkspaceCatalog', () => {
+  it("also names every other profile's projects", () => {
+    const root = userDataWithProfiles('active', [
+      { id: 'active', state: { repos: [{ id: 'repo-active' }] } },
+      { id: 'other', state: { repos: [{ id: 'repo-other' }, { id: '' }, null] } }
+    ])
+    const catalog = readOtherProfileWorkspaceCatalog(root)
+    expect(catalog.repoIds).toEqual(new Set(['repo-other']))
+    expect(catalog.unreadableProfiles).toBe(0)
+  })
+
+  it('counts a profile whose projects are not a list as unreadable', () => {
+    const root = userDataWithProfiles('active', [
+      { id: 'active', state: {} },
+      { id: 'other', state: { repos: { 'repo-other': {} } } }
+    ])
+    expect(readOtherProfileWorkspaceCatalog(root).unreadableProfiles).toBe(1)
+  })
+
+  it('skips the running profile even when the index already names another as active', () => {
+    const root = userDataWithProfiles('next', [
+      { id: 'running', state: { repos: [{ id: 'repo-running' }] } },
+      { id: 'next', state: { repos: [{ id: 'repo-next' }] } }
+    ])
+    const catalog = readOtherProfileWorkspaceCatalog(root, { runningProfileId: 'running' })
+    expect(catalog.repoIds).toEqual(new Set(['repo-next']))
+  })
+
+  it('counts a never-written profile as empty only when asked', () => {
+    const root = userDataWithProfiles('active', [{ id: 'active', state: {} }, { id: 'fresh' }])
+    expect(readOtherProfileWorkspaceCatalog(root).unreadableProfiles).toBe(1)
+    const lenient = readOtherProfileWorkspaceCatalog(root, { neverWrittenIsEmpty: true })
+    expect(lenient.unreadableProfiles).toBe(0)
+    expect(lenient.repoIds.size).toBe(0)
+  })
+
+  it('never counts a profile with only backups of its data file as empty', () => {
+    const root = userDataWithProfiles('active', [{ id: 'active', state: {} }, { id: 'lost' }])
+    writeFileSync(join(root, 'profiles', 'lost', 'manta-data.json.bak.0'), '{}')
+    expect(
+      readOtherProfileWorkspaceCatalog(root, { neverWrittenIsEmpty: true }).unreadableProfiles
+    ).toBe(1)
   })
 })

@@ -44,7 +44,11 @@ import { codexStructuredPermissionPolicyForSettings } from '../codex/codex-struc
 import { claudeStructuredAuthPolicyForSettings } from '../claude-accounts/claude-structured-auth-policy'
 import { resolveStructuredAgentCommand } from '../native-chat/structured-agent-command-resolution'
 import { structuredAgentConfiguredArgs } from '../native-chat/structured-agent-configured-args'
-import { claudeThinkingDisplaySupport } from '../claude/claude-thinking-display-support'
+import { claudeCliFlagSupport } from '../claude/claude-cli-flag-support'
+import {
+  createNativeChatVisualsWorkspaceVerdicts,
+  readNativeChatVisualsWorkspaceCatalogs
+} from './native-chat-visuals-workspace-verdict'
 
 export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleVisibleReadProbe {
   async getWorktreePs(
@@ -223,7 +227,13 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleV
       resolveClaudeLaunchEnv: () =>
         resolveTuiAgentLaunchEnv('claude', this.requireStore().getSettings().agentDefaultEnv),
       // Wired only here, so a test runtime never runs a real `claude --version`.
-      claudeThinkingDisplay: claudeThinkingDisplaySupport,
+      claudeCliFlags: claudeCliFlagSupport,
+      nativeChatVisuals: {
+        // Chats and their visuals are shared by every profile; each profile keeps its own catalog.
+        workspaceVerdicts: createNativeChatVisualsWorkspaceVerdicts(() =>
+          this.store ? readNativeChatVisualsWorkspaceCatalogs(this.store) : null
+        )
+      },
       resolveShellEnvironmentPolicy: () =>
         nativeChatShellEnvironmentPolicy(this.requireStore().getSettings()),
       resolveClaudeAuthPolicy: () =>
