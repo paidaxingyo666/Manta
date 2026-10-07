@@ -143,8 +143,7 @@ it("takes a send past a newer Manta's live approval, and the next turn's card ca
   expect(
     await host.send(CALLER, {
       envelope: envelope('agentSession.send', queuedFields),
-      ...queuedFields,
-      userSend: true
+      ...queuedFields
     })
   ).toMatchObject({ ok: true, value: { queued: { state: 'waiting' } } })
   expect(hostTestState().dispatch).not.toHaveBeenCalled()

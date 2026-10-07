@@ -586,8 +586,7 @@ it('sends a queue-if-active message issued while the Stop ends the child directl
   const sent = host.send(CALLER, {
     envelope: envelope('agentSession.send', { body, delivery: 'queue-if-active' }, fence),
     body,
-    delivery: 'queue-if-active',
-    userSend: true
+    delivery: 'queue-if-active'
   })
   frame(connection, INTERRUPTED_RESULT)
 

@@ -17,6 +17,7 @@ import {
   updateNativeChatComposerDraft
 } from './native-chat-composer-draft-store'
 import { nativeChatComposerDraftLeftAfterSend } from './native-chat-composer-draft-comparison'
+import type { NativeChatComposerDraft } from './native-chat-composer-draft-storage'
 
 export type UseNativeChatStructuredComposerSendArgs = {
   agent: AgentType
@@ -30,6 +31,26 @@ export type UseNativeChatStructuredComposerSendArgs = {
   setCaret: (caret: number) => void
 }
 
+/** A command the host runs itself (and `/goal` where the host sets goals), never a message. */
+export function isNativeChatStructuredHostCommand(
+  text: string,
+  agent: AgentType,
+  transport: NativeChatStructuredComposerTransport
+): boolean {
+  return (
+    isStructuredAgentSessionComposerCommand(text, agent) ||
+    (transport.threadGoal !== undefined && isStructuredAgentSessionGoalCommand(text))
+  )
+}
+
+/** A structured send. `sentFrom`: the draft the message was taken from, for a send that goes out
+ *  later than it was asked for; only what it held then leaves the composer. */
+export type NativeChatStructuredComposerSend = (
+  text: string,
+  attachments?: readonly NativeChatComposerImageAttachment[],
+  sentFrom?: NativeChatComposerDraft
+) => Promise<void>
+
 /** Send through the structured journal transport, clearing the composer only
  *  once the transport accepts (the PTY path has its own sibling hook). */
 export function useNativeChatStructuredComposerSend({
@@ -42,18 +63,13 @@ export function useNativeChatStructuredComposerSend({
   setHistory,
   setDraft,
   setCaret
-}: UseNativeChatStructuredComposerSendArgs): (
-  text: string,
-  attachments?: readonly NativeChatComposerImageAttachment[]
-) => void {
-  return useCallback(
-    (text: string, attachments = imageAttachments): void => {
+}: UseNativeChatStructuredComposerSendArgs): NativeChatStructuredComposerSend {
+  return useCallback<NativeChatStructuredComposerSend>(
+    async (text, attachments = imageAttachments, sentFrom): Promise<void> => {
       if (!structuredTransport) {
         return
       }
-      const hostCommand =
-        isStructuredAgentSessionComposerCommand(text, agent) ||
-        (structuredTransport.threadGoal !== undefined && isStructuredAgentSessionGoalCommand(text))
+      const hostCommand = isNativeChatStructuredHostCommand(text, agent, structuredTransport)
       // A command picked while images await re-attaching would send them without a file.
       const attachAgain = nativeChatAttachImagesAgainReason(attachments)
       if (attachAgain) {
@@ -68,8 +84,8 @@ export function useNativeChatStructuredComposerSend({
       if (hostCommand && structuredAgentSessionCommandChangesConversation(text)) {
         structuredTransport.onSubmitted?.()
       }
-      const submitted = readNativeChatComposerDraft(draftScopeKey)
-      void dispatchNativeChatStructuredComposerText(structuredTransport, text, attachments)
+      const submitted = sentFrom ?? readNativeChatComposerDraft(draftScopeKey)
+      await dispatchNativeChatStructuredComposerText(structuredTransport, text, attachments)
         .then(({ accepted, error, revealsTranscript }) => {
           structuredTransport.onError(error)
           if (!accepted) {

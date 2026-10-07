@@ -134,8 +134,7 @@ async function queueThenSendNow(text: string): Promise<{ messageId: string; sent
   const queued = await host.send(CALLER, {
     envelope: envelope('agentSession.send', { body, delivery }),
     body,
-    delivery,
-    userSend: true
+    delivery
   })
   if (!queued.ok || !('queued' in queued.value)) {
     throw new Error(`expected a queued card: ${JSON.stringify(queued)}`)
@@ -424,10 +423,9 @@ describe('a queued card sent now into the turn a Stop ends', () => {
     return (await settled()).submissions.filter((entry) => entry.queuedMessageId === messageId)
   }
 
-  /** Each hand-off of the card, as who sent it and how it settled. */
+  /** Each hand-off of the card, as how it settled. */
   async function sends(messageId: string) {
     return (await handoffs(messageId)).map((entry) => ({
-      origin: entry.origin,
       verdict: verdictOf([entry], entry.clientMessageId)
     }))
   }
@@ -465,7 +463,7 @@ describe('a queued card sent now into the turn a Stop ends', () => {
         expect({ ...(await queue()), sends: await sends(cardId) }).toEqual({
           pause: { reason: 'stopped' },
           cards: [{ messageId: cardId, state: 'waiting' }],
-          sends: [{ origin: 'client', verdict: 'withdrawn' }]
+          sends: [{ verdict: 'withdrawn' }]
         }),
       { timeout: 5_000 }
     )
@@ -480,7 +478,7 @@ describe('a queued card sent now into the turn a Stop ends', () => {
       clock.restore()
     }
     expect(steers + answers).toBe(2)
-    expect(await sends(cardId)).toEqual([{ origin: 'client', verdict: 'withdrawn' }])
+    expect(await sends(cardId)).toEqual([{ verdict: 'withdrawn' }])
   }, 20_000)
 })
 

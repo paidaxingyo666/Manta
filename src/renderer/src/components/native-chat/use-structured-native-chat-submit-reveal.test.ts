@@ -20,7 +20,9 @@ it('reveals before Retry, but waits for a successful queue Resume', async () => 
       steer: vi.fn(async () => {}),
       remove: vi.fn(async () => {}),
       edit: vi.fn(async () => {}),
-      steerNewest: vi.fn(() => false)
+      steerNewest: vi.fn(() => false),
+      queueResume: undefined,
+      queueHold: undefined
     }
   }
   const retryLaunch = (): number => order.push('launch')

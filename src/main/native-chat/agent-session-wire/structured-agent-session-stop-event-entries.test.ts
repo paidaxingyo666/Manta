@@ -14,6 +14,7 @@ import {
   eventually,
   type QueuedMessageTestRig
 } from './structured-agent-session-queued-message-rig.test-fixture'
+import { structuredQueuePauses } from './structured-agent-session-queued-pause'
 
 let rig: QueuedMessageTestRig
 
@@ -389,14 +390,14 @@ describe("a person's Stop pause and the Stop events after it", () => {
     expect(await rig.stop()).toMatchObject({ ok: true })
     await rig.settleAccepted(working, 'stopped')
     expect(await rig.queuePause()).toEqual({ reason: 'stopped' })
-    // Orchestration mail starts a turn the host sent, which lifts nothing.
-    await rig.send('mail for the lead', undefined, { internal: true }).result
+    // Orchestration mail's turn runs, but its send is not accepted yet, so it lifts nothing yet.
+    await rig.send('mail for the lead').result
     await journal().appendItem(
       { provider: 'codex', threadId: 'thread-1', turnId: 'turn-mail', ordinal: 999 },
       { kind: 'turn', turnId: 'turn-mail', state: 'running', startedAt: 1 },
       { fence: 1, turnScope: AGENT_JOURNAL_THREAD_SCOPE }
     )
-    expect(await rig.queuePause()).toEqual({ reason: 'stopped' })
+    expect(structuredQueuePauses(journal()).map((pause) => pause.reason)).toEqual(['stopped'])
     const atClose = stopEventsAtClose()
 
     await rig.host.close(HOST_TEST_SESSION, 'evict')
@@ -419,7 +420,7 @@ describe("a person's Stop pause and the Stop events after it", () => {
     await idleSweep().tick()
     expect(await rig.queuePause()).toEqual({ reason: 'stopped' })
     holdStart()
-    rig.send('mail for the lead', undefined, { internal: true })
+    rig.send('mail for the lead')
     await eventually(async () =>
       expect(rig.host.collaboratorsForTests().sessions.get(HOST_TEST_SESSION)?.child?.phase).toBe(
         'starting'

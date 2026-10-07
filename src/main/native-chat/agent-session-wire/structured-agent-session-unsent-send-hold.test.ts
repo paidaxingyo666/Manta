@@ -311,10 +311,10 @@ describe('only an action on the card releases a kept card', () => {
 })
 
 // The queue stops with delivery at quit, so a quit makes no hand-off only the next process could
-// settle: the queued cards come back as a crash leaves them, under the restart's pause.
+// settle: the queued cards come back as a crash leaves them, under the restart's hold.
 describe('cards queued behind a working turn, then Manta stops', () => {
   it.each(['quit', 'crash'] as const)(
-    'after a %s they wait under the restart pause, not kept, with no hand-off made',
+    'after a %s they wait under the restart hold, not kept, with no hand-off made',
     async (how) => {
       await rig.workingSend()
       const first = rig.send('queued behind work', 'queue-if-active')
@@ -337,7 +337,8 @@ describe('cards queued behind a working turn, then Manta stops', () => {
         { messageId: first.id, state: 'waiting' },
         { messageId: second.id, state: 'waiting' }
       ])
-      expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+      // The restart's hold is never published; the cards still wait.
+      expect(await rig.queuePause()).toBeNull()
       expect(await rig.handoff(first.id)).toBeUndefined()
       expect(journal().queuedMessages.get(first.id)?.holdReason).toBeNull()
     }
@@ -406,7 +407,7 @@ describe('the queue at a quit', () => {
       rig.crashRestartHostProcess()
 
       expect(await rig.drafts()).toEqual([{ messageId: queued.id, state: 'waiting' }])
-      expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+      expect(await rig.queuePause()).toBeNull()
       expect(await rig.handoff(queued.id)).toBeUndefined()
       expect(rig.dispatch).not.toHaveBeenCalled()
     }
@@ -428,7 +429,7 @@ describe('the queue at a quit', () => {
       { messageId: pushed.id, ...KEPT },
       { messageId: first.id, state: 'waiting' }
     ])
-    expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+    expect(await rig.queuePause()).toBeNull()
     await rig.resume()
     await eventually(() => expect(dispatchedTexts()).toEqual(['first queued']))
     await new Promise((resolve) => setTimeout(resolve, 100))

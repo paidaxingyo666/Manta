@@ -5,7 +5,10 @@ import type { AgentChildWorkView } from '../../../shared/agent-status-child-work
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import type { SubscriberFieldHooks } from './agent-session-subscriber-frame-fields'
 import { AgentSessionSubscribers } from './structured-agent-session-subscribers'
-import { tryReadQueuePublication } from './structured-agent-session-queued-publication'
+import {
+  structuredQueueSendGate,
+  tryReadQueuePublication
+} from './structured-agent-session-queued-publication'
 import type {
   StructuredAgentSessionHostDeps,
   StructuredAgentSessionHostSession
@@ -61,7 +64,10 @@ export class StructuredAgentSessionClientDelivery {
     this.subscribers = new AgentSessionSubscribers({
       readCommands: (sessionId) => this.readCommands(sessionId),
       readQueuePublication: (sessionId) =>
-        tryReadQueuePublication(sessions.get(sessionId)?.journal),
+        tryReadQueuePublication(
+          sessions.get(sessionId)?.journal,
+          structuredQueueSendGate(this.deps().store, sessionId)
+        ),
       readBackgroundTasks,
       onJournalPublished: (sessionId, journal) => this.publishJournal(sessionId, journal)
     })

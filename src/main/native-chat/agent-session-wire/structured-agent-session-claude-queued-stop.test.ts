@@ -329,8 +329,7 @@ it('a card sent now into the running turn comes back paused when Stop withdraws 
   const queuedSend = await host.send(CALLER, {
     envelope: envelope('agentSession.send', { body, delivery }),
     body,
-    delivery,
-    userSend: true
+    delivery
   })
   if (!queuedSend.ok || !('queued' in queuedSend.value)) {
     throw new Error('expected a queued receipt')
@@ -347,7 +346,7 @@ it('a card sent now into the running turn comes back paused when Stop withdraws 
   const sends = async () =>
     (await host.journalSnapshot(SESSION)).submissions
       .filter((entry) => entry.queuedMessageId === cardId)
-      .map((entry) => ({ origin: entry.origin, state: entry.dispatchState, reason: entry.reason }))
+      .map((entry) => ({ state: entry.dispatchState, reason: entry.reason }))
   await eventually(async () => expect((await sends())[0]?.state).toBe('pending'))
 
   expect(await stop(turnId)).toMatchObject({ ok: true, value: { cancelled: true } })
@@ -368,14 +367,12 @@ it('a card sent now into the running turn comes back paused when Stop withdraws 
     }).toEqual({
       pause: { reason: 'stopped' },
       cards: ['waiting'],
-      sends: [{ origin: 'client', state: 'rejected', reason: DISPATCH_REJECTED_CANCELLED }]
+      sends: [{ state: 'rejected', reason: DISPATCH_REJECTED_CANCELLED }]
     })
   }, 5_000)
   // A drain ignoring the pause re-sends only after the stopped turn ends: watch past that.
   await eventually(async () => expect(await liveTurnId()).toBeNull())
   await new Promise((resolve) => setTimeout(resolve, 2_500))
   expect(connection.sent).toHaveLength(2)
-  expect(await sends()).toEqual([
-    { origin: 'client', state: 'rejected', reason: DISPATCH_REJECTED_CANCELLED }
-  ])
+  expect(await sends()).toEqual([{ state: 'rejected', reason: DISPATCH_REJECTED_CANCELLED }])
 }, 20_000)

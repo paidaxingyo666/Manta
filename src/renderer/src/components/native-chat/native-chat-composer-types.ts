@@ -1,3 +1,4 @@
+import type { NativeChatQueueResume } from './native-chat-composer-primary-action'
 import type { AgentSessionConversationCommand } from '../../../../shared/agent-session-conversation-command'
 import type { StructuredAgentContextUsage } from '../../../../shared/structured-agent-session-context-usage'
 import type { AgentSessionSlashCommand } from '../../../../shared/agent-session-wire'
@@ -15,6 +16,14 @@ import type { NativeChatLocalCommandAnswer } from './use-native-chat-local-comma
 export type NativeChatOptionPickerRequest = {
   id: string
   sequence: number
+}
+
+/** A queue the host holds, with cards waiting. */
+export type NativeChatQueueHold = {
+  /** Every card shown, held or not. */
+  count: number
+  /** Delete every card; false when one could not be (already reported). */
+  clear: () => Promise<boolean>
 }
 
 export type NativeChatStructuredComposerTransport = {
@@ -43,6 +52,11 @@ export type NativeChatStructuredComposerTransport = {
   sessionId: string
   /** Owning runtime for that report; null is the local runtime. */
   runtimeEnvironmentId: string | null
+  /** Present while the queue is held: a message sent now first asks whether to clear its cards. */
+  queueHold?: NativeChatQueueHold
+  /** Present while the host holds the queue and no turn runs: an empty composer's primary
+   *  action becomes Resume, which releases it. */
+  queueResume?: NativeChatQueueResume
 }
 
 export type NativeChatOptimisticSendOutcome = {

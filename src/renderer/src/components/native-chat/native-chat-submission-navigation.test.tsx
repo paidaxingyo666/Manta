@@ -163,7 +163,7 @@ it('reveals a structured command at the press, before the host answers it', asyn
   })
   readerScrollAway(hook.result.current)
   hook.result.current.scrollToEnd.mockClear()
-  act(() => hook.result.current.send('/compact'))
+  act(() => void hook.result.current.send('/compact'))
   expect(hook.result.current.scrollToEnd).toHaveBeenCalled()
   // The answer arriving later leaves a reader who has since scrolled away.
   readerScrollAway(hook.result.current)
@@ -411,7 +411,9 @@ it('reveals a structured prompt answer at the press, before the host accepts it'
           steer: async () => {},
           remove: async () => {},
           edit: async () => {},
-          steerNewest: () => false
+          steerNewest: () => false,
+          queueResume: undefined,
+          queueHold: undefined
         }
       },
       vi.fn()

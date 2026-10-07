@@ -75,7 +75,7 @@ export function createJournalStoreCollaborators(host: JournalStoreHost): Journal
     queuePauseRestatement: () =>
       journalQueuePauseRestatement(
         host.state().queuePauseMarks,
-        host.state().latestPersonTurnSequence
+        host.state().latestAcceptedTurnSequence
       ),
     cursor: host.cursor,
     adopt: host.adopt

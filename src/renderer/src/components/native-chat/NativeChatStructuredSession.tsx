@@ -42,6 +42,8 @@ import { structuredAgentSessionReadFailureNotice } from './structured-agent-sess
 import { useStructuredAgentSessionDeliveryNotices } from './use-structured-agent-session-delivery-notices'
 import { pendingPromptsAllUnanswerableHere } from '../../../../shared/agent-session-approval-subject'
 
+type OptionPickerRequest = { id: string; sequence: number }
+
 export function NativeChatStructuredSession(
   props: Omit<NativeChatStructuredViewProps, 'mode'>
 ): React.JSX.Element {
@@ -80,10 +82,7 @@ export function NativeChatStructuredSession(
     transcriptLoading: controller.status === 'idle' || controller.status === 'loading'
   })
   const [composerError, setComposerError] = useState<string | null>(null)
-  const [optionPickerRequest, setOptionPickerRequest] = useState<{
-    id: string
-    sequence: number
-  } | null>(null)
+  const [optionPickerRequest, setOptionPickerRequest] = useState<OptionPickerRequest | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const paneCommands = useStructuredNativeChatPaneCommands({
     tabId: props.tabId,
@@ -229,7 +228,9 @@ export function NativeChatStructuredSession(
       runtime: (props.target.kind === 'local' ? 'local' : 'remote') as 'local' | 'remote',
       sessionId: props.sessionId,
       runtimeEnvironmentId:
-        props.target.kind === 'local' ? null : (props.target.environmentId ?? null)
+        props.target.kind === 'local' ? null : (props.target.environmentId ?? null),
+      queueHold: submits.queuedMessages.queueHold,
+      queueResume: submits.queuedMessages.queueResume
     }
   }, [
     controller,
@@ -239,7 +240,8 @@ export function NativeChatStructuredSession(
     props.sessionId,
     props.target,
     revealLatest,
-    sendThroughRelaunch
+    sendThroughRelaunch,
+    submits.queuedMessages
   ])
 
   return (
@@ -399,7 +401,6 @@ export function NativeChatStructuredSession(
               draftScopeKey={structuredAgentSessionDraftScopeKey(props.sessionId)}
               targetPtyId={null}
               agent={props.agent}
-              isWorking={controller.canStop}
               {...stopControls.composer}
               steerQueued={stopControls.stopping ? undefined : submits.queuedMessages.steerNewest}
               structuredTransport={structuredTransport}

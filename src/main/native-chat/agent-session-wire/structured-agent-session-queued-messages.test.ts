@@ -264,7 +264,7 @@ describe('drain', () => {
 })
 
 describe('held drafts', () => {
-  it('a restart pauses the queue, reason restarted, and it survives a reopen; never auto-sent', async () => {
+  it('a restart holds the queue without ever showing a pause, across a reopen; never auto-sent', async () => {
     const working = await workingSend()
     const queued = await send('written before the restart', 'queue-if-active').result
     if (!queued.ok || !('queued' in queued.value)) {
@@ -273,11 +273,11 @@ describe('held drafts', () => {
     const draftId = queued.value.queued.messageId
     await rig.restartHostProcess()
     await settleAccepted(working, 'a')
-    // The queue is paused, not the card: it carries no hold of its own.
+    // The queue is held, not the card: it carries no hold of its own, and no pause is published.
     expect(await drafts()).toEqual([{ messageId: draftId, state: 'waiting' }])
-    expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+    expect(await rig.queuePause()).toBeNull()
     await host.close(SESSION, 'evict')
-    expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+    expect(await rig.queuePause()).toBeNull()
     await new Promise((resolve) => setTimeout(resolve, 250))
     expect(await rig.handoff(draftId)).toBeUndefined()
     expect(await sendNow(draftId)).toMatchObject({
@@ -286,7 +286,7 @@ describe('held drafts', () => {
     })
   })
 
-  it("a restart's pause also lifts when the user's next send starts its turn, exactly like a Stop's", async () => {
+  it("a restart's hold lifts when the user's next send starts its turn, exactly like a Stop's", async () => {
     const working = await workingSend()
     const queued = await send('written before the restart', 'queue-if-active').result
     if (!queued.ok || !('queued' in queued.value)) {
@@ -297,11 +297,11 @@ describe('held drafts', () => {
     await settleAccepted(working, 'a')
     await new Promise((resolve) => setTimeout(resolve, 250))
     expect(await rig.handoff(draftId)).toBeUndefined()
-    expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+    expect(await rig.queuePause()).toBeNull()
     // The user's send starting its turn lifts it, and adopts the row into this instance.
     const next = send('user starts a new turn')
     await next.result
-    expect(await rig.queuePause()).toEqual({ reason: 'restarted' })
+    expect(await rig.handoff(draftId)).toBeUndefined()
     await settleAccepted(next.id, 'b')
     await eventually(async () => expect(await rig.handoff(draftId)).toBeDefined())
   })
@@ -449,17 +449,18 @@ describe('Stop and Delete', () => {
     await new Promise((resolve) => setTimeout(resolve, 250))
     expect(await rig.handoff(draftId)).toBeUndefined()
     expect(await rig.queuePause()).toEqual({ reason: 'stopped' })
-    // The host accepting the send is not yet a turn: the pause lifts when the
-    // provider accepts it, and the draft drains after that turn.
+    // The host accepting the send is not yet a turn: the pause lifts when the provider accepts
+    // it, and the draft drains after that turn. Meanwhile no pause is shown: it is on its way.
     const next = send('user starts a new turn')
     await next.result
-    expect(await rig.queuePause()).toEqual({ reason: 'stopped' })
+    expect(await rig.queuePause()).toBeNull()
+    expect(await rig.handoff(draftId)).toBeUndefined()
     await settleAccepted(next.id, 'b')
     expect(await rig.queuePause()).toBeNull()
     await eventually(async () => expect(await rig.handoff(draftId)).toBeDefined())
   })
 
-  it('a host-internal send (orchestration mail, a restart continuation, a host-sent launch prompt) never lifts the pause', async () => {
+  it("a host-internal send (orchestration mail, a restart continuation, a host-sent launch prompt) lifts the pause once accepted, like a person's", async () => {
     const working = await workingSend()
     const queued = await send('paused by stop', 'queue-if-active').result
     if (!queued.ok || !('queued' in queued.value)) {
@@ -469,15 +470,15 @@ describe('Stop and Delete', () => {
     await stop()
     await settleAccepted(working, 'a')
     // All three reach the host as a send the client send RPC did not make.
-    const mail = send('coordinator mail', undefined, { internal: true })
+    const mail = send('coordinator mail')
     expect(await mail.result).toMatchObject({ ok: true, value: { submission: expect.anything() } })
-    // The journal records who asked, which is what the pause reads.
-    expect(await rig.submission(mail.id)).toMatchObject({ origin: 'host' })
-    expect(await rig.submission(working)).toMatchObject({ origin: 'client' })
-    await settleAccepted(mail.id, 'b')
     await new Promise((resolve) => setTimeout(resolve, 250))
+    // Not shown while the mail awaits the agent, and nothing sends yet.
+    expect(await rig.queuePause()).toBeNull()
     expect(await rig.handoff(draftId)).toBeUndefined()
-    expect(await rig.queuePause()).toEqual({ reason: 'stopped' })
+    await settleAccepted(mail.id, 'b')
+    expect(await rig.queuePause()).toBeNull()
+    await eventually(async () => expect(await rig.handoff(draftId)).toBeDefined())
   })
 
   it("a user send lifts nothing from a 'send_failed' hold — that card waits for its explicit Send", async () => {
