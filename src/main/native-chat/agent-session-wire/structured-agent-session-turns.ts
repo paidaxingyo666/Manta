@@ -161,7 +161,7 @@ export async function performSend(
   } catch (error) {
     // Damage SQLite proves is the chat's, and no retry writes past it: say so, as an open does. So
     // does a chat holding a newer Manta's rows, which only an update writes past, and a refusal the
-    // journal already classified (a copy that did not verify).
+    // journal already classified (a failed transaction that will not roll back).
     if (
       isAgentSessionRefusalError(error) ||
       classifyJournalOpenFailure(error) === 'journalCorrupt' ||

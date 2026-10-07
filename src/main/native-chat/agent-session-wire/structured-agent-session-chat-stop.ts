@@ -78,7 +78,7 @@ export function mutateWithChatStop<TValue>(
         // Read before the withdrawal it decides on is issued.
         const hadQueued = ctx.journal.submissions().some(isQueuedAgentJournalSubmission)
         // Stop withdraws every queued SUBMISSION first, whatever the start or the child is doing.
-        // Issued, not awaited: the interrupt never waits on bookkeeping. (The open paid any owed import.)
+        // Issued, not awaited: the interrupt never waits on bookkeeping.
         const withdrew = withdrawQueuedForStop(ctx, () =>
           ctx.journal.rejectQueuedSubmissions(
             ctx.fence,

@@ -344,7 +344,7 @@ export class JournalQueuedMessages {
    * no hook), then retention runs.
    */
   repairAndPrune(): Promise<void> {
-    // No draft, no work, and no write: a chat whose first-use copy is still owed stays uncopied.
+    // No draft, no work, and no write.
     if (this.deps.readOnly() || this.list().length === 0) {
       return Promise.resolve()
     }

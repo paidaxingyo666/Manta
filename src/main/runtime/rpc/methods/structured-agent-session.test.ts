@@ -82,7 +82,7 @@ describe('agentSession.reveal', () => {
   })
 
   it('publishes the tab even when the journal could not be read', async () => {
-    // A pre-SQLite chat restores to nothing, but attach still recovers it, so the tab is worth
+    // An unreadable chat restores to nothing, but attach still recovers it, so the tab is worth
     // publishing and the pane's hold finishes the job. Refusing here would strand it forever.
     hostCalls.revealSession.mockResolvedValueOnce({
       sessionId: SESSION,

@@ -74,7 +74,7 @@ export function peekOpenedAgentSessionRecordStore(): AgentSessionRecordStore | n
 async function openRecordStore(
   location: AgentSessionRecordStoreLocation
 ): Promise<OpenedAgentSessionRecordStore> {
-  const journalDatabase = await openStructuredAgentSessionJournalDatabase(location)
+  const journalDatabase = openStructuredAgentSessionJournalDatabase(location)
   try {
     return {
       journalDatabase,

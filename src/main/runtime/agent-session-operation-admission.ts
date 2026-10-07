@@ -20,7 +20,7 @@ import {
 } from '../../shared/agent-session-mutation-envelope'
 import type { AgentSessionMutationEnvelope } from '../../shared/agent-session-wire'
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
-import type { AgentSessionStoreState } from './agent-session-record-store-file'
+import type { AgentSessionStoreState } from './agent-session-store-state'
 
 export type AgentSessionOperationAdmission = {
   callerKey: string

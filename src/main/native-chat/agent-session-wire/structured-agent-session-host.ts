@@ -229,10 +229,8 @@ export class StructuredAgentSessionHost {
   showSessionTabs = this.tabs.showSessionTabs
   setSessionTabVisibility = this.tabs.setSessionTabVisibility
   notifySessionTabHidden = this.tabs.notifySessionTabHidden
-  /** The records file could not be read this launch, so chats it holds are not listed yet. */
-  legacyRecordImportOwed = (): boolean => this.deps.journalDatabase.legacyRecordImportOwed === true
-  /** This runtime holds a chat: a record, or the records file's chats still owed their copy. */
-  holdsSessions = (): boolean => this.deps.store.holdsRecords() || this.legacyRecordImportOwed()
+  /** This runtime holds a chat record, readable or not. */
+  holdsSessions = (): boolean => this.deps.store.holdsRecords()
   onSessionsHeld = (listener: () => void): (() => void) => this.deps.store.onFirstRecord(listener)
 
   reconcileRestartLeases = (): Promise<void> => this.restore.reconcileRestartLeases()
