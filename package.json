@@ -87,7 +87,7 @@
     "verify:cli-bin": "node config/scripts/verify-cli-bin.mjs",
     "verify:built-skills-cli": "node config/scripts/verify-skills-cli-runtime.cjs out",
     "verify:renderer-boot-graph": "node config/scripts/verify-renderer-boot-graph.mjs",
-    "verify:localization-catalogs": "node config/scripts/verify-localization-catalogs.mjs",
+    "verify:localization-catalogs": "bun config/scripts/verify-localization-catalogs.mjs",
     "verify:localization-catalog": "node config/scripts/verify-localization-catalog.mjs",
     "sync:localization-catalog": "node config/scripts/verify-localization-catalog.mjs --fix",
     "verify:localization-runtime-catalog": "node config/scripts/generate-runtime-required-english-catalog.mjs",

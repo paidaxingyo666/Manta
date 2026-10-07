@@ -197,6 +197,12 @@ jobs:
             pnpm-lock.yaml
             mobile/pnpm-lock.yaml
 
+      - name: Set up Bun for localization checks
+        if: needs.code_paths.outputs.static_analysis == 'true'
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: config/bun-version
+
       # Keep each check in its own log while sharing this runner.
       - name: Lint
         if: '!cancelled()'
