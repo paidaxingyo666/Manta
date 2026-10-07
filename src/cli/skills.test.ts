@@ -794,7 +794,7 @@ describe('manta skills CLI', () => {
 
   it('maps detected agents onto the skills CLI namespace, not Manta ids', async () => {
     const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
-    detectCommandsMock.mockReturnValue(new Set<string>(['claude', 'cursor-agent', 'rovo']))
+    detectCommandsMock.mockReturnValue(new Set<string>(['claude', 'cursor-agent', 'acli']))
 
     await main(['skills', 'install', '--skill', 'alpha', '--dry-run'], '/tmp/repo')
 
