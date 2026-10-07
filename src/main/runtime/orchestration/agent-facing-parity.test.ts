@@ -1,7 +1,8 @@
 /**
  * A chat agent and a terminal agent run the same orchestration process: the same preamble, the
- * same pointer text and the same guide. The one difference is how each is named: a terminal by its
- * handle, exactly as on main, and a session by its Manta session ID. Manta absorbs everything else.
+ * same pointer text and the same guide. They differ in how each is named (a terminal by its handle,
+ * exactly as on main, a session by its Manta session ID) and in the preamble calling a chat a chat.
+ * Manta absorbs everything else.
  */
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -23,7 +24,11 @@ import {
 import { OrchestrationDb } from './db'
 import { formatMessagePointer } from './formatter'
 import { OrchestrationStructuredMailboxPointerDelivery } from './structured-mailbox-pointer-delivery'
-import { buildDispatchPreamble } from './preamble'
+import {
+  buildDispatchPreamble,
+  CHAT_REDISPATCH_PARAGRAPH as CHAT_REDISPATCH,
+  TERMINAL_REDISPATCH_PARAGRAPH as TERMINAL_REDISPATCH
+} from './preamble'
 import { ORCA_SESSION_ID_AS_ADDRESS } from '../../../shared/manta-session-id-wording-test-fixture'
 
 const sent = vi.hoisted((): { preambles: string[] } => ({ preambles: [] }))
@@ -142,15 +147,26 @@ async function renderChatPointer(mailbox: string): Promise<string> {
   return texts[0]!
 }
 
-describe('a chat agent and a terminal agent see the same text but for how each is named', () => {
-  it("teaches a chat worker a terminal worker's preamble but for its identity lines", async () => {
+describe('a chat agent and a terminal agent see the same text but for how each is named and called', () => {
+  it("teaches a chat worker a terminal worker's preamble but for its identity lines and the chat wording", async () => {
     const chat = await renderPreamble('chat')
     const terminal = await renderPreamble('terminal')
+    const withoutRedispatch = chat.replace(CHAT_REDISPATCH, TERMINAL_REDISPATCH)
 
     expect(terminal).not.toContain('Manta session ID')
     expect(chat).toContain(`Your task ID is: task_1${SELF_LINE}\n`)
     expect(chat).not.toContain(CHAT_WORKER_HANDLE)
-    expect(chat.replace(SELF_LINE, '').split(CHAT_ADDRESS).join(TERMINAL_HANDLE)).toBe(terminal)
+    expect(chat).not.toContain('this terminal')
+    expect(withoutRedispatch).not.toBe(chat)
+    expect(withoutRedispatch.split('this chat')).toHaveLength(4)
+    expect(
+      withoutRedispatch
+        .replace(SELF_LINE, '')
+        .split(CHAT_ADDRESS)
+        .join(TERMINAL_HANDLE)
+        .split('this chat')
+        .join('this terminal')
+    ).toBe(terminal)
   })
 
   it.each([

@@ -96,7 +96,12 @@ describe('worker-start --terminal names a chat', () => {
       }
     })
     const dispatchId = String(receipt.dispatchId)
-    expect(turnText(worker.turns[0]!)).toContain(`Your Manta session ID is: ${WORKER}`)
+    const task = turnText(worker.turns[0]!)
+    expect(task).toContain(`Your Manta session ID is: ${WORKER}`)
+    expect(task).toContain('The coordinator cannot see this chat')
+    expect(task).toContain('it will send this chat a fresh')
+    expect(task).not.toContain('this terminal')
+    expect(task).not.toMatch(/exit the shell/i)
     expect(db.getDispatchContextById(dispatchId)).toMatchObject({
       assignee_handle: WORKER,
       assignee_orca_session_id: PEER_CHAT,
