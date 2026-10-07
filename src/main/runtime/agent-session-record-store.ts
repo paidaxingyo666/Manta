@@ -303,7 +303,7 @@ export class AgentSessionRecordStore {
 
   /** Admission and, when `claimAfter` allows, the claim: one durable write before the effect. */
   admitAndClaimOperation = (
-    args: AgentSessionOperationAdmission,
+    args: Parameters<typeof admitAndClaimAgentSessionOperationInto>[1],
     claimAfter: ClaimAfterAdmission
   ) => this.transact((draft) => admitAndClaimAgentSessionOperationInto(draft, args, claimAfter))
 

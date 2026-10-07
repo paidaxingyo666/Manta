@@ -43,6 +43,7 @@ function harness(options: {
       calls.push(`createWorktree(startupAgent=${String(args.startupAgent)})`)
       return {
         worktreeId: 'wt-new',
+        connectionId: null,
         startupTerminalHandle: args.startupAgent ? 'term_agent_first' : undefined,
         ...carried(args.startupPrompt)
       }
@@ -689,5 +690,24 @@ describe('the surface is published as the launch stands, before its prompt is de
       prompt: { delivery: 'submit', outcome: 'unconfirmed' }
     })
     expect(result.prompt).toEqual({ delivery: 'submit', outcome: 'journaled', messageId: 'msg-1' })
+  })
+})
+
+describe('a new local worktree whose startup terminal did not come up', () => {
+  it('opens its agent in the view a local workspace allows, as an existing one would', async () => {
+    const h = harness({
+      settings: { experimentalNativeChat: true, openAgentTabsInChatByDefault: true }
+    })
+    h.createWorktree.mockImplementationOnce(async () => ({
+      worktreeId: 'wt-new',
+      connectionId: null,
+      startupTerminalHandle: undefined
+    }))
+
+    await h.run({ ...CREATE_INTENT, agent: 'opencode' })
+
+    expect(h.createTerminalAgent).toHaveBeenCalledWith(
+      expect.objectContaining({ viewMode: 'chat' })
+    )
   })
 })

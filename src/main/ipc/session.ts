@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import type { Store } from '../persistence'
 import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import { parseTerminalSurfaceCloseTarget } from '../../shared/terminal-surface-close-target'
+import { markAgentLaunchesClosedByUser } from '../agent-launch/agent-launch-pane-attachment'
 import type {
   WorkspaceSessionPatch,
   WorkspaceSessionState
@@ -39,10 +40,15 @@ export function registerSessionHandlers(store: Store, runtime: MantaRuntimeServi
         throw new Error('invalid_terminal_surface')
       }
       // Why only these two: main alone closes a tab for its process exit.
+      const reason = args.reason === 'cleanup' ? 'cleanup' : 'user'
+      if (reason === 'user') {
+        // A launch still starting or delivering in what the user closed stops, and says so.
+        markAgentLaunchesClosedByUser(args.worktreeId, target)
+      }
       return runtime.closeTerminalSurfaceFromRenderer({
         worktreeId: args.worktreeId,
         target,
-        reason: args.reason === 'cleanup' ? 'cleanup' : 'user'
+        reason
       })
     }
   )

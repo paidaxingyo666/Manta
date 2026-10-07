@@ -48,6 +48,7 @@ import {
   type WorkspaceLaunchKind
 } from '../../shared/workspace-launch-kind'
 import type { MantaRuntimeService } from '../runtime/manta-runtime'
+import { deriveAgentLaunchTerminalViewMode } from './agent-launch-view-mode'
 import { isDefinitiveAgentSessionCreateRefusal } from '../../shared/agent-session-definitive-refusal'
 import {
   decideAgentLaunchMode,
@@ -166,7 +167,7 @@ export async function executeAgentLaunch(
   execution.onStage?.('surface_create')
   let created: CreatedSurface
   try {
-    created = await createSurface(execution, placed.worktreeId, settled)
+    created = await createSurface(execution, placed, settled)
   } catch (error) {
     // The structured create path distinguishes a definitive pre-commit refusal from an unknown
     // outcome. Only the former is safe to replace with a terminal in the same workspace; retrying
@@ -179,7 +180,7 @@ export async function executeAgentLaunch(
       throw error
     }
     settled = downgradeAgentLaunchModeForStructuredRefusal(settled, vocabulary)
-    created = await createTerminalSurface(execution, placed.worktreeId)
+    created = await createTerminalSurface(execution, placed)
   }
   // Both CAN be set, so neither may be dropped. The create warns precisely when it produced no
   // startup terminal — `didSpawnStartup` stays false when that spawn throws — and that is the same
@@ -230,6 +231,7 @@ async function resolveWorkspace(
   preflight: AgentLaunchModeReceipt
 ): Promise<{
   worktreeId: string
+  connectionId: string | null | undefined
   startupTerminalHandle: string | undefined
   startupTerminalPaneKey?: string
   warning?: string
@@ -239,7 +241,8 @@ async function resolveWorkspace(
   const { intent } = execution
   if (intent.target.kind === 'existing') {
     // Nothing was created, so there is no create warning to carry.
-    return { worktreeId: intent.target.worktree, startupTerminalHandle: undefined }
+    const { worktree: worktreeId, connectionId } = intent.target
+    return { worktreeId, connectionId, startupTerminalHandle: undefined }
   }
   const workspaces = execution.workspaces
   if (!workspaces) {
@@ -276,7 +279,7 @@ export type CreatedSurface = {
 
 async function createSurface(
   execution: AgentLaunchExecution,
-  worktreeId: string,
+  workspace: { worktreeId: string; connectionId: string | null | undefined },
   settled: AgentLaunchModeReceipt
 ): Promise<CreatedSurface> {
   const { intent, surfaces } = execution
@@ -284,7 +287,7 @@ async function createSurface(
     // One reservation serves either route: the tab half of the reserved pane is the chat's tab.
     const reservedTabId = intent.paneKey ? parsePaneKey(intent.paneKey)?.tabId : undefined
     const session = await surfaces.createStructuredSession({
-      worktreeId,
+      worktreeId: workspace.worktreeId,
       agent: intent.agent,
       ...(intent.sessionOptions ? { options: intent.sessionOptions } : {}),
       ...(intent.sessionId ? { sessionId: intent.sessionId } : {}),
@@ -301,7 +304,7 @@ async function createSurface(
       ...ignoredStructuredAgentArgsWarning(intent)
     }
   }
-  return createTerminalSurface(execution, worktreeId)
+  return createTerminalSurface(execution, workspace)
 }
 
 /**
@@ -337,15 +340,21 @@ function terminalLaunchInputs(intent: AgentLaunchIntent) {
  */
 async function createTerminalSurface(
   execution: AgentLaunchExecution,
-  worktreeId: string
+  workspace: { worktreeId: string; connectionId: string | null | undefined }
 ): Promise<CreatedSurface> {
   const { intent, surfaces } = execution
   const startupPrompt = argvLaunchPrompt(intent)
   const terminal = await surfaces.createTerminalAgent({
-    worktreeId,
+    worktreeId: workspace.worktreeId,
     agent: intent.agent,
     ...(startupPrompt ? { startupPrompt } : {}),
-    ...terminalLaunchInputs(intent)
+    ...terminalLaunchInputs(intent),
+    viewMode: deriveAgentLaunchTerminalViewMode({
+      settings: readAgentLaunchModeSettings(execution.runtime),
+      agent: intent.agent,
+      ...(intent.prompt ? { prompt: intent.prompt } : {}),
+      connectionId: workspace.connectionId
+    })
   })
   return {
     outcome: {

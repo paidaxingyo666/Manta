@@ -3329,6 +3329,14 @@
           "TerminalQuickCommandsSubmenu": {
             "3ccc7981bb": "Anfitrión no disponible",
             "54f29b7c0d": "Cargando host…"
+          },
+          "AgentLaunchPaneNotice": {
+            "commandNotFound": "Su comando no se encontró en este equipo.",
+            "copyPrompt": "Copiar prompt",
+            "exitedDuringStart": "Se cerró mientras se iniciaba.",
+            "notStarted": "El agente no pudo iniciarse.",
+            "unconfirmed": "No se pudo confirmar que el agente se iniciara.",
+            "workspaceGone": "Su espacio de trabajo ya no está disponible."
           }
         }
       },

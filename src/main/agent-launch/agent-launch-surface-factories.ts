@@ -35,6 +35,8 @@ export type AgentLaunchSurfaceFactory = {
     launchSource?: string
     /** The caller-minted pane to create; refused with `AgentLaunchPaneAlreadyLiveError` if live. */
     paneKey?: string
+    /** The tab's first view, derived on the host by the window's own rule. */
+    viewMode?: 'terminal' | 'chat'
   }): Promise<{
     handle: string
     /** The pane this create minted; a factory whose runtime reports none omits it, never invents. */
@@ -116,6 +118,8 @@ export type AgentLaunchWorkspaceFactory = {
     options?: Readonly<Record<string, unknown>>
   }): Promise<{
     worktreeId: string
+    /** The new workspace's SSH connection; `null` is local. Decides what its agent tab can show. */
+    connectionId: string | null
     startupTerminalHandle: string | undefined
     /** The pane minted with the startup terminal, when the runtime reported one. */
     startupTerminalPaneKey?: string

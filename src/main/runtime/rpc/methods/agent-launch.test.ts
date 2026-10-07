@@ -480,6 +480,8 @@ describe('the terminal factory', () => {
 
     expect(runtime.createTerminal).toHaveBeenCalledWith('id:wt-new', {
       startupAgent: 'claude',
+      // The host derives the tab's first view by the window's rule; chat view is on by default here.
+      viewMode: 'chat',
       onPtySpawnDispatched: expect.any(Function)
     })
     expect(createStructuredSession).not.toHaveBeenCalled()
@@ -503,6 +505,7 @@ describe('the terminal factory', () => {
     // runtime as `id:id:wt-7`.
     expect(runtime.createTerminal).toHaveBeenCalledWith('id:wt-7', {
       startupAgent: 'grok',
+      viewMode: 'chat',
       onPtySpawnDispatched: expect.any(Function)
     })
     expect(result.worktreeId).toBe('wt-7')

@@ -1,3 +1,4 @@
+import { AGENT_LAUNCH_RUNTIME_CAPABILITY } from '../../../shared/agent-launch-runtime-capability'
 import type { RuntimeTransportMetadata } from '../../../shared/runtime-bootstrap'
 import { watchRuntimeMetadataOwnership } from '../runtime-metadata-ownership-watch'
 import type { RpcTransport } from '../rpc/transport'
@@ -226,7 +227,7 @@ export class RuntimeRpcLifecycle extends RuntimeRpcWebSocketDispatch {
         )
       },
       onBinary: (socket, bytes) => this.handleWebSocketBinaryMessage(bytes, socket.ws),
-      onReady: () => {
+      onReady: (socket) => {
         // Why: first authenticated mobile/remote client (direct WS and
         // cloud relay both attach here) starts path-candidate tracking.
         // Activation is a local-host concern: candidate buffers live on the
@@ -234,6 +235,9 @@ export class RuntimeRpcLifecycle extends RuntimeRpcWebSocketDispatch {
         // legitimately lack this method (its own server activates it).
         this.runtime.activateRecentPtyPathCandidateTracking?.()
         this.mobileRelayPairingProvider?.onDemandStateChanged?.()
+        if (socket.clientCapabilities.includes(AGENT_LAUNCH_RUNTIME_CAPABILITY)) {
+          this.runtime.noteAgentLaunchClientReady?.()
+        }
       },
       onClose: (socket, hasOtherConnections) => {
         if (!socket) {

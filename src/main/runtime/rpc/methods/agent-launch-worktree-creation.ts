@@ -107,6 +107,7 @@ export function agentLaunchWorkspaceFactory(
         finishAutomationWorkspaceProvenanceRequest(params.automationProvenanceRequest)
         return {
           worktreeId: result.worktree.id,
+          connectionId: repo.connectionId ?? null,
           startupTerminalHandle: result.startupTerminal?.handle,
           ...(promptRodeLaunchCommand ? { promptRodeLaunchCommand } : {}),
           ...(result.startupTerminal?.paneKey

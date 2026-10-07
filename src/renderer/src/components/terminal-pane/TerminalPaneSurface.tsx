@@ -7,6 +7,7 @@ import CloseTerminalDialog from './CloseTerminalDialog'
 import TerminalContextMenu from './TerminalContextMenu'
 import TerminalPaneHeaderOverlay from './TerminalPaneHeaderOverlay'
 import { isPaneOwnerUnverifiedError, TerminalErrorToast } from './TerminalErrorToast'
+import { AgentLaunchPaneNoticePortal } from './AgentLaunchPaneNotice'
 import { requestTerminalPaneRecovery } from './terminal-pane-recovery'
 import { TerminalSessionStateSaveFailureDialog } from './TerminalSessionStateSaveFailureDialog'
 import { LinkActionPopover } from '@/components/link-actions/LinkActionPopover'
@@ -109,6 +110,7 @@ export function TerminalPaneSurface({
     terminalLinkActionRequest,
     titleUsesLightSurface,
     visibleQuickCommandHosts,
+    visibleLaunchRefusal,
     visibleTerminalError,
     worktreeId
   } = controller
@@ -161,6 +163,12 @@ export function TerminalPaneSurface({
         }}
       />
       <TerminalPaneCodexRestartPortals controller={controller} />
+      <AgentLaunchPaneNoticePortal
+        refusal={visibleLaunchRefusal}
+        isActive={isActive}
+        pane={activePane}
+        tabId={tabId}
+      />
       {/* Why: the reconnect banner already owns SSH recovery UX; the z-50 error
           toast was painting over it (same bottom strip) with the raw ssh:connect failure. */}
       {visibleTerminalError && isActive && !showSshReconnectOverlay && activePane

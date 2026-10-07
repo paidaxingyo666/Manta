@@ -16,6 +16,8 @@ import {
   store
 } from '../manta-runtime-test-fixtures.spec'
 import { makePendingAgentTabActivationRuntime } from '../manta-runtime-test-scenario-builders.spec'
+import { trackRunningAgentLaunchPane } from '../../agent-launch/agent-launch-pane-attachment'
+import { makePaneKey } from '../../../shared/stable-pane-id'
 
 describe('MantaRuntimeService', () => {
   it('briefly preserves abnormal SSH exits for paired pane recovery', async () => {
@@ -623,5 +625,24 @@ describe('MantaRuntimeService', () => {
       launchAgent: 'claude',
       status: 'ready'
     })
+  })
+  // The launch's early tab is listed before its agent spawns; a phone landing on it must not race it.
+  it('leaves a pending agent tab to the launch still starting in it', async () => {
+    const { runtime, spawn } = makePendingAgentTabActivationRuntime()
+    const running = trackRunningAgentLaunchPane({
+      worktreeId: TEST_WORKTREE_ID,
+      paneKey: makePaneKey('host-tab', HEADLESS_LEAF_ID)
+    })
+    try {
+      await runtime.activateMobileSessionTab(
+        `id:${TEST_WORKTREE_ID}`,
+        `host-tab::${HEADLESS_LEAF_ID}`,
+        undefined,
+        { notifyClients: false }
+      )
+      expect(spawn).not.toHaveBeenCalled()
+    } finally {
+      running.finish({ tabTakenBack: false })
+    }
   })
 })

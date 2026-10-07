@@ -3329,6 +3329,14 @@
           },
           "TerminalRestoringPlaceholder": {
             "restoring": "ターミナルを復元中…"
+          },
+          "AgentLaunchPaneNotice": {
+            "commandNotFound": "このマシンでコマンドが見つかりませんでした。",
+            "copyPrompt": "プロンプトをコピー",
+            "exitedDuringStart": "起動中に終了しました。",
+            "notStarted": "Agent を起動できませんでした。",
+            "unconfirmed": "Agent が起動したか確認できませんでした。",
+            "workspaceGone": "ワークスペースは利用できなくなりました。"
           }
         }
       },

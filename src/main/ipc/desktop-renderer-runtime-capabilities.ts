@@ -12,7 +12,8 @@ import {
 } from '../../shared/protocol-version'
 import {
   AGENT_LAUNCH_PROMPT_UNCONFIRMED_RUNTIME_CAPABILITY,
-  AGENT_LAUNCH_RUNTIME_CAPABILITY
+  AGENT_LAUNCH_RUNTIME_CAPABILITY,
+  AGENT_LAUNCH_TAB_CLOSED_CLIENT_CAPABILITY
 } from '../../shared/agent-launch-runtime-capability'
 import { AGENT_SESSION_BACKGROUND_TASK_CHILD_VIEWS_CAPABILITY } from '../../shared/agent-session-background-task-child-views-capability'
 
@@ -45,5 +46,8 @@ export const DESKTOP_RENDERER_RUNTIME_CLIENT_CAPABILITIES: readonly RuntimeCapab
   AGENT_LAUNCH_RUNTIME_CAPABILITY,
   // A replay after a restart mid-delivery answers the running agent with an `unconfirmed` prompt,
   // which the desktop reads, rather than refusing it as unknown.
-  AGENT_LAUNCH_PROMPT_UNCONFIRMED_RUNTIME_CAPABILITY
+  AGENT_LAUNCH_PROMPT_UNCONFIRMED_RUNTIME_CAPABILITY,
+  // A launch whose tab the user closed is answered as exactly that, which the desktop stays silent
+  // on, rather than as unknown, which it would report as a failure.
+  AGENT_LAUNCH_TAB_CLOSED_CLIENT_CAPABILITY
 ] as const
