@@ -133,6 +133,7 @@ export type AgentSessionPreSpawnReason = Extract<
   | 'accountSwitchInProgress'
   | 'managedAccountUnsupported'
   | 'launchFolderMissing'
+  | 'historyInOtherAccount'
   | 'agentCommandNotRunnable'
 >
 

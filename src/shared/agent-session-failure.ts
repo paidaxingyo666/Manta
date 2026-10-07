@@ -30,6 +30,7 @@ export const AGENT_SESSION_FAILURE_KINDS = [
   'accountSwitchInProgress',
   'managedAccountUnsupported',
   'launchFolderMissing',
+  'historyInOtherAccount',
   'agentCommandNotRunnable',
   'providerExited',
   'restartFailed',

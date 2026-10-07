@@ -43,39 +43,43 @@ afterEach(() => {
 const local = { runtime: 'host', executionHostId: 'local' } as const
 
 describe('Claude profile namespace', () => {
-  it('binds the new namespace to an account and execution target without touching legacy auth', () => {
-    const dir = root()
-    const userHome = root()
-    const target = { executionHostId: 'runtime:env-1', runtime: 'wsl', distro: 'Ubuntu' } as const
-    const profile = describeClaudeProfile(dir, 'account-a', target)
-    expect(profile).toEqual({
-      version: 1,
-      accountId: 'account-a',
-      target,
-      home: join(dir, 'claude-profiles/account-a/home')
-    })
-    prepareClaudeProfileDirectory(dir, profile, userHome)
-    expect(
-      JSON.parse(readFileSync(join(dir, 'claude-profiles/account-a/profile.json'), 'utf8'))
-    ).toEqual({ version: 1, accountId: 'account-a', runtime: 'wsl', distro: 'Ubuntu' })
-    // The host id is the caller's view of the host, so another caller's spelling is the same profile.
-    prepareClaudeProfileDirectory(
-      dir,
-      { ...profile, target: { distro: 'Ubuntu', runtime: 'wsl', executionHostId: 'local' } },
-      userHome
-    )
-    expect(() =>
+  // A WSL profile's data root is a POSIX path; a Windows temp dir cannot be one.
+  it.skipIf(process.platform === 'win32')(
+    'binds the new namespace to an account and execution target without touching legacy auth',
+    () => {
+      const dir = root()
+      const userHome = root()
+      const target = { executionHostId: 'runtime:env-1', runtime: 'wsl', distro: 'Ubuntu' } as const
+      const profile = describeClaudeProfile(dir, 'account-a', target)
+      expect(profile).toEqual({
+        version: 1,
+        accountId: 'account-a',
+        target,
+        home: join(dir, 'claude-profiles/account-a/home')
+      })
+      prepareClaudeProfileDirectory(dir, profile, userHome)
+      expect(
+        JSON.parse(readFileSync(join(dir, 'claude-profiles/account-a/profile.json'), 'utf8'))
+      ).toEqual({ version: 1, accountId: 'account-a', runtime: 'wsl', distro: 'Ubuntu' })
+      // The host id is the caller's view of the host, so another caller's spelling is the same profile.
       prepareClaudeProfileDirectory(
         dir,
-        { ...profile, home: join(dir, 'claude-accounts/account-a/auth') },
+        { ...profile, target: { distro: 'Ubuntu', runtime: 'wsl', executionHostId: 'local' } },
         userHome
       )
-    ).toThrow()
-    // One spelling everywhere: Claude names the profile's Keychain entry from the exact text.
-    expect(describeClaudeProfile(`${dir}/./x/../`, 'account-a', target).home).toBe(profile.home)
-    expect(() => describeClaudeProfile(dir, '../escape', target)).toThrow()
-    expect(() => describeClaudeProfile('C:\\manta', 'a', target)).toThrow()
-  })
+      expect(() =>
+        prepareClaudeProfileDirectory(
+          dir,
+          { ...profile, home: join(dir, 'claude-accounts/account-a/auth') },
+          userHome
+        )
+      ).toThrow()
+      // One spelling everywhere: Claude names the profile's Keychain entry from the exact text.
+      expect(describeClaudeProfile(`${dir}/./x/../`, 'account-a', target).home).toBe(profile.home)
+      expect(() => describeClaudeProfile(dir, '../escape', target)).toThrow()
+      expect(() => describeClaudeProfile('C:\\manta', 'a', target)).toThrow()
+    }
+  )
   it('refuses a profile whose marker names another account or target, creating nothing', () => {
     const dir = root()
     const userHome = root()
