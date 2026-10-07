@@ -341,9 +341,8 @@ export function NativeChatResolvedView({
       data-native-chat-working={isWorking ? 'true' : 'false'}
       tabIndex={-1}
       onPointerDownCapture={(event) => {
+        contextMenu.onPointerDownCapture(event)
         if (event.button === 2) {
-          contextMenu.onSelectionCapture()
-          event.preventDefault()
           event.stopPropagation()
           return
         }
@@ -367,8 +366,6 @@ export function NativeChatResolvedView({
         }
         routeNativeChatRootKeyToInput(event, composerRef.current, questionAnswerInputRef.current)
       }}
-      onMouseUpCapture={contextMenu.onSelectionCapture}
-      onKeyUpCapture={contextMenu.onSelectionCapture}
       onContextMenuCapture={contextMenu.onContextMenuCapture}
       className={cn(
         NATIVE_CHAT_APPEARANCE_ROOT_CLASS,
