@@ -6,7 +6,15 @@ import { MobileNativeChatMessageActionsSheet } from './MobileNativeChatMessageAc
 import { MobileNativeChatLongPressContent as Content } from './MobileNativeChatLongPressContent'
 import { splitNativeChatBlocks } from '../../../src/shared/native-chat-tool-fold'
 import { selectActiveToolCall } from '../../../src/shared/native-chat-tool-activity'
-import { isImageRefBlock, isTextBlock } from '../../../src/shared/native-chat-types'
+import {
+  isImageRefBlock,
+  isSubagentGroupBlock,
+  isTextBlock
+} from '../../../src/shared/native-chat-types'
+import {
+  isRenderableSubagentGroup,
+  withoutSubagentGroupTwins
+} from '../../../src/shared/native-chat-subagent-summary'
 import {
   AGENT_SESSION_HOST_STATUS_COPY,
   isAgentSessionHostStatusPresentation
@@ -16,6 +24,7 @@ import { MobileMarkdown } from '../components/MobileMarkdown'
 import { deriveNativeChatRowContent } from '../../../src/shared/native-chat-row-content'
 import { MobileNativeChatReasoningRow } from './MobileNativeChatReasoningRow'
 import { MobileNativeChatTurnStatus } from './MobileNativeChatTurnStatus'
+import { MobileNativeChatSubagentGroup } from './MobileNativeChatSubagentGroup'
 import { ToolRun } from './MobileNativeChatToolRun'
 import type { NativeChatTurnStatus } from './use-mobile-native-chat-turn-status'
 import { isRenderableImageUri } from './mobile-native-chat-image-preview'
@@ -123,7 +132,9 @@ function MobileNativeChatMessageImpl({
   structuredActivityUi = false,
   reasoningIsLive = false,
   reasoningExpanded,
-  onToggleReasoning
+  onToggleReasoning,
+  subagentGroupsOpen,
+  onToggleSubagentGroup
 }: {
   message: NativeChatMessage
   /** The newest assistant row of a live turn with no prompt open: its last text may still grow. */
@@ -151,6 +162,9 @@ function MobileNativeChatMessageImpl({
   /** The transcript-held disclosure of a reasoning row; one stable handler takes its key. */
   reasoningExpanded?: boolean
   onToggleReasoning?: (key: string) => void
+  /** The roster groups the reader opened, held by the transcript; only a roster row gets it. */
+  subagentGroupsOpen?: ReadonlySet<string>
+  onToggleSubagentGroup?: (groupId: string) => void
 }): React.JSX.Element {
   // Another agent's message is set apart from the person's bubble, left-aligned and named.
   const attribution = agentMessageAttribution('Message from', message.from)
@@ -245,18 +259,29 @@ function MobileNativeChatMessageImpl({
               {attribution}
             </Text>
           ) : null}
-          {prose.map((block, index) => (
-            <Prose
-              key={index}
-              block={block}
-              invert={isUser}
-              fontScale={fontScale}
-              onOpenFile={onOpenFile}
-              onLongPress={onLongPress}
-              renderVisual={message.role === 'assistant' ? renderVisual : undefined}
-              holdPendingVisual={block === growingBlock}
-            />
-          ))}
+          {/* A roster draws as its group row, which replaces its frozen sentence; it is not tool
+              activity, so it stays out of the settled-tools collapse. */}
+          {withoutSubagentGroupTwins(prose).map((block, index) =>
+            isSubagentGroupBlock(block) && isRenderableSubagentGroup(block) ? (
+              <MobileNativeChatSubagentGroup
+                key={`subagent-group:${block.groupId}`}
+                block={block}
+                open={subagentGroupsOpen?.has(block.groupId) === true}
+                onToggle={onToggleSubagentGroup}
+              />
+            ) : (
+              <Prose
+                key={index}
+                block={block}
+                invert={isUser}
+                fontScale={fontScale}
+                onOpenFile={onOpenFile}
+                onLongPress={onLongPress}
+                renderVisual={message.role === 'assistant' ? renderVisual : undefined}
+                holdPendingVisual={block === growingBlock}
+              />
+            )
+          )}
           {showToolRun ? (
             <ToolRun
               // Why: a global toggle intentionally resets all per-run/per-line

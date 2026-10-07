@@ -12,9 +12,9 @@
 import type {
   AgentSessionBackgroundTask,
   AgentSessionBackgroundTaskState
-} from '../../../../shared/agent-session-wire'
-import { agentChildWorkLiveness } from '../../../../shared/agent-status-child-work-liveness'
-import type { AgentChildWorkView } from '../../../../shared/agent-status-child-work-view'
+} from './agent-session-wire'
+import { agentChildWorkLiveness } from './agent-status-child-work-liveness'
+import type { AgentChildWorkView } from './agent-status-child-work-view'
 
 export type StructuredSessionBackgroundTasksView = {
   /** The strip renders whenever the host reports rows — mid-turn included. */

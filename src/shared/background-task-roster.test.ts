@@ -1,12 +1,33 @@
 import { describe, expect, it } from 'vitest'
-import type { AgentSessionBackgroundTask } from '../../../../shared/agent-session-wire'
-import { backgroundTasksHeaderContent } from './background-task-header-content'
+import type { AgentSessionBackgroundTask } from './agent-session-wire'
+import type { AgentChildWorkView } from './agent-status-child-work-view'
+import { sayBackgroundTaskEnglish as say } from './background-task-copy'
+import { backgroundTasksHeaderContent as headerContent } from './background-task-header-content'
 import {
-  backgroundTaskCountedState,
-  buildBackgroundTaskGroups,
+  backgroundTaskCountedState as countedState,
+  backgroundTaskRowMeta,
+  backgroundTaskRowStopId,
+  backgroundTasksStripTicks,
+  buildBackgroundTaskGroups as buildGroups,
+  buildBackgroundTaskGroupsFromViews,
   formatBackgroundTaskTokens,
-  resolveBackgroundTaskName
+  resolveBackgroundTaskName as resolveName,
+  type BackgroundTaskGroup
 } from './background-task-roster'
+
+const buildBackgroundTaskGroups = (
+  tasks: AgentSessionBackgroundTask[],
+  settled: AgentSessionBackgroundTask[]
+) => buildGroups(tasks, settled, say)
+const backgroundTaskCountedState = (
+  counted: string | number,
+  state: Parameters<typeof countedState>[1]
+) => countedState(counted, state, say)
+const resolveBackgroundTaskName = (task: AgentSessionBackgroundTask) => resolveName(task, say)
+const backgroundTasksHeaderContent = (
+  groups: BackgroundTaskGroup[],
+  options: { narrow: boolean; now: number }
+) => headerContent(groups, options, say)
 
 const NOW = 1_000_000
 
@@ -101,11 +122,21 @@ describe('backgroundTasksHeaderContent', () => {
     ).toEqual({ segments: [{ text: '7 background tasks', kind: null }], detail: null })
   })
 
-  it('falls back to the total on a narrow strip', () => {
+  it('totals a breakdown across kinds on a narrow strip', () => {
     expect(
       header([agent('a'), { id: 's', kind: 'command', state: 'working', startedAt: NOW }], [], true)
     ).toEqual({ segments: [{ text: '2 background tasks', kind: null }], detail: null })
-    // A single task stays named: the short form fits.
+  })
+
+  it('keeps one kind in its state forms on a narrow strip', () => {
+    // The attention state a reader must see survives the narrow width.
+    expect(
+      header([agent('a', { state: 'waiting' }), agent('b', { state: 'waiting' })], [], true)
+    ).toEqual({ segments: [{ text: '2 agents waiting', kind: 'agent' }], detail: 'needs approval' })
+    expect(header([agent('a'), agent('b', { state: 'waiting' })], [], true)).toEqual({
+      segments: [{ text: '2 agents', kind: 'agent' }],
+      detail: '1 working, 1 waiting'
+    })
     expect(header([agent('a')], [], true)).toEqual({
       segments: [{ text: '1 agent', kind: 'agent' }],
       detail: 'working'
@@ -264,5 +295,53 @@ describe('resumed tasks from mixed-version hosts', () => {
       { text: '2 agents', kind: 'agent' },
       { text: '4 shells', kind: 'command' }
     ])
+  })
+})
+
+function view(id: string, overrides: Partial<AgentChildWorkView> = {}): AgentChildWorkView {
+  return {
+    id,
+    providerId: `provider-${id}`,
+    kind: 'agent',
+    state: 'working',
+    membership: 'live',
+    firstObservedAt: NOW - 60_000,
+    observedAt: NOW,
+    stoppable: true,
+    invocation: { invocationId: `spawn-${id}`, generation: 1 },
+    ...overrides
+  }
+}
+
+describe('backgroundTasksStripTicks', () => {
+  it('ticks only while the list is open or the header times one live shell', () => {
+    const agents = buildBackgroundTaskGroups([agent('a'), agent('b')], [])
+    expect(backgroundTasksStripTicks(agents, false)).toBe(false)
+    expect(backgroundTasksStripTicks(agents, true)).toBe(true)
+    const shell = buildBackgroundTaskGroups(
+      [{ id: 's', kind: 'command', state: 'working', startedAt: NOW }],
+      []
+    )
+    expect(backgroundTasksStripTicks(shell, false)).toBe(true)
+  })
+
+  it('never wakes for finished work', () => {
+    const settled = buildBackgroundTaskGroups([], [agent('a', { state: 'done' })])
+    expect(backgroundTasksStripTicks(settled, true)).toBe(false)
+  })
+})
+
+describe('background task row meta and Stop', () => {
+  it('reads tokens then elapsed', () => {
+    const [group] = buildBackgroundTaskGroups([agent('a', { totalTokens: 18_130 })], [])
+    expect(backgroundTaskRowMeta(group.tasks[0].row, NOW)).toBe('18.1k · 1m 0s')
+  })
+
+  it('offers Stop only for a live row the host can target', () => {
+    const [group] = buildBackgroundTaskGroupsFromViews([view('a'), view('b', { stoppable: false })])
+    const [a, b] = group.tasks.map((entry) => entry.row)
+    expect(backgroundTaskRowStopId(a, true)).toBe('provider-a')
+    expect(backgroundTaskRowStopId(a, false)).toBeNull()
+    expect(backgroundTaskRowStopId(b, true)).toBeNull()
   })
 })

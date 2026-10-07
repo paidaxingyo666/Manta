@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { AgentChildWorkView } from '../../../../shared/agent-status-child-work-view'
+import type { AgentChildWorkView } from './agent-status-child-work-view'
 import { structuredSessionBackgroundTasksView } from './structured-session-background-tasks-view'
 
 function view(membership: 'live' | 'settled', kind: AgentChildWorkView['kind'] = 'agent') {

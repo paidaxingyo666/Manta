@@ -139,9 +139,9 @@ vi.mock('../use-mobile-native-chat-session-option-controller', () => ({
 vi.mock('../use-mobile-native-chat-file-search', () => ({
   useMobileNativeChatFileSearch: () => ({ nativeChatFilePaths: [], loadNativeChatFiles: vi.fn() })
 }))
-vi.mock('../use-mobile-native-chat-queued-slot', () => ({
-  NO_QUEUED_SLOT: {},
-  useMobileNativeChatQueuedSlot: () => ({})
+vi.mock('../use-mobile-native-chat-composer-tray', () => ({
+  NO_COMPOSER_TRAY: {},
+  useMobileNativeChatComposerTray: () => ({})
 }))
 vi.mock('../use-mobile-native-chat-streaming-bubble', () => ({
   useMobileNativeChatStreamingBubble: () => null

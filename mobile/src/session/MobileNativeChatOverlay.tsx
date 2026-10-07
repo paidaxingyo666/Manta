@@ -5,7 +5,7 @@ import { foldMobileNativeChatMessages } from './mobile-native-chat-render-data'
 import type { MobileNativeChatImageAttachments } from './use-mobile-native-chat-image-attachments'
 import type { MobileNativeChatController } from './use-mobile-native-chat-controller'
 import { useMobileNativeChatStreamingBubble } from './use-mobile-native-chat-streaming-bubble'
-import { useMobileNativeChatQueuedSlot } from './use-mobile-native-chat-queued-slot'
+import { useMobileNativeChatComposerTray } from './use-mobile-native-chat-composer-tray'
 import { useMobileNativeChatVisualRenderer } from './MobileNativeChatVisual'
 import { MobileNativeChatVisualContext } from './mobile-native-chat-visual-context'
 
@@ -63,17 +63,20 @@ export function MobileNativeChatOverlay({
     controller.nativeChatStreamLive
   )
   const queued = controller.nativeChatQueued
-  const queuedSlot = useMobileNativeChatQueuedSlot({
-    cards: queued.cards,
-    onSend: queued.send,
-    onDelete: queued.delete,
-    onEdit: queued.edit,
-    pause: queued.pause,
-    onResume: queued.resume,
-    sessionKey: queued.sessionKey,
-    // Nothing steers into a turn a Stop is ending; the host holds such a send until it ends.
-    // The indicator's `stopping` is the display status, decided once in the session hook.
-    steerHeld: controller.nativeChatTurnIndicator?.stopping === true
+  const composerTray = useMobileNativeChatComposerTray({
+    queued: {
+      cards: queued.cards,
+      onSend: queued.send,
+      onDelete: queued.delete,
+      onEdit: queued.edit,
+      pause: queued.pause,
+      onResume: queued.resume,
+      sessionKey: queued.sessionKey,
+      // Nothing steers into a turn a Stop is ending; the host holds such a send until it ends.
+      // The indicator's `stopping` is the display status, decided once in the session hook.
+      steerHeld: controller.nativeChatTurnIndicator?.stopping === true
+    },
+    backgroundTasks: controller.nativeChatBackgroundTasks
   })
   const visuals = useMobileNativeChatVisualRenderer(controller.nativeChatVisualSource)
   if (!controller.showNativeChat) {
@@ -112,7 +115,7 @@ export function MobileNativeChatOverlay({
           onAnswerQuestion={controller.handleNativeChatQuestionAnswer}
           permission={controller.nativeChatPermission}
           onRespondPermission={controller.handleNativeChatRespondPermission}
-          queuedSlot={queuedSlot}
+          composerTray={composerTray}
           onOpenFile={onOpenFile}
           hasMore={session.hasMore}
           loadingEarlier={session.loadingEarlier}

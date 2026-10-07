@@ -13,6 +13,7 @@ import type {
 import type { NativeChatTurnJournal } from '../../../src/shared/native-chat-turn-membership'
 import type { MobileNativeChatSendOutcome } from './mobile-native-chat-send'
 import type { MobileStructuredQueuedMessageControls } from './use-mobile-structured-queued-message-controls'
+import type { MobileStructuredBackgroundTasks } from './use-mobile-structured-background-tasks'
 import type { MobileNativeChatPendingMessage } from './use-mobile-native-chat-drafts'
 import type { useMobileNativeChatSession } from './use-mobile-native-chat-session'
 import type { MobileNativeChatSessionOptionPickersProps } from './MobileNativeChatSessionOptionPickers'
@@ -80,6 +81,8 @@ export type MobileNativeChatController = {
   /** Host-held queued drafts shown as cards above the composer (structured lane; any host
    *  that publishes them). */
   nativeChatQueued: MobileStructuredQueuedMessageControls
+  /** Running child work shown in a strip above the composer; null off the structured lane. */
+  nativeChatBackgroundTasks: MobileStructuredBackgroundTasks | null
   nativeChatFilePaths: string[]
   loadNativeChatFiles: (query: string) => void
   handleNativeChatQuestionAnswer: (text: string) => Promise<boolean>
