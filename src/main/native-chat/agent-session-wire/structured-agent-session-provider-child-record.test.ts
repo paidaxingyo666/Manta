@@ -385,12 +385,13 @@ describe('a published child that dies while it proves its start', () => {
   it('leaves one error row keyed by the start, and every message it was handed rejected with it (R2)', async () => {
     await restartHost()
     acquire.mockImplementation(spawnStartingChild)
-    // Written to the starting child at once; it never answers.
+    // The first is written to the starting child at once; it never answers, so its turn never
+    // opens and the second waits behind it.
     dispatch.mockImplementation(async () => ({ state: 'admitted' as const }))
     const first = await accept('first')
     const events = await subscribe()
     const second = await accept('second')
-    await eventually(() => expect(dispatch).toHaveBeenCalledTimes(2))
+    await eventually(() => expect(dispatch).toHaveBeenCalledTimes(1))
     const child = currentChild()
 
     await exit(child, EXIT, true)

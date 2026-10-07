@@ -567,7 +567,11 @@ describe('a second send made after Codex answered the first, before it opened th
     const opening = await send('look around')
     await vi.waitFor(() => expect(answers).toBe(1))
     const followUp = await send('and check the tests')
-    await vi.waitFor(() => expect(openWaits.turnIds).toEqual(['turn-1']))
+    // Held until that turn opens, so Codex is never asked to steer into a turn it has not started:
+    // the delivery loop goes idle with no wait on turn-1, which a handover would have started.
+    const { loop } = host.collaboratorsForTests().conversationDelivery
+    await vi.waitFor(() => expect(loop.isRunning(SESSION)).toBe(false))
+    expect(openWaits.turnIds).toEqual([])
     turns.start()
     await vi.waitFor(() => expect(steers).toBe(1))
     expect(answers).toBe(1)

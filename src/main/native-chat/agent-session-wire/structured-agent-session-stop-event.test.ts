@@ -192,6 +192,8 @@ describe("a Stop's event", () => {
     rig = await createQueuedMessageTestRig()
     await rig.workingSend()
     await rig.stop()
+    // The turn the working send started opens after that turnless Stop; the card goes into it.
+    await turnRow('turn-1', 'running')
     const steered = await queuedDraft('sent into the turn between the presses')
     await rig.sendNow(steered)
     await eventually(async () => expect((await rig.handoff(steered))?.handedOverAt).toBeDefined())
@@ -209,6 +211,8 @@ describe("a Stop's event", () => {
     rig = await createQueuedMessageTestRig()
     const working = await rig.workingSend()
     await rig.stop()
+    // The turn the working send started opens after that turnless Stop; the card goes into it.
+    await turnRow('turn-1', 'running')
     const steered = await queuedDraft('sent into the turn between the presses')
     await rig.sendNow(steered)
     await eventually(async () => expect((await rig.handoff(steered))?.handedOverAt).toBeDefined())

@@ -626,7 +626,8 @@ describe('a child that exits before its message is handed over', () => {
 
 describe('a start that fails after it was handed messages', () => {
   it('keeps one row in the words its rejected messages carry', async () => {
-    // A starting child takes both messages at once; written, neither is answered.
+    // A starting child takes the first at once; the second waits until that turn opens, which it
+    // never does. Neither is answered.
     dispatch.mockImplementation(async () => ({ state: 'admitted' as const }))
     acquire.mockImplementation(async (input) => ({
       ...(await spawnChild(input)),
@@ -637,7 +638,7 @@ describe('a start that fails after it was handed messages', () => {
 
     const first = await accept('first')
     const second = await accept('second')
-    await eventually(() => expect(dispatch).toHaveBeenCalledTimes(2))
+    await eventually(() => expect(dispatch).toHaveBeenCalledTimes(1))
     await host.handleAdapterEvent({
       type: 'ended',
       sessionId: SESSION,
@@ -652,11 +653,13 @@ describe('a start that fails after it was handed messages', () => {
     })
     await host.flushStreamedEvents(SESSION)
 
+    // The held message is rejected by the delivery loop's next step, after the start's own.
+    await eventually(async () => expect((await submission(second))?.dispatchState).toBe('rejected'))
     const rows = (await host.journalSnapshot(SESSION)).items.filter((item) =>
       item.itemId.includes('start-failure')
     )
     expect(rows).toHaveLength(1)
-    // Worded once, from the exit's own diagnostic, for the row and every message it was handed.
+    // Worded once, from the exit's own diagnostic, for the row and every message sent to that start.
     const row = rows[0].body
     expect(row).toMatchObject({
       failure: { kind: 'providerStartFailed', detail: { text: 'codex: config.toml is invalid' } }

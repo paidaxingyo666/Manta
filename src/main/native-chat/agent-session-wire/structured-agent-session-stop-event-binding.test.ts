@@ -19,6 +19,10 @@ import {
   QUEUED_RIG_CALLER,
   type QueuedMessageTestRig
 } from './structured-agent-session-queued-message-rig.test-fixture'
+import {
+  openRigTurnFor,
+  withdrawnByStop
+} from './structured-agent-session-queued-rig-turn.test-fixture'
 
 let rig: QueuedMessageTestRig
 
@@ -276,9 +280,11 @@ describe('a press that writes no Stop event of its own', () => {
   // A turnless Stop long since settled, then a later turn the person's own send opened.
   async function laterTurnAfterAnEarlierStop(): Promise<string> {
     rig = await createQueuedMessageTestRig()
-    await rig.workingSend()
+    const stopped = await rig.workingSend()
     expect(await rig.stop()).toMatchObject({ ok: true })
     expect(journal().stopMarks.latest()?.event).not.toHaveProperty('turnId')
+    // Its turn never opened, so the Stop took it back, as the provider's Stop settles one.
+    await withdrawnByStop(rig, stopped)
     const sent = await rig.workingSend()
     await rig.settleAccepted(sent, 'sent')
     await turnOpenedBy(sent)
@@ -386,8 +392,11 @@ describe('a host stop with no turn running after a Stop that named none', () => 
 
   it("writes the host's event when a send after the Stop is unanswered beside the stopped one", async () => {
     rig = await createQueuedMessageTestRig()
-    await rig.workingSend()
+    const stopped = await rig.workingSend()
     expect(await rig.stop()).toMatchObject({ ok: true })
+    // The stopped send's turn opens after that turnless Stop, and ends interrupted, unanswered.
+    await openRigTurnFor(rig, stopped)
+    await openRigTurnFor(rig, stopped, 'interrupted')
     const mail = rig.send('mail for the lead')
     await mail.result
     await eventually(async () =>

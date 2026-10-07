@@ -18,6 +18,7 @@ import {
   eventually,
   type QueuedMessageTestRig
 } from './structured-agent-session-queued-message-rig.test-fixture'
+import { openRigTurnFor } from './structured-agent-session-queued-rig-turn.test-fixture'
 import { sameQueuePause } from './structured-agent-session-queued-publication'
 import { structuredAgentSessionConversationFence } from './structured-agent-session-provider-child'
 import {
@@ -238,6 +239,7 @@ describe('a card queued after a Stop is a new instruction', () => {
 
   it('a card sent now before the Stop and taken anyway lifts nothing, and holds nothing typed later', async () => {
     const working = await rig.workingSend()
+    await openRigTurnFor(rig, working)
     const sentId = await queuedDraft('sent now into the turn')
     await rig.sendNow(sentId)
     await handedOver(sentId)
@@ -246,6 +248,7 @@ describe('a card queued after a Stop is a new instruction', () => {
     expect(await rig.queuePause()).toBeNull()
     await rig.settleAccepted(await rig.handoffId(sentId), 'sent-now')
     await rig.settleAccepted(working, 'stopped')
+    await openRigTurnFor(rig, working, 'interrupted')
     const mail = rig.send('coordinator mail')
     await mail.result
     await eventually(async () =>

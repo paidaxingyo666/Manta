@@ -16,6 +16,7 @@ import { openTestAgentSessionRecordStore } from '../../runtime/agent-session-rec
 import type { StructuredAgentSessionAdapter } from './structured-agent-session-adapter'
 import type { StructuredAgentSessionEventSink } from './structured-agent-session-event-sink'
 import { StructuredAgentSessionHost } from './structured-agent-session-host'
+import { isStructuredAgentSessionStopNote } from './structured-agent-session-command-turn'
 import { holdLane } from './structured-agent-session-delivery-hold.test-fixture'
 import {
   HOST_TEST_NOW as NOW,
@@ -64,6 +65,7 @@ function eventually(assertion: () => void | Promise<void>): Promise<void> {
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'orca-conversation-stop-'))
   resetHostTestOperationIds()
+  events = undefined
   // Admitted, not accepted: the message is written and its turn has not opened.
   dispatch = vi.fn(async () => ({ state: 'admitted' as const }))
   cancelTurn = vi.fn(async () => ({ cancelled: true }))
@@ -118,6 +120,14 @@ afterEach(async () => {
   await host.flushAllStreamedEvents()
   await rm(root, { recursive: true, force: true })
 })
+
+/** The event sink the host handed this test's child at attach. */
+function hostEvents(): StructuredAgentSessionEventSink {
+  if (!events) {
+    throw new Error('the host attached no event sink')
+  }
+  return events
+}
 
 function send(text: string) {
   const body = hostTestMessage(text)
@@ -197,7 +207,9 @@ describe('a Stop that names no turn', () => {
       identity: identityFor(SESSION),
       fence: 1,
       spawnToken: 'spawn-catalog',
-      options: { fastMode: 'true' }
+      options: { fastMode: 'true' },
+      // Codex's turn events reach the host's journal, as the runtime wires them.
+      events: hostEvents()
     })
     dispatch.mockImplementation((input) => adapter.dispatch(input))
     cancelTurn.mockImplementation((input) => adapter.cancelTurn(input))
@@ -300,6 +312,30 @@ describe('a Stop that names no turn', () => {
 
     await eventually(() => expect(dispatch).toHaveBeenCalledTimes(2))
     expect(dispatch.mock.calls[1]![0].clientMessageId).toBe(replacement.id)
+  })
+
+  // Codex can take a Stop as the turn starts, with that turn's start still buffered when the answer
+  // lands. A bound sink hands each event to the journal as it is read, so the note lands after it.
+  it("writes a taken Stop's note after the turn record the provider sent before its answer", async () => {
+    const first = send('first send')
+    await first.result
+    await eventually(() => expect(dispatch).toHaveBeenCalledOnce())
+    cancelTurn.mockImplementationOnce(async () => {
+      events?.appendItem(
+        { provider: 'legacy', agent: 'codex', sessionId: SESSION, recordId: 'turn:turn-1' },
+        { kind: 'turn', turnId: 'turn-1', state: 'running' },
+        { turnScope: AGENT_JOURNAL_THREAD_SCOPE }
+      )
+      return { cancelled: true, turnId: 'turn-1' }
+    })
+
+    expect(await stop()).toMatchObject({ ok: true, value: { cancelled: true } })
+
+    const items = (await host.journalSnapshot(SESSION)).items
+    const record = items.find((item) => item.body.kind === 'turn')
+    const note = items.find((item) => isStructuredAgentSessionStopNote(item.itemId))
+    expect(note?.sequence).toBeGreaterThan(record?.sequence ?? Infinity)
+    expect(note?.turnScope).toEqual({ kind: 'turn', turnItemId: record?.itemId })
   })
 
   it('is a valid cancel, and only a plain Stop may omit the turn', () => {

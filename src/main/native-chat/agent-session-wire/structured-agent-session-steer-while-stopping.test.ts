@@ -116,9 +116,10 @@ describe("a message sent while a person's Stop ends the turn", () => {
     await eventually(() => expect(rig.dispatch.mock.calls.length).toBe(dispatched + 1))
   })
 
-  // A Stop pressed before the turn showed holds a later send only while it settles; settling
-  // having stopped nothing hands it over, and the turn that then opens is not the Stop's.
-  it('hands over a send made after a Stop that stopped nothing, with no Stopping flip', async () => {
+  // A Stop pressed before the turn showed holds a later send only while it settles. Settling
+  // having stopped nothing, the send still waits for the first send's turn to open, then joins it;
+  // that turn is not the Stop's.
+  it('hands over a send made after a Stop that stopped nothing once the turn opens, with no Stopping flip', async () => {
     rig = await createQueuedMessageTestRig()
     const first = await rig.workingSend()
     const seen: (true | undefined)[] = []
@@ -141,10 +142,13 @@ describe("a message sent while a person's Stop ends the turn", () => {
     answer.resolve({ cancelled: false })
     expect(await stopped).toMatchObject({ ok: true })
     expect(await later.result).toMatchObject({ ok: true })
+    const { loop } = rig.host.collaboratorsForTests().conversationDelivery
+    await eventually(() => expect(loop.isRunning(HOST_TEST_SESSION)).toBe(false))
+    expect((await rig.submission(later.id))?.handedOverAt).toBeUndefined()
 
-    await eventually(() => expect(rig.dispatch.mock.calls.length).toBe(dispatched + 1))
     await rig.settleAccepted(first, 'first')
     await turn('turn-1', first, 'running')
+    await eventually(() => expect(rig.dispatch.mock.calls.length).toBe(dispatched + 1))
     await laneDrained()
     expect(seen.at(-1)).toBeUndefined()
     // Once Stopping ended it never came back.
@@ -154,7 +158,8 @@ describe("a message sent while a person's Stop ends the turn", () => {
   // A settle edge writes no row, so nothing else wakes the handover once it closes.
   it('hands a held send over when the Stop settles with no row after it', async () => {
     rig = await createQueuedMessageTestRig()
-    await rig.workingSend()
+    // Working: its turn is open, so the held send is held only by the Stop's settle.
+    await turn('turn-1', await rig.workingSend(), 'running')
     await journal().appendStopEvent({ reason: 'user-stop' }, 1)
     const settle = journal().stopMarks.beginSettle()
     const later = rig.send('sent while the Stop settles')

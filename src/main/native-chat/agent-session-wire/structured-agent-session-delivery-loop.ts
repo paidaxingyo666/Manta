@@ -38,6 +38,7 @@ import {
 } from './structured-agent-session-start-failure-row'
 import { failedProviderChildStart } from './structured-agent-session-provider-child'
 import { handOverSubmission } from './structured-agent-session-turns'
+import { structuredAgentSessionNextHandover } from './structured-agent-session-opening-send'
 import { structuredAgentSessionCommandRunning } from './structured-agent-session-command-turn'
 import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
 
@@ -240,7 +241,8 @@ export class StructuredAgentSessionDeliveryLoop {
     if (this.deps.stopping(sessionId)) {
       return this.stop(sessionId)
     }
-    const next = oldestQueuedSubmission(session)
+    // None while a turn is still opening: joining it would record the message ahead of it.
+    const next = structuredAgentSessionNextHandover(session, awaitedChild.fence)
     if (!next) {
       return this.stop(sessionId)
     }
