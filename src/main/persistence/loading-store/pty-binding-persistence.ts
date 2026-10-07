@@ -16,6 +16,11 @@ import { evaluatePtyBindingFastLane } from './pty-binding-fast-lane'
 import { ptyBindingIsRefused } from './pty-binding-refusals'
 import { startPtyBindingSpan, type PtyBindingOrigin, type PtyBindingSpan } from './pty-binding-span'
 import { applyPtyBinding } from './pty-binding-session-update'
+import type {
+  TerminalLeafMoveRequest,
+  TerminalLeafMoveResult
+} from '../../../shared/terminal-leaf-move'
+import { moveLeaf } from '../terminal-topology/terminal-topology-commit'
 import { findTerminalBindingConflict } from '../terminal-topology/terminal-owner-invariants'
 
 type PtyBindingPersistenceOperationsRuntime = Pick<
@@ -187,6 +192,22 @@ export class PtyBindingPersistenceOperations {
       span?.finish('threw', error)
       throw error
     }
+  }
+
+  /**
+   * Detach-to-new-tab, committed before the renderer mounts the target tab (STA-9259). It lives on
+   * the binding domain only for its runtime and partition access; the commit module owns the write.
+   */
+  moveTerminalLeafToNewTab(request: TerminalLeafMoveRequest): Promise<TerminalLeafMoveResult> {
+    const { runtime, sessions } = this[ptyBindingPersistenceOperationsContext]
+    return runtime.runDurableMutation(
+      moveLeaf(request, {
+        state: runtime.state,
+        hostIds: () => sessions.getWorkspaceSessionHostIds(),
+        getSession: (hostId) => sessions.getWorkspaceSession(hostId),
+        markDirty: (domain) => runtime.dirtyProfileStateDomains?.add(domain)
+      })
+    )
   }
 }
 

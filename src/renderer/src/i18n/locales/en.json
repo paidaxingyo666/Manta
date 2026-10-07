@@ -19105,6 +19105,9 @@
       "confirmStopDescription": "This closes any open Codex sessions that share it, including ones outside Manta.",
       "cancel": "Cancel",
       "runs": "Runs"
+    },
+    "paneMove": {
+      "failed": "Couldn't move the pane to a new tab."
     }
   },
   "fileExplorer": {

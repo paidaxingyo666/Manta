@@ -239,22 +239,23 @@ export function useTerminalPaneCloseActions(controller: TerminalPaneBindingContr
       if (!isTerminalTabStripDropTarget(target)) {
         return false
       }
-      const fallbackPtyId = paneTransportsRef.current.get(sourcePaneId)?.getPtyId() ?? null
+      const sourceTransport = paneTransportsRef.current.get(sourcePaneId)
+      const livePtyId = sourceTransport?.getPtyId() ?? null
       const sourcePaneCwd = paneCwdRef.current.get(sourcePaneId)
-      return (
-        detachTerminalPaneToTab({
-          fallbackPtyId,
-          getStore: useAppStore.getState,
-          manager: managerRef.current,
-          persistLayoutSnapshot,
-          sourcePaneId,
-          ...(sourcePaneCwd ? { sourcePaneCwd } : {}),
-          sourceTabId: tabId,
-          targetGroupId: target.groupId,
-          targetIndex: target.insertionIndex,
-          worktreeId
-        }) !== null
-      )
+      void detachTerminalPaneToTab({
+        livePtyId,
+        getStore: useAppStore.getState,
+        manager: managerRef.current,
+        persistLayoutSnapshot,
+        sourcePaneId,
+        ...(sourcePaneCwd ? { sourcePaneCwd } : {}),
+        sourceConnectPending: sourceTransport?.isConnectPending?.() ?? false,
+        sourceTabId: tabId,
+        targetGroupId: target.groupId,
+        targetIndex: target.insertionIndex,
+        worktreeId
+      }).catch((error) => console.warn('[terminal-pane-detach] move failed', error))
+      return true
     },
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- Preserve the pre-split dependency contract.
     [persistLayoutSnapshot, tabId, worktreeId]
