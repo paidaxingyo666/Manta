@@ -1,5 +1,5 @@
 import { MobileSelectableText as Text } from '../components/MobileSelectableText'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useContext, useState } from 'react'
 import { Image, Text as NativeText, View } from 'react-native'
 import { INLINE_TEXT_SELECTION } from '../components/inline-text-selection'
 import { MobileNativeChatMessageActionsSheet } from './MobileNativeChatMessageActionsSheet'
@@ -21,17 +21,28 @@ import type { NativeChatTurnStatus } from './use-mobile-native-chat-turn-status'
 import { isRenderableImageUri } from './mobile-native-chat-image-preview'
 import { styles, TEXT_SIZE } from './mobile-native-chat-message-styles'
 import { agentMessageAttribution } from './mobile-agent-message-attribution'
+import { withoutPendingNativeChatVisualDirectiveTail } from '../../../src/shared/native-chat-visual-directive'
+import {
+  MobileNativeChatVisualContext,
+  type MobileNativeChatVisualRender
+} from './mobile-native-chat-visual-context'
 
 function Prose({
   block,
   invert,
   fontScale,
   onOpenFile,
-  onLongPress
+  onLongPress,
+  renderVisual,
+  holdPendingVisual = false
 }: {
   block: NativeChatBlock
   invert?: boolean
   fontScale: number
+  /** Assistant prose of a structured chat only. */
+  renderVisual?: MobileNativeChatVisualRender
+  /** The reply may still be growing: a directive still being typed at its tail is held back. */
+  holdPendingVisual?: boolean
   onOpenFile?: (relativePath: string) => void
   /** Android only: routes a long press on a link span to the row's actions sheet. */
   onLongPress?: () => void
@@ -61,7 +72,12 @@ function Prose({
     }
     return (
       <MobileMarkdown
-        content={block.text}
+        content={
+          holdPendingVisual && renderVisual
+            ? withoutPendingNativeChatVisualDirectiveTail(block.text)
+            : block.text
+        }
+        renderVisual={renderVisual}
         rangeSelectable
         textScale={1.25 * fontScale}
         onOpenFile={onOpenFile}
@@ -94,6 +110,7 @@ function Prose({
 
 function MobileNativeChatMessageImpl({
   message,
+  mayStillGrow = false,
   toolsExpanded = false,
   fontScale = 1,
   onOpenFile,
@@ -109,6 +126,8 @@ function MobileNativeChatMessageImpl({
   onToggleReasoning
 }: {
   message: NativeChatMessage
+  /** The newest assistant row of a live turn with no prompt open: its last text may still grow. */
+  mayStillGrow?: boolean
   toolsExpanded?: boolean
   /** Multiplies all chat text sizes for pinch-to-zoom (1 = no change). */
   fontScale?: number
@@ -160,6 +179,12 @@ function MobileNativeChatMessageImpl({
   // Keep the memoized Markdown context stable as the message streams.
   const openActions = useCallback(() => setActionsOpen(true), [])
   const onLongPress = INLINE_TEXT_SELECTION ? undefined : openActions
+  const renderVisual = useContext(MobileNativeChatVisualContext) ?? undefined
+  // Structured replies grow in place: only the last block of the newest row may still be typing.
+  const growingBlock =
+    message.role === 'assistant' && mayStillGrow && activeTurnIsWorking === true
+      ? message.blocks.at(-1)
+      : undefined
 
   const statusRow = turnStatus ? (
     <MobileNativeChatTurnStatus
@@ -228,6 +253,8 @@ function MobileNativeChatMessageImpl({
               fontScale={fontScale}
               onOpenFile={onOpenFile}
               onLongPress={onLongPress}
+              renderVisual={message.role === 'assistant' ? renderVisual : undefined}
+              holdPendingVisual={block === growingBlock}
             />
           ))}
           {showToolRun ? (
