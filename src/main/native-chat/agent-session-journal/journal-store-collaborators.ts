@@ -23,6 +23,8 @@ import { JournalSubmissionWriter } from './journal-submission-writer'
 import type { JournalRow } from './journal-row-schema'
 import type { AgentSessionJournal } from './journal-store'
 import type { JournalWriteBody } from './journal-write-queue'
+import type { JournalAttachmentClaim } from './journal-submission-hook'
+import { claimAgentSessionAttachmentsInTransaction } from '../agent-session-attachments/agent-session-attachment-claims'
 
 export type JournalStoreHost = {
   /** Fires the journal's commit listener for a durable change that appended no
@@ -75,6 +77,15 @@ export function createJournalStoreCollaborators(host: JournalStoreHost): Journal
     cursor: host.cursor,
     adopt: host.adopt
   })
+  const claimAttachments: JournalAttachmentClaim = (db, body, required) =>
+    claimAgentSessionAttachmentsInTransaction(db, {
+      // Uploaded attachments are stored beside the journal database.
+      stateDirectory: host.database().stateDirectory,
+      sessionId: host.identity.sessionId,
+      body,
+      required,
+      now: host.now()
+    })
   const queuedMessages = new JournalQueuedMessages({
     sessionId: host.identity.sessionId,
     now: host.now,
@@ -83,7 +94,8 @@ export function createJournalStoreCollaborators(host: JournalStoreHost): Journal
     readOnly: host.readOnly,
     state: host.state,
     reopenFloor: () => host.journal().reopenFloor(),
-    committed: host.notifyCommitted
+    committed: host.notifyCommitted,
+    claimAttachments
   })
   const rowWriter = new JournalRowWriter({
     sessionId: host.identity.sessionId,
@@ -120,7 +132,8 @@ export function createJournalStoreCollaborators(host: JournalStoreHost): Journal
       state: host.state,
       identity: host.identity,
       rowWriter,
-      queuedMessages
+      queuedMessages,
+      claimAttachments
     }),
     itemAppender: new JournalItemAppender({
       state: host.state,

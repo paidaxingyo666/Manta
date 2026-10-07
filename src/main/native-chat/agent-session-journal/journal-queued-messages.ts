@@ -16,7 +16,7 @@ import {
 import type { JournalHostDatabase } from './journal-host-database'
 import type { JournalReducerState } from './journal-reducer'
 import type { JournalRow } from './journal-row-schema'
-import type { JournalOperationReceipt, JournalRowTransactionHook } from './journal-row-writer'
+import type { JournalOperationReceipt } from './journal-row-writer'
 import type { JournalSubmissionConsume } from './journal-store-contracts'
 import { holdQueuedMessages } from './queued-message-holds'
 import {
@@ -45,6 +45,7 @@ import {
   settleQueuedMessagesForRow
 } from './queued-message-settlement'
 import { AgentSessionJournalError, assertJournalWritable } from './journal-write-guards'
+import type { JournalAttachmentClaim } from './journal-submission-hook'
 import type { JournalWriteBody, JournalWriteResult } from './journal-write-queue'
 
 /** Tombstones must outlive the window in which their operation id could still be admitted as new. */
@@ -66,6 +67,7 @@ export type JournalQueuedMessagesDeps = {
    *  does — no call site can forget. In-transaction consume and the returned
    *  transition already ride their row's own commit. */
   committed: () => void
+  claimAttachments: JournalAttachmentClaim
 }
 
 export class JournalQueuedMessages {
@@ -110,8 +112,10 @@ export class JournalQueuedMessages {
   }
 
   /** `carriedFrom`: a /clear's carry. The card is its own 'cleared' pause, so it lands paused;
-   *  `holdReason` carries a hold of its own over with it. `receipt`: the send's ledger answer,
-   *  committed with the draft only when this inserts it. */
+   *  `holdReason` carries a hold of its own over with it.
+   *  `requireAttachments`: a client's own draft, refused whole when an attachment it names is no
+   *  longer stored; the host's own writes (the carry) claim best effort.
+   *  `receipt`: the send's ledger answer, committed with the draft only when this inserts it. */
   insert(
     input: {
       messageId: string
@@ -119,11 +123,13 @@ export class JournalQueuedMessages {
       fingerprint: string
       hostInstance: string
       carriedFrom?: string
+      requireAttachments?: true
       holdReason?: QueuedMessageHoldReason
     },
     receipt?: JournalOperationReceipt
   ): Promise<QueuedMessageRow> {
     const { sessionId } = this.deps
+    const { requireAttachments, ...draft } = input
     let inserted = false
     return this.transact(
       (db) => {
@@ -133,10 +139,11 @@ export class JournalQueuedMessages {
           // gets here, so an existing row is the same accept landing twice.
           return existing
         }
+        this.deps.claimAttachments(db, input.body, requireAttachments === true)
         inserted = true
         const { epoch, lastSequence } = this.deps.state()
         const row = insertQueuedMessage(db, {
-          ...input,
+          ...draft,
           sessionId,
           queuedAt: { epoch, sequence: lastSequence },
           now: this.deps.now()
@@ -361,15 +368,6 @@ export class JournalQueuedMessages {
       (changed) => changed > 0
     ).then(() => undefined)
   }
-}
-
-/** The per-append hook converting one draft inside the append's own transaction. */
-export function queuedMessageConsumeHook(
-  queuedMessages: JournalQueuedMessages,
-  consumedAs: string,
-  consume: JournalSubmissionConsume
-): JournalRowTransactionHook {
-  return (db) => queuedMessages.consumeInTransaction(db, { ...consume, consumedAs })
 }
 
 export class QueuedMessageNotConsumableError extends Error {
