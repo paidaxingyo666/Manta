@@ -22,7 +22,6 @@ import type {
 } from '../../shared/agent-status-types'
 import { buildRuntimeMobileAgentStatus } from './runtime-mobile-agent-status-builder'
 import { FIRST_PANE_ID } from '../../shared/pane-key'
-import { defaultAgentChatLabel } from '../../shared/agent-session-chat-label'
 import { isTerminalLeafId, makePaneKey, parsePaneKey } from '../../shared/stable-pane-id'
 import { getStructuredAgentSessionHost } from '../native-chat/agent-session-wire/structured-agent-session-registry'
 import { replaceConversationInSnapshot } from './structured-conversation-tab-replacement'
@@ -100,23 +99,10 @@ export class MantaRuntimeWithPruneMobileSessionTabGroupLayout extends MantaRunti
     }
     const record = getStructuredAgentSessionHost()?.deps?.store?.getRecord(sessionId)
     const name = record?.location.workspaceId === workspaceId ? record.conversationName : null
-    const next = retitleStructuredConversationTab(snapshot, sessionId, name) ?? {
-      ...snapshot,
-      snapshotVersion: snapshot.snapshotVersion + 1
+    const next = retitleStructuredConversationTab(snapshot, sessionId, name)
+    if (next) {
+      this.emitMobileSessionTabsSnapshot(this.storeMobileSessionSnapshot(workspaceId, next))
     }
-    const title =
-      record?.location.workspaceId === workspaceId &&
-      (record.provider === 'claude' || record.provider === 'codex')
-        ? {
-            sessionId,
-            agent: record.provider,
-            title: name ?? defaultAgentChatLabel(record.provider)
-          }
-        : undefined
-    this.emitMobileSessionTabsSnapshot(
-      this.storeMobileSessionSnapshot(workspaceId, next),
-      title ? { structuredConversationTitle: title } : {}
-    )
   }
 
   protected getMobileSessionProjectionHost(): RuntimeMobileSessionProjectionHost {

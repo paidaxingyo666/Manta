@@ -279,18 +279,17 @@ export class MantaRuntimeWithBuildHeadlessMobileSessionBrowserTabs extends Manta
     })
   }
 
-  protected emitMobileSessionTabsSnapshot(
-    snapshot: RuntimeMobileSessionTabsSnapshot,
-    metadata: Pick<RuntimeMobileSessionTabsResult, 'structuredConversationTitle'> = {}
-  ): void {
+  protected emitMobileSessionTabsSnapshot(snapshot: RuntimeMobileSessionTabsSnapshot): void {
     if (this.mobileSessionTabListeners.size === 0) {
       return
     }
-    const result = { ...this.toMobileSessionTabsResult(snapshot), ...metadata }
-    const sequence = ++this.mobileSessionTabsChangeSequence
+    const result = this.toMobileSessionTabsResult(snapshot)
+    const changeSequence = ++this.mobileSessionTabsChangeSequence
     for (const subscription of this.mobileSessionTabListeners) {
-      const navigationId = subscription.clientNavigationId
-      subscription.listener(this.projectMobileSessionTabsForClient(result, navigationId), sequence)
+      subscription.listener(
+        this.projectMobileSessionTabsForClient(result, subscription.clientNavigationId),
+        changeSequence
+      )
     }
   }
 

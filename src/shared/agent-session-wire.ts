@@ -270,6 +270,9 @@ export type AgentSessionStatusSummary = {
    *  the background-task channel. */
   children?: AgentChildWorkView[]
   providerSession?: AgentProviderSessionMetadata
+  /** The record's saved conversation name; absent while unnamed and from older hosts. Rides this
+   *  feed because a retained summary outlives the chat's tab, so a closed chat keeps its name. */
+  conversationName?: string
   /** Host-path directory the session is held to regardless of its workspace's current directory
    *  (a floating chat's pinned folder). Absent means resolve the workspace id; older hosts omit it. */
   launchDirectory?: string

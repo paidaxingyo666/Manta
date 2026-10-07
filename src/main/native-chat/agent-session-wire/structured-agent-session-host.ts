@@ -351,6 +351,7 @@ export class StructuredAgentSessionHost {
 
   /** Every session's projected status for session lists; unlike `subscribe`, retains nothing. */
   subscribeStatus = this.clientDelivery.subscribeStatus
+  publishConversationName = this.clientDelivery.publishConversationName
 
   /** Turns that settle, and prompts raised, from now on. Live-only: nothing missed is replayed. */
   subscribeTurnCompletions = this.clientDelivery.subscribeTurnCompletions

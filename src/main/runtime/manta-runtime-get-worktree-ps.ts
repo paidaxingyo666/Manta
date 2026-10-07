@@ -178,7 +178,7 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleV
           getAgentEnvResolvers: () => this.getCommitMessageAgentEnvironmentResolvers(),
           hasOpenDispatch: (record) =>
             structuredWorkerOwesWork(this.getOrchestrationDbIfAvailable?.() ?? null, record),
-          onNamed: (workspaceId, sessionId) =>
+          retitleOpenTab: (workspaceId, sessionId) =>
             this.refreshStructuredConversationTabTitle(workspaceId, sessionId)
         },
         logger
