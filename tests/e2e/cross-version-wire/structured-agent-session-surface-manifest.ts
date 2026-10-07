@@ -170,6 +170,12 @@ export const STRUCTURED_CALLS: {
     hostMethod: 'restartContinueAll',
     result: { resumed: [], continued: [] }
   },
+  // Continue on a reply a Manta stop cut off. Clients call it only on a host advertising it.
+  {
+    method: 'agentSession.continueInterrupted',
+    hostMethod: 'continueInterrupted',
+    result: { sessionId: SESSION, outcome: 'superseded' }
+  },
   { method: 'agentSession.release', hostMethod: null, result: { released: true } },
   {
     method: 'agentSession.history',
@@ -345,6 +351,8 @@ export function paramsFor(method: string): unknown {
     case 'agentSession.restartContinue':
       // Whole-surface calls: they name no session, and resume/continue narrow by an optional list.
       return {}
+    case 'agentSession.continueInterrupted':
+      return { sessionId: SESSION, turnItemId: 'legacy:codex:s:turn-1' }
     default:
       return { sessionId: SESSION }
   }

@@ -24,3 +24,22 @@ export function agentSessionAccountHome(
 ): AgentSessionAccountHome {
   return { variable: agent.accountHomeVariable, path }
 }
+
+const ENVIRONMENT_VARIABLE_NAME = /^[A-Za-z_][A-Za-z0-9_]{0,127}$/
+export const MAX_PATH_LENGTH = 4096
+
+/** Shape only: whether the variable is the one the record's agent pins is a launch-time question
+ *  (`agentDrivesSession`), so an agent that renames its variable never hides its chats. */
+export function isAgentSessionAccountHome(value: unknown): value is AgentSessionAccountHome {
+  if (typeof value !== 'object' || value === null || !('variable' in value) || !('path' in value)) {
+    return false
+  }
+  const { variable, path } = value
+  return (
+    typeof variable === 'string' &&
+    ENVIRONMENT_VARIABLE_NAME.test(variable) &&
+    typeof path === 'string' &&
+    path.length > 0 &&
+    path.length <= MAX_PATH_LENGTH
+  )
+}
