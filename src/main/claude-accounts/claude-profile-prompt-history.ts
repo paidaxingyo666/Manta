@@ -1,21 +1,23 @@
 import {
   appendFileSync,
   closeSync,
+  linkSync,
   lstatSync,
   openSync,
   readFileSync,
   readdirSync,
   readSync,
   realpathSync,
-  renameSync,
   statSync,
   symlinkSync,
   unlinkSync,
   writeFileSync,
+  type BigIntStats,
   type Stats
 } from 'node:fs'
 import { join } from 'node:path'
 import { isDefinitiveAbsence } from '../../shared/definitive-filesystem-absence'
+import { renameFileWithWindowsRetry, writeFileAtomically } from '../codex-accounts/fs-utils'
 import {
   ClaudeProfileSurfaceError,
   warnClaudeProfile,
@@ -26,6 +28,8 @@ import {
 export const CLAUDE_PROFILE_MERGE_SUFFIX = '.manta-profile-merge'
 const HISTORY = 'history.jsonl'
 const PENDING = `${HISTORY}${CLAUDE_PROFILE_MERGE_SUFFIX}`
+// Windows only: identity of the shared file Manta last hardlinked, so a replaced one is told apart.
+const LINK_RECORD = `${HISTORY}.manta-profile-link`
 
 export function lstatIfPresent(file: string): Stats | undefined {
   try {
@@ -115,10 +119,40 @@ function nextFreePath(base: string): string {
   }
 }
 
-/** POSIX only: links the profile's `history.jsonl` to the shared one and appends its own lines. */
+function fileIdentity(stats: BigIntStats): string {
+  return `${stats.dev}:${stats.ino}`
+}
+
+export function crossFilesystem(): ClaudeProfileSurfaceError {
+  return new ClaudeProfileSurfaceError(
+    'cross-filesystem',
+    'History stays private across filesystems'
+  )
+}
+
+/** Fails closed: an unreadable record must not read as "no link", which would drain a replaced default back. */
+function readLinkRecord(profile: string): string | null {
+  try {
+    return readFileSync(join(profile, LINK_RECORD), 'utf8').trim()
+  } catch (error) {
+    if (isDefinitiveAbsence(error)) {
+      return null
+    }
+    throw new ClaudeProfileSurfaceError(
+      'unreadable',
+      `Prompt history link record: ${String(error)}`
+    )
+  }
+}
+
+/**
+ * Links the profile's `history.jsonl` to the shared one (a same-volume hardlink on Windows, which
+ * needs no privilege) and appends its own lines.
+ */
 export function mergeClaudeProfilePromptHistory(
   profile: string,
   home: string,
+  platform: NodeJS.Platform,
   report: ClaudeProfileReport
 ): ClaudeProfileSurfaceOutcome {
   const source = join(profile, HISTORY)
@@ -136,6 +170,12 @@ export function mergeClaudeProfilePromptHistory(
   }
   // Why: directory order is not creation order; generations keep prompts in the order they were written.
   pendings.sort((left, right) => left.generation - right.generation)
+  // Why: a cross-volume share is refused below; draining first would leak this account's prompts.
+  if (platform === 'win32' && pendings.length > 0) {
+    if (statSync(profile).dev !== statSync(destination).dev) {
+      throw crossFilesystem()
+    }
+  }
   for (const { name } of pendings) {
     try {
       drainHistory(join(profile, name), destination, shared)
@@ -151,20 +191,53 @@ export function mergeClaudeProfilePromptHistory(
   if (current && !current.isFile()) {
     return 'user-owned'
   }
+  const record = join(profile, LINK_RECORD)
+  let sharedIdentity: string | undefined
+  let replaced = false
+  if (platform === 'win32') {
+    sharedIdentity = fileIdentity(statSync(destination, { bigint: true }))
+    const identity = current ? fileIdentity(lstatSync(source, { bigint: true })) : undefined
+    if (identity === sharedIdentity) {
+      if (readLinkRecord(profile) !== sharedIdentity) {
+        writeFileAtomically(record, `${sharedIdentity}\n`, { mode: 0o600 })
+      }
+      return 'unchanged'
+    }
+    if (statSync(profile).dev !== statSync(destination).dev) {
+      throw crossFilesystem()
+    }
+    // Why: the old shared file still held under Manta's link means the default was replaced or
+    // cleared; draining it would bring back history the user removed.
+    replaced = identity !== undefined && identity === readLinkRecord(profile)
+  }
   let aside: string | undefined
   if (current) {
-    aside = nextFreePath(join(profile, PENDING))
-    renameSync(source, aside)
+    aside = nextFreePath(join(profile, replaced ? `${HISTORY}.manta-profile-conflict` : PENDING))
+    renameFileWithWindowsRetry(source, aside)
   }
   try {
-    symlinkSync(destination, source)
+    if (sharedIdentity === undefined) {
+      symlinkSync(destination, source)
+    } else {
+      linkSync(destination, source)
+      try {
+        writeFileAtomically(record, `${sharedIdentity}\n`, { mode: 0o600 })
+      } catch (error) {
+        // Why: a link without its record would let a later default replacement drain the old copy back.
+        unlinkSync(source)
+        throw error
+      }
+    }
   } catch (error) {
     if (aside && !lstatIfPresent(source)) {
-      renameSync(aside, source)
+      renameFileWithWindowsRetry(aside, source)
     }
     throw new ClaudeProfileSurfaceError('link-failed', String(error))
   }
-  if (aside) {
+  if (aside && replaced) {
+    const detail = `Shared prompt history was replaced; the old copy is kept at ${aside}`
+    warnClaudeProfile(report, HISTORY, new ClaudeProfileSurfaceError('retained-conflict', detail))
+  } else if (aside) {
     drainHistory(aside, destination, shared)
   }
   return 'linked'

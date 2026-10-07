@@ -226,16 +226,6 @@ describe('Claude profile history sharing', () => {
     expect(fs.lstatSync(join(f.profileHome, 'history.jsonl')).isSymbolicLink()).toBe(true)
     expect(f.history()).toBe('private\n')
   })
-  it('keeps every profile history private on Windows', async () => {
-    const f = fixture()
-    fs.mkdirSync(join(f.profileHome, 'projects'))
-    fs.writeFileSync(join(f.profileHome, 'history.jsonl'), 'private\n')
-    const report = await f.share('win32')
-    expect(report).toEqual({ surfaces: {}, warnings: [] })
-    expect(fs.lstatSync(join(f.profileHome, 'projects')).isDirectory()).toBe(true)
-    expect(fs.readFileSync(join(f.profileHome, 'history.jsonl'), 'utf8')).toBe('private\n')
-    expect(fs.readdirSync(f.defaultHome)).toEqual([])
-  })
   itLinks("pools into the user's own CLAUDE_CONFIG_DIR when they set one", async () => {
     const f = fixture()
     const userConfigDir = join(f.userHome, 'custom-claude')
