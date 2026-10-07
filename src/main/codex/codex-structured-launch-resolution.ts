@@ -7,6 +7,7 @@
 // for, which is how a resume becomes a fork wearing a resume's name.
 
 import type { AgentSessionJournalIdentity } from '../../shared/agent-session-journal-types'
+import { requireLegacyAgentSessionAccountHome } from '../../shared/agent-session-account-home'
 import { agentSessionProviderHandleChainHead } from '../../shared/agent-session-provider-handle'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import { resolveCodexCommand } from '../codex-cli/command'
@@ -70,7 +71,8 @@ export function createCodexStructuredLaunchResolver(
     if (!record) {
       throw new Error(`no durable agent-session record for ${identity.sessionId}`)
     }
-    const { location, accountHome } = record
+    const { location } = record
+    const accountHome = requireLegacyAgentSessionAccountHome(record.accountHome)
     if (record.provider !== 'codex') {
       throw new Error(`session ${identity.sessionId} is a ${record.provider} session`)
     }

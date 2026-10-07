@@ -1,4 +1,5 @@
 import { getClaudeProfileRouter } from '../claude-accounts/claude-profile-installed-router'
+import { requireLegacyAgentSessionAccountHome } from '../../shared/agent-session-account-home'
 import type {
   Options as ClaudeAgentSdkOptions,
   PermissionMode
@@ -231,9 +232,10 @@ export function createClaudeStructuredLaunchResolver(
         `claude structured sessions run on the local host, not ${record.location.executionHostId}`
       )
     }
+    const accountHome = requireLegacyAgentSessionAccountHome(record.accountHome)
     const pinned = CLAUDE_STRUCTURED_AGENT.accountHomeVariable
-    if (record.accountHome.variable !== pinned) {
-      throw new Error(`claude sessions pin ${pinned}, not ${record.accountHome.variable}`)
+    if (accountHome.variable !== pinned) {
+      throw new Error(`claude sessions pin ${pinned}, not ${accountHome.variable}`)
     }
     // Every acquisition, not just the first: the account state can change under a live session, and
     // a reacquire after an unexpected exit would otherwise spawn under whatever it has become.
@@ -289,7 +291,7 @@ export function createClaudeStructuredLaunchResolver(
         hasTranscript: deps.hasTranscript
       }))
     // Why: without a router the home is fixed, so check it before the recheck that must stay last.
-    const resumedWithoutRouter = router ? undefined : await resumes(record.accountHome.path)
+    const resumedWithoutRouter = router ? undefined : await resumes(accountHome.path)
     // Last: it rechecks the account switch, which may have begun during any await above.
     const { command, env } = await resolveClaudeStructuredInvocation(
       deps,
@@ -308,7 +310,7 @@ export function createClaudeStructuredLaunchResolver(
         ),
       sources
     )
-    const launchHome = await resolveClaudeStructuredLaunchHome(router, env, record.accountHome.path)
+    const launchHome = await resolveClaudeStructuredLaunchHome(router, env, accountHome.path)
     const resumesTranscript = resumedWithoutRouter ?? (await resumes(launchHome))
     return {
       pathToClaudeCodeExecutable: command,

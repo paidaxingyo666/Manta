@@ -255,6 +255,7 @@ export class MantaRuntimeWithGetWorktreePs extends MantaRuntimeWithStartTuiIdleV
         isTuiAgent(agent)
           ? resolveTuiAgentLaunchEnv(agent, this.requireStore().getSettings().agentDefaultEnv)
           : {},
+      resolveAgentCommandSettings: () => this.requireStore().getSettings(),
       // Same gate and same settings as agentSession.createSupport, re-read on every acquisition.
       getClaudeManagedAccountGateSettings: () => this.requireStore().getSettings(),
       resolveAgentAccountHome: (agent) => this.resolveStructuredAgentAccountHome(agent),

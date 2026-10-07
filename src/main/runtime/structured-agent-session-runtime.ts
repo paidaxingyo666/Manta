@@ -22,6 +22,7 @@ import {
 } from './structured-agent-session-runtime-teardown'
 import { AgentSessionRecoveryCapsule } from './agent-session-recovery-capsule'
 import type { CodexStructuredPermissionPolicy } from '../codex/codex-structured-permission-policy'
+import type { StructuredAgentCommandSettings } from '../native-chat/structured-agent-command-resolution'
 import type { CodexStructuredSessionAdapterDeps } from '../codex/codex-structured-session-adapter'
 import type { ClaudeStructuredSessionAdapterDeps } from '../claude/claude-structured-session-adapter'
 import {
@@ -126,6 +127,8 @@ export type StructuredAgentSessionRuntimeDeps = {
   resolveAgentFullAccess?: (agent: string) => boolean
   /** The user's per-agent environment overlay, for agents with no lane-specific resolver. */
   resolveAgentLaunchEnv?: (agent: string) => Record<string, string>
+  /** The settings a per-agent Command override is read from, for the same agents. */
+  resolveAgentCommandSettings?: () => StructuredAgentCommandSettings
   /** Raw settings getter; the reader that fails closed around it is built here, in checked code. */
   getClaudeManagedAccountGateSettings?: () => ClaudeManagedAccountGateSettings
   resolveEnvironment?: () => Promise<NodeJS.ProcessEnv>

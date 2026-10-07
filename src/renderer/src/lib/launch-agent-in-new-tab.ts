@@ -28,10 +28,11 @@ import { launchStructuredAgentFromNewTab } from '@/lib/launch-agent-in-new-tab-s
 import type { StructuredAgentLaunchSettlement } from '@/lib/structured-agent-launch-settlement'
 import type { StructuredLaunchTerminal } from '@/lib/structured-agent-session-launch-admission'
 import { workspaceKindForWorktreeId } from '@/lib/agent-launch-route-input'
+import type { AgentSessionLaunchPlan } from '@/lib/agent-session-launch-plan'
 import {
-  planAgentSessionLaunch,
-  type AgentSessionLaunchPlan
-} from '@/lib/agent-session-launch-plan'
+  launchOnceHostAnswered,
+  routeNewTabLaunch
+} from '@/lib/launch-agent-in-new-tab-host-agents'
 import type { AgentLaunchRequestId } from '@/lib/agent-launch-request-id'
 
 /** The user action this launch serves: minted where that action is handled, or carried by the
@@ -183,20 +184,20 @@ function launchAgentInNewTabInternal(args: LaunchAgentInNewTabArgs): LaunchAgent
 
   // Why first: a structured chat is created on whichever runtime owns the workspace, a paired
   // server included, so only a non-structured route falls through to the host-published terminal.
-  const plan =
-    args.requestId === undefined
-      ? args.agentSessionLaunchPlan
-      : planAgentSessionLaunch(store, {
-          requestId: args.requestId,
-          agent,
-          workspace: { kind: workspaceKind, worktreeId },
-          prompt: trimmedPrompt,
-          promptDelivery: viewModePromptDelivery,
-          tuiCustomization: { cwd: initialCwd },
-          initialSessionOptions: startupPlan.sessionOptions,
-          onPromptDelivered,
-          ...(args.promptKeptByCaller ? { promptKeptByCaller: true as const } : {})
-        })
+  const route = routeNewTabLaunch(store, args, {
+    agent,
+    workspace: { kind: workspaceKind, worktreeId },
+    prompt: trimmedPrompt,
+    promptDelivery: viewModePromptDelivery,
+    tuiCustomization: { cwd: initialCwd },
+    initialSessionOptions: startupPlan.sessionOptions,
+    onPromptDelivered,
+    ...(args.promptKeptByCaller ? { promptKeptByCaller: true as const } : {})
+  })
+  if ('awaited' in route) {
+    return launchOnceHostAnswered(route, args, startupPlan, launchAgentInNewTabInternal)
+  }
+  const { plan } = route
   if (plan?.route === 'structured-native-chat') {
     const structured = launchStructuredAgentFromNewTab({
       plan,
