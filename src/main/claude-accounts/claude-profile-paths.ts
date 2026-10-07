@@ -97,6 +97,13 @@ function readOwnershipMarker(file: string): string | null {
  * The only gate before writing into a profile: namespace, containment, no linked components,
  * outside Claude's default homes, and an ownership marker beside the home. Refuses before creating anything.
  */
+// Written by setup's ownership gate when setup starts, not when it completes: its absence means
+// setup never started here, and its presence does not prove setup finished.
+export function claudeProfileMarkerPath(profile: ClaudeProfileDescriptor): string {
+  const path = profile.target.runtime === 'wsl' ? hostPath.posix : hostPath
+  return path.join(path.dirname(profile.home), 'profile.json')
+}
+
 export function prepareClaudeProfileDirectory(
   dataRoot: string,
   profile: ClaudeProfileDescriptor,
@@ -117,7 +124,7 @@ export function prepareClaudeProfileDirectory(
   }
   assertClaudeProfileDescendant(dataRoot, profile.home)
   assertOutsideDefaultClaudeHomes(profile.home, userHome, userConfigDir)
-  const markerPath = join(dirname(profile.home), 'profile.json')
+  const markerPath = claudeProfileMarkerPath(profile)
   const distro = profile.target.runtime === 'wsl' ? profile.target.distro : undefined
   const record = ownershipRecord(profile.version, profile.accountId, profile.target.runtime, distro)
   const marker = readOwnershipMarker(markerPath)

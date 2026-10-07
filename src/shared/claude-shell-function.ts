@@ -22,8 +22,10 @@ export function getPosixClaudeShellFunction(): string {
   return `__orca_claude_binary="$(unalias claude 2>/dev/null || :; command -v claude 2>/dev/null || :)"
 if [[ -n "\${ORCA_CLAUDE_PROFILE_POINTER:-}" && -n "\${__orca_claude_binary:-}" && -x "\${__orca_claude_binary}" ]]; then
   function claude {
-    local __orca_claude_home
-    __orca_claude_home="$(cat "$ORCA_CLAUDE_PROFILE_POINTER" 2>/dev/null || :)"
+    local __orca_claude_home __orca_claude_pointer="\${ORCA_CLAUDE_PROFILE_POINTER:-}"
+    # Why: a WSL pane's pointer is relative to the guest home, which the host cannot know at spawn.
+    case "$__orca_claude_pointer" in '~/'*) __orca_claude_pointer="\${HOME:-}/\${__orca_claude_pointer#??}" ;; esac
+    __orca_claude_home="$(cat "$__orca_claude_pointer" 2>/dev/null || :)"
     if [ -n "\${CLAUDE_CONFIG_DIR:-}" ] && [ "$CLAUDE_CONFIG_DIR" != "\${ORCA_CLAUDE_INJECTED_CONFIG_DIR:-}" ]; then
       [ -z "$__orca_claude_home" ] || [ "$__orca_claude_home" = "$CLAUDE_CONFIG_DIR" ] || printf '%s\\n' '${OVERRIDE_NOTE}' >&2
       command claude "$@"; return
@@ -48,7 +50,9 @@ export function getFishClaudeShellFunction(): string {
 set -l __orca_claude_type (type -t claude 2>/dev/null)
 if test -n "$ORCA_CLAUDE_PROFILE_POINTER"; and test "$__orca_claude_type" = file
   function claude
-    set -l profile (cat "$ORCA_CLAUDE_PROFILE_POINTER" 2>/dev/null)
+    # Why: a WSL pane's pointer is relative to the guest home, which the host cannot know at spawn.
+    set -l pointer (string replace -r '^~/' "$HOME/" -- "$ORCA_CLAUDE_PROFILE_POINTER")
+    set -l profile (cat "$pointer" 2>/dev/null)
     if test -n "$CLAUDE_CONFIG_DIR"; and test "$CLAUDE_CONFIG_DIR" != "$ORCA_CLAUDE_INJECTED_CONFIG_DIR"
       if test -n "$profile"; and test "$profile" != "$CLAUDE_CONFIG_DIR"
         echo '${OVERRIDE_NOTE}' >&2

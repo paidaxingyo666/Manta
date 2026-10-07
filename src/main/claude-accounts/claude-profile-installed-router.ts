@@ -2,7 +2,7 @@ import { lstatSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 // Why type-only: scan workers import this module, and the router's setup graph must not load there.
 import type { ClaudeProfileRouter } from './claude-profile-router'
-import type { CodexAccountSelectionTarget } from '../../shared/codex-selection-lane'
+import type { ClaudeAccountSelectionTarget } from './runtime-selection'
 
 /** A real directory; a link is false, so a history folder shared by link is not read twice. */
 export function isDirectory(path: string): boolean {
@@ -35,13 +35,13 @@ export function getClaudeProfileRouter(): ClaudeProfileRouter | undefined {
   return installed
 }
 
-/** A pane's env with the routed account's pointer added; SSH panes and WSL distros keep theirs. */
+/** A local or WSL pane's env with the routed account's pointer added; SSH panes keep theirs. */
 export function withClaudeProfileTerminalEnv<Env extends Record<string, string> | undefined>(
   env: Env,
   connectionId: string | null | undefined,
-  target: CodexAccountSelectionTarget
+  target: ClaudeAccountSelectionTarget
 ): Env | Record<string, string> {
-  const profileEnv = connectionId || target.runtime === 'wsl' ? undefined : installed?.terminalEnv()
+  const profileEnv = connectionId ? undefined : installed?.terminalEnv(target)
   return profileEnv ? { ...env, ...profileEnv } : env
 }
 

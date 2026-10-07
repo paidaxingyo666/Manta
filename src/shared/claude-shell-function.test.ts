@@ -91,6 +91,13 @@ describe.each(SHELLS)('the claude function in %s', (shell) => {
     expect(f.run(shell, injected(f.a)).stdout).toBe('HOME=default KEY=fake TWIN=none\n')
   })
 
+  it('reads a WSL pane’s home-relative pointer against $HOME', () => {
+    const f = fixture()
+    writeFileSync(f.pointer, f.a)
+    const relative = f.run(shell, ['ORCA_CLAUDE_PROFILE_POINTER=~/selected'])
+    expect(relative.stdout).toBe(`HOME=${f.a} KEY=none TWIN=${f.a}\n`)
+  })
+
   it('refuses a selected account whose folder is missing', () => {
     const f = fixture()
     writeFileSync(f.pointer, join(f.a, 'gone'))

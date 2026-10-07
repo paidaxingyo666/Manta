@@ -1,6 +1,7 @@
 import { getAppEnvironment } from '../../shared/app-environment'
 import { claudeProfileRoutingEnabled } from '../../shared/claude-profile-routing'
 import { ClaudeProfileRouter } from './claude-profile-router'
+import { ClaudeWslProfileRouter } from './claude-profile-wsl-router'
 import {
   getClaudeProfileRouter,
   installClaudeProfileRouter
@@ -15,21 +16,22 @@ import type { ClaudeRuntimeAuthPreparation } from './runtime-auth/runtime-auth-t
 
 export type { ClaudeRuntimeAuthPreparation } from './runtime-auth/runtime-auth-types'
 
-// Why host only: WSL keeps the legacy path until guest account folders exist (Step 3).
 function routerFor(target: ClaudeAccountSelectionTarget): ClaudeProfileRouter | undefined {
   return target.runtime === 'wsl' ? undefined : getClaudeProfileRouter()
 }
 
 export class ClaudeRuntimeAuthService extends ClaudeRuntimeAuthSync {
+  private readonly wslRouter?: ClaudeWslProfileRouter
+
   constructor(store: Store) {
     super(store)
     if (claudeProfileRoutingEnabled()) {
-      installClaudeProfileRouter(
-        new ClaudeProfileRouter({
-          getSettings: () => store.getSettings(),
-          dataRoot: getAppEnvironment().getPath('userData')
-        })
-      )
+      const args = {
+        getSettings: () => store.getSettings(),
+        dataRoot: getAppEnvironment().getPath('userData')
+      }
+      installClaudeProfileRouter(new ClaudeProfileRouter(args))
+      this.wslRouter = process.platform === 'win32' ? new ClaudeWslProfileRouter(args) : undefined
     }
     this.initializeLastSyncedState()
     void this.safeSyncForCurrentSelection()
@@ -39,6 +41,10 @@ export class ClaudeRuntimeAuthService extends ClaudeRuntimeAuthSync {
     target?: ClaudeAccountSelectionTarget
   ): Promise<ClaudeRuntimeAuthPreparation> {
     const effectiveTarget = target ?? this.getDefaultAccountSelectionTarget()
+    const wsl = this.wslRouteFor(effectiveTarget)
+    if (wsl) {
+      return wsl.router.prepareLaunch(wsl.distro)
+    }
     const router = routerFor(effectiveTarget)
     if (router) {
       return router.prepareLaunch()
@@ -51,6 +57,10 @@ export class ClaudeRuntimeAuthService extends ClaudeRuntimeAuthSync {
     target?: ClaudeAccountSelectionTarget
   ): Promise<ClaudeRuntimeAuthPreparation> {
     const effectiveTarget = target ?? this.getDefaultAccountSelectionTarget()
+    const wsl = this.wslRouteFor(effectiveTarget)
+    if (wsl) {
+      return wsl.router.preparation(wsl.distro)
+    }
     const router = routerFor(effectiveTarget)
     if (router) {
       return router.preparation()
@@ -62,9 +72,42 @@ export class ClaudeRuntimeAuthService extends ClaudeRuntimeAuthSync {
   async syncForCurrentSelection(target?: ClaudeAccountSelectionTarget): Promise<void> {
     await this.serializeMutation(async () => {
       const effectiveTarget = target ?? this.getDefaultAccountSelectionTarget()
+      const wsl = this.wslRouteFor(effectiveTarget)
       const router = routerFor(effectiveTarget)
-      await (router ? router.publish() : this.doSyncForCurrentSelection(effectiveTarget))
+      if (wsl) {
+        await this.publishWsl(wsl.router, wsl.distro)
+      } else if (router) {
+        router.publish()
+      } else {
+        await this.doSyncForCurrentSelection(effectiveTarget)
+      }
     })
+  }
+
+  /** Null when the target is not a WSL distro routed by account folders. */
+  private wslRouteFor(
+    target: ClaudeAccountSelectionTarget
+  ): { router: ClaudeWslProfileRouter; distro: string } | null {
+    const distro =
+      target.runtime === 'wsl' ? this.resolveWslDefaultTarget(target).wslDistro?.trim() : null
+    return this.wslRouter && distro ? { router: this.wslRouter, distro } : null
+  }
+
+  // Why never thrown: a guest Manta cannot reach also cannot run a pane, and a deleted distro must
+  // not block removing its accounts. The next select, or a start while it runs, rewrites it.
+  private async publishWsl(router: ClaudeWslProfileRouter, distro: string): Promise<void> {
+    await router.publish(distro).catch((error: unknown) => {
+      console.warn(`[claude-profile] Could not update the Claude account in WSL ${distro}:`, error)
+    })
+  }
+
+  /** Startup and rollback republish only running distros: neither may boot a stopped one. */
+  private async publishRunningWslDistros(): Promise<void> {
+    const router = this.wslRouter
+    if (router) {
+      const distros = await router.runningDistros()
+      await Promise.all(distros.map((distro) => this.publishWsl(router, distro)))
+    }
   }
 
   async forceMaterializeCurrentSelectionForRollback(): Promise<void> {
@@ -72,6 +115,7 @@ export class ClaudeRuntimeAuthService extends ClaudeRuntimeAuthSync {
       const router = getClaudeProfileRouter()
       if (router) {
         router.publish()
+        await this.publishRunningWslDistros()
         return
       }
       const settings = this.store.getSettings()
@@ -103,7 +147,15 @@ export class ClaudeRuntimeAuthService extends ClaudeRuntimeAuthSync {
   private async safeSyncForCurrentSelection(): Promise<void> {
     try {
       const router = getClaudeProfileRouter()
-      await (router ? router.publish() : this.syncForCurrentSelection())
+      if (!router) {
+        await this.syncForCurrentSelection()
+        return
+      }
+      // Why serialized: an account change during startup must not be overwritten by this older read.
+      await this.serializeMutation(async () => {
+        router.publish()
+        await this.publishRunningWslDistros()
+      })
     } catch (error) {
       console.warn('[claude-runtime-auth] Failed to sync runtime auth state:', error)
     }
