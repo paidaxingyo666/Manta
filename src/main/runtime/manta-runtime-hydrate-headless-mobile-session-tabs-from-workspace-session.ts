@@ -41,7 +41,8 @@ export class MantaRuntimeWithHydrateHeadlessMobileSessionTabsFromWorkspaceSessio
     // Why: report which worktrees were reconciled in place so callers don't
     // reconcile them a second time (see notifyMobileSessionTabsChanged).
     const reconciledWorktreeIds = new Set<string>()
-    if (this.getAvailableAuthoritativeWindow() && options.allowAttachedWindow !== true) {
+    const hasAuthoritativeWindow = Boolean(this.getAvailableAuthoritativeWindow())
+    if (hasAuthoritativeWindow && options.allowAttachedWindow !== true) {
       return reconciledWorktreeIds
     }
     const session =
@@ -111,13 +112,17 @@ export class MantaRuntimeWithHydrateHeadlessMobileSessionTabsFromWorkspaceSessio
         reconciledWorktreeIds.add(entryWorktreeId)
         continue
       }
+      // Why: windowless, nothing publishes the other tabs, and a filtered seed would make the full pass skip this worktree.
+      const runtimeOwnedOnly =
+        options.onlyRuntimeOwnedTerminals === true &&
+        (existing !== undefined || hasAuthoritativeWindow)
       const terminalTabs = buildHeadlessMobileSessionTerminalTabs(
         entryWorktreeId,
         persistedTabs,
         session
       ).filter(
         (tab) =>
-          options.onlyRuntimeOwnedTerminals !== true ||
+          !runtimeOwnedOnly ||
           this.hasServeOrSshOwnedBinding(tab) ||
           this.hasRecentExpiredSshLeasePane(entryWorktreeId, tab)
       )
@@ -156,9 +161,7 @@ export class MantaRuntimeWithHydrateHeadlessMobileSessionTabsFromWorkspaceSessio
       const persistedGroups = session.tabGroups?.[entryWorktreeId]
       const persistedLayout = session.tabGroupLayouts?.[entryWorktreeId]
       const hasPersistedSplit =
-        options.onlyRuntimeOwnedTerminals !== true &&
-        persistedGroups !== undefined &&
-        persistedGroups.length > 1
+        !runtimeOwnedOnly && persistedGroups !== undefined && persistedGroups.length > 1
       const activeTopLevelId = mergedActiveTab
         ? mergedActiveTab.type === 'terminal'
           ? mergedActiveTab.parentTabId
