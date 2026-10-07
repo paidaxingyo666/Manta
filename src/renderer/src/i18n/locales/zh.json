@@ -17765,7 +17765,9 @@
         "workspaceAttachmentMismatch": "文件只能附加到其源工作区。",
         "attachmentOwnerChanged": "此工作区在附加时更改了主机 - 再次删除文件。",
         "attachmentUnreadable": "无法读取删除的文件。",
-        "tooManyAttachments": "每次最多附加 {{value0}} 个文件。"
+        "tooManyAttachments": "每次最多附加 {{value0}} 个文件。",
+        "pasteFailed": "粘贴失败。",
+        "commandAttachmentsUnsupported": "使用聊天会话命令前，请先移除附件。"
       },
       "tool": {
         "running": "正在运行…",
@@ -17971,7 +17973,9 @@
         "plan": "计划",
         "historyRepaired": "此聊天的部分历史记录无法加载。",
         "historyItemTooLarge": "聊天的这一部分过大，无法显示。",
-        "stoppedBeforeStart": "在智能体开始前已停止"
+        "stoppedBeforeStart": "在智能体开始前已停止",
+        "dismiss": "关闭",
+        "copyError": "复制错误"
       },
       "providerFrame": {
         "byteLength": "{{value0}} 字节"

@@ -55,7 +55,7 @@ function TestField({
       canSend
       autocomplete={{ mode: 'none' }}
       activeSuggestion={0}
-      notice={null}
+      notices={[]}
       imageAttachments={imageAttachments}
       sendButtonDisabled={false}
       isWorking={false}

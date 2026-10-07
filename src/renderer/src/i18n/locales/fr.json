@@ -17866,7 +17866,9 @@
         "workspaceAttachmentMismatch": "Les fichiers ne peuvent être joints qu'à leur espace de travail source.",
         "attachmentOwnerChanged": "Cet espace de travail a changé d'hôte lors de la connexion : supprimez à nouveau les fichiers.",
         "attachmentUnreadable": "Impossible de lire les fichiers supprimés.",
-        "tooManyAttachments": "Joignez {{value0}} fichiers maximum à la fois."
+        "tooManyAttachments": "Joignez {{value0}} fichiers maximum à la fois.",
+        "pasteFailed": "Échec du collage.",
+        "commandAttachmentsUnsupported": "Retirez les pièces jointes avant d'utiliser une commande de session de chat."
       },
       "tool": {
         "running": "En cours…",
@@ -18072,7 +18074,9 @@
         "plan": "Plan",
         "historyRepaired": "Une partie de l'historique de ce chat n'a pas pu être chargée.",
         "historyItemTooLarge": "Cette partie du chat était trop volumineuse pour être affichée.",
-        "stoppedBeforeStart": "Arrêté avant le démarrage de l'agent"
+        "stoppedBeforeStart": "Arrêté avant le démarrage de l'agent",
+        "dismiss": "Ignorer",
+        "copyError": "Copier l'erreur"
       },
       "providerFrame": {
         "byteLength": "{{value0}} octets"

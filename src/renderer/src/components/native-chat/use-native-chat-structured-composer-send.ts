@@ -12,6 +12,9 @@ import { pushHistory, type HistoryState } from './native-chat-composer-state'
 import type { NativeChatStructuredComposerTransport } from './native-chat-composer-types'
 import type { NativeChatComposerImageAttachment } from './NativeChatComposerField'
 import { nativeChatAttachImagesAgainReason } from './native-chat-image-reattach'
+import { nativeChatNoticeFromError } from './native-chat-composer-notice'
+import { agentSessionWriteNoticeText } from './agent-session-write-notice-text'
+import { translate } from '@/i18n/i18n'
 import {
   readNativeChatComposerDraft,
   updateNativeChatComposerDraft
@@ -77,7 +80,12 @@ export function useNativeChatStructuredComposerSend({
         return
       }
       if (attachments.length > 0 && hostCommand) {
-        structuredTransport.onError('Remove attachments before using a chat-session command.')
+        structuredTransport.onError(
+          translate(
+            'components.native-chat.composer.commandAttachmentsUnsupported',
+            'Remove attachments before using a chat-session command.'
+          )
+        )
         return
       }
       // A conversation command reveals at the press, not after its round trip; options move nothing.
@@ -119,9 +127,13 @@ export function useNativeChatStructuredComposerSend({
           setCaret(composing ? 0 : left.text.length)
           clearSkillOrigin()
         })
-        .catch((error) =>
-          structuredTransport.onError(error instanceof Error ? error.message : String(error))
-        )
+        .catch((error) => {
+          const notice = nativeChatNoticeFromError(
+            error,
+            agentSessionWriteNoticeText([hostCommand ? 'notDoneCommand' : 'notDoneSend'])
+          )
+          structuredTransport.onError(notice.text, notice.errorText)
+        })
     },
     [
       agent,

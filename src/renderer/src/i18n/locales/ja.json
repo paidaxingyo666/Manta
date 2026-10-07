@@ -17800,7 +17800,9 @@
         "workspaceAttachmentMismatch": "ファイルはソースワークスペースにのみ添付できます。",
         "attachmentOwnerChanged": "このワークスペースは接続中にホストを変更しました。ファイルを再度ドロップしてください。",
         "attachmentUnreadable": "ドロップされたファイルを読み取れませんでした。",
-        "tooManyAttachments": "一度に添付できるファイルは {{value0}} 個以下です。"
+        "tooManyAttachments": "一度に添付できるファイルは {{value0}} 個以下です。",
+        "pasteFailed": "貼り付けに失敗しました。",
+        "commandAttachmentsUnsupported": "チャットセッションのコマンドを使う前に添付ファイルを削除してください。"
       },
       "tool": {
         "running": "実行中…",
@@ -18006,7 +18008,9 @@
         "plan": "プラン",
         "historyRepaired": "このチャットの履歴の一部を読み込めませんでした。",
         "historyItemTooLarge": "チャットのこの部分は大きすぎるため表示できません。",
-        "stoppedBeforeStart": "Agent の開始前に停止しました"
+        "stoppedBeforeStart": "Agent の開始前に停止しました",
+        "dismiss": "閉じる",
+        "copyError": "エラーをコピー"
       },
       "providerFrame": {
         "byteLength": "{{value0}}バイト"

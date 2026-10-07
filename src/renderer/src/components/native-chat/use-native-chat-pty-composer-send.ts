@@ -48,7 +48,7 @@ export function useNativeChatPtyComposerSend(args: {
   setCaret: Dispatch<SetStateAction<number>>
   clearSkillOrigin: () => void
   clearImageAttachments: () => void
-  setNotice: Dispatch<SetStateAction<string | null>>
+  setNotice: (notice: string | null) => void
 }): () => void {
   return useCallback(() => {
     const text = args.draft

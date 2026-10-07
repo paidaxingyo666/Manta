@@ -174,7 +174,7 @@ function ComposerProbe({
           canSend={!disabled}
           autocomplete={{ mode: 'none' }}
           activeSuggestion={0}
-          notice={notice}
+          notices={notice ? [{ key: 'composer', kind: 'attachment', text: notice }] : []}
           imageAttachments={attachments.imageAttachments}
           sendButtonDisabled={false}
           isWorking={false}

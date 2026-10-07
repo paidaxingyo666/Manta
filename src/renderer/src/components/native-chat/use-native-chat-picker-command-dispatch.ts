@@ -38,7 +38,7 @@ export function useNativeChatPickerCommandDispatch(args: {
   setActiveSuggestion: Dispatch<SetStateAction<number>>
   clearSkillOrigin: () => void
   clearImageAttachments: () => void
-  setNotice: Dispatch<SetStateAction<string | null>>
+  setNotice: (notice: string | null) => void
 }): (command: Extract<NativeChatPickerItem, { kind: 'command' }>) => void {
   const {
     agent,

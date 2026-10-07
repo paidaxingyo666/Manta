@@ -44,7 +44,7 @@ function fieldProps(overrides: Partial<TestFieldProps> = {}): TestFieldProps {
     canSend: true,
     autocomplete: { mode: 'none' },
     activeSuggestion: 0,
-    notice: null,
+    notices: [],
     imageAttachments: [],
     sendButtonDisabled: false,
     isWorking: false,

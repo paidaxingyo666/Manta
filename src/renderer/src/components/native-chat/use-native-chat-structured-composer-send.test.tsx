@@ -128,3 +128,21 @@ describe('reports the sends that bring the latest into view', () => {
     expect(onSubmitted).not.toHaveBeenCalled()
   })
 })
+
+describe("says a failed send in Manta's words, with the error it hit apart", () => {
+  it('keeps a main-process failure apart from the words saying the message was not sent', async () => {
+    const { send, structuredTransport } = harness('claude')
+    vi.mocked(structuredTransport.send).mockImplementation(() => {
+      throw new Error(
+        "Error invoking remote method 'agentSession:send': Error: connect ECONNREFUSED /tmp/a.sock"
+      )
+    })
+    send('hello', [])
+    await vi.waitFor(() =>
+      expect(structuredTransport.onError).toHaveBeenCalledWith(
+        'Your message was not sent.',
+        'connect ECONNREFUSED /tmp/a.sock'
+      )
+    )
+  })
+})

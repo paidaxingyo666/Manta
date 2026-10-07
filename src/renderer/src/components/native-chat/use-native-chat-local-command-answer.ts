@@ -84,7 +84,7 @@ export function answerNativeChatCommandInComposer(args: {
   setDraft: (value: string) => void
   setCaret: Dispatch<SetStateAction<number>>
   clearSkillOrigin: () => void
-  setNotice: Dispatch<SetStateAction<string | null>>
+  setNotice: (notice: string | null) => void
 }): boolean {
   const command = args.draft.trim()
   const answer =

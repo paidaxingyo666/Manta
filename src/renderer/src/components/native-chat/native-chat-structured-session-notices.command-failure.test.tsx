@@ -4,7 +4,8 @@ import { afterEach, expect, it } from 'vitest'
 import { sayAgentSessionFailureEnglish } from '../../../../shared/agent-session-failure-copy'
 import { agentSessionFailureSentence } from '../../../../shared/agent-session-failure-words'
 import { agentSessionRefusalFailure } from '../../../../shared/agent-session-write-failure'
-import { NativeChatLaunchRetry } from './NativeChatLaunchRetry'
+import { NativeChatComposerNotices } from './NativeChatComposerNotices'
+import { structuredSessionNotices } from './native-chat-structured-session-notices'
 
 afterEach(cleanup)
 
@@ -14,11 +15,13 @@ it('names the Command setting when it is not a program Manta can run', () => {
     details: { reason: 'agentCommandNotRunnable' }
   })
   render(
-    <NativeChatLaunchRetry
-      lifecycle="failed"
-      failure={failure}
-      agentLabel="Claude"
-      onRetry={() => {}}
+    <NativeChatComposerNotices
+      notices={structuredSessionNotices({
+        launch: { lifecycle: 'failed', failure, retry: () => {} },
+        agentLabel: 'Claude',
+        sessionError: null,
+        composerError: null
+      })}
     />
   )
   expect(
