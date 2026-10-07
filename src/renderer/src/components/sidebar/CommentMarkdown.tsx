@@ -1,9 +1,9 @@
 import React from 'react'
-import Markdown, { defaultUrlTransform } from 'react-markdown'
+import Markdown, { defaultUrlTransform, type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import rehypeSanitize, { defaultSchema, type Options as SanitizeSchema } from 'rehype-sanitize'
 import { cn } from '@/lib/utils'
 import {
   compactCommentMarkdownComponents,
@@ -19,6 +19,7 @@ import { remarkNativeChatFileLinks } from './comment-markdown-native-chat-file-l
 export type { CommentMarkdownLinkClickHandler } from './comment-markdown-element-renderers'
 
 type MarkdownPlugins = NonNullable<React.ComponentProps<typeof Markdown>['rehypePlugins']>
+type RemarkPlugins = NonNullable<React.ComponentProps<typeof Markdown>['remarkPlugins']>
 type UrlTransform = NonNullable<React.ComponentProps<typeof Markdown>['urlTransform']>
 
 type GitHubRepoReference = {
@@ -181,6 +182,27 @@ const commentMarkdownSanitizeSchema = {
 // `<br />`). Parse it, then sanitize immediately before React renders it.
 const rehypePlugins: MarkdownPlugins = [rehypeRaw, [rehypeSanitize, commentMarkdownSanitizeSchema]]
 
+/**
+ * A surface-specific markdown addition: its own remark plugins, the element attributes those
+ * plugins need to survive sanitize, and the components that render them. Keep the object stable
+ * per surface; a new one rebuilds the components and remounts what they rendered.
+ */
+export type CommentMarkdownExtension = {
+  remarkPlugins: RemarkPlugins
+  sanitizeAttributes: Record<string, readonly string[]>
+  components: Components
+}
+
+function extensionRehypePlugins(extension: CommentMarkdownExtension): MarkdownPlugins {
+  const attributes: NonNullable<SanitizeSchema['attributes']> = {
+    ...commentMarkdownSanitizeSchema.attributes
+  }
+  for (const [tagName, names] of Object.entries(extension.sanitizeAttributes)) {
+    attributes[tagName] = [...(attributes[tagName] ?? []), ...names]
+  }
+  return [rehypeRaw, [rehypeSanitize, { ...commentMarkdownSanitizeSchema, attributes }]]
+}
+
 type CommentMarkdownProps = React.ComponentPropsWithoutRef<'div'> & {
   content: string
   variant?: 'compact' | 'document'
@@ -190,6 +212,7 @@ type CommentMarkdownProps = React.ComponentPropsWithoutRef<'div'> & {
   linkifyFilePaths?: boolean
   expandImages?: boolean
   renderCodeBlock?: DocumentCodeBlockRenderer
+  extension?: CommentMarkdownExtension
 }
 
 // Why forwardRef + rest props: Radix's HoverCardTrigger asChild merges a ref
@@ -207,11 +230,12 @@ const CommentMarkdown = React.memo(
       linkifyFilePaths = false,
       expandImages = false,
       renderCodeBlock,
+      extension,
       ...rest
     },
     ref
   ) {
-    const components = React.useMemo(() => {
+    const baseComponents = React.useMemo(() => {
       if (!onLinkClick) {
         return variant === 'document'
           ? renderCodeBlock
@@ -225,12 +249,21 @@ const CommentMarkdown = React.memo(
         ? createDocumentCommentMarkdownComponents(onLinkClick, renderCodeBlock)
         : createCompactCommentMarkdownComponents(onLinkClick, expandImages)
     }, [expandImages, renderCodeBlock, variant, onLinkClick])
+    const components = React.useMemo(
+      () => (extension ? { ...baseComponents, ...extension.components } : baseComponents),
+      [baseComponents, extension]
+    )
+    const activeRehypePlugins = React.useMemo(
+      () => (extension ? extensionRehypePlugins(extension) : rehypePlugins),
+      [extension]
+    )
     const activeRemarkPlugins = React.useMemo(() => {
       const plugins = linkifyFilePaths
         ? [...remarkPlugins, remarkNativeChatFileLinks]
         : remarkPlugins
-      return githubRepo ? [...plugins, remarkGitHubReferences(githubRepo)] : plugins
-    }, [githubRepo, linkifyFilePaths])
+      const withExtension = extension ? [...plugins, ...extension.remarkPlugins] : plugins
+      return githubRepo ? [...withExtension, remarkGitHubReferences(githubRepo)] : withExtension
+    }, [extension, githubRepo, linkifyFilePaths])
 
     return (
       <div
@@ -247,7 +280,7 @@ const CommentMarkdown = React.memo(
       >
         <Markdown
           remarkPlugins={activeRemarkPlugins}
-          rehypePlugins={rehypePlugins}
+          rehypePlugins={activeRehypePlugins}
           components={components}
           urlTransform={
             allowFileUriLinks ? commentMarkdownFileUriUrlTransform : commentMarkdownUrlTransform
