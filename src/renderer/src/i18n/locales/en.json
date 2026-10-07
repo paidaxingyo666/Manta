@@ -18926,6 +18926,13 @@
     },
     "agentChildRow": {
       "ended": "Ended"
+    },
+    "markdown-callout": {
+      "note": "Note",
+      "tip": "Tip",
+      "important": "Important",
+      "warning": "Warning",
+      "caution": "Caution"
     }
   },
   "dashboardPopout": {

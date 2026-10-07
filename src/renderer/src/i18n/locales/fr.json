@@ -18639,6 +18639,13 @@
       "label": "Assigné",
       "automatic": "Automatique",
       "assignToMe": "M'assigner ({{name}})"
+    },
+    "markdown-callout": {
+      "note": "Remarque",
+      "tip": "Conseil",
+      "important": "Important",
+      "warning": "Avertissement",
+      "caution": "Attention"
     }
   },
   "dashboardPopout": {

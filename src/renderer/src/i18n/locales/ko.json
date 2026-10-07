@@ -18538,6 +18538,13 @@
       "label": "담당자",
       "automatic": "자동",
       "assignToMe": "나에게 할당 ({{name}})"
+    },
+    "markdown-callout": {
+      "note": "참고",
+      "tip": "팁",
+      "important": "중요",
+      "warning": "경고",
+      "caution": "주의"
     }
   },
   "dashboardPopout": {

@@ -18538,6 +18538,13 @@
       "label": "负责人",
       "automatic": "自动",
       "assignToMe": "分配给我（{{name}}）"
+    },
+    "markdown-callout": {
+      "note": "备注",
+      "tip": "提示",
+      "important": "重要",
+      "warning": "警告",
+      "caution": "注意"
     }
   },
   "dashboardPopout": {

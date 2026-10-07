@@ -18537,6 +18537,13 @@
       "label": "Asignado",
       "automatic": "Automático",
       "assignToMe": "Asignármelo ({{name}})"
+    },
+    "markdown-callout": {
+      "note": "Nota",
+      "tip": "Consejo",
+      "important": "Importante",
+      "warning": "Advertencia",
+      "caution": "Precaución"
     }
   },
   "dashboardPopout": {

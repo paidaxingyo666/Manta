@@ -18538,6 +18538,13 @@
       "label": "担当者",
       "automatic": "自動",
       "assignToMe": "自分に割り当てる（{{name}}）"
+    },
+    "markdown-callout": {
+      "note": "メモ",
+      "tip": "ヒント",
+      "important": "重要",
+      "warning": "警告",
+      "caution": "注意"
     }
   },
   "dashboardPopout": {
