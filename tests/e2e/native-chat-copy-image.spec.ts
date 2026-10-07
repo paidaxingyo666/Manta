@@ -74,7 +74,10 @@ test('Copy image puts the full-size image on the clipboard and keeps the preview
       }
       state.toggleTabViewMode(tab.id)
     }, descriptor)
-    const composer = mantaPage.getByRole('textbox', { name: 'Send a message…', exact: true })
+    const composer = mantaPage.getByRole('textbox', {
+      name: 'Ask anything, @ to mention files, / for commands',
+      exact: true
+    })
     await expect(composer).toBeVisible()
     await composer.evaluate((element, png) => {
       const data = new DataTransfer()

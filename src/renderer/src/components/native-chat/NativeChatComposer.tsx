@@ -3,11 +3,8 @@ import { forwardRef, useCallback, useState } from 'react'
 import { useNativeChatComposerInterrupt } from './use-native-chat-composer-interrupt'
 import { useNativeChatContextUsageSummary } from './use-native-chat-context-usage-summary'
 import { getSettingsForAgentTabRuntimeOwner } from '@/lib/agent-paste-draft'
-import {
-  applyMentionSuggestion,
-  EMPTY_HISTORY,
-  type HistoryState
-} from './native-chat-composer-state'
+import { EMPTY_HISTORY, type HistoryState } from './native-chat-composer-state'
+import { useNativeChatMentionFiles } from './use-native-chat-mention-files'
 import { useNativeChatDraft } from './use-native-chat-draft'
 import { useNativeChatLaunchDraftAdoption } from './use-native-chat-launch-draft-adoption'
 import { NativeChatComposerField } from './NativeChatComposerField'
@@ -119,6 +116,7 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
       draft,
       caret,
       agentCommands,
+      recalledFromHistory: history.index !== null,
       sessionSkillNames,
       textareaRef,
       setDraft,
@@ -130,9 +128,15 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
       classifySend,
       clearSkillOrigin,
       completeItem,
+      completeMention,
       dismiss,
       handleDraftOrCaretChange
     } = picker
+    const mentionFiles = useNativeChatMentionFiles({
+      query: autocomplete.mode === 'mention' ? autocomplete.query : null,
+      terminalTabId,
+      structuredWorktreeId: structuredTransport?.worktreeId
+    })
 
     // Resolve the live ptyId for this chat leaf; runtime owner settings route
     // local vs remote (SSH) sends.
@@ -324,6 +328,8 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
 
     const handleKeyDown = useNativeChatComposerKeyDown({
       autocomplete,
+      mentionFiles,
+      completeMention,
       activeSuggestion,
       draft,
       history,
@@ -362,6 +368,7 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
         hasPty={hasPty}
         canSend={canSend}
         autocomplete={autocomplete}
+        mentionFiles={mentionFiles}
         activeSuggestion={activeSuggestion}
         notice={notice}
         imageAttachments={imageAttachments}
@@ -394,17 +401,7 @@ const NativeChatComposerPane = forwardRef<NativeChatComposerHandle, NativeChatCo
         onChoosePickerItem={goalMode.interceptPick(completeItem)}
         goalMode={goalMode}
         onRetrySkills={picker.retrySkills}
-        onAcceptMention={() => {
-          if (autocomplete.mode !== 'mention') {
-            return
-          }
-          const result = applyMentionSuggestion(draft, caret, autocomplete.query)
-          setDraft(result.draft)
-          setCaret(result.caret)
-          const textarea = textareaRef.current
-          textarea?.focus()
-          requestAnimationFrame(() => textarea?.setSelectionRange(result.caret, result.caret))
-        }}
+        onChooseMentionFile={completeMention}
         onRemoveImageAttachment={(id) => removeImageAttachment(id)}
         onAttach={pickAttachments}
         onDictationToggle={dictation.toggleDictation}
