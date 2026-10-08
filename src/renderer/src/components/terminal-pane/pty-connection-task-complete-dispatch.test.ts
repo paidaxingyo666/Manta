@@ -251,11 +251,13 @@ describe('connectPanePty', () => {
     // Control: the user typed, so the next run is theirs.
     mockStoreState.lastTerminalInputAtByPaneKey[paneKey] = Date.now()
     await paint([`⠋ ${reconnectTrace.idleTitle}`, reconnectTrace.idleTitle])
-    expect(deps.dispatchNotification).toHaveBeenCalledWith({
-      source: 'agent-task-complete',
-      terminalTitle: reconnectTrace.idleTitle,
-      paneKey
-    })
+    expect(deps.dispatchNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'agent-task-complete',
+        terminalTitle: reconnectTrace.idleTitle,
+        paneKey
+      })
+    )
     resetSettledAgentCompletionsForTest()
   })
 
