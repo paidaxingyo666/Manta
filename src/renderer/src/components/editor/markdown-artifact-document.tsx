@@ -17,7 +17,7 @@ import {
   MARKDOWN_REHYPE_PLUGINS,
   MARKDOWN_REMARK_PLUGINS,
   markdownPreviewSanitizeSchema
-} from './MarkdownPreviewBody'
+} from './markdown-preview-plugins'
 import {
   buildArtifactImageDataUris,
   collectArtifactImageSources,

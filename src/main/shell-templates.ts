@@ -102,8 +102,11 @@ export const ZSH_USER_ZSHENV_SOURCE_BLOCK = `{
   [[ ! -r "$_manta_user_zshenv" ]] || builtin source -- "$_manta_user_zshenv"
 } always {
   builtin unset _manta_user_zshenv
-  builtin typeset -ag precmd_functions
-  (( \${precmd_functions[(Ie)__manta_deferred_init]} )) || precmd_functions+=(__manta_deferred_init)
+  if (( ! $+_manta_deferred_init_done )); then
+    builtin typeset -ag precmd_functions
+    (( \${precmd_functions[(Ie)__manta_deferred_init]} )) || precmd_functions+=(__manta_deferred_init)
+    __orca_arm_deferred_line_init
+  fi
 }`
 
 // Why: daemon, local, and relay wrappers must preserve one Bash prompt-hook contract.

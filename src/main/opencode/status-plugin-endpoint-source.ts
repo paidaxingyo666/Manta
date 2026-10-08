@@ -83,6 +83,7 @@ export function getStatusPluginEndpointSource(): string[] {
     '    token: fileEnv.MANTA_AGENT_HOOK_TOKEN || process.env.MANTA_AGENT_HOOK_TOKEN,',
     '    env: fileEnv.MANTA_AGENT_HOOK_ENV || process.env.MANTA_AGENT_HOOK_ENV || "",',
     '    version: fileEnv.MANTA_AGENT_HOOK_VERSION || process.env.MANTA_AGENT_HOOK_VERSION || "",',
+    '    openCodeTui: process.env.MANTA_AGENT_HOOK_ENDPOINT ? fileEnv.ORCA_AGENT_HOOK_OPENCODE_TUI : process.env.ORCA_AGENT_HOOK_OPENCODE_TUI,',
     '  };',
     '}',
     '',

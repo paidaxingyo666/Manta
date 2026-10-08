@@ -1,14 +1,11 @@
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import {
-  MANTAD_VERSION,
-  mantadArtifactFilenames,
-  mantadArtifactHashPrefix
-} from '../../src/shared/mantad-artifacts.ts'
+import { MANTAD_VERSION, mantadArtifactFilenames } from '../../src/shared/mantad-artifacts.ts'
 
-export function computeOrcadFullVersion(artifactDir, { target = '', agentBrowserFilename } = {}) {
-  const hash = createHash('sha256').update(mantadArtifactHashPrefix(target))
+/** The runtime enters through `.runtime-node`'s executableSha256 string, never its bytes (design D2). */
+export function computeOrcadFullVersion(artifactDir, { target, agentBrowserFilename }) {
+  const hash = createHash('sha256')
   for (const filename of mantadArtifactFilenames(target)) {
     const artifactPath = join(artifactDir, filename)
     if (!existsSync(artifactPath)) {

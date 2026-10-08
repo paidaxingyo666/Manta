@@ -2,6 +2,7 @@ import type { DevicePushTokenRecord } from '../device-registry'
 import type { RuntimeCapability } from '../../../shared/protocol-version'
 import type { TerminalStreamFrame } from '../../../shared/terminal-stream-protocol'
 import type { PairingRpcContext } from './core'
+import type { RpcCallerIdentity } from './rpc-caller-identity'
 
 export type RpcDispatchStreamingOptions = {
   authenticatedCallerFingerprint?: string
@@ -10,6 +11,8 @@ export type RpcDispatchStreamingOptions = {
   clientId?: string
   pairedDeviceId?: string
   setDevicePushToken?: (deviceId: string, token: DevicePushTokenRecord) => boolean
+  /** Set by a transport that knows its caller but carries no paired device (the desktop's IPC). */
+  caller?: RpcCallerIdentity
   clientKind?: 'mobile' | 'runtime'
   clientCapabilities?: readonly RuntimeCapability[]
   updateClientCapabilities?: (capabilities: readonly RuntimeCapability[]) => void

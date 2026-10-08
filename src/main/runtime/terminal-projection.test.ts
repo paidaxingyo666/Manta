@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { TerminalCursorContext } from '../../shared/terminal-composer-draft'
 import type { HeadlessEmulator } from '../daemon/headless-emulator'
-import { projectTerminalTailLines } from './manta-runtime'
+import { projectTerminalTailLines } from './manta-runtime-terminal-projection'
 
 describe('projectTerminalTailLines', () => {
   it('does not splice a scrolled viewport into unrelated tail rows', () => {

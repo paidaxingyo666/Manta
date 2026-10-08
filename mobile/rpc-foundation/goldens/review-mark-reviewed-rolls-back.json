@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "session.diff-review-actions",
   "family": "session.diff-review-actions",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "86ef3d98ee6c11726bf0991e1a40400b60666b0a2e24d137abe66562fe5876bc",
-  "scenarioSha256": "c858cfca59148548146b4c0a775e9518d3ab826ef268ccc9af60b04e52cc9e3d",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "6bdf0d77510f": {
       "actionError": "Workspace is locked",

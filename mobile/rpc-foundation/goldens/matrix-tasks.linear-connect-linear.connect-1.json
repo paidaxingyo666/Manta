@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "tasks.linear-connect",
   "family": "tasks.linear-connect",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "07a15e900363faa25bc364f5bc1c330f96798abfeaed35210428c2ac558586b8",
-  "scenarioSha256": "a60d7c0ce3d155116aecbb3d1ca015b4d9de310155f4e840b2fc391dc9d04860",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0d5ee6814ade": {
       "name": "linearConnectState",

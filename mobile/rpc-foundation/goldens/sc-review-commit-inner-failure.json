@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "source-control.review-git-preparation",
   "family": "git.review-preparation",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "c582ce355b0704b38d7e84cbce352630096c91231bf09aecd1f6dbb409fed17f",
-  "scenarioSha256": "db1fb2a584cd806028b9be861283a63aa4836c83f61558f3d518ddbb7a59498d",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "342343f97688": {
       "name": "git.commit#1",

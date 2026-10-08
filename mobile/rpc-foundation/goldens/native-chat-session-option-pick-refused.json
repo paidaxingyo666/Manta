@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "nativeChat.session-option-pick",
   "family": "nativeChat.session-option-pick",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "b98a3ca3818678b88cf629bc4635300a103637126a136f025a1600dc16f08008",
-  "scenarioSha256": "57b60064eca4526e5d533de5862e7e86ba69b6722cd04692228bdc768486cd76",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0aa1124bf746": {
       "settled": "settled"

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "mobileWeb.bundle-fetch",
   "family": "mobileWeb.bundle-fetch",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "af339fef2c684d5709c6d3f279e5f0d9c33d17b6d4e5c89e501963400901b564",
-  "scenarioSha256": "9bab59797b04304d8e25573664b011949e9b15010270ccbfd0e3d2a4d772180c",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0fed70367a30": {
       "name": "mobileWeb.bundle.chunk#3",

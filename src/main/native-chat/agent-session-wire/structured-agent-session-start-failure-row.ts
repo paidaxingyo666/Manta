@@ -1,5 +1,7 @@
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../shared/agent-session-journal-types'
 import { isQueuedAgentJournalSubmission } from '../../../shared/agent-session-queued-submission'
+import { structuredAgentSessionStartFailureRowIdentity } from '../../../shared/structured-agent-session-start-failure-row-key'
 import type { JournalLifecycleMutationInput } from '../agent-session-journal/journal-row-builders'
 import type { StructuredAgentSessionHostSession } from './structured-agent-session-host-types'
 import type { StructuredAgentSessionStartFailureWords } from './structured-agent-session-failure-text'
@@ -21,9 +23,11 @@ export function structuredAgentSessionStartFailureRow(
 ): JournalLifecycleMutationInput {
   return {
     kind: 'item',
-    identity: startFailureRowIdentity(startKey),
+    identity: structuredAgentSessionStartFailureRowIdentity(startKey),
     // The row repeats the sentence the start's rejected messages carry.
-    body: { kind: 'status', text: words.reason, tone: 'error', failure: words.rejection }
+    body: { kind: 'status', text: words.reason, tone: 'error', failure: words.rejection },
+    // A start that failed opened no turn.
+    turnScope: AGENT_JOURNAL_THREAD_SCOPE
   }
 }
 
@@ -33,18 +37,14 @@ export function hasStructuredAgentSessionStartFailureRow(
   items: readonly { itemId: string }[],
   startKey: string
 ): boolean {
-  const itemId = agentJournalItemKey(startFailureRowIdentity(startKey))
+  const itemId = agentJournalItemKey(structuredAgentSessionStartFailureRowIdentity(startKey))
   return items.some((item) => item.itemId === itemId)
 }
 
-function startFailureRowIdentity(startKey: string) {
-  return { provider: 'manta' as const, clientMessageId: `start-failure:${startKey}` }
-}
-
 /**
- * A start the delivery loop needed and did not get: the start's row, and every queued message
- * rejected with the same words. Writes nothing when nothing is still queued: a start whose
- * messages Stop withdrew did not fail anyone.
+ * A start the delivery loop needed and did not get: every queued message rejected with the same
+ * words, then the start's row. Writes nothing when nothing is still queued: a start whose messages
+ * Stop withdrew did not fail anyone.
  */
 export async function recordStructuredAgentSessionStartFailure(
   session: Pick<StructuredAgentSessionHostSession, 'journal'> & { fence: number },
@@ -59,11 +59,8 @@ export async function recordStructuredAgentSessionStartFailure(
     settlementId: `start-failure:${startKey}`,
     fence: session.fence,
     recovered: true,
-    mutations: [structuredAgentSessionStartFailureRow(startKey, failure)]
-  })
-  await session.journal.rejectQueuedSubmissions(session.fence, {
-    reason: failure.reason,
-    rejection: failure.rejection
+    mutations: [structuredAgentSessionStartFailureRow(startKey, failure)],
+    rejectsQueued: { reason: failure.reason, rejection: failure.rejection }
   })
 }
 

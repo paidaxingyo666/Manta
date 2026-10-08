@@ -1,5 +1,12 @@
 {
   "title": "The Manta Model",
   "defaultOpen": true,
-  "pages": ["worktrees", "tabs-panes-splits", "agents-sessions", "session-restore", "quick-open"]
+  "pages": [
+    "worktrees",
+    "manta-yaml",
+    "tabs-panes-splits",
+    "agents-sessions",
+    "session-restore",
+    "quick-open"
+  ]
 }

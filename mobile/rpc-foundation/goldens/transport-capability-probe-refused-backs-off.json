@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "transport.capability-probe",
   "family": "transport.capability-probe",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "34b382b13fe75e8ef4002325287c95b3c4db62eeaaf3762af7fbaf6f836c2fa1",
-  "scenarioSha256": "2ba1e1d70c98e2fd0d2d2dce6f68c11a186756f05207747e156375fc613940d7",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "20578a5e9a12": {
       "name": "status.get#2",

@@ -1,19 +1,10 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "tasks.setup-hook-trust",
   "family": "worktree.setup-hook-trust",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "52a76b7a830b32287bce14abbe1b9d9ac70e71eafe5b4c6801c2eb14a4150125",
-  "scenarioSha256": "532f812a557d0c2744a6916febfc3a3aeb140304141a26fdd9db219d99958496",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
-    "70e8108db459": {
+    "86d0d8f71257": {
       "name": "ui.set#1",
       "ordinal": 2,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"ui.set\",\"params\":{\"trustedMantaHooks\":{\"repo-1\":{\"setup\":{\"contentHash\":\"hash-1\",\"approvedAt\":1767225600000}}}}}"
@@ -41,7 +32,7 @@
         }
       }
     },
-    "e1f93494e60e": {
+    "e2089203d4dd": {
       "name": "ui.set#1",
       "ordinal": 1,
       "args": [
@@ -89,8 +80,8 @@
       {
         "id": "approved",
         "observation": {
-          "sender": ["e1f93494e60e"],
-          "payloads": ["70e8108db459"],
+          "sender": ["e2089203d4dd"],
+          "payloads": ["86d0d8f71257"],
           "settlements": {
             "approve": "a406b068aeca"
           },

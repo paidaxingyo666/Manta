@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { View, StyleSheet, PanResponder } from 'react-native'
-import { Stack, useGlobalSearchParams, usePathname } from 'expo-router'
+import { useGlobalSearchParams, usePathname } from 'expo-router'
 import { colors } from '../../src/theme/mobile-theme'
 import { useResponsiveLayout } from '../../src/layout/responsive-layout'
 import {
@@ -12,7 +12,7 @@ import {
 } from '../../src/storage/preferences'
 import { HostProtocolGate } from '../../src/components/HostProtocolGate'
 import { HostScreen } from '../../src/host-screen/HostScreen'
-import { translate } from '../../src/i18n/i18n'
+import { HostStack } from '../../src/navigation/host-stack'
 
 // Keep at least this much room for the detail pane when resizing the sidebar.
 const MIN_DETAIL_WIDTH = 320
@@ -26,70 +26,6 @@ function clampSidebarToWindow(width: number, windowWidth: number): number {
     Math.min(HOST_SIDEBAR_MAX_WIDTH, windowWidth - MIN_DETAIL_WIDTH)
   )
   return Math.min(hardMax, Math.max(HOST_SIDEBAR_MIN_WIDTH, Math.round(width)))
-}
-
-function HostStack({ animation }: { animation: 'none' | 'default' }) {
-  return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.bgBase },
-        // In the tablet split view the detail pane should swap instantly like
-        // a desktop master-detail; the default slide animates the outgoing
-        // screen and briefly reveals the one beneath it. Phones keep the slide.
-        animation
-      }}
-    >
-      <Stack.Screen
-        name="[hostId]/index"
-        options={{ title: translate('m.layout.7aca81e533', 'Host') }}
-      />
-      <Stack.Screen
-        name="[hostId]/edit"
-        options={{ title: translate('m.layout.d3370f3d6f', 'Edit host') }}
-      />
-      <Stack.Screen
-        name="[hostId]/accounts"
-        options={{ title: translate('m.layout.295637a5f9', 'Accounts') }}
-      />
-      <Stack.Screen
-        name="[hostId]/tasks"
-        options={{ title: translate('m.layout.6137d5f7ea', 'Tasks') }}
-      />
-      <Stack.Screen
-        name="[hostId]/session/[worktreeId]"
-        options={{ title: translate('m.layout.c2dc55fe2e', 'Terminal') }}
-      />
-      <Stack.Screen
-        name="[hostId]/source-control/[worktreeId]"
-        options={{ title: translate('m.layout.319ab14fcb', 'Source Control') }}
-      />
-      <Stack.Screen
-        name="[hostId]/agent-history/[worktreeId]"
-        options={{ title: translate('m.layout.6adb9b8189', 'Agent Session History') }}
-      />
-      <Stack.Screen
-        name="[hostId]/review/[worktreeId]"
-        options={{ title: translate('m.layout.01c108c5c2', 'Changes') }}
-      />
-      <Stack.Screen
-        name="[hostId]/pr/[worktreeId]"
-        options={{ title: translate('m.layout.7ceda7cfcf', 'Pull Request') }}
-      />
-      {/* Dev-flag only: redirects to the host screen unless the hybrid shell flag is on. */}
-      <Stack.Screen
-        name="[hostId]/web"
-        options={{ title: translate('m.layout.c2d88db1d7', 'Workspace') }}
-      />
-      {/* Last, and matched last: every pathname above has a file of its own, so this takes only
-          what expo-router would otherwise send to Unmatched. Declared for the title alone — an
-          undeclared child still renders, appended after these with this group's screenOptions. */}
-      <Stack.Screen
-        name="[hostId]/[...page]"
-        options={{ title: translate('m.layout.c2d88db1d7', 'Workspace') }}
-      />
-    </Stack>
-  )
 }
 
 export default function HostGroupLayout() {

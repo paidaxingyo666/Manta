@@ -432,12 +432,12 @@ const BASE_LOCALE_KEY_OVERRIDES = {
   },
   'auto.components.settings.AgentsPane.9bccf48906': {
     ko: '에이전트 위치',
-    zh: '代理位置',
+    zh: '智能体位置',
     ja: 'Agent の場所'
   },
   'auto.components.sidebar.SidebarNav.e518f544b1': {
     ko: '감지된 에이전트 없음',
-    zh: '未检测到代理',
+    zh: '未检测到智能体',
     ja: 'Agent が検出されません'
   },
   'auto.components.onboarding.OnboardingFlow.04ae28d8ca': {

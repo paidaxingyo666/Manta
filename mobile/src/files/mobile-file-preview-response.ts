@@ -1,3 +1,4 @@
+import type { MobileFileMedia } from './mobile-file-media'
 import { classifyMobileArtifact } from '../session/mobile-artifact-kind'
 import type { RpcFailure } from '../transport/types'
 import { isMarkdownPath } from './file-tree'
@@ -7,6 +8,7 @@ import { translate } from '../i18n/i18n'
 export type MobileFilePreviewTextKind = 'html' | 'markdown' | 'text'
 
 export type MobileFilePreviewResult =
+  | { status: 'ready'; kind: 'media'; media: MobileFileMedia }
   | {
       status: 'loading'
       message: string

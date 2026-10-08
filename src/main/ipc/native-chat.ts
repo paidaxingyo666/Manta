@@ -1,3 +1,4 @@
+import { DESKTOP_READ_WINDOW } from '../native-chat/transcript-watch-contract'
 import { ipcMain, type IpcMainEvent, type WebContents } from 'electron'
 import { agentHookServer } from '../agent-hooks/server'
 import type {
@@ -14,6 +15,8 @@ import {
   type SubscribeNativeChatTranscriptArgs
 } from '../native-chat/transcript-watch'
 import { abortWhenRendererGone } from './renderer-lifetime-abort'
+import { agentHookServer } from '../agent-hooks/server'
+import { nativeChatTranscriptPathOnExecutionHost } from '../native-chat/ssh-transcript-path'
 
 // Re-export so existing test imports of `clearNativeChatTranscriptCache` from
 // this module keep working after the cache moved to transcript-read-cache.ts.
@@ -32,7 +35,6 @@ export type NativeChatReadSessionArgs = {
 
 // Why: render and parse only the recent window so long transcripts do not stall
 // either the main process or the message list. Pagination raises this limit.
-const DESKTOP_READ_WINDOW = 300
 
 async function readSession(args: NativeChatReadSessionArgs): Promise<ReadTranscriptResult> {
   const { agent, sessionId } = args
@@ -41,7 +43,11 @@ async function readSession(args: NativeChatReadSessionArgs): Promise<ReadTranscr
   return readNativeChatTranscriptTail({
     agent,
     sessionId,
-    transcriptPath: args.transcriptPath,
+    transcriptPath: nativeChatTranscriptPathOnExecutionHost(
+      agentHookServer.getStatusSnapshot(),
+      sessionId,
+      args.transcriptPath
+    ),
     limit
   })
 }
@@ -197,7 +203,11 @@ async function handleSubscribe(event: IpcMainEvent, args: NativeChatSubscribeArg
   const subscribeArgs: SubscribeNativeChatTranscriptArgs = {
     agent,
     sessionId,
-    transcriptPath,
+    transcriptPath: nativeChatTranscriptPathOnExecutionHost(
+      agentHookServer.getStatusSnapshot(),
+      sessionId,
+      transcriptPath
+    ),
     initialLimit: limit,
     onRebound: (next) => {
       agentHookServer.noteSessionContinued(boundSessionId, next)

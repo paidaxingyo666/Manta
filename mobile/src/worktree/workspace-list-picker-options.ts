@@ -3,6 +3,9 @@ import type { MobileGroupMode, MobileSortMode } from './workspace-view-settings'
 import { localizedConstant } from '../i18n/localized-constant'
 import { translate } from '../i18n/i18n'
 
+// Why: the host may be headless, so the note can't promise a desktop sidebar.
+export const workspaceViewSharedNote = localizedConstant((): string => 'Synced across your devices')
+
 export const workspaceSortOptions = localizedConstant((): PickerOption<MobileSortMode>[] => [
   // Why: desktop and persisted state keep the `smart` key, while mobile shows the product label.
   {
@@ -34,7 +37,7 @@ export const workspaceSortOptions = localizedConstant((): PickerOption<MobileSor
   {
     value: 'manual',
     label: translate('m.workspace.list.picker.options.172192615e', 'Manual'),
-    subtitle: translate('m.workspace.list.picker.options.cb54ef416b', 'Server order')
+    subtitle: 'Desktop drag order'
   }
 ])
 

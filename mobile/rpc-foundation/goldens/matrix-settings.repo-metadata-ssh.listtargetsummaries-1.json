@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "settings.repo-metadata",
   "family": "settings.repo-metadata",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "59e14a669103f2182737dedeed218795ffbadaf06a3a48a322cd8d20141a3e04",
-  "scenarioSha256": "a88061d3d1f03074b0ed2b663b523f1602362bc317ba614106f1f646d037d6e3",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "03c9a2ba60b9": {
       "name": "host.platform#1",

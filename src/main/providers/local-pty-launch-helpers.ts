@@ -9,7 +9,8 @@ const PANE_IDENTITY_ENV_KEYS = [
   'MANTA_PANE_KEY',
   'MANTA_TAB_ID',
   'MANTA_WORKTREE_ID',
-  'MANTA_AGENT_LAUNCH_TOKEN'
+  'MANTA_AGENT_LAUNCH_TOKEN',
+  'JCODE_RUNTIME_DIR'
 ] as const
 
 export function getDefaultCwd(): string {

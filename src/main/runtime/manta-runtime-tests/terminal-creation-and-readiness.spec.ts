@@ -16,6 +16,11 @@ import {
   makeWorkspaceSessionWithHeadlessTerminal,
   store
 } from '../manta-runtime-test-fixtures.spec'
+import {
+  buildJcodeRuntimeDir,
+  JCODE_RUNTIME_DIR_ENV_KEY,
+  shouldInjectJcodeRuntimeDir
+} from '../../../shared/jcode-runtime-dir'
 
 describe('MantaRuntimeService', () => {
   it('creates visible terminal sessions without asking the renderer to focus a tab', async () => {
@@ -78,6 +83,15 @@ describe('MantaRuntimeService', () => {
     const spawnedLeafId = spawnedEnv.MANTA_PANE_KEY.slice(`${spawnedEnv.MANTA_TAB_ID}:`.length)
     expect(spawnedEnv.MANTA_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
     expect(spawnedEnv.MANTA_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
+    // Why: the runtime spawn path must stamp the per-pane jcode runtime dir
+    // exactly like the renderer pty:spawn path (unix platforms only).
+    if (shouldInjectJcodeRuntimeDir(process.platform)) {
+      expect(spawnedEnv[JCODE_RUNTIME_DIR_ENV_KEY]).toBe(
+        buildJcodeRuntimeDir(spawnedEnv.MANTA_PANE_KEY)
+      )
+    } else {
+      expect(spawnedEnv[JCODE_RUNTIME_DIR_ENV_KEY]).toBeUndefined()
+    }
     expect(revealTerminalSession).toHaveBeenCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-bg',
       title: 'worker',

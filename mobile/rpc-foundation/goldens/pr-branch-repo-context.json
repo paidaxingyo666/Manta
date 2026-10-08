@@ -1,30 +1,10 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "session.pr-branch-context",
   "family": "session.pr-branch-context",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "f560ff1582487c118756c527faa1fb1f65e37ce22ca9573491fd4b2dbcedf38d",
-  "scenarioSha256": "f81992ad2208b51bb3ff5b7660eeb3df75205b472b169f9886ffd040f1d9af90",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
-    "1f5765918736": {
-      "name": "github.repoSlug#1",
-      "ordinal": 2,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"github.repoSlug\",\"params\":{\"repo\":\"id:repo-9\"}}"
-    },
-    "364d823c309f": {
-      "identity": "unread",
-      "repoContext": {
-        "isGithubRepo": true
-      }
-    },
-    "3a211267bc0e": {
+    "191e3c96ad53": {
       "name": "github.repoSlug#1",
       "ordinal": 1,
       "args": [
@@ -60,6 +40,17 @@
         }
       }
     },
+    "1f5765918736": {
+      "name": "github.repoSlug#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"github.repoSlug\",\"params\":{\"repo\":\"id:repo-9\"}}"
+    },
+    "364d823c309f": {
+      "identity": "unread",
+      "repoContext": {
+        "isGithubRepo": true
+      }
+    },
     "79c69a644fe2": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -75,7 +66,7 @@
       {
         "id": "repo-context",
         "observation": {
-          "sender": ["3a211267bc0e"],
+          "sender": ["191e3c96ad53"],
           "payloads": ["1f5765918736"],
           "settlements": {
             "repo-context": "79c69a644fe2"

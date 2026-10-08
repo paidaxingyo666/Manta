@@ -75,6 +75,7 @@ export class SharedControlChannelRegistry {
     params: unknown
     timeoutMs: number
     callbacks: SharedControlTypes.SharedControlSubscriptionCallbacks<TResult>
+    signal?: AbortSignal
   }): Promise<SharedControlTypes.RemoteRuntimeSharedSubscription> {
     return startSharedControlSubscription({
       subscriptions: this.ports.subscriptions,
@@ -82,7 +83,8 @@ export class SharedControlChannelRegistry {
       method: args.method,
       params: args.params,
       callbacks: args.callbacks,
-      ensureReady: () => this.ports.ensureReady(args.timeoutMs),
+      signal: args.signal,
+      ensureReady: () => this.ports.ensureReady(args.timeoutMs, args.signal),
       sendSubscription: (subscription) =>
         sendSharedControlSubscription({
           subscriptions: this.ports.subscriptions,

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "aiVault.history-screen",
   "family": "aiVault.history-screen",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "f899a426f1dc243a5c67b96707fe89f4e9db348cba5bc3926b0f9577052f655d",
-  "scenarioSha256": "b146be741484f2a6dca25e97f52b9ed10f8a2b28bd00e6b56acffbcd82136b2f",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "01800f06bc8f": {
       "name": "status.get#2",
@@ -73,20 +64,25 @@
         "startedAt": 0
       }
     },
-    "0d9c94b82d85": {
+    "0be231dddda1": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
         "ChevronLeft": 1,
-        "Pressable": 3,
+        "Pressable": 2,
         "RefreshCw": 1,
         "SafeAreaView": 1,
-        "Text": 5,
+        "Text": 4,
         "View": 4
       },
       "labels": ["Back", "Refresh agent sessions"],
-      "text": ["Agent Session History", "manta-history", "Unable to Load", "Retry"]
+      "text": [
+        "Agent Session History",
+        "manta-history",
+        "Agent Session History Unavailable",
+        "Update Manta on this host to browse agent session history."
+      ]
     },
     "14cef45e16d2": {
       "name": "status.get#2",
@@ -120,7 +116,7 @@
         }
       }
     },
-    "20afe9aa2175": {
+    "18ef6596b779": {
       "crash": {
         "$rpc": "null"
       },
@@ -133,33 +129,22 @@
         "View": 4
       },
       "labels": ["Back", "Refresh agent sessions"],
-      "text": [
-        "Agent Session History",
-        "manta-history",
-        "Unable to Load",
-        "transport failure",
-        "Retry"
-      ]
+      "text": ["Agent Session History", "manta-history", "Unable to Load", "Retry"]
     },
-    "26cbb2799b4a": {
+    "22141179786a": {
       "crash": {
         "$rpc": "null"
       },
       "elements": {
         "ChevronLeft": 1,
-        "Pressable": 2,
+        "Pressable": 3,
         "RefreshCw": 1,
         "SafeAreaView": 1,
-        "Text": 4,
+        "Text": 5,
         "View": 4
       },
       "labels": ["Back", "Refresh agent sessions"],
-      "text": [
-        "Agent Session History",
-        "manta-history",
-        "Agent Session History Unavailable",
-        "Update Manta on this host to browse agent session history."
-      ]
+      "text": ["Agent Session History", "manta-history", "Unable to Load", "Unknown method", "Retry"]
     },
     "2813efdd7233": {
       "name": "status.get#2",
@@ -203,27 +188,6 @@
       "ordinal": 3,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"worktree.ps\",\"params\":{\"limit\":10000,\"supportsWorktreeVisibilitySourceDefaults\":true}}"
     },
-    "3a96a7501924": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ChevronLeft": 1,
-        "Pressable": 3,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 5,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": [
-        "Agent Session History",
-        "manta-history",
-        "Unable to Load",
-        "The host sent a reply this app could not read (status.get)",
-        "Retry"
-      ]
-    },
     "3aaa7e04cda5": {
       "name": "aiVault.listSessions#1",
       "ordinal": 7,
@@ -251,27 +215,6 @@
         "status": "pending",
         "startedAt": 0
       }
-    },
-    "41ed2addb2f9": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ChevronLeft": 1,
-        "Pressable": 3,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 5,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": [
-        "Agent Session History",
-        "manta-history",
-        "Unable to Load",
-        "Unable to reach host",
-        "Retry"
-      ]
     },
     "48418cbcede7": {
       "name": "status.get#2",
@@ -307,6 +250,21 @@
           "ok": false
         }
       }
+    },
+    "4af220e500d6": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ChevronLeft": 1,
+        "Pressable": 3,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 5,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": ["Agent Session History", "manta-history", "Unable to Load", "outer refused", "Retry"]
     },
     "4cebf6258ec1": {
       "name": "worktree.ps#1",
@@ -404,42 +362,6 @@
         }
       }
     },
-    "5d0a64657d99": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ChevronLeft": 1,
-        "Pressable": 3,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 5,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": ["Agent Session History", "manta-history", "Unable to Load", "outer refused", "Retry"]
-    },
-    "6648728abff7": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ChevronLeft": 1,
-        "Pressable": 3,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 5,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": [
-        "Agent Session History",
-        "manta-history",
-        "Unable to Load",
-        "Unknown method",
-        "Retry"
-      ]
-    },
     "6eacae1aa018": {
       "name": "status.get#2",
       "ordinal": 5,
@@ -510,6 +432,27 @@
         }
       }
     },
+    "7f2073d8dcc1": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ChevronLeft": 1,
+        "Pressable": 3,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 5,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": [
+        "Agent Session History",
+        "manta-history",
+        "Unable to Load",
+        "transport failure",
+        "Retry"
+      ]
+    },
     "82a983e39762": {
       "name": "status.get#2",
       "ordinal": 5,
@@ -544,6 +487,27 @@
           "ok": false
         }
       }
+    },
+    "8cc4f2d607a6": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ChevronLeft": 1,
+        "Pressable": 3,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 5,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": [
+        "Agent Session History",
+        "manta-history",
+        "Unable to Load",
+        "The host sent a reply this app could not read (status.get)",
+        "Retry"
+      ]
     },
     "8d930b47bf2f": {
       "name": "worktree.ps#1",
@@ -658,10 +622,47 @@
         }
       }
     },
+    "af9574769167": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ChevronLeft": 1,
+        "Pressable": 3,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 5,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": [
+        "Agent Session History",
+        "manta-history",
+        "Unable to Load",
+        "Unable to reach host",
+        "Retry"
+      ]
+    },
     "cee4e3edb0a1": {
       "name": "status.get#2",
       "ordinal": 6,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
+    },
+    "d22bb2f62cea": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ActivityIndicator": 1,
+        "ChevronLeft": 1,
+        "Pressable": 2,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 2,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": ["Agent Session History", "manta-history"]
     },
     "d3c3ce66625d": {
       "name": "aiVault.listSessions#1",
@@ -707,22 +708,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "f0fcd4baacac": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ActivityIndicator": 1,
-        "ChevronLeft": 1,
-        "Pressable": 2,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 2,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": ["Agent Session History", "manta-history"]
     }
   },
   "recording": {
@@ -736,7 +721,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "f0fcd4baacac",
+          "state": "d22bb2f62cea",
           "effects": []
         }
       },
@@ -748,7 +733,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "f0fcd4baacac",
+          "state": "d22bb2f62cea",
           "effects": []
         }
       },
@@ -760,7 +745,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "3a96a7501924",
+          "state": "8cc4f2d607a6",
           "effects": []
         }
       },
@@ -772,7 +757,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "3a96a7501924",
+          "state": "8cc4f2d607a6",
           "effects": []
         }
       },
@@ -784,7 +769,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "26cbb2799b4a",
+          "state": "0be231dddda1",
           "effects": []
         }
       },
@@ -796,7 +781,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "26cbb2799b4a",
+          "state": "0be231dddda1",
           "effects": []
         }
       },
@@ -808,7 +793,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "26cbb2799b4a",
+          "state": "0be231dddda1",
           "effects": []
         }
       },
@@ -820,7 +805,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "5d0a64657d99",
+          "state": "4af220e500d6",
           "effects": []
         }
       },
@@ -832,7 +817,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "41ed2addb2f9",
+          "state": "af9574769167",
           "effects": []
         }
       },
@@ -844,7 +829,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "6648728abff7",
+          "state": "22141179786a",
           "effects": []
         }
       },
@@ -856,7 +841,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "20afe9aa2175",
+          "state": "7f2073d8dcc1",
           "effects": []
         }
       },
@@ -868,7 +853,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "0d9c94b82d85",
+          "state": "18ef6596b779",
           "effects": []
         }
       }

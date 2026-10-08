@@ -26,6 +26,12 @@ import {
   startOrcadWithHost
 } from './mantad-lifecycle'
 import { parseArgs } from './mantad-command-arguments'
+import type { OrcadRuntimeCleanup } from './mantad-runtime-lifetime'
+import { installOrcadStopRequestListeners } from './mantad-stop-request-listener'
+import { prepareOrcadManagedStop } from './mantad-managed-stop-admission'
+import type { OrcadManagedStopContext } from '../../shared/mantad-stop-request'
+import { beginOrcadIdleExit, bindOrcadIdleShutdown } from './mantad-managed-idle-exit-host'
+import { orcadAutomationsKeepHostBusy, startOrcadAutomations } from './mantad-automations'
 import {
   changedAiVaultSearchSettings,
   type AiVaultSearchSettings
@@ -34,18 +40,24 @@ import {
 export { parseArgs }
 
 let runMantadQuitHandlers = (): void => {}
+let closeOrcadObservability = (): void => {}
 
 function createNodeAppEnvironment(): AppEnvironment {
   const quitHandlers: (() => void)[] = []
   // The main signal handler awaits runtime and browser teardown before process.exit.
   // Keep will-quit callbacks synchronous, but never let them pre-empt that async barrier.
   runMantadQuitHandlers = (): void => {
+    const errors: unknown[] = []
     for (const handler of quitHandlers.splice(0)) {
       try {
         handler()
       } catch (error) {
-        console.error('[mantad] shutdown handler failed:', error)
+        errors.push(error)
       }
+    }
+    // Why throw: a quit handler that failed may leave a writer running, which keeps the lock.
+    if (errors.length > 0) {
+      throw new AggregateError(errors, 'orcad_quit_handlers_failed')
     }
   }
   return {
@@ -94,12 +106,19 @@ export type MantadOptions = {
   json?: boolean
   noPairing?: boolean
   pairingAddress?: string
+  /** Desktop `manta serve` parity: a mobile-scoped offer with a terminal QR. */
+  mobilePairing?: boolean
+  /** Desktop `manta serve` parity: print only the ephemeral-VM recipe line. */
+  recipeJson?: boolean
+  projectRoot?: string
   /** Literal IP to bind. Defaults to loopback; see mantad-bind-address.ts. */
   bind?: string
 }
 
 export type MantadHandle = {
   readiness: ServeReadiness
+  /** What an instance-bound stop request must name to stop this process. */
+  managedStop: OrcadManagedStopContext
   stop(): Promise<void>
 }
 
@@ -110,24 +129,37 @@ export type MantadHandle = {
  */
 export async function startMantad(options: MantadOptions = {}): Promise<MantadHandle> {
   installMantadHostAdapters()
-  return startOrcadWithHost(
+  const { readiness, instance, stop } = await startOrcadWithHost(
     resolveUserDataPath(),
     (registerCleanup) => startMantadRuntime(options, registerCleanup),
-    () => runMantadQuitHandlers()
+    () => {
+      try {
+        runMantadQuitHandlers()
+      } finally {
+        // Last, after every quit handler (even a failing one), so their spans still reach the file.
+        closeOrcadObservability()
+        closeOrcadObservability = () => {}
+      }
+    }
   )
+  const version = process.env.MANTA_VERSION ?? '0.0.0-mantad'
+  return { readiness, managedStop: { version, runtimeId: readiness.runtimeId, instance }, stop }
 }
 
 async function startMantadRuntime(
   options: MantadOptions,
-  registerCleanup: (cleanup: () => Promise<void>) => void
+  registerCleanup: (cleanup: OrcadRuntimeCleanup) => void
 ): Promise<Pick<MantadHandle, 'readiness'>> {
   const { MantaRuntimeService } = await import('../runtime/manta-runtime')
   const { MantaRuntimeRpcServer } = await import('../runtime/runtime-rpc')
   const { registerHeadlessPtyRuntime, getLocalPtyProvider, getSshPtyProvider } =
     await import('../ipc/pty')
   const { getAppEnvironment } = await import('../../shared/app-environment')
-  const { resolveAdvertisedPairingEndpoint } = await import('../runtime/pairing-endpoint')
+  const { installOrcadObservability } = await import('./mantad-observability')
+  closeOrcadObservability = installOrcadObservability()
   const { ServeReadinessPublisher } = await import('../server/serve-readiness')
+  const { assertServeProjectRoot } = await import('../server/serve-pairing-output')
+  const { buildOrcadServeReadiness } = await import('./mantad-serve-readiness')
   const { createOrcadProfileStateStartup } = await import('./mantad-profile-state-startup')
   const { startMantadDaemon, stopMantadDaemon } = await import('./mantad-daemon-supervision')
   const { daemonOwnsFreshPersistentPtys } = await import('../daemon/daemon-init')
@@ -141,56 +173,52 @@ async function startMantadRuntime(
   const { AgentStatusObservedPaneIdentities, AgentStatusObservedPaneIdentityCapture } =
     await import('../runtime/agent-status-observed-pane-identity')
 
-  let rpc: InstanceType<typeof MantaRuntimeRpcServer> | null = null
+  const { disposeWatcherProcessAndWait } = await import('../ipc/parcel-watcher-process')
+
   let profileStoreForShutdown:
     | { flushFinalOrThrowAsync(): Promise<void>; freezeWritesAsync(): Promise<void> }
     | undefined
   let uninstallHookStatusRepublish = (): void => {}
   let uninstallObservedStatusIdentity = (): void => {}
+  let removeStatusHookSettingsListener = (): void => {}
+  // Cleanups run in reverse: RPC, then recovery and watchers, then the final flush, then daemon.
+  registerCleanup(() => agentHookServer.stop())
+  registerCleanup(() => uninstallHookStatusRepublish())
+  registerCleanup(() => uninstallObservedStatusIdentity())
+  registerCleanup(() => removeStatusHookSettingsListener())
+  // Why disconnect and not shut down: the daemon must outlive this process, or an mantad
+  // restart goes back to killing every running terminal.
+  registerCleanup(() => stopMantadDaemon())
   registerCleanup(async () => {
-    try {
-      await rpc?.stop()
-    } finally {
-      try {
-        // Stop accepting RPC writes before the final persistence barrier. A SQLite-backed
-        // mantad has no JSON mirror to absorb a debounced write after SIGTERM.
-        if (profileStoreForShutdown) {
-          await flushOrcadProfileStoreForShutdown(profileStoreForShutdown)
-        }
-      } finally {
-        try {
-          // Why disconnect and not shut down: the daemon must outlive this process, or an
-          // mantad restart goes back to killing every running terminal.
-          await stopMantadDaemon()
-        } finally {
-          uninstallObservedStatusIdentity()
-          uninstallHookStatusRepublish()
-          agentHookServer.stop()
-        }
-      }
+    // A SQLite-backed mantad has no JSON mirror to absorb a debounced write after SIGTERM.
+    if (profileStoreForShutdown) {
+      await flushOrcadProfileStoreForShutdown(profileStoreForShutdown)
     }
   })
+  // Watcher children outlive a disposal that does not wait for them.
+  registerCleanup(() => disposeWatcherProcessAndWait())
 
   const runtimeUserDataPath = getAppEnvironment().getPath('userData')
+  const idleExitStartup = beginOrcadIdleExit(runtimeUserDataPath)
   const { store: profileStore, authority: profileStateAuthority } =
     await createOrcadProfileStateStartup(runtimeUserDataPath)
   const observedPaneIdentities = new AgentStatusObservedPaneIdentities()
   const observedStatusCapture = new AgentStatusObservedPaneIdentityCapture(observedPaneIdentities)
-  // Why a real Store: without one every persistence-backed RPC throws `runtime_unavailable`
-  // and the read paths that use `this.store?.x ?? []` quietly answer "empty" instead —
-  // a server that pairs and lists nothing looks healthy and is not.
-  // Why: mantad IS the runtime authority — loading as 'desktop' would classify its
-  // own runtime-scheduled automations as ambiguous mirrors and orphan them.
   profileStoreForShutdown = profileStore
-  // Why: every SSH connect consults this sidecar. Left unbound it reports nothing trusted,
-  // which is safe but silently discards accept records on every launch.
-
   uninstallObservedStatusIdentity = agentHookServer.subscribeEnrichedStatus((enriched) =>
     observedStatusCapture.observe(enriched)
   )
-  if (isAgentStatusHooksEnabled(profileStore.getSettings())) {
-    await agentHookServer.start({ env: 'production', userDataPath: runtimeUserDataPath })
-  }
+  await agentHookServer.start({
+    env: 'production',
+    userDataPath: runtimeUserDataPath,
+    statusHooksEnabled: isAgentStatusHooksEnabled(profileStore.getSettings())
+  })
+
+  removeStatusHookSettingsListener = profileStore.onSettingsChanged((updates, settings) => {
+    if ('agentStatusHooksEnabled' in updates) {
+      agentHookServer.setStatusHooksEnabled(isAgentStatusHooksEnabled(settings))
+    }
+  })
 
   // Why before the runtime and the PTY handlers: `setLocalPtyProvider` installs the daemon
   // adapter as THE local provider, and the registry's contract is that it lands before
@@ -221,10 +249,13 @@ async function startMantadRuntime(
     // PTY agent on this host, and the store is the only place `worktree.ps` and the mobile
     // projection read from — unwired, mantad lists no PTY agents at all.
     onTerminalAgentStatus: (event) => agentHookServer.ingestTerminalStatus(event),
+    onClaudeTerminalEvidence: (paneKey, evidence) =>
+      agentHookServer.observeClaudeTerminalEvidence(paneKey, evidence),
     // Why here too and not only on the desktop: mantad serves `worktree.ps` and `agentSession.*`,
     // so without these a headless host publishes its structured chats nowhere and lists no agents.
     getAgentStatusSnapshot: () =>
       agentHookServer.getStatusSnapshot().filter((entry) => entry.providerSessionOnly !== true),
+    getAgentStatusSnapshotForPane: (paneKey) => agentHookServer.getStatusSnapshotForPane(paneKey),
     getAgentProviderSessionSnapshot: () => agentHookServer.getStatusSnapshot(),
     getAgentProviderSessionRowsForPane: (paneKey) =>
       agentHookServer.getStatusSnapshotForPane(paneKey),
@@ -235,10 +266,14 @@ async function startMantadRuntime(
       publish: (summary, subject) => agentHookServer.ingestStructuredStatus(summary, subject),
       forget: (subject) => agentHookServer.dropStructuredStatus(subject),
       publishChildWork: (subject, evidence, provider) =>
-        agentHookServer.ingestStructuredChildWork(subject, evidence, provider)
+        agentHookServer.ingestStructuredChildWork(subject, evidence, provider),
+      readChildWork: (subject) => agentHookServer.getStructuredChildWorkViews(subject)
     },
+    checkHookAgentPresence: (paneKey) => agentHookServer.checkAgentPresence(paneKey),
     reconcileAgentStatusForEndedProcess: (paneKeys) =>
       agentHookServer.reconcileEndedProcessForPaneKeys(paneKeys),
+    dropAgentStatusForRemovedWorktree: (worktreeId, host) =>
+      agentHookServer.dropStatusEntriesForRemovedWorktree(worktreeId, host),
     buildAgentHookPtyEnv: () =>
       isAgentStatusHooksEnabled(profileStore.getSettings()) ? agentHookServer.buildPtyEnv() : {},
     // Why the dedupe here and not in the instance: `apply` closes and reconstructs
@@ -257,6 +292,13 @@ async function startMantadRuntime(
     getSettings: () => profileStore.getSettings()
   })
   getAppEnvironment().onWillQuit(() => sessionSearch?.dispose())
+
+  // Why: this host evaluates its own panes, so it keeps its own rules current.
+  const { startAgentStateRulesLiveUpdates } =
+    await import('../runtime/agent-state-rules/agent-state-rules-live-update')
+  startAgentStateRulesLiveUpdates(profileStore, (rules) =>
+    console.info(`[mantad] agent state rules ${rules.version} (${rules.source})`)
+  )
 
   // Why here too and not only on the desktop: nothing else republishes `session.tabs` when a
   // pane's status row changes, and mantad's whole job is serving paired clients.
@@ -288,11 +330,17 @@ async function startMantadRuntime(
   await runtime.refreshRestoredOrchestrationAuthority()
   await runtime.reconcileLegacyWorkerTerminals()
 
+  // A retry armed during recovery would otherwise write after the final profile flush.
+  registerCleanup(() => runtime.stopLegacyWorkerTerminalRecovery())
+
   // Recovery binds terminal and dispatch identities; only now can startup observations be fenced.
   observedStatusCapture.attach(runtime)
+  // Why before the RPC server binds: like `--serve`, the first client must find a ready graph.
+  const { publishHeadlessRuntimeGraph } = await import('../runtime/headless-runtime-graph')
+  publishHeadlessRuntimeGraph(runtime)
 
   const bindHost = resolveMantadBindHost(options.bind)
-  rpc = new MantaRuntimeRpcServer({
+  const rpc = new MantaRuntimeRpcServer({
     runtime,
     userDataPath: runtimeUserDataPath,
     enableWebSocket: true,
@@ -303,53 +351,38 @@ async function startMantadRuntime(
     pinnedBindHost: bindHost,
     ...(options.port !== undefined ? { wsPort: options.port, preferPinnedWsPort: true } : {})
   })
+  // Stops first: no RPC may write while the rest of the runtime is torn down.
+  registerCleanup(() => rpc.stop())
   await rpc.start()
+  startOrcadAutomations(runtime, profileStore, registerCleanup)
   console.error(`[mantad] ${describeMantadBindExposure(bindHost)}`)
 
-  const boundEndpoint = rpc.getWebSocketEndpoint()
-  const advertised = boundEndpoint
-    ? resolveAdvertisedPairingEndpoint(boundEndpoint, options.pairingAddress)
-    : null
-  const offer = options.noPairing
-    ? ({
-        available: false,
-        reason: 'disabled_by_operator',
-        guidance: 'Restart without --no-pairing to create a client pairing offer.'
-      } as const)
-    : rpc.createPairingOffer({
-        address: options.pairingAddress,
-        name: `CLI ${new Date().toLocaleDateString()}`,
-        scope: 'runtime'
-      })
-
-  const readiness: ServeReadiness = {
+  const readiness = await buildOrcadServeReadiness({
+    options,
     runtimeId: runtime.getRuntimeId(),
-    boundEndpoint,
-    advertisedEndpoint: advertised?.ok ? advertised.endpoint : null,
-    // Why 'settled': the WSL CLI reconciliation barrier is a desktop-launch concern.
-    // mantad never runs it, so there is no pending repair a client could race.
-    managedWslCliReconciliation: 'settled',
-    pairing: offer.available
-      ? {
-          available: true,
-          url: offer.pairingUrl,
-          endpoint: offer.endpoint,
-          deviceId: offer.deviceId,
-          webClientUrl: offer.webClientUrl,
-          scope: 'runtime',
-          qr: null
-        }
-      : offer,
-    // Why in the readiness payload: this is the one message a supervisor and a deploy
-    // transaction both read, and a green mantad with a dead daemon is exactly the
-    // looks-healthy-but-useless state they must not activate.
-    health: await collectMantadHealth(getAppEnvironment().getVersion(), profileStateAuthority)
-  }
-
-  await new ServeReadinessPublisher().publish(readiness, {
-    mode: options.json ? 'json' : 'human'
+    rpc,
+    collectHealth: () =>
+      collectMantadHealth(
+        getAppEnvironment().getVersion(),
+        profileStateAuthority,
+        idleExitStartup.previousIdleStop
+      )
   })
 
+  await new ServeReadinessPublisher().publish(
+    readiness,
+    options.recipeJson && options.projectRoot
+      ? { mode: 'recipe-json', projectRoot: assertServeProjectRoot(options.projectRoot) }
+      : { mode: options.json ? 'json' : 'human' }
+  )
+
+  await idleExitStartup.start({
+    rpc,
+    agentStates: () => agentHookServer.getStatusSnapshot(),
+    hasStagedMigration: () => profileStore.hasStagedOrcadMigrationCatalog(),
+    automationsBusy: () => orcadAutomationsKeepHostBusy(profileStore),
+    registerCleanup
+  })
   return { readiness }
 }
 
@@ -373,6 +406,13 @@ export { MANTAD_SHUTDOWN_DEADLINE_MS } from './mantad-lifecycle'
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
   const startup = startMantad(parseArgs(argv))
-  installOrcadShutdownSignals(async () => (await startup).stop())
-  await startup
+  const requestShutdown = installOrcadShutdownSignals(async () => (await startup).stop())
+  const handle = await startup
+  // Why after startup: a managed request must name the runtime and instance this run became.
+  installOrcadStopRequestListeners(() => requestShutdown('stop request'), {
+    installRoot: resolveMantadInstallRoot(),
+    managedStop: handle.managedStop,
+    beforeManagedStop: prepareOrcadManagedStop
+  })
+  bindOrcadIdleShutdown(requestShutdown)
 }

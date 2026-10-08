@@ -1,25 +1,9 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "session.content-create",
   "family": "session.content-create",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "562c2f4ab669e774dd7045ecd9518e483845433fef6034688090f3b056df2815",
-  "scenarioSha256": "5100bd674509d1d83b1e2594eee036af21ea14b12226185b44070555d1d43060",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
-    "03b8cf45b7ac": {
-      "name": "toast",
-      "ordinal": 3,
-      "value": {
-        "message": "Remote file changes require a newer Manta server. Update the HUB and try again."
-      }
-    },
     "049e3dd3b1db": {
       "name": "status.get#1",
       "ordinal": 1,
@@ -99,6 +83,13 @@
       "ordinal": 3,
       "value": {
         "message": "Unknown method"
+      }
+    },
+    "32afb7dc375d": {
+      "name": "toast",
+      "ordinal": 3,
+      "value": {
+        "message": "Remote file changes require a newer Manta server. Update the HUB and try again."
       }
     },
     "37185d7089db": {
@@ -200,7 +191,7 @@
         "$rpc": "null"
       }
     },
-    "78f23e9a0531": {
+    "7799ca596f0c": {
       "createError": "Remote file changes require a newer Manta server. Update the HUB and try again.",
       "creatingBrowser": false,
       "creatingMarkdown": false,
@@ -665,8 +656,8 @@
           "settlements": {
             "markdown": "eb79a9b3682a"
           },
-          "state": "78f23e9a0531",
-          "effects": ["03b8cf45b7ac"]
+          "state": "7799ca596f0c",
+          "effects": ["32afb7dc375d"]
         }
       },
       {
@@ -677,8 +668,8 @@
           "settlements": {
             "markdown": "eb79a9b3682a"
           },
-          "state": "78f23e9a0531",
-          "effects": ["03b8cf45b7ac"]
+          "state": "7799ca596f0c",
+          "effects": ["32afb7dc375d"]
         }
       },
       {
@@ -689,8 +680,8 @@
           "settlements": {
             "markdown": "eb79a9b3682a"
           },
-          "state": "78f23e9a0531",
-          "effects": ["03b8cf45b7ac"]
+          "state": "7799ca596f0c",
+          "effects": ["32afb7dc375d"]
         }
       },
       {

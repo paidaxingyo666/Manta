@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "source-control.create-intent",
   "family": "hostedReview.create-intent",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "c582ce355b0704b38d7e84cbce352630096c91231bf09aecd1f6dbb409fed17f",
-  "scenarioSha256": "75ba135731290bf734a5eef0b65f9ad8b7cac453c4e2006faac88a5da9dbe3a3",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0347742c8f12": {
       "name": "hostedReview.getCreationEligibility#1",
@@ -483,6 +474,33 @@
               "ahead": 0,
               "behind": 0,
               "hasUpstream": true
+            }
+          }
+        }
+      }
+    },
+    "5a0d2dca259b": {
+      "outcome": {
+        "committed": true,
+        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
+        "ok": false,
+        "status": {
+          "branch": "feature",
+          "conflictOperation": "unknown",
+          "entries": [],
+          "head": "def5678",
+          "upstreamStatus": {
+            "ahead": 0,
+            "behind": 0,
+            "behindCommitsArePatchEquivalent": {
+              "$rpc": "undefined"
+            },
+            "hasConfiguredPushTarget": {
+              "$rpc": "undefined"
+            },
+            "hasUpstream": true,
+            "upstreamName": {
+              "$rpc": "undefined"
             }
           }
         }
@@ -1047,33 +1065,6 @@
       "ordinal": 7,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"git.status\",\"params\":{\"worktree\":\"id:repo42::/p\"}}"
     },
-    "ad37637777dd": {
-      "outcome": {
-        "committed": true,
-        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "b2ae4b8e30b7": {
       "name": "progress",
       "ordinal": 8,
@@ -1125,6 +1116,36 @@
           "result": {
             "error": "inner refused",
             "ok": false
+          }
+        }
+      }
+    },
+    "bf0e050653a2": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "committed": true,
+        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
+        "ok": false,
+        "status": {
+          "branch": "feature",
+          "conflictOperation": "unknown",
+          "entries": [],
+          "head": "def5678",
+          "upstreamStatus": {
+            "ahead": 0,
+            "behind": 0,
+            "behindCommitsArePatchEquivalent": {
+              "$rpc": "undefined"
+            },
+            "hasConfiguredPushTarget": {
+              "$rpc": "undefined"
+            },
+            "hasUpstream": true,
+            "upstreamName": {
+              "$rpc": "undefined"
+            }
           }
         }
       }
@@ -1431,36 +1452,6 @@
       "ordinal": 18,
       "value": "pushing"
     },
-    "fe368f2cba0f": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "committed": true,
-        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "ffef2a178ce4": {
       "name": "worktree.set#1",
       "ordinal": 29,
@@ -1702,9 +1693,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1736,9 +1727,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1770,9 +1761,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1804,9 +1795,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1838,9 +1829,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1872,9 +1863,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1906,9 +1897,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1940,9 +1931,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1974,9 +1965,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2008,9 +1999,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2042,9 +2033,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2076,9 +2067,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2110,9 +2101,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2144,9 +2135,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2178,9 +2169,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2212,9 +2203,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2246,9 +2237,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2280,9 +2271,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2314,9 +2305,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2348,9 +2339,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "fe368f2cba0f"
+            "run": "bf0e050653a2"
           },
-          "state": "ad37637777dd",
+          "state": "5a0d2dca259b",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       }

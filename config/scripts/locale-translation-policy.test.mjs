@@ -267,8 +267,6 @@ describe('locale-translation-policy', () => {
         localeValue: '未已检测代理',
         locale: 'zh'
       })
-      // 智能体, not upstream's 代理: this fork's word for an agent. The policy
-      // normalises toward it — see the zh entries in locale-phrase-fixes.mjs.
     ).toBe('未检测到智能体')
     expect(
       repairTranslatedValue({

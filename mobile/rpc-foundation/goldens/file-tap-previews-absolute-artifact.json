@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "files.terminal-path-tap",
   "family": "files.terminal-path-tap",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "e20a76ecd5e820dc4797fb25307810af68b5ced996dba2b9599464a21b5cbe1b",
-  "scenarioSha256": "f1844c2608ce90250fddfc78c0b35bb1bf3647598a5ab2914eca0d8cb4403a38",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "220e44211af6": {
       "name": "files.resolveTerminalPath#1",

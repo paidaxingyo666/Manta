@@ -336,6 +336,44 @@ describe('PtyHandler', () => {
       }
     )
 
+    it.each(['process', 'client'])(
+      'drops an MANTA_CODEX_LAUNCH_PREFLIGHT from the relay %s env',
+      async (source) => {
+        const inherited = '/opt/manta/bin/manta'
+        const previous = process.env.MANTA_CODEX_LAUNCH_PREFLIGHT
+        if (source === 'process') {
+          process.env.MANTA_CODEX_LAUNCH_PREFLIGHT = inherited
+        }
+        try {
+          await dispatcher.callRequest('pty.spawn', {
+            cols: 80,
+            rows: 24,
+            ...(source === 'client' ? { env: { MANTA_CODEX_LAUNCH_PREFLIGHT: inherited } } : {})
+          })
+        } finally {
+          if (previous === undefined) {
+            delete process.env.MANTA_CODEX_LAUNCH_PREFLIGHT
+          } else {
+            process.env.MANTA_CODEX_LAUNCH_PREFLIGHT = previous
+          }
+        }
+
+        const spawnEnv = mockPtySpawn.mock.calls.at(-1)?.[2]?.env as Record<string, string>
+        expect(spawnEnv.MANTA_CODEX_LAUNCH_PREFLIGHT).toBeUndefined()
+      }
+    )
+
+    it('keeps the Codex server opt-out the client asked for', async () => {
+      await dispatcher.callRequest('pty.spawn', {
+        cols: 80,
+        rows: 24,
+        env: { ORCA_CODEX_ISOLATE: '0' }
+      })
+
+      const spawnEnv = mockPtySpawn.mock.calls.at(-1)?.[2]?.env as Record<string, string>
+      expect(spawnEnv.ORCA_CODEX_ISOLATE).toBe('0')
+    })
+
     it('drops an MANTA_HISTFILE handed over in the client env', async () => {
       await dispatcher.callRequest('pty.spawn', {
         cols: 80,

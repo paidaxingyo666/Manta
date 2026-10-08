@@ -167,6 +167,8 @@ manta-ide serve --port 6768 --pairing-address 100.64.1.20
 
 Use only one host mode at a time. If the Manta desktop app is already sharing that computer, do not start a second `manta serve` process for the same setup.
 
+`manta serve` runs on Manta's own Node server (mantad) by default. If mantad can't serve on this computer, it uses the desktop app's server instead and prints one line saying why. On a packaged macOS app it currently always uses the desktop app's server, so paired clients can still update it. To always use the desktop app's server, set `ORCA_SERVE_RUNTIME=electron`.
+
 ### Mobile from a headless server
 
 For the Manta mobile app, request a mobile-scoped QR code and link:

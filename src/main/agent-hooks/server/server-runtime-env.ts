@@ -11,7 +11,7 @@ import { AgentHookServerIngestRemote } from './server-ingest-remote'
 
 export abstract class AgentHookServerRuntimeEnv extends AgentHookServerIngestRemote {
   buildPtyEnv(): Record<string, string> {
-    if (this.port <= 0 || !this.token) {
+    if (!this.statusHooksEnabled || this.port <= 0 || !this.token) {
       return {}
     }
     const env: Record<string, string> = {
@@ -19,6 +19,7 @@ export abstract class AgentHookServerRuntimeEnv extends AgentHookServerIngestRem
       MANTA_AGENT_HOOK_TOKEN: this.token,
       MANTA_AGENT_HOOK_ENV: this.env,
       MANTA_AGENT_HOOK_VERSION: MANTA_HOOK_PROTOCOL_VERSION,
+      ORCA_AGENT_HOOK_OPENCODE_TUI: '1',
       MANTA_AGENT_HOOK_TRANSPORT: MANTA_HOOK_RAW_JSON_TRANSPORT
     }
     // Why: hooks source this file at invocation; dev namespaces it so parallel `pnpm dev` runs don't steal each other's hooks.
@@ -47,6 +48,7 @@ export abstract class AgentHookServerRuntimeEnv extends AgentHookServerIngestRem
       token: this.token,
       env: this.env,
       version: MANTA_HOOK_PROTOCOL_VERSION,
+      openCodeTui: true,
       transport: MANTA_HOOK_RAW_JSON_TRANSPORT
     })
     this.endpointFileWritten = ok

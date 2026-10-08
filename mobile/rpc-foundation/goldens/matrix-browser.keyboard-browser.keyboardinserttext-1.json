@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "browser.page-commands",
   "family": "browser.keyboard",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "55971752f963202d30160851197a301089b0f3ebd0c46725af1a461d8310d658",
-  "scenarioSha256": "fc3411f3f4cb58b6a1338ea943f59446fda7819931814e9ab002e35e2de42462",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0471cabae9b6": {
       "name": "browser.keyboardInsertText#1",

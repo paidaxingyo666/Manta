@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "aiVault.history-screen",
   "family": "aiVault.history-screen",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "f899a426f1dc243a5c67b96707fe89f4e9db348cba5bc3926b0f9577052f655d",
-  "scenarioSha256": "f50f63c4e2a69793b3d322ed16089c4241ff6169d8f9549106480230fb8dd5e7",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "03106dceb986": {
       "name": "status.get#1",
@@ -221,20 +212,7 @@
       "ordinal": 6,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
     },
-    "d3c3ce66625d": {
-      "name": "aiVault.listSessions#1",
-      "ordinal": 8,
-      "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"aiVault.listSessions\",\"params\":{\"limit\":500,\"force\":false,\"scopePaths\":[\"/repo/feature\"]}}"
-    },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "$rpc": "undefined"
-      }
-    },
-    "f0fcd4baacac": {
+    "d22bb2f62cea": {
       "crash": {
         "$rpc": "null"
       },
@@ -249,6 +227,19 @@
       },
       "labels": ["Back", "Refresh agent sessions"],
       "text": ["Agent Session History", "manta-history"]
+    },
+    "d3c3ce66625d": {
+      "name": "aiVault.listSessions#1",
+      "ordinal": 8,
+      "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"aiVault.listSessions\",\"params\":{\"limit\":500,\"force\":false,\"scopePaths\":[\"/repo/feature\"]}}"
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
     }
   },
   "recording": {
@@ -262,7 +253,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "f0fcd4baacac",
+          "state": "d22bb2f62cea",
           "effects": []
         }
       },
@@ -274,7 +265,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "f0fcd4baacac",
+          "state": "d22bb2f62cea",
           "effects": []
         }
       }

@@ -1,5 +1,8 @@
+import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AgentJournalSubmission } from '../../../../shared/agent-session-journal-types'
+import type { AgentMessageSource } from '../../../../shared/agent-session-message-source'
+import { getAppEnvironment } from '../../../../shared/app-environment'
 import { DISPATCH_REJECTED_WRITE_FAILED } from '../../../../shared/structured-agent-session-dispatch-rejection'
 
 const hostRef: { current: unknown } = { current: null }
@@ -19,8 +22,8 @@ const {
 } = await import('./orchestration-structured-worker-session')
 const { isUnknownWorkerStartOutcome } = await import('./orchestration/worker/worker-topology')
 const { structuredWorkerIdentities } = await import('../../structured-worker-identity')
-const { structuredWorkerChildIdentityEnv } =
-  await import('../../structured-worker-child-identity-env')
+const { structuredSessionChildIdentityEnv } =
+  await import('../../structured-session-child-identity-env')
 
 // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: a host stub carrying only the members the worker start reaches.
 function installHost(location = { executionHostId: 'local', wslDistro: null as string | null }) {
@@ -82,7 +85,7 @@ describe('structured worker session', () => {
     createSpy.mockImplementation(async (args: { envelope: { sessionId: string } }) => {
       // `attach` is what spawns the provider child, and the child's env is read from the registry
       // at spawn time. Registering afterwards ships a worker with no MANTA_TERMINAL_HANDLE.
-      envAtSpawn = structuredWorkerChildIdentityEnv(args.envelope.sessionId, {})
+      envAtSpawn = structuredSessionChildIdentityEnv(args.envelope.sessionId, {})
       return { ok: true, value: { sessionId: args.envelope.sessionId } }
     })
     const created = await createStructuredWorkerSession({
@@ -93,7 +96,15 @@ describe('structured worker session', () => {
       onJournalActivity: () => {}
     })
     expect(envAtSpawn?.MANTA_TERMINAL_HANDLE).toBe(created.identity.handle)
-    expect(envAtSpawn?.MANTA_CLI_COMMAND).toBe('manta')
+    // This app's own launcher by absolute path, so a login shell's profile cannot swap in a global.
+    expect(envAtSpawn?.MANTA_CLI_COMMAND).toBe(
+      join(
+        getAppEnvironment().getPath('userData'),
+        'cli',
+        'bin',
+        process.platform === 'win32' ? 'manta-dev.cmd' : 'manta-dev'
+      )
+    )
     expect(envAtSpawn?.MANTA_PANE_KEY).toBeUndefined()
     releaseStructuredWorkerSession('d_spawn')
   })
@@ -260,8 +271,41 @@ describe('structured worker dispatch preamble', () => {
     }
   }
 
+  const TASK_FROM: AgentMessageSource = {
+    kind: 'agent',
+    senders: [
+      {
+        party: { address: 'term_coord', terminalHandle: 'term_coord', orcaSessionId: null },
+        name: 'Coordinator'
+      }
+    ],
+    orchestration: { message: 'task', runId: 'r1', taskId: 't1', dispatchId: 'd1' }
+  }
+
   const send = (host: PreambleHost) =>
-    sendStructuredWorkerPreamble({ host, sessionId: 's1', dispatchId: 'd1', preamble: 'spec' })
+    sendStructuredWorkerPreamble({
+      host,
+      sessionId: 's1',
+      dispatchId: 'd1',
+      preamble: 'spec',
+      from: TASK_FROM
+    })
+
+  // No source and no person: a restart or a close rejects it, and orchestration re-derives it.
+  it('sends the preamble as no person’s', async () => {
+    const host = hostWithSubmission({ dispatchState: 'accepted', reason: null })
+    const sent = vi.spyOn(host, 'send')
+    await send(host)
+    expect(sent.mock.calls[0]?.[1]).not.toHaveProperty('source')
+    expect(sent.mock.calls[0]?.[1]).not.toHaveProperty('userSend')
+  })
+
+  it('names who the task is from on the turn it sends', async () => {
+    const host = hostWithSubmission({ dispatchState: 'accepted', reason: null })
+    const sent = vi.spyOn(host, 'send')
+    await send(host)
+    expect(sent.mock.calls[0]?.[1]).toMatchObject({ body: { from: TASK_FROM } })
+  })
 
   it('reports the preamble delivered only on an accepted submission', async () => {
     await expect(
@@ -300,6 +344,24 @@ describe('structured worker dispatch preamble', () => {
     // The wiring, not just the throw: this is the code that makes the start receipt
     // `outcome_unknown` with the worker-show / worker-abandon recovery commands.
     expect(isUnknownWorkerStartOutcome(error, 'dispatch_input')).toBe(true)
+  })
+
+  it('reads a queued answer as unacknowledged', async () => {
+    const host: PreambleHost = {
+      ...hostWithSubmission({ dispatchState: 'accepted', reason: null }),
+      send: async () => ({
+        ok: true,
+        replayed: false,
+        fence: 7,
+        cursor: { epoch: 'epoch-1', sequence: 1 },
+        value: { clientMessageId: 'c1', queued: { messageId: 'c1', position: 0, state: 'waiting' } }
+      })
+    }
+    await expect(send(host)).rejects.toMatchObject({
+      code: 'operation_unknown',
+      message:
+        'The dispatch preamble was submitted but not acknowledged (unknown): no reason given.'
+    })
   })
 
   it('keeps a rejected preamble a proven failure under a code of its own', async () => {

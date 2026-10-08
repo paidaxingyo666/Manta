@@ -1,8 +1,14 @@
 import { memo, useRef, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { ShieldQuestion, X } from 'lucide-react-native'
+import { ShieldQuestion } from 'lucide-react-native'
+import { approvalBlockedPathToShow } from '../../../src/shared/agent-session-approval-blocked-path'
+import { MobileNativeChatCardHeaderAction } from './MobileNativeChatCardHeaderAction'
 import { MobileMarkdown } from '../components/MobileMarkdown'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
+import {
+  isNewerApprovalSubject,
+  isPlanApprovalSubject
+} from '../../../src/shared/agent-session-approval-subject'
 import type { MobileChatPermission } from './mobile-native-chat-permission'
 import { translate } from '../i18n/i18n'
 
@@ -12,22 +18,19 @@ import { translate } from '../i18n/i18n'
 function MobileNativeChatPermissionImpl({
   permission,
   onRespond,
-  onCancel
+  onCancel,
+  onCollapse
 }: {
   permission: MobileChatPermission
   onRespond: (send: string) => Promise<boolean>
   onCancel?: (prompt?: NonNullable<MobileChatPermission['prompt']>) => Promise<boolean>
+  /** Fold the card to a strip and free Send, writing nothing. */
+  onCollapse?: () => void
 }): React.JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const submittingRef = useRef(false)
-  const hasContext = Boolean(
-    permission.description ||
-    permission.decisionReason ||
-    permission.blockedPath ||
-    permission.matchedAskRule ||
-    permission.subject ||
-    permission.detail
-  )
+  // A newer Manta's subject: its detail is shown, and only the card's cancel answers.
+  const newerSubject = isNewerApprovalSubject(permission.subject)
   const respond = async (send: string): Promise<void> => {
     if (submittingRef.current) {
       return
@@ -52,69 +55,14 @@ function MobileNativeChatPermissionImpl({
         >
           {permission.title}
         </Text>
-        {onCancel ? (
-          <Pressable
-            accessibilityLabel="Cancel"
-            hitSlop={8}
-            style={styles.cancel}
-            onPress={() => void onCancel(permission.prompt)}
-            disabled={submitting}
-          >
-            <X size={16} color={colors.textMuted} />
-          </Pressable>
-        ) : null}
+        <MobileNativeChatCardHeaderAction
+          prompt={permission.prompt}
+          onCancel={onCancel}
+          onCollapse={onCollapse}
+          disabled={submitting}
+        />
       </View>
-      {hasContext ? (
-        <ScrollView
-          testID="native-chat-approval-content"
-          style={styles.contentScroll}
-          contentContainerStyle={styles.content}
-          nestedScrollEnabled
-        >
-          {permission.description ? (
-            <Text style={styles.detail}>{permission.description}</Text>
-          ) : null}
-          {permission.decisionReason ? (
-            <Text style={styles.detail}>
-              <Text style={styles.contextLabel}>
-                {translate('m.MobileNativeChatPermission.a784e8b5e0', 'Reason:')}{' '}
-              </Text>
-              {permission.decisionReason}
-            </Text>
-          ) : null}
-          {permission.blockedPath ? (
-            <Text style={styles.detail}>
-              <Text style={styles.contextLabel}>
-                {translate('m.MobileNativeChatPermission.e235b1ee4c', 'Blocked path:')}{' '}
-              </Text>
-              {permission.blockedPath}
-            </Text>
-          ) : null}
-          {permission.matchedAskRule ? (
-            <Text style={styles.detail}>
-              <Text style={styles.contextLabel}>
-                {translate('m.MobileNativeChatPermission.c5bf577559', 'Ask rule:')}{' '}
-              </Text>
-              {permission.matchedAskRule.ruleContent ?? permission.matchedAskRule.toolName}
-              {' · '}
-              {permission.matchedAskRule.source}
-            </Text>
-          ) : null}
-          {permission.subject?.kind === 'plan' ? (
-            <View>
-              <MobileMarkdown content={permission.subject.text} />
-              {permission.subject.filePath ? (
-                <Text style={styles.planFile}>
-                  {translate('m.MobileNativeChatPermission.f24ff178ab', 'Plan file:')}{' '}
-                  {permission.subject.filePath}
-                </Text>
-              ) : null}
-            </View>
-          ) : permission.detail ? (
-            <Text style={styles.detail}>{permission.detail}</Text>
-          ) : null}
-        </ScrollView>
-      ) : null}
+      <MobileNativeChatPermissionContext permission={permission} newerSubject={newerSubject} />
       <View testID="native-chat-approval-actions" style={styles.options}>
         {permission.options.map((option, index) => {
           const isPrimary = index === 0
@@ -124,11 +72,12 @@ function MobileNativeChatPermissionImpl({
               style={({ pressed }) => [
                 styles.option,
                 isPrimary ? styles.optionPrimary : styles.optionSecondary,
-                pressed && !submitting && styles.optionPressed
+                pressed && !submitting && styles.optionPressed,
+                newerSubject && styles.disabled
               ]}
               hitSlop={6}
               onPress={() => respond(option.send)}
-              disabled={submitting}
+              disabled={submitting || newerSubject}
             >
               <Text style={[styles.optionText, isPrimary && styles.optionTextPrimary]}>
                 {option.label}
@@ -142,6 +91,67 @@ function MobileNativeChatPermissionImpl({
 }
 
 export const MobileNativeChatPermission = memo(MobileNativeChatPermissionImpl)
+
+function MobileNativeChatPermissionContext({
+  permission,
+  newerSubject
+}: {
+  permission: MobileChatPermission
+  newerSubject: boolean
+}): React.JSX.Element | null {
+  const neededPath = approvalBlockedPathToShow(permission)
+  if (
+    !permission.description &&
+    !permission.decisionReason &&
+    !neededPath &&
+    !permission.subject &&
+    !permission.detail
+  ) {
+    return null
+  }
+  return (
+    <ScrollView
+      testID="native-chat-approval-content"
+      style={styles.contentScroll}
+      contentContainerStyle={styles.content}
+      nestedScrollEnabled
+    >
+      {permission.description ? <Text style={styles.detail}>{permission.description}</Text> : null}
+      {permission.decisionReason ? (
+        <Text style={styles.detail}>
+          <Text style={styles.contextLabel}>
+            {translate('m.MobileNativeChatPermission.a784e8b5e0', 'Reason:')}{' '}
+          </Text>
+          {permission.decisionReason}
+        </Text>
+      ) : null}
+      {neededPath ? (
+        <Text style={styles.detail}>
+          <Text style={styles.contextLabel}>Needs access to: </Text>
+          {neededPath}
+        </Text>
+      ) : null}
+      {isPlanApprovalSubject(permission.subject) ? (
+        <View>
+          <MobileMarkdown content={permission.subject.text} />
+          {permission.subject.filePath ? (
+            <Text style={styles.planFile}>
+              {translate('m.MobileNativeChatPermission.f24ff178ab', 'Plan file:')}{' '}
+              {permission.subject.filePath}
+            </Text>
+          ) : null}
+        </View>
+      ) : permission.detail ? (
+        <Text style={styles.detail}>{permission.detail}</Text>
+      ) : null}
+      {newerSubject ? (
+        <Text testID="native-chat-approval-needs-newer-orca" style={styles.detail}>
+          This request needs a newer version of Manta.
+        </Text>
+      ) : null}
+    </ScrollView>
+  )
+}
 
 const styles = StyleSheet.create({
   card: {
@@ -167,12 +177,6 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: typography.bodySize,
     fontWeight: '600'
-  },
-  cancel: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center'
   },
   detail: {
     color: colors.textSecondary,
@@ -221,6 +225,9 @@ const styles = StyleSheet.create({
   },
   optionPressed: {
     opacity: 0.7
+  },
+  disabled: {
+    opacity: 0.5
   },
   optionText: {
     color: colors.textPrimary,

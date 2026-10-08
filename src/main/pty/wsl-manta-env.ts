@@ -83,6 +83,7 @@ export function addMantaWslInteropEnv(env: Record<string, string>): void {
     // Why /p: the managed CLI launcher lives in the host's userData tree.
     'MANTA_WSL_CLI_DIR/p',
     'MANTA_CODEX_LAUNCH_PREFLIGHT/p',
+    'ORCA_CODEX_ISOLATE/u',
     'MANTA_PANE_KEY/u',
     'MANTA_TAB_ID/u',
     'MANTA_WORKTREE_ID/u',

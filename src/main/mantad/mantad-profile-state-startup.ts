@@ -5,6 +5,7 @@ import {
   initMantaProfilePaths
 } from '../manta-profiles/profile-index-store'
 import { initSshHostKeyStoreFile } from '../ssh/ssh-host-key-store'
+import { initOrcadHeldFenceTokenFile } from '../ssh/mantad-held-fence-tokens'
 import { emitOrcadProfileStateAuthoritySelected } from './mantad-profile-state-telemetry'
 
 export type OrcadProfileStateProfile = {
@@ -30,6 +31,9 @@ export async function createOrcadProfileStateStartup(
 ): Promise<OrcadProfileStateStartup> {
   initMantaProfilePaths()
   const profile = ensureActiveMantaProfile(userDataPath)
+  // Why a real Store: without one, persistence-backed RPCs throw and `store?.x ?? []` reads answer
+  // "empty", so a server that pairs and lists nothing looks healthy. As the runtime authority,
+  // mantad must not load as 'desktop', which would orphan its own scheduled automations.
   const result = await createProfileStateStoreForStartup({
     dataFile: profile.dataFile,
     databaseFile: profile.stateDatabaseFile,
@@ -46,6 +50,7 @@ export async function createOrcadProfileStateStartup(
   }
   try {
     initSshHostKeyStoreFile(profile.dataFile)
+    initOrcadHeldFenceTokenFile(profile.dataFile)
     emitOrcadProfileStateAuthoritySelected(authority)
     return { store: result.store, authority }
   } catch (error) {

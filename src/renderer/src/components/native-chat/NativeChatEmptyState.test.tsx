@@ -17,11 +17,11 @@ it('keeps pointing the terminal-backed chat back to its terminal when a read fai
   ).toBeInTheDocument()
 })
 
-it('tells the structured chat its read keeps retrying', () => {
-  render(<NativeChatEmptyState kind="error" retrying />)
-  expect(
-    screen.getByText('The transcript could not be read. Manta keeps trying to load it.')
-  ).toBeInTheDocument()
+// It retries on its own, which the pane does not report, and has no terminal to point back to.
+it('says only that the structured chat did not load while its read retries', () => {
+  const { container } = render(<NativeChatEmptyState kind="error" retrying />)
+  expect(screen.getByText('Could not load conversation')).toBeInTheDocument()
+  expect(container.querySelectorAll('p')).toHaveLength(1)
 })
 
 it('shows the host message in place of the terminal-backed default', () => {
@@ -30,9 +30,25 @@ it('shows the host message in place of the terminal-backed default', () => {
   expect(screen.queryByText(/Toggle back to the terminal/)).toBeNull()
 })
 
-it('keeps the structured chat retrying line when the host sent a message', () => {
-  render(<NativeChatEmptyState kind="error" retrying message="disk full" />)
-  expect(
-    screen.getByText('The transcript could not be read. Manta keeps trying to load it.')
-  ).toBeInTheDocument()
+// The structured chat passes words only from the notice table, never the host's.
+it("says the structured chat's own words for the failure once, as the title, and nothing more", () => {
+  const { container } = render(
+    <NativeChatEmptyState
+      kind="error"
+      retrying
+      headline="Manta couldn't open this chat's history right now."
+    />
+  )
+  expect(screen.getByText("Manta couldn't open this chat's history right now.")).toHaveClass(
+    'font-medium'
+  )
+  expect(screen.queryByText('Could not load conversation')).toBeNull()
+  expect(container.querySelectorAll('p')).toHaveLength(1)
+})
+
+it('says a failure no retry gets past in its one line, with nothing of trying again', () => {
+  render(<NativeChatEmptyState kind="error" headline="Unable to load this chat." />)
+  expect(screen.getByText('Unable to load this chat.')).toHaveClass('font-medium')
+  expect(screen.queryByText('Could not load conversation')).toBeNull()
+  expect(screen.queryByText(/keeps trying|Toggle back/)).toBeNull()
 })

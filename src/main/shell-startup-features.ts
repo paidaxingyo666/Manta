@@ -26,6 +26,7 @@ export type ShellStartupFeature = (typeof SHELL_STARTUP_FEATURES)[number]
 
 /** Spawn-env keys that mean this pane carries a Manta overlay the wrapper must re-apply. */
 const OVERLAY_ENV_KEYS = [
+  'ORCA_DATA_ACCOUNT_DATA_HOME',
   'MANTA_OPENCODE_CONFIG_DIR',
   'MANTA_MIMOCODE_HOME',
   'MANTA_OMP_STATUS_EXTENSION',

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "host.worktree-actions",
   "family": "host.worktree-actions",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "92c29bd78ca0c0d5917e9386fc447bb9a1698b1d1ffaba0db7546eaac60da639",
-  "scenarioSha256": "054f1b1380fc6cfd4b0f4a85d6f143822a12a0a732d550dd85eef64a6556b3ba",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "01ee62307265": {
       "name": "worktree.set#1",

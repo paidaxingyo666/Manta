@@ -18,6 +18,7 @@ type Props = {
   isGithubRepo?: boolean
   branchContextLoaded?: boolean
   controller: MobilePrSidebarController
+  workspaceLabel: string | null
 }
 
 // Chromeless PR sidebar body for the source-control hub's Pull Request segment.
@@ -32,7 +33,8 @@ export function MobilePrViewPanelBody({
   gitStatus,
   isGithubRepo = true,
   branchContextLoaded = true,
-  controller
+  controller,
+  workspaceLabel
 }: Props) {
   const insets = useSafeAreaInsets()
 
@@ -68,6 +70,7 @@ export function MobilePrViewPanelBody({
         bottomInset={insets.bottom}
         // Hub header already hosts open-on-web while this segment is active.
         showOpenOnWeb={false}
+        workspaceLabel={workspaceLabel}
       />
     </View>
   )

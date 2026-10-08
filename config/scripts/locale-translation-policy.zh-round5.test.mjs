@@ -140,7 +140,6 @@ describe('locale-translation-policy zh round 5', () => {
         localeValue: '代理',
         locale: 'zh'
       })
-      // 智能体 is this fork's word for an agent; the policy normalises toward it.
     ).toBe('智能体')
     expect(
       repairTranslatedValue({

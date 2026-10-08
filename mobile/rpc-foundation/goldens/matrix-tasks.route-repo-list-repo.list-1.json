@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "tasks.route-repo-list",
   "family": "tasks.route-repo-list",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "23f974df8b57c723069605de1db80c339ead286b18aae38e67fce03ea50c5180",
-  "scenarioSha256": "d063e1c548e90ad115a4bc6c031b1710acbf2ad61c6622efbfcb5314621b5594",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "12e70439f294": {
       "name": "repo.list#1",
@@ -287,6 +278,49 @@
         }
       }
     },
+    "7d0fa424be7c": {
+      "name": "repo.list#1",
+      "ordinal": 1,
+      "args": [
+        {
+          "name": "method",
+          "value": "repo.list"
+        },
+        {
+          "name": "params",
+          "value": {
+            "$rpc": "absent"
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-1",
+          "ok": true,
+          "result": {
+            "repos": [
+              {
+                "id": "repo-1",
+                "name": "manta"
+              },
+              {
+                "id": "repo-2",
+                "name": "relay"
+              }
+            ]
+          }
+        }
+      }
+    },
     "8a72d3d14d44": {
       "name": "repo.list#1",
       "ordinal": 1,
@@ -325,21 +359,6 @@
     "9270aeb7d9c6": {
       "status": "pending",
       "startedAt": 0
-    },
-    "9924e0d12305": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": [
-        {
-          "id": "repo-1",
-          "name": "manta"
-        },
-        {
-          "id": "repo-2",
-          "name": "relay"
-        }
-      ]
     },
     "9d8c57ae3003": {
       "crash": {
@@ -536,48 +555,20 @@
       "repoListStatus": "loaded",
       "repos": ["repo-1", "repo-2"]
     },
-    "fadf89db1f81": {
-      "name": "repo.list#1",
-      "ordinal": 1,
-      "args": [
+    "fcd8faa86ca8": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": [
         {
-          "name": "method",
-          "value": "repo.list"
+          "id": "repo-1",
+          "name": "manta"
         },
         {
-          "name": "params",
-          "value": {
-            "$rpc": "absent"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
+          "id": "repo-2",
+          "name": "relay"
         }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-1",
-          "ok": true,
-          "result": {
-            "repos": [
-              {
-                "id": "repo-1",
-                "name": "manta"
-              },
-              {
-                "id": "repo-2",
-                "name": "relay"
-              }
-            ]
-          }
-        }
-      }
+      ]
     }
   },
   "recording": {
@@ -611,11 +602,11 @@
       {
         "id": "tasks-route-repo-list.normal:repos-loaded",
         "observation": {
-          "sender": ["fadf89db1f81"],
+          "sender": ["7d0fa424be7c"],
           "payloads": ["19b2979d7fc2"],
           "settlements": {
             "mount": "eb79a9b3682a",
-            "ensure": "9924e0d12305"
+            "ensure": "fcd8faa86ca8"
           },
           "state": "f5484d90b3f7",
           "effects": []

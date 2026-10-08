@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "accounts.codex-reset-credit",
   "family": "components.codex-reset-credit",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "76b53dea504a688493843e23e8e7d052fc196f559bb1e2579d0fd38bf3156d0e",
-  "scenarioSha256": "cc6de73be00be072f9a3b7fd63459fd1a529c45d0916a67d5fe6d90dbee61e91",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0a07efb53f1e": {
       "settled": {
@@ -106,14 +97,6 @@
         }
       }
     },
-    "2b0f8099c4ea": {
-      "name": "device-store.setItem",
-      "ordinal": 1,
-      "value": {
-        "key": "manta:codex-reset-credit-attempt:v1:0832055c2fa90e8e145c588ad4db656a2fc2840ed2e851a28494eae769db9b3e",
-        "value": "{\"v\":1,\"hostId\":\"host-1\",\"expectedScope\":{\"target\":{\"runtime\":\"host\",\"wslDistro\":null},\"accountId\":\"codex-1\",\"accountRevision\":1700000000000,\"offerRevision\":\"v1:[1,null,null,[],null,null,1700000000000]\"},\"idempotencyKey\":\"00000000-0000-4000-8000-000000000001\"}"
-      }
-    },
     "32a7c0ae7918": {
       "status": "rejected",
       "startedAt": 0,
@@ -122,6 +105,14 @@
         "category": "Error",
         "message": "outer refused",
         "isRpcDeliveryUnknown": false
+      }
+    },
+    "3ec97892842e": {
+      "name": "device-store.setItem",
+      "ordinal": 1,
+      "value": {
+        "key": "manta:codex-reset-credit-attempt:v1:0832055c2fa90e8e145c588ad4db656a2fc2840ed2e851a28494eae769db9b3e",
+        "value": "{\"v\":1,\"hostId\":\"host-1\",\"expectedScope\":{\"target\":{\"runtime\":\"host\",\"wslDistro\":null},\"accountId\":\"codex-1\",\"accountRevision\":1700000000000,\"offerRevision\":\"v1:[1,null,null,[],null,null,1700000000000]\"},\"idempotencyKey\":\"00000000-0000-4000-8000-000000000001\"}"
       }
     },
     "4a80a84c10df": {
@@ -781,7 +772,7 @@
             "confirm": "9270aeb7d9c6"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -793,7 +784,7 @@
             "confirm": "fed9e1669a83"
           },
           "state": "60304d1e19bb",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -805,7 +796,7 @@
             "confirm": "e1ee0a1ae721"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -817,7 +808,7 @@
             "confirm": "e1ee0a1ae721"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -829,7 +820,7 @@
             "confirm": "e1ee0a1ae721"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -841,7 +832,7 @@
             "confirm": "e1ee0a1ae721"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -853,7 +844,7 @@
             "confirm": "e1ee0a1ae721"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -865,7 +856,7 @@
             "confirm": "32a7c0ae7918"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -877,7 +868,7 @@
             "confirm": "f3b516f62081"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -889,7 +880,7 @@
             "confirm": "b948e8307e81"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -901,7 +892,7 @@
             "confirm": "a947768bc0ed"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       },
       {
@@ -913,7 +904,7 @@
             "confirm": "c7584e82c72f"
           },
           "state": "0a07efb53f1e",
-          "effects": ["2b0f8099c4ea"]
+          "effects": ["3ec97892842e"]
         }
       }
     ]

@@ -43,6 +43,21 @@ describe('Windows remote command line limit', () => {
       'steal stale install lock',
       tryStealInstallLockCommand(windows, 'C:\\Users\\manta\\.manta-remote\\relay', 1_200)
     ],
+    [
+      'steal an exited holder\u2019s install lock',
+      tryStealInstallLockCommand(
+        windows,
+        'C:\\Users\\manta\\.manta-remote\\mantad-1.4.214+0123456789abcdef\\.install-lock',
+        1_200,
+        { fileName: '.orca-fence-owner', token: '123e4567-e89b-12d3-a456-426614174000' },
+        {
+          fileName: '.orca-fence-owner',
+          token: '123e4567-e89b-12d3-a456-426614174001',
+          quietSeconds: 180,
+          mutationLock: 'C:\\Users\\manta\\.manta-remote\\mantad-state-mutation.lock'
+        }
+      )
+    ],
     // F11 flagged these two as uncovered. They carry one path literal each, so they are the file
     // commands whose length a caller can actually move.
     ['write file', makeWindowsWriteFileCommand('C:\\Users\\manta\\.manta-remote\\relay.js')],

@@ -122,6 +122,17 @@ jobs:
             echo "main moved to $head_sha (last hourly built $last_sha); building."
           fi
 
+  # Why its own job: this package ships relays for Windows SSH hosts, and only a
+  # Windows runner compiles the addon that launches one outside sshd's job.
+  relay-windows-process-tree:
+    needs: preflight
+    if: needs.preflight.outputs.should_build == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/relay-windows-process-tree.yml
+    with:
+      ref: ${{ needs.preflight.outputs.head_sha }}
+
   build-hourly-mac:
     # Guarded off in this fork, deliberately. Two things make that necessary:
     # this job runs on `blacksmith-6vcpu-macos-15`, a runner fleet only upstream
@@ -138,7 +149,9 @@ jobs:
     # Both conditions, not one: the repository guard is this fork's and must
     # stay, and upstream's freshness gate is what keeps main-has-not-moved from
     # occupying their Mac pool. Dropping either changes a different thing.
-    needs: preflight
+    needs:
+      - preflight
+      - relay-windows-process-tree
     # Exactly the repository guard, and nothing joined to it. The contract test
     # beside this file requires the literal string: this job is wired to
     # MAC_CERTS and a personal Apple ID on an hourly schedule, so "is it skipped
@@ -281,6 +294,14 @@ jobs:
           fi
           cat "$RUNNER_TEMP/hourly-identity.txt" >>"$GITHUB_OUTPUT"
 
+      # Only a Windows runner compiles these; the relay-windows-process-tree job
+      # built them for this run.
+      - name: Collect the Windows process-table addons for the relay
+        uses: actions/download-artifact@v8
+        with:
+          name: relay-windows-process-tree
+          path: .build/windows-process-tree
+
       - name: Build app
         run: pnpm build:release
         env:
@@ -289,6 +310,9 @@ jobs:
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted dev artifacts.
           MANTA_DIAGNOSTICS_TOKEN_URL: https://www.manta.sh.cn/diagnostics/token
+          # Fail the build rather than ship a relay that cannot launch outside
+          # sshd's job for a standard user on a Windows SSH host.
+          MANTA_REQUIRE_RELAY_NATIVE_ADDONS: x64,arm64
 
       # Why a second mint: everything from here on writes to the hourly repo, and
       # the notary round trip inside the publish step can be tens of minutes. The

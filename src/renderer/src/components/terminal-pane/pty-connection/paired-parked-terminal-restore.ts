@@ -2,6 +2,7 @@ import { useAppStore } from '@/store'
 import { TERMINAL_PAIRED_PARKING_RUNTIME_CAPABILITY } from '../../../../../shared/protocol-version'
 import { getRemoteRuntimePtyEnvironmentId } from '@/runtime/runtime-terminal-stream'
 import { REMOTE_PTY_ID_PREFIX } from './pty-connect-limits'
+import type { ConnectPanePtySession } from './connect-pane-pty-session'
 import {
   isRuntimeHostContactRevoked,
   lastVerifiedRuntimeStatus
@@ -9,6 +10,15 @@ import {
 
 export function isRemoteRuntimePtyId(ptyId: string | null | undefined): boolean {
   return typeof ptyId === 'string' && ptyId.startsWith(REMOTE_PTY_ID_PREFIX)
+}
+
+/** Parked paired-runtime PTY this mount will reattach to, so typeahead can buffer against it. */
+export function resolveParkedRemotePreconnectPtyId(
+  session: ConnectPanePtySession
+): string | undefined {
+  return session.mountFollowsTerminalPark && session.runtimeEnvironmentId
+    ? session.deps.restoredPtyIdByLeafId?.[session.deps.restoredLeafId ?? session.pane.leafId]
+    : undefined
 }
 
 export function canRestorePairedParkedTerminal(ptyId: string): boolean {

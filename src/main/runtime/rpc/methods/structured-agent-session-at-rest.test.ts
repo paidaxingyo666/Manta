@@ -1,3 +1,5 @@
+import '../unused-default-rpc-methods.test-fixture'
+import { AGENT_JOURNAL_THREAD_SCOPE } from '../../../../shared/agent-session-journal-types'
 // A chat at rest, through the RPC surface a client actually calls: opening it starts nothing, what
 // it can answer without an agent it answers, and the first send is what starts one.
 
@@ -5,13 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computeAgentSessionPayloadFingerprint } from '../../../../shared/agent-session-mutation-envelope'
 import { STRUCTURED_AGENT_SESSION_RUNTIME_CAPABILITY } from '../../../../shared/protocol-version'
 import { activeStructuredAgentSessionTurnId } from '../../../../shared/structured-agent-session-projection'
-import { openJournalDatabase } from '../../../native-chat/agent-session-journal/journal-database'
 import {
-  journalDatabaseFile,
-  journalDirectoryFor
-} from '../../../native-chat/agent-session-journal/journal-paths'
-import {
-  HOST_TEST_LOCATION,
   hostTestAttachParams,
   hostTestMessage,
   hostTestOperationId
@@ -26,13 +22,18 @@ import {
   restTestSend,
   type RestTestRig
 } from '../../../native-chat/agent-session-wire/structured-agent-session-rest-test-rig'
-import * as providerSupport from '../../../native-chat/agent-session-wire/structured-agent-session-provider-support'
 import { MantaRuntimeService } from '../../manta-runtime'
 import type { RpcResponse } from '../core'
 import { RpcDispatcher } from '../dispatcher'
 import { closeStructuredAgentSessionChild } from '../../structured-agent-session-close'
 import { discardStructuredWorkerSession } from './orchestration-structured-worker-session'
 import { STRUCTURED_AGENT_SESSION_METHODS } from './structured-agent-session'
+import {
+  liveTestJournalRows,
+  openTestJournalHostDatabase,
+  updateTestJournalRowJson
+} from '../../../native-chat/agent-session-journal/journal-host-database-test-support'
+import { claudeAndCodexDeclared } from '../../../native-chat/agent-session-wire/structured-agent-session-adapter-router-test-support'
 
 const CLIENT = {
   clientId: 'device-1',
@@ -158,7 +159,8 @@ describe('the accessor', () => {
       .at(-1)?.[0]
       .events?.appendItem(
         { provider: 'codex', threadId: REST_TEST_THREAD, turnId: 'turn-1', ordinal: 1 },
-        hostTestMessage('from the provider')
+        hostTestMessage('from the provider'),
+        { turnScope: AGENT_JOURNAL_THREAD_SCOPE }
       )
     await rig.host.flushStreamedEvents(SESSION)
     await rig.restart()
@@ -218,46 +220,111 @@ describe('the accessor', () => {
         }
       }
     })
-
-    await restingChat()
-    vi.spyOn(providerSupport, 'adapterSupportsRecord').mockReturnValue(false)
-    const [unsupported] = await call('agentSession.history', {
-      sessionId: SESSION,
-      direction: 'tail'
-    })
-    expect(unsupported).toMatchObject({
-      ok: false,
-      error: {
-        // Not a passthrough code: released clients match the message, as before.
-        code: 'runtime_error',
-        message: 'structured_agent_session_unsupported',
-        data: { refusal: { details: { reason: 'hostUnsupported' } } }
-      }
-    })
   })
 
-  it('opens a corrupt journal through the recovering open and still accepts a send (P2-03)', async () => {
+  it('refuses a read whose journal will not open with the classified reason, never the storage text', async () => {
+    await restingChat()
+    const open = vi.spyOn(rig.host.collaboratorsForTests().conversationDelivery, 'open')
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const storagePath = '/Users/someone/.manta/journals/session-1/journal.sqlite'
+    const failWith = (error: Error): void => {
+      open.mockRejectedValue(error)
+    }
+    const failures = async (): Promise<RpcResponse[]> =>
+      [
+        ...(await call('agentSession.history', { sessionId: SESSION, direction: 'tail' })),
+        ...(await call('agentSession.subscribe', { sessionId: SESSION })),
+        ...(await call('agentSession.options', { sessionId: SESSION }))
+      ].filter((reply) => !reply.ok)
+
+    failWith(
+      Object.assign(new Error(`file is not a database: ${storagePath}`), {
+        code: 'ERR_SQLITE_ERROR',
+        errcode: 26
+      })
+    )
+    const corrupt = await failures()
+    failWith(Object.assign(new Error(`EACCES: permission denied, open '${storagePath}'`), {}))
+    const unavailable = await failures()
+
+    for (const [replies, reason] of [
+      [corrupt, 'journalCorrupt'],
+      [unavailable, 'journalUnavailable']
+    ] as const) {
+      expect(replies).toHaveLength(3)
+      for (const reply of replies) {
+        expect(reply).toMatchObject({
+          ok: false,
+          error: {
+            // Not a passthrough code: released clients read the message, which stays the code.
+            code: 'runtime_error',
+            message: 'agent_session_journal_unreadable',
+            data: { refusal: { code: 'agent_session_journal_unreadable', details: { reason } } }
+          }
+        })
+        expect(JSON.stringify(reply)).not.toContain(storagePath)
+      }
+    }
+  })
+
+  it('logs a reader reconnecting to a journal that will not open once per failure', async () => {
+    await restingChat()
+    const open = vi.spyOn(rig.host.collaboratorsForTests().conversationDelivery, 'open')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    const logged = (): unknown[] =>
+      warn.mock.calls
+        .filter(
+          ([line]) =>
+            line === '[agent-session] open-for-read: opening the conversation for a read failed'
+        )
+        .map(([, fields]) => fields?.error)
+    const reconnect = async (): Promise<RpcResponse[]> => [
+      ...(await call('agentSession.subscribe', { sessionId: SESSION })),
+      ...(await call('agentSession.history', { sessionId: SESSION, direction: 'tail' }))
+    ]
+    const denied = new Error('EACCES: permission denied')
+    const exhausted = new Error('EMFILE: too many open files')
+
+    open.mockRejectedValue(denied)
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      // Every attempt is still refused with its reason; only the log is quiet.
+      expect((await reconnect()).filter((reply) => !reply.ok)).toHaveLength(2)
+    }
+    expect(logged()).toEqual([denied])
+    open.mockRejectedValue(exhausted)
+    await reconnect()
+    await reconnect()
+    expect(logged()).toEqual([denied, exhausted])
+  })
+
+  it('refuses a damaged journal as unloadable at subscribe and send, and keeps its rows (P2-03)', async () => {
     await foundRestTestChat(rig)
     await rig.host.flushAllStreamedEvents()
-    const directory = journalDirectoryFor(rig.root, {
-      workspaceId: HOST_TEST_LOCATION.workspaceId,
-      sessionId: SESSION
-    })
-    // A row that no longer parses: the recovering open keeps the readable prefix and rebuilds.
-    const opened = openJournalDatabase(journalDatabaseFile(directory))
-    try {
-      opened.db.prepare('UPDATE journal_rows SET row_json = ? WHERE seq = ?').run('}{', 2)
-    } finally {
-      opened.db.close()
-    }
+    updateTestJournalRowJson(openTestJournalHostDatabase(rig.root).db, SESSION, 2, '}{')
     await rig.restart()
     setStructuredAgentSessionHost(rig.host)
 
     const frames = await call('agentSession.subscribe', { sessionId: SESSION })
-    expect(frames.some((frame) => !frame.ok)).toBe(false)
-    expect(frames.find((frame) => frame.ok)).toMatchObject({ result: { type: 'snapshot' } })
+    expect(frames.find((frame) => !frame.ok)).toMatchObject({
+      error: {
+        data: {
+          refusal: {
+            code: 'agent_session_journal_unreadable',
+            details: { reason: 'journalCorrupt' }
+          }
+        }
+      }
+    })
     const fence = rig.store.getRecord(SESSION)!.lease.runtimeFence
-    expect((await rig.host.send(CALLER, restTestSend('after the repair', fence))).ok).toBe(true)
+    expect(await rig.host.send(CALLER, restTestSend('after the damage', fence))).toMatchObject({
+      ok: false,
+      refusal: { code: 'agent_session_journal_unreadable', details: { reason: 'journalCorrupt' } }
+    })
+    expect(
+      liveTestJournalRows(openTestJournalHostDatabase(rig.root).db, SESSION).find(
+        (row) => row.seq === 2
+      )?.rowJson
+    ).toBe('}{')
   })
 
   it('subscribes an old mobile client that holds first even when no agent can start (P2-06)', async () => {
@@ -303,9 +370,9 @@ describe('options at rest', () => {
 
   it('answers the provider-level features of a chat at rest (P2-17)', async () => {
     await restingChat()
+    // A runtime that declares Codex's goal and rewind, as production registers it.
+    setStructuredAgentSessionHost(await rig.restart({ agents: claudeAndCodexDeclared() }))
     Object.assign(rig.host.deps.adapter, {
-      supportsThreadGoal: (_id: string, agent?: string) => agent === 'codex',
-      recordsContextUsage: (_id: string, agent?: string) => agent === 'claude',
       rewindSupport: (_id: string, agent?: string) =>
         agent === 'codex' ? { supported: true } : { supported: false, reason: 'unsupported' }
     })
@@ -349,10 +416,14 @@ describe('an agent exit', () => {
       .at(-1)?.[0]
       .events?.appendItem(
         { provider: 'codex', threadId: REST_TEST_THREAD, turnId: 'working', ordinal: 50 },
-        { kind: 'turn', turnId: 'working', state: 'running' }
+        { kind: 'turn', turnId: 'working', state: 'running' },
+        { turnScope: AGENT_JOURNAL_THREAD_SCOPE }
       )
     await rig.host.flushStreamedEvents(SESSION)
-    vi.spyOn(open.journal, 'appendLifecycleBatch').mockRejectedValueOnce(new Error('disk full'))
+    // The exit's own write and the retry recording the exit queues are both refused.
+    vi.spyOn(open.journal, 'appendLifecycleBatch')
+      .mockRejectedValueOnce(new Error('disk full'))
+      .mockRejectedValueOnce(new Error('disk full'))
     await rig.host.handleAdapterEvent({
       type: 'ended',
       sessionId: SESSION,
@@ -368,6 +439,7 @@ describe('an agent exit', () => {
         deathEvidence: { kind: 'exit-observed' }
       })
     )
+    await rig.host.collaboratorsForTests().serialize(SESSION, async () => {})
 
     const sent = await rig.host.send(
       CALLER,

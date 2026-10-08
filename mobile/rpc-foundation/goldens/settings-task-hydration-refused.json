@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "settings.task-hydration",
   "family": "settings.task-hydration",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "59e14a669103f2182737dedeed218795ffbadaf06a3a48a322cd8d20141a3e04",
-  "scenarioSha256": "a510ff7505cddbd6dad3c7e5a2dcde206a5dab1940901511d72c97aca576a6f1",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "01236e463cd4": {
       "name": "linearStatusPickerItem",
@@ -315,10 +306,12 @@
         "startedAt": 0
       }
     },
-    "808d840ee452": {
-      "name": "trustedMantaHooks",
-      "ordinal": 52,
-      "value": {}
+    "7d8029e889cf": {
+      "name": "projectRepoNotInManta",
+      "ordinal": 27,
+      "value": {
+        "$rpc": "null"
+      }
     },
     "8515b9b6e08f": {
       "name": "linear.status#1",
@@ -445,6 +438,11 @@
           }
         }
       }
+    },
+    "9490fcb6d06d": {
+      "name": "trustedMantaHooks",
+      "ordinal": 52,
+      "value": {}
     },
     "963a91c532c8": {
       "hydrated": true,
@@ -588,13 +586,6 @@
       "ordinal": 53,
       "value": {}
     },
-    "e864ce71e831": {
-      "name": "projectRepoNotInManta",
-      "ordinal": 27,
-      "value": {
-        "$rpc": "null"
-      }
-    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -719,7 +710,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -784,7 +775,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -799,7 +790,7 @@
             "3d60f87d082e",
             "294741680522",
             "5746a2b64cdf",
-            "808d840ee452",
+            "9490fcb6d06d",
             "e715718a7e8c",
             "2ae9c5d06de2",
             "644df42439c4",

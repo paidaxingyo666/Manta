@@ -1,9 +1,14 @@
 // The sentences a chat notice is made of, each whole so desktop can translate it on its own.
 
+import type { AgentSessionFailureFact } from './agent-session-failure'
 import {
   QUIT_TERMINAL_AGENT,
   START_NEW_CHAT,
   TERMINAL_AGENT_HOLDS_CHAT
+} from './agent-session-failure-copy'
+import type {
+  AgentSessionFailureSurface,
+  AgentSessionFailureWordsContext
 } from './agent-session-failure-words'
 
 /** Every sentence a notice is made of. Desktop translates each whole sentence with this as its
@@ -12,6 +17,7 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   notDoneReadHistory: "This chat's history couldn't be loaded.",
   notDoneSend: 'Your message was not sent.',
   tryAgainComposerSend: 'Send it again.',
+  messageNotSaved: "Couldn't save your message.",
   notDoneStop: "The agent wasn't stopped.",
   notDoneStopTask: "The background task wasn't stopped.",
   notDoneStopTasks: "The background tasks weren't stopped.",
@@ -22,13 +28,24 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   restartFailed: "The agent couldn't restart.",
   capacity: 'Manta has received too many requests in the last day.',
   outcomeUnknown: "Manta couldn't confirm what happened. Check the chat.",
+  sendOutcomeLost:
+    "Manta couldn't confirm your message reached the agent. Check the chat, then send it again if needed.",
   questionChanged: 'This question was already answered or has changed.',
   historyUnreadable: "Manta couldn't read this chat's saved history.",
   historyUnusable: 'Unable to load this chat.',
   historyUnavailable: "Manta couldn't open this chat's history right now.",
-  unsupported: "The Manta running this chat doesn't support this. Update Manta, then try again.",
+  savedByNewerOrca: 'Chats were saved by a newer Manta.',
+  updateOrcaToKeepUsing: 'Update Manta to keep using them.',
+  chatSavedByNewerOrca: 'This chat was saved by a newer Manta.',
+  updateOrcaToOpenChat: 'Update Manta to open it.',
+  unsupported:
+    'This needs a newer Manta on the computer running this chat. Update Manta there, then try again.',
+  notAvailable: "This isn't available in this chat.",
+  cannotRunHere: "Manta can't run this agent in a chat here.",
   unreachable: "Manta couldn't reach the agent.",
-  recordFailed: "Manta couldn't record it in this chat's history.",
+  recordFailed: "Manta couldn't save this to the chat's history.",
+  attachmentExpired: 'This attachment expired.',
+  reattachFile: 'Remove it and attach it again.',
   conversationCleared: 'This conversation has been cleared.',
   openCurrentConversation: 'Open the current conversation to continue.',
   clearUnfinished: "The last /clear didn't finish.",
@@ -42,23 +59,44 @@ export const AGENT_SESSION_WRITE_NOTICE_COPY = {
   answerFirst: 'Answer the question or approval first.',
   backgroundTasksRunning: 'Background tasks are still running.',
   waitForBackgroundTasks: 'Wait for the background tasks to finish.',
-  messagesUnsettled: "A message you sent earlier hasn't been confirmed yet.",
+  messagesUnsettled: "A message you sent earlier isn't confirmed yet.",
   settleEarlierMessage: 'Wait for your earlier message to go through, or retry it.',
   optionRejected: "The agent didn't accept this setting.",
   goalsUnsupported: "This agent doesn't support goals.",
   agentRefused: 'The agent turned this down.',
-  ownerUnproven: "Manta hasn't confirmed that this chat's previous agent stopped.",
+  ownerUnproven: 'The previous agent in this chat may still be running.',
   reopenChat: 'Reopen the chat to check again.',
   terminalAgentHoldsChat: TERMINAL_AGENT_HOLDS_CHAT,
   quitTerminalAgent: QUIT_TERMINAL_AGENT,
   hostReconciling: 'Manta is still checking on this chat after restarting.',
   waitMoment: 'Wait a moment.',
   recordUnreadable: "Manta couldn't read this chat's saved state.",
-  chatNotFound: 'The Manta running this chat has no record of it.',
+  chatNotFound: "Manta can't find this chat.",
   startNewChat: START_NEW_CHAT,
   tryAgain: 'Try again.'
 } as const
 
 export type AgentSessionWriteNoticeSentence = keyof typeof AGENT_SESSION_WRITE_NOTICE_COPY
-/** A notice as whole sentences, each translated on its own; `text` is a provider's own words. */
-export type AgentSessionWriteNoticePart = AgentSessionWriteNoticeSentence | { text: string }
+/** A failure fact, worded where it is shown so desktop can say it in the reader's language. */
+export type AgentSessionWriteNoticeFailurePart = {
+  failure: AgentSessionFailureFact
+  surface: AgentSessionFailureSurface
+  context: AgentSessionFailureWordsContext
+}
+/** A notice as whole sentences, each translated on its own; `text` is words someone else wrote: a
+ *  provider's, or a host's sentence with no fact beside it. */
+export type AgentSessionWriteNoticePart =
+  | AgentSessionWriteNoticeSentence
+  | { text: string }
+  | AgentSessionWriteNoticeFailurePart
+
+/** Causes that already say the history can't be read here, so no sentence after them says it
+ *  again. */
+export const AGENT_SESSION_HISTORY_UNREAD_CAUSES: ReadonlySet<AgentSessionWriteNoticeSentence> =
+  new Set([
+    'historyUnusable',
+    'historyUnavailable',
+    'historyUnreadable',
+    'savedByNewerOrca',
+    'chatSavedByNewerOrca'
+  ])

@@ -7,9 +7,12 @@ import {
   type AgentSessionRefusalReason
 } from './agent-session-refusal-details'
 import type { AgentSessionRewindReason } from './agent-session-rewind'
+import type { AgentSessionArgumentProblem } from './agent-session-argument-problem'
 import {
   isAgentSessionWireRefusalCode,
+  readAgentSessionRefusalReference,
   type AgentSessionOwnerVerdict,
+  type AgentSessionRefusalReference,
   type AgentSessionWireRefusal,
   type AgentSessionWireRefusalCode
 } from './agent-session-wire-refusals'
@@ -59,14 +62,17 @@ export function agentSessionWriteKindForMethod(
 /** What a saved refusal keeps beside its reason: facts about the refused operation that stay true
  *  after a reload. Never the fence, revision or resolution, which move, nor any provider text. */
 type DurableRefusalFacts = {
-  agent_session_operation_invalid: { rewindReason?: AgentSessionRewindReason }
+  agent_session_operation_invalid: {
+    rewindReason?: AgentSessionRewindReason
+    argumentProblem?: AgentSessionArgumentProblem
+  }
   agent_session_operation_unknown: { rewindReason?: AgentSessionRewindReason }
   /** A snapshot from when it was refused; see `agentSessionOwnerVerdictAllowsFreshOperationId`. */
   agent_session_ownership_unknown: { ownerVerdict?: AgentSessionOwnerVerdict }
 }
 
 const DURABLE_FACT_KEYS: Partial<Record<AgentSessionWireRefusalCode, readonly string[]>> = {
-  agent_session_operation_invalid: ['rewindReason'],
+  agent_session_operation_invalid: ['rewindReason', 'argumentProblem'],
   agent_session_operation_unknown: ['rewindReason'],
   agent_session_ownership_unknown: ['ownerVerdict']
 } satisfies { [C in keyof DurableRefusalFacts]: readonly (keyof DurableRefusalFacts[C])[] }
@@ -134,6 +140,35 @@ export function agentSessionRpcErrorFailure(code: string | undefined): AgentSess
   return code === 'invalid_argument' || code === 'unauthorized'
     ? { kind: 'refused', code: 'agent_session_operation_invalid' }
     : { kind: 'unconfirmed' }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+/** The refusal a failed request's error carries in its data. Takes both shapes a client meets: an
+ *  RPC call's thrown error, whose payload is on `response.error`, and the payload a stream hands
+ *  its error callback. Undefined from an older host, or for a failure that was not a refusal. */
+export function readAgentSessionErrorRefusal(
+  error: unknown
+): AgentSessionRefusalReference | undefined {
+  const payload =
+    isRecord(error) && isRecord(error.response) && isRecord(error.response.error)
+      ? error.response.error
+      : error
+  const data = isRecord(payload) ? payload.data : undefined
+  return isRecord(data) ? readAgentSessionRefusalReference(data.refusal) : undefined
+}
+
+/** What to say about a request that threw: the host's refusal when its error carried one, else
+ *  what the RPC error code proves. Words only: whether the write may have happened stays the
+ *  caller's own classification. */
+export function agentSessionThrownFailure(
+  error: unknown,
+  rpcCode: string | undefined
+): AgentSessionWriteFailure {
+  const refusal = readAgentSessionErrorRefusal(error)
+  return refusal ? agentSessionRefusalFailure(refusal) : agentSessionRpcErrorFailure(rpcCode)
 }
 
 /** A saved failure, or undefined when it is not one this build wrote. */

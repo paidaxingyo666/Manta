@@ -71,6 +71,8 @@ test('keeps a collapsed group visible when an idle card below it grows', async (
   mantaPage,
   registerPostElectronShutdownCleanup
 }, testInfo) => {
+  // Why: the fixture's collapse slides rows in from their old position; a hidden window can freeze that mid-flight baseline.
+  await mantaPage.emulateMedia({ reducedMotion: 'reduce' })
   await waitForSessionReady(mantaPage)
   await mantaPage.setViewportSize({ width: 1200, height: 900 })
   const root = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'orca-sidebar-measured-row-')))

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "settings.task-hydration",
   "family": "settings.task-hydration",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "59e14a669103f2182737dedeed218795ffbadaf06a3a48a322cd8d20141a3e04",
-  "scenarioSha256": "3f448feff463b59c3927dae020ecd8d4931bb4a6036df6d6af080de2ec5fcf2b",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "00e1bcb4cd0c": {
       "name": "githubProjectTable",
@@ -144,6 +135,13 @@
     "1f75fb0d92bd": {
       "name": "projectRowItem",
       "ordinal": 26,
+      "value": {
+        "$rpc": "null"
+      }
+    },
+    "2481ef2215b8": {
+      "name": "projectRepoNotInManta",
+      "ordinal": 69,
       "value": {
         "$rpc": "null"
       }
@@ -675,13 +673,6 @@
       "ordinal": 61,
       "value": "items"
     },
-    "76afa47766d2": {
-      "name": "projectRepoNotInManta",
-      "ordinal": 69,
-      "value": {
-        "$rpc": "null"
-      }
-    },
     "78319deeba27": {
       "name": "status.get#1",
       "ordinal": 39,
@@ -761,10 +752,12 @@
         "startedAt": 0
       }
     },
-    "808d840ee452": {
-      "name": "trustedMantaHooks",
-      "ordinal": 52,
-      "value": {}
+    "7d8029e889cf": {
+      "name": "projectRepoNotInManta",
+      "ordinal": 27,
+      "value": {
+        "$rpc": "null"
+      }
     },
     "82f165860ff0": {
       "name": "showGitHubProjectFieldsPicker",
@@ -908,6 +901,11 @@
           }
         }
       }
+    },
+    "9490fcb6d06d": {
+      "name": "trustedMantaHooks",
+      "ordinal": 52,
+      "value": {}
     },
     "962af04c16e6": {
       "name": "error",
@@ -1169,11 +1167,6 @@
       "ordinal": 18,
       "value": false
     },
-    "d907131143c3": {
-      "name": "error",
-      "ordinal": 81,
-      "value": "Update Manta desktop to use Tasks on mobile."
-    },
     "da3527bc5f58": {
       "name": "reset-workspace",
       "ordinal": 38,
@@ -1218,6 +1211,11 @@
       "ordinal": 53,
       "value": {}
     },
+    "e74a1813f5ba": {
+      "name": "error",
+      "ordinal": 81,
+      "value": "Update Manta desktop to use Tasks on mobile."
+    },
     "e7538ac5908a": {
       "name": "runtimeTaskSettings",
       "ordinal": 51,
@@ -1227,13 +1225,6 @@
         "hostSettingOverrides": {},
         "prBotAuthorOverrides": ["bot-user"],
         "visibleTaskProviders": ["github", "linear"]
-      }
-    },
-    "e864ce71e831": {
-      "name": "projectRepoNotInManta",
-      "ordinal": 27,
-      "value": {
-        "$rpc": "null"
       }
     },
     "eb79a9b3682a": {
@@ -1349,7 +1340,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1414,7 +1405,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1429,7 +1420,7 @@
             "3d60f87d082e",
             "294741680522",
             "e7538ac5908a",
-            "808d840ee452",
+            "9490fcb6d06d",
             "e715718a7e8c",
             "2ae9c5d06de2",
             "644df42439c4",
@@ -1486,7 +1477,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1539,7 +1530,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1592,7 +1583,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1645,7 +1636,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1698,7 +1689,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1738,7 +1729,7 @@
             "ebca7b46f657",
             "b9019cedf8b9",
             "b124aa972031",
-            "76afa47766d2",
+            "2481ef2215b8",
             "40e64c5ebbb7",
             "cae3e2cc2b21",
             "d3f860f14dd0",
@@ -1750,7 +1741,7 @@
             "54fba5c273ed",
             "576f2e06ad1b",
             "b523ed4da0d6",
-            "d907131143c3",
+            "e74a1813f5ba",
             "bd86f8dd7be9"
           ]
         }
@@ -1791,7 +1782,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1831,7 +1822,7 @@
             "ebca7b46f657",
             "b9019cedf8b9",
             "b124aa972031",
-            "76afa47766d2",
+            "2481ef2215b8",
             "40e64c5ebbb7",
             "cae3e2cc2b21",
             "d3f860f14dd0",
@@ -1843,7 +1834,7 @@
             "54fba5c273ed",
             "576f2e06ad1b",
             "b523ed4da0d6",
-            "d907131143c3",
+            "e74a1813f5ba",
             "bd86f8dd7be9"
           ]
         }
@@ -1884,7 +1875,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -1924,7 +1915,7 @@
             "ebca7b46f657",
             "b9019cedf8b9",
             "b124aa972031",
-            "76afa47766d2",
+            "2481ef2215b8",
             "40e64c5ebbb7",
             "cae3e2cc2b21",
             "d3f860f14dd0",
@@ -1936,7 +1927,7 @@
             "54fba5c273ed",
             "576f2e06ad1b",
             "b523ed4da0d6",
-            "d907131143c3",
+            "e74a1813f5ba",
             "bd86f8dd7be9"
           ]
         }
@@ -1977,7 +1968,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2017,7 +2008,7 @@
             "ebca7b46f657",
             "b9019cedf8b9",
             "b124aa972031",
-            "76afa47766d2",
+            "2481ef2215b8",
             "40e64c5ebbb7",
             "cae3e2cc2b21",
             "d3f860f14dd0",
@@ -2029,7 +2020,7 @@
             "54fba5c273ed",
             "576f2e06ad1b",
             "b523ed4da0d6",
-            "d907131143c3",
+            "e74a1813f5ba",
             "bd86f8dd7be9"
           ]
         }
@@ -2070,7 +2061,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2110,7 +2101,7 @@
             "ebca7b46f657",
             "b9019cedf8b9",
             "b124aa972031",
-            "76afa47766d2",
+            "2481ef2215b8",
             "40e64c5ebbb7",
             "cae3e2cc2b21",
             "d3f860f14dd0",
@@ -2122,7 +2113,7 @@
             "54fba5c273ed",
             "576f2e06ad1b",
             "b523ed4da0d6",
-            "d907131143c3",
+            "e74a1813f5ba",
             "bd86f8dd7be9"
           ]
         }
@@ -2163,7 +2154,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2203,7 +2194,7 @@
             "ebca7b46f657",
             "b9019cedf8b9",
             "b124aa972031",
-            "76afa47766d2",
+            "2481ef2215b8",
             "40e64c5ebbb7",
             "cae3e2cc2b21",
             "d3f860f14dd0",
@@ -2215,7 +2206,7 @@
             "54fba5c273ed",
             "576f2e06ad1b",
             "b523ed4da0d6",
-            "d907131143c3",
+            "e74a1813f5ba",
             "bd86f8dd7be9"
           ]
         }
@@ -2256,7 +2247,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2309,7 +2300,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2362,7 +2353,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2415,7 +2406,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2468,7 +2459,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2521,7 +2512,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2574,7 +2565,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2627,7 +2618,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2680,7 +2671,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",
@@ -2733,7 +2724,7 @@
             "b7c96dd7bb6a",
             "f3dafd073b87",
             "1f75fb0d92bd",
-            "e864ce71e831",
+            "7d8029e889cf",
             "52b5f68c6d97",
             "16e4f4209bcf",
             "917e8342c71e",

@@ -5,9 +5,12 @@
  * startup-file chain, OSC 133 hooks, and the shell-ready marker all live here.
  */
 import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-composition'
+import { ORCA_CLI_POSIX_PATH_RESTORE } from '../../shared/manta-cli-shell-path'
+import { MANAGED_DATA_ACCOUNT_POSIX_RESTORE } from '../../shared/managed-data-account-shell'
 import { WSL_MANAGED_CLI_PATH_RESTORE } from '../wsl-managed-cli-path-restore'
 import { getPosixOmpShellWrapper } from '../pty/omp-shell-wrapper'
-import { getPosixCodexShellLaunchPreflight } from '../pty/codex-shell-launch-preflight'
+import { getPosixCodexShellLaunchPreflight } from '../../shared/codex-shell-function'
+import { getPosixClaudeShellFunction } from '../../shared/claude-shell-function'
 import { getBashStartupCommandPromptBlock } from '../pty/posix-shell-startup-command'
 import { BASH_FEATURE_CHANNEL_BLOCK, SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
 import { SHELL_READY_MARKER_ESCAPED } from './local-pty-shell-ready-marker'
@@ -46,15 +49,17 @@ __manta_restore_agent_teams_path() {
   export PATH="\${MANTA_AGENT_TEAMS_SHIM_DIR}:$PATH"
 }
 __manta_restore_agent_teams_path
+${ORCA_CLI_POSIX_PATH_RESTORE}
 ${WSL_MANAGED_CLI_PATH_RESTORE}
 # Why: user startup files may set the default OpenCode config after Manta's
 # spawn env; restore the Manta-managed config dir before the first prompt.
 [[ -n "\${MANTA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${MANTA_OPENCODE_CONFIG_DIR}"
+${MANAGED_DATA_ACCOUNT_POSIX_RESTORE}
 [[ -n "\${MANTA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${MANTA_MIMOCODE_HOME}"
 ${getPosixOmpShellWrapper()}
 # Why: Codex must keep using Manta's runtime CODEX_HOME after profile scripts.
 [[ -n "\${MANTA_CODEX_HOME:-}" ]] && export CODEX_HOME="\${MANTA_CODEX_HOME}"
-${getPosixCodexShellLaunchPreflight()}
+${getPosixCodexShellLaunchPreflight() + getPosixClaudeShellFunction()}
 # Why: emit OSC 133 C/D so terminal-command-lifecycle can drop stale agent
 # status when the foreground command (e.g. an interrupted Claude/Codex CLI)
 # exits — mirrors the zsh wrapper. Without this, bash users (default on most

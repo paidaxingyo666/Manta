@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import {
   existsSync,
   mkdirSync,
@@ -35,6 +36,7 @@ import {
  */
 const FIXTURE_RELEASE_REF = 'v1.4.189-rc.10'
 const temporaryRoots: string[] = []
+const temporaryRefs: { ref: string; commit: string }[] = []
 
 const COMPRESSED_LOCK_OPTIONS: CheckoutLockOptions = {
   realpath: false,
@@ -51,6 +53,10 @@ function temporaryCacheRoot(): string {
 
 function git(args: string[]): string {
   return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8' }).trim()
+}
+
+function hasLocalTag(tag: string): boolean {
+  return git(['tag', '--list', tag]) === tag
 }
 
 function syntheticCheckout(): ReleaseCheckout {
@@ -265,6 +271,9 @@ async function runContentionPhase(
 }
 
 afterEach(() => {
+  for (const { ref, commit } of temporaryRefs.splice(0)) {
+    git(['update-ref', '-d', ref, commit])
+  }
   for (const root of temporaryRoots.splice(0)) {
     rmSync(root, { recursive: true, force: true })
   }
@@ -283,6 +292,7 @@ describe('release checkout materialization', () => {
     expect(relative(cacheRoot, checkouts[0]!.root)).not.toMatch(/^\.\./)
   })
 
+  // Cold extraction and transforms need the cross-version suite's startup budget.
   it('loads a baseline module whose source imports another checkout-root file', async () => {
     const cacheRoot = temporaryCacheRoot()
     const checkout = await materializeReleaseCheckout(FIXTURE_RELEASE_REF, { cacheRoot })
@@ -290,14 +300,69 @@ describe('release checkout materialization', () => {
 
     expect(protocol.REMOTE_SERVER_UPDATE_CAPABILITY).toBe('updater.remote-control.v1')
     expect(relative(cacheRoot, checkout.root)).not.toMatch(/^\.\./)
-  })
+  }, 180_000)
+
+  // v1.4.221 still needs the pinned test-only parser for its dense match path.
+  // Default cache root: package resolution must walk up into the repo's node_modules.
+  // Fork: upstream's v1.4.221 tag is not on this fork's remote; run only where it was fetched.
+  it.skipIf(!hasLocalTag('v1.4.221'))(
+    'runs the released dense parser with its retained test dependency',
+    async () => {
+      const checkout = await materializeReleaseCheckout('v1.4.221')
+      const ripgrep = await importReleaseCheckoutModule(
+        checkout,
+        '/src/shared/ripgrep-dense-match-json.ts'
+      )
+      const callExport = (name: string, ...args: unknown[]): unknown => {
+        const exported = ripgrep[name]
+        if (typeof exported !== 'function') {
+          throw new Error(`v1.4.221 ripgrep-dense-match-json has no ${name} export`)
+        }
+        return exported(...args)
+      }
+      const limits = { structuralTokens: 64, nestingDepth: 8 }
+
+      expect(callExport('parseRipgrepMatchJson', '{"type":"match"}', 1, limits)).toEqual({
+        type: 'match'
+      })
+      expect(callExport('parseDenseRipgrepMatchJson', '{"type":"match"}', 1, 8)).toEqual({
+        type: 'match',
+        data: { submatches: [] }
+      })
+      const match = {
+        type: 'match',
+        data: {
+          path: { text: 'src/example.ts' },
+          lines: { text: 'hit hit\n' },
+          line_number: 7,
+          submatches: [
+            { start: 0, end: 3 },
+            { start: 4, end: 7 }
+          ]
+        }
+      }
+      expect(callExport('parseDenseRipgrepMatchJson', JSON.stringify(match), 1, 8)).toEqual({
+        ...match,
+        data: { ...match.data, submatches: [{ start: 0, end: 3 }] }
+      })
+      expect(() => callExport('parseDenseRipgrepMatchJson', '{"type":', 1, 8)).toThrow()
+    },
+    180_000
+  )
 
   it('keeps an import live while another colliding release label materializes', async () => {
-    // Two distinct commits reachable from HEAD. A merge offers two parents; a
-    // linear history — this fork sits on a generated mirror of upstream — has
-    // none, so fall back to consecutive ancestors.
-    const merge = git(['rev-list', '--merges', '-1', 'HEAD'])
-    const [firstRef, secondRef] = merge ? [`${merge}~2`, `${merge}^2`] : ['HEAD~2', 'HEAD~1']
+    // Squash-merged history has no merge parents; create two distinct refs with colliding labels.
+    const scope = `refs/orca-checkout-test/${randomUUID()}`
+    const firstRef = `${scope}/release`
+    const secondRef = `${scope}_release`
+    for (const [ref, revision] of [
+      [firstRef, 'HEAD'],
+      [secondRef, FIXTURE_RELEASE_REF]
+    ]) {
+      const commit = git(['rev-parse', `${revision}^{commit}`])
+      git(['update-ref', ref, commit, '0'.repeat(40)])
+      temporaryRefs.push({ ref, commit })
+    }
     expect(git(['rev-parse', `${firstRef}^{commit}`])).not.toBe(
       git(['rev-parse', `${secondRef}^{commit}`])
     )
@@ -317,6 +382,7 @@ describe('release checkout materialization', () => {
     const second = await materializeReleaseCheckout(secondRef, { cacheRoot })
 
     await expect(loading).resolves.toMatchObject({ loaded: 'first-release' })
+    expect(first.label).toBe(second.label)
     expect(first.root).not.toBe(second.root)
   })
 

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "notifications.push-dismissal",
   "family": "notifications.push-dismissal",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "595a3eb2994d0596b9fcd0707b175b4e978625053dfbc5c541b0350c0cbfb524",
-  "scenarioSha256": "6aace32c3bc15620097285384755bbf6515ad29aae8d45d674c332a60a73fa37",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "4d602d4523e5": {
       "name": "notifications.getMissedSince#1",
@@ -23,14 +14,6 @@
       "ordinal": 4,
       "value": {
         "identifier": "tray-1"
-      }
-    },
-    "72cac49e6acc": {
-      "name": "device-store.setItem",
-      "ordinal": 3,
-      "value": {
-        "key": "manta:pushDismissalWatermarks:v1",
-        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-1\\\"]\",\"seq\":7,\"expiresAt\":1767312000000}]"
       }
     },
     "9270aeb7d9c6": {
@@ -127,6 +110,14 @@
       "value": {
         "$rpc": "undefined"
       }
+    },
+    "fa03fdca3d1d": {
+      "name": "device-store.setItem",
+      "ordinal": 3,
+      "value": {
+        "key": "manta:pushDismissalWatermarks:v1",
+        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-1\\\"]\",\"seq\":7,\"expiresAt\":1767312000000}]"
+      }
     }
   },
   "recording": {
@@ -153,7 +144,7 @@
             "catchup": "eb79a9b3682a"
           },
           "state": "cf9c28129225",
-          "effects": ["72cac49e6acc", "6cfa895b17c4"]
+          "effects": ["fa03fdca3d1d", "6cfa895b17c4"]
         }
       }
     ]

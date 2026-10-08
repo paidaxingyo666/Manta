@@ -18,6 +18,7 @@ import { resolveTerminalSessionWorktreeId } from './runtime-worktree-path-identi
 import { getLocalProjectWorktreeGitOptions } from '../project-runtime-git-options'
 import { adoptRuntimeTerminalOrphansFromInventory } from './runtime-terminal-orphan-adoption'
 import { getRepoIdFromWorktreeId } from '../../shared/worktree/id'
+import { getLatestPtyTitle } from './runtime-worktree-status-projection'
 import type { PtyLivenessVerdict } from '../../shared/pty-liveness-verdict'
 
 export class MantaRuntimeWithAdoptTerminalOrphansFromInventory extends MantaRuntimeWithSubscribeToTerminalResize {
@@ -62,6 +63,7 @@ export class MantaRuntimeWithAdoptTerminalOrphansFromInventory extends MantaRunt
         getPty: (handle) => this.getLivePtyForHandle(handle)?.pty ?? null,
         getLeaves: (ptyId) => this.getLeavesForPty(ptyId),
         getLeaf: (tabId, leafId) => this.leaves.get(this.getLeafKey(tabId, leafId)),
+        getDisplayTitle: (pty) => getLatestPtyTitle(this.getPtyDisplayRecord(pty)),
         replayPersistedSurface: (pty, tabId, paneKey) =>
           recordPtySurface(pty, tabId, paneKey, SURFACE_CLAIM_WITHOUT_STANDING),
         recordAdoptedSurface: (pty, tabId, paneKey) =>

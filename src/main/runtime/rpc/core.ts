@@ -15,6 +15,7 @@ import type {
 import type { RuntimeCapability } from '../../../shared/protocol-version'
 import type { OrchestrationCompatibilityEvidence } from '../../../shared/orchestration-compatibility-evidence'
 import type { OrchestrationSessionCaller } from '../orchestration/orchestration-caller-identity'
+import type { RpcCallerIdentity } from './rpc-caller-identity'
 
 export type PairingRpcContext = {
   getEndpoints(params: PairingGetEndpointsParams): Promise<PairingGetEndpointsResult>
@@ -51,7 +52,6 @@ export type RpcRequest = {
   authToken: string
   method: string
   params?: unknown
-  orchestrationCapability?: string
   orchestrationContractVersion?: number
   orchestrationRequestId?: string
   compatibilityInvocationId?: string
@@ -84,14 +84,14 @@ export type RpcContext = {
   // owned by the RPC server, and a push token is only writable for the device
   // whose authenticated socket this context belongs to.
   setDevicePushToken?: (deviceId: string, token: DevicePushTokenRecord) => boolean
+  // Why: host-assigned from the transport (rpc-caller-identity.ts); absent when the transport could not name its caller.
+  caller?: RpcCallerIdentity
   // Why: lets handlers gate mobile payload truncation to phones only; undefined for in-process callers → treat as full-class (no clip).
   clientKind?: 'mobile' | 'runtime'
   // Why: negotiation is bound to the authenticated socket, never asserted by a destructive request.
   clientCapabilities?: readonly RuntimeCapability[]
   // Why: mobile v2 auth is exact-key validated; capability upgrades must mutate only the authenticated socket after auth.
   updateClientCapabilities?: (capabilities: readonly RuntimeCapability[]) => void
-  // Why: Dispatch authority rides in the authenticated RPC envelope, never in user payload fields.
-  orchestrationCapability?: string
   // Why: long-lived mutations such as ask can durably expose acceptance before their waiter settles.
   recordMutationReceipt?: (receipt: unknown) => void
   // Why: only local worker_done makes pending proof that its atomic settlement transaction never committed.
