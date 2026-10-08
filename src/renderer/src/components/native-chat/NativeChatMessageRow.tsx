@@ -14,6 +14,7 @@ import type {
 import { deriveNativeChatRowContent } from '../../../../shared/native-chat-row-content'
 import { NativeChatToolRun } from './NativeChatToolRun'
 import { NativeChatReasoningRow } from './NativeChatReasoningRow'
+import { NativeChatUserMessageFold } from './NativeChatUserMessageFold'
 import { NativeChatCodeBlock } from './NativeChatCodeBlock'
 import { NativeChatNoticeRow } from './NativeChatNoticeRow'
 import { nativeChatBlocksInOwnWords } from './native-chat-stopped-before-start-row'
@@ -155,6 +156,14 @@ export const MessageRow = memo(function MessageRow({
       onScrollMessageToTop(rowRef.current)
     }
   }, [onScrollMessageToTop])
+  // "Show less" sits at the bottom of an open prompt; folding it can leave the reader past it.
+  const returnToView = useCallback(() => {
+    const row = rowRef.current
+    const viewport = row?.closest('[data-native-chat-scroll]')
+    if (row && viewport && row.getBoundingClientRect().top < viewport.getBoundingClientRect().top) {
+      onScrollMessageToTop(row)
+    }
+  }, [onScrollMessageToTop])
 
   // Skip rows with nothing renderable so the transcript shows no empty/ghost
   // bubble.
@@ -227,14 +236,20 @@ export const MessageRow = memo(function MessageRow({
                 runtimeContext={runtimeContext}
                 enablePreview={runtimeContext !== undefined}
               />
-              <NativeChatMarkdown
-                content={markdown}
-                variant="document"
-                className="text-sm native-chat-message-text"
-                renderCodeBlock={NativeChatCodeBlock}
-                onLinkClick={onLinkClick}
-                allowFileUriLinks={allowFileUriLinks}
-              />
+              <NativeChatUserMessageFold
+                messageId={message.id}
+                markdown={markdown}
+                onRefolded={returnToView}
+              >
+                <NativeChatMarkdown
+                  content={markdown}
+                  variant="document"
+                  className="text-sm native-chat-message-text"
+                  renderCodeBlock={NativeChatCodeBlock}
+                  onLinkClick={onLinkClick}
+                  allowFileUriLinks={allowFileUriLinks}
+                />
+              </NativeChatUserMessageFold>
             </>
           ) : (
             <NativeChatImageAttachments

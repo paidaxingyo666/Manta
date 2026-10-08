@@ -18330,6 +18330,10 @@
       "messageNotSent": "메시지가 전송되지 않음",
       "deliveryUnconfirmed": "전달 확인 안 됨 — 다시 시도하기 전에 채팅을 확인하세요",
       "messageSending": "전송 중…",
+      "userMessage": {
+        "showFull": "전체 메시지 표시",
+        "showLess": "접기"
+      },
       "queuedMessages": {
         "alreadySent": "이 메시지는 이미 전송되었습니다.",
         "editAlreadySent": "이미 전송되었습니다 — 텍스트는 입력창에 남아 있습니다.",

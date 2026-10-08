@@ -18138,6 +18138,10 @@
       "messageNotSent": "Mensaje no enviado",
       "deliveryUnconfirmed": "Entrega sin confirmar — revisa el chat antes de reintentar",
       "messageSending": "Enviando…",
+      "userMessage": {
+        "showFull": "Mostrar mensaje completo",
+        "showLess": "Mostrar menos"
+      },
       "subagents": {
         "unnamed": "Subagente",
         "state": {
