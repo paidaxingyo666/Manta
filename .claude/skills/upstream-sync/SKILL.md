@@ -256,6 +256,12 @@ Open a pull request; merge without squash. Nothing in CI runs on a push to
 checks. `cross-version wire compatibility` needs an upstream release tag the
 fork's remote does not carry and will stay red until that is decided.
 
+`verify` is required and fails when that job's runtime-launcher ratchet sees a
+daemon protocol bump and a launcher change in one PR. A sync spanning several
+upstream releases always carries both, so label the PR
+`allow-runtime-launcher-protocol-bump` before its last push — the gate reads
+labels only from a push event, never a re-run.
+
 Two things the sync itself will not tell you:
 
 - **The version follows upstream's line.** Read their newest tag, not
