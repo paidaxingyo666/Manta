@@ -18183,6 +18183,7 @@
       },
       "receipt": {
         "unavailable": "선택한 답변을 사용할 수 없습니다.",
+        "emptyAnswer": "빈 답변",
         "cancelled": "취소",
         "resolved": "해결됨",
         "resolver": "{{device}}에 답변됨",

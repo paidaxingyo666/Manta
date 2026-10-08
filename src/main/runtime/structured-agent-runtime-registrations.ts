@@ -50,6 +50,7 @@ import {
   resolveAcpLaunchCommand
 } from '../acp/acp-structured-launch-resolution'
 import { AcpStructuredSessionAdapter } from '../acp/acp-structured-session-adapter'
+import { PI_RPC_RUNTIME_REGISTRATION } from '../pi/rpc-runtime-registration'
 
 /** What an agent's adapter is built from: the open store and the runtime around it. */
 export type StructuredAgentAdapterContext = {
@@ -266,6 +267,7 @@ async function resolveCodexAccountHomePath(
 
 export const STRUCTURED_AGENT_RUNTIME_REGISTRATIONS: readonly StructuredAgentRuntimeRegistration[] =
   [
+    PI_RPC_RUNTIME_REGISTRATION,
     {
       definition: CODEX_STRUCTURED_AGENT,
       createAdapter: createCodexAdapter,

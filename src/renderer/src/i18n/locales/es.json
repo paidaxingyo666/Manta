@@ -18192,6 +18192,7 @@
       "receipt": {
         "cancelled": "Cancelado",
         "unavailable": "Respuesta seleccionada no disponible",
+        "emptyAnswer": "Respuesta vacía",
         "resolved": "Resuelto",
         "resolver": "Respondido en {{device}}",
         "cancelledBy": "Cancelado en {{device}}"

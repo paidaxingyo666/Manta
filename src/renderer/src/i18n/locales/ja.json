@@ -18183,6 +18183,7 @@
       },
       "receipt": {
         "unavailable": "選択した回答は利用できません",
+        "emptyAnswer": "空の回答",
         "cancelled": "キャンセル",
         "resolved": "解決済み",
         "resolver": "{{device}} に回答しました",

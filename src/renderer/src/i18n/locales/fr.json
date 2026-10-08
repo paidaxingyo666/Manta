@@ -18249,6 +18249,7 @@
       },
       "receipt": {
         "unavailable": "Réponse sélectionnée indisponible",
+        "emptyAnswer": "Réponse vide",
         "cancelled": "Annulé",
         "resolved": "Résolu",
         "resolver": "Répondu le {{device}}",
