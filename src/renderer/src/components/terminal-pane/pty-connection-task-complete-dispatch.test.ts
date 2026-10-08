@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RESET_TERMINAL_CURSOR_STYLE } from '../../../../shared/terminal-mode-reset-profiles'
 import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { flushAsyncTicks } from './pty-connection-test-async'
+import reconnectTrace from './__fixtures__/codex-app-server-reconnect-titles-trace.json'
 import { AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS } from './pty-connection-test-constants'
 import {
   LEAF_1,
@@ -199,6 +200,63 @@ describe('connectPanePty', () => {
       paneKey: makePaneKey('tab-1', LEAF_1)
     })
     expect(window.api.pty.inspectProcess).toHaveBeenCalledWith('pty-codex')
+  })
+
+  it('stays silent when Codex repaints its settled turn while re-attaching to its app-server', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    // Same module instance the pane wiring loaded.
+    const { recordSettledAgentCompletion, resetSettledAgentCompletionsForTest } =
+      await import('./pty-connection/title-repaint-completion')
+    const transport = createMockTransport('pty-codex')
+    transportFactoryQueue.push(transport)
+    vi.useFakeTimers()
+    vi.mocked(window.api.pty.getForegroundProcess).mockResolvedValue('codex')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    const settledTurn = {
+      state: 'done' as const,
+      prompt: 'update and run the demo build',
+      updatedAt: Date.now() - 3_600_000,
+      stateStartedAt: Date.now() - 3_600_000,
+      agentType: 'codex',
+      paneKey,
+      stateHistory: []
+    }
+    mockStoreState.agentStatusByPaneKey[paneKey] = settledTurn
+    resetSettledAgentCompletionsForTest()
+    // The hook lane announced this turn when it ended.
+    recordSettledAgentCompletion(paneKey, settledTurn)
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+    const titleHandler = createdTransportOptions[0]?.onTitleChange as
+      | ((title: string, rawTitle: string) => void)
+      | undefined
+    if (!titleHandler) {
+      throw new Error('Expected onTitleChange to be registered')
+    }
+    const paint = async (titles: readonly string[]): Promise<void> => {
+      for (const title of titles) {
+        titleHandler(title, title)
+        await vi.advanceTimersByTimeAsync(80)
+      }
+      await flushAsyncTicks()
+      await vi.advanceTimersByTimeAsync(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS + 2_000)
+    }
+
+    await paint(reconnectTrace.reconnects[1])
+    expect(deps.dispatchNotification).not.toHaveBeenCalled()
+
+    // Control: the user typed, so the next run is theirs.
+    mockStoreState.lastTerminalInputAtByPaneKey[paneKey] = Date.now()
+    await paint([`⠋ ${reconnectTrace.idleTitle}`, reconnectTrace.idleTitle])
+    expect(deps.dispatchNotification).toHaveBeenCalledWith({
+      source: 'agent-task-complete',
+      terminalTitle: reconnectTrace.idleTitle,
+      paneKey
+    })
+    resetSettledAgentCompletionsForTest()
   })
 
   it('does not dispatch generic spinner completions when process inspection finds no agent', async () => {

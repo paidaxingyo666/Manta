@@ -5,6 +5,7 @@ type LifecycleState = {
   lastCompletionToken: string | null
   lastCompletionAt: number
   lastCompletedTurn: number | null
+  repaintSettledTurn: number | null
   lastCompletionSource: 'hook' | 'title' | 'process-exit' | null
   lastCompletionIdentity: unknown
   lastAttentionToken: string | null
@@ -48,6 +49,7 @@ export function createAgentCompletionLifecycle({
     state.lastCompletionToken = null
     state.lastCompletionAt = 0
     state.lastCompletedTurn = null
+    state.repaintSettledTurn = null
     state.lastCompletionSource = null
     state.lastCompletionIdentity = null
     state.lastAttentionToken = null

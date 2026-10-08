@@ -44,6 +44,11 @@ export type AgentCompletionCoordinatorOptions = {
   shouldSuppressConfirmedProcessExitCompletion?: (exited: RecognizedAgentProcess) => boolean
   /** Fired once per confirmed exit (settled local absence, or the host's `exited` verdict). */
   onForegroundAgentExited?: (exited: RecognizedAgentProcess) => void
+  /** False settles a title completion without announcing it: a repaint, not a turn. */
+  shouldAnnounceTitleCompletion?: (args: {
+    title: string
+    foregroundAgent: RecognizedAgentProcess['agent'] | null
+  }) => boolean
   isLive: () => boolean
   shouldPollProcessCadence?: () => boolean
   // Why: a host that publishes foreground evidence with its inventory lets a

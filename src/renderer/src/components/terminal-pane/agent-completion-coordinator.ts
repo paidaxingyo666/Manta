@@ -43,7 +43,8 @@ export function createAgentCompletionCoordinator(
     lastAttentionToken: null,
     pendingHookDoneTimer: null,
     pendingHookDoneTitle: null,
-    pendingHookDonePayload: null
+    pendingHookDonePayload: null,
+    repaintSettledTurn: null
   }
   // Why: output/title activity can arrive before async PTY bind; only re-arm cadence after bind starts process tracking.
   const processState = {

@@ -6,9 +6,11 @@ import type {
   AgentCompletionStatusSnapshot
 } from '@/components/terminal-pane/agent-completion-coordinator-types'
 import type { RuntimeTerminalProcessInspection } from '@/runtime/runtime-terminal-inspection'
+import type { AgentStatusEntry } from '../../../shared/agent-status-types'
 import { dispatchTerminalNotification } from '@/components/terminal-pane/use-notification-dispatch'
 import { collectLeafIdsInOrder } from '@/components/terminal-pane/layout-serialization'
 import { dispatchAgentHookTerminalLifecycle } from '@/components/terminal-pane/agent-hook-terminal-lifecycle'
+import { recordSettledAgentCompletion } from '@/components/terminal-pane/pty-connection/title-repaint-completion'
 import {
   isAgentHookCompletionTrackingEnabled,
   shouldSyncAgentHookCompletionForStoreUpdate,
@@ -231,6 +233,11 @@ function paneCanReceiveHookCompletion(paneKey: string, tabIndex?: TabIndex): boo
   return paneKeyHasUnsuppressedPtyHint(state, paneKey, tabIndex) || paneHasLivePty(paneKey)
 }
 
+function settledDoneRow(paneKey: string): AgentStatusEntry | undefined {
+  const row = useAppStore.getState().agentStatusByPaneKey[paneKey]
+  return row?.state === 'done' ? row : undefined
+}
+
 function createCoordinator(paneKey: string, worktreeId: string): AgentCompletionCoordinator {
   return createAgentCompletionCoordinator({
     paneKey,
@@ -252,6 +259,8 @@ function createCoordinator(paneKey: string, worktreeId: string): AgentCompletion
         paneKey,
         ...(meta?.agentStatus ? { agentStatusSnapshot: meta.agentStatus } : {})
       })
+      // Why: a later title repaint of this announced turn must not announce it again.
+      recordSettledAgentCompletion(paneKey, meta?.agentStatus ?? settledDoneRow(paneKey))
     },
     dispatchAttention: (title, meta) => {
       if (!isAgentTaskCompleteTrackingEnabled() || paneKeysRequiringFreshWorking.has(paneKey)) {
