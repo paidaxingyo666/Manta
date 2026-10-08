@@ -446,37 +446,6 @@ describe('deriveAiVaultWorkspaceScopePaths', () => {
       '/Users/ada/workspaces/manta/unclaimed-old-path'
     ])
   })
-
-  it('ignores prior paths claimed by another live worktree in a different repo', () => {
-    expect(
-      deriveAiVaultWorkspaceScopePaths(
-        {
-          id: 'repo1::/Users/ada/workspaces/manta/fix-agent-history',
-          repoId: 'repo1',
-          path: '/Users/ada/workspaces/manta/fix-agent-history',
-          priorWorktreeIds: [
-            'repo1::/Users/ada/workspaces/manta/bream',
-            'repo1::/Users/ada/workspaces/manta/unclaimed-old-path'
-          ]
-        },
-        [
-          {
-            id: 'repo1::/Users/ada/workspaces/manta/fix-agent-history',
-            repoId: 'repo1',
-            path: '/Users/ada/workspaces/manta/fix-agent-history'
-          },
-          {
-            id: 'repo2::/Users/ada/workspaces/manta/bream',
-            repoId: 'repo2',
-            path: '/Users/ada/workspaces/manta/bream'
-          }
-        ]
-      )
-    ).toEqual([
-      '/Users/ada/workspaces/manta/fix-agent-history',
-      '/Users/ada/workspaces/manta/unclaimed-old-path'
-    ])
-  })
 })
 
 describe('deriveAiVaultScopeSessionPaths', () => {

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "files.explorer-screen",
   "family": "files.explorer-screen",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "7a42a348f4407b94cf75ac77a4b6b783b7d28103b1ae1d111d2708dab0dd4a0c",
-  "scenarioSha256": "0b87a230cf1c4219e415c840a088502c8bda7cd2fb525bde1a83a5903d6fd96b",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "1fac8f3b8f44": {
       "crash": {

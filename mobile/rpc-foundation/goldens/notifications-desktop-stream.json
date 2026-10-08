@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "notifications.desktop-stream",
   "family": "notifications.desktop-stream",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "eacf859143588ae6bee2804975d642b6c1088d57ae77ffe298620250d9a9f0e4",
-  "scenarioSha256": "73d7274fab9eba3d2eeec6e13a20b6279e6f71d161df91df832d7e6ab33e3675",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0ba59ff70596": {
       "name": "device-store.setItem",
@@ -25,6 +16,11 @@
       "name": "notifications.getMissedSince#1",
       "ordinal": 3,
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":6,\"epoch\":\"epoch-1\"}}"
+    },
+    "2920ec417a8b": {
+      "name": "notifications.unsubscribe#1",
+      "ordinal": 6,
+      "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.unsubscribe\",\"params\":{\"subscriptionId\":\"sub-1\"}}"
     },
     "34408026fe7f": {
       "name": "notifications.getMissedSince#1",
@@ -69,40 +65,6 @@
         }
       }
     },
-    "4510854e3d64": {
-      "name": "notifications.unsubscribe#1",
-      "ordinal": 6,
-      "args": [
-        {
-          "name": "method",
-          "value": "notifications.unsubscribe"
-        },
-        {
-          "name": "params",
-          "value": {
-            "subscriptionId": "sub-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-3",
-          "ok": true,
-          "result": {
-            "unsubscribed": true
-          }
-        }
-      }
-    },
     "4c8cb72d6fab": {
       "name": "notifications.subscribe#1",
       "ordinal": 1,
@@ -111,39 +73,8 @@
     "5359579cc62d": {
       "running": true
     },
-    "6efd92e320ef": {
-      "name": "notifications.unsubscribe#1",
-      "ordinal": 6,
-      "args": [
-        {
-          "name": "method",
-          "value": "notifications.unsubscribe"
-        },
-        {
-          "name": "params",
-          "value": {
-            "subscriptionId": "sub-1"
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "pending",
-        "startedAt": 0
-      }
-    },
     "a0b2bcfcde77": {
       "running": false
-    },
-    "ab0e4b79457f": {
-      "name": "notifications.unsubscribe#1",
-      "ordinal": 7,
-      "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.unsubscribe\",\"params\":{\"subscriptionId\":\"sub-1\"}}"
     },
     "beb4f7594f1c": {
       "name": "device-store.setItem",
@@ -243,8 +174,8 @@
       {
         "id": "unsubscribing",
         "observation": {
-          "sender": ["34408026fe7f", "6efd92e320ef"],
-          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "sender": ["34408026fe7f"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "2920ec417a8b"],
           "settlements": {
             "start": "eb79a9b3682a",
             "stop": "eb79a9b3682a"
@@ -256,8 +187,8 @@
       {
         "id": "stopped",
         "observation": {
-          "sender": ["34408026fe7f", "4510854e3d64"],
-          "payloads": ["4c8cb72d6fab", "1381f7673721", "ab0e4b79457f"],
+          "sender": ["34408026fe7f"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "2920ec417a8b"],
           "settlements": {
             "start": "eb79a9b3682a",
             "stop": "eb79a9b3682a"

@@ -22,10 +22,11 @@ describe('cross-version pinned refs', () => {
         "const PRE_STACK_REF = 'v1.4.199'\nconst LEGACY_RELEASE_REF = 'v1.4.184'",
         "const FIXTURE_RELEASE_REF = 'v1.4.189-rc.10'\nconst PRE_STACK_REF = 'v1.4.199'",
         "const REPORTED_HOST_REF = '4bb337741c335cfcc428d3b4271023566e2dadb8'",
-        "const OTHER = 'v9.9.9'\nconst UNSUPPORTED_REF = 'main'"
+        "const OTHER = 'v9.9.9'\nconst UNSUPPORTED_REF = 'main'",
+        "test.each(['v1.4.205', 'v1.4.211'])(\nit.each([['label', 'v8.8.8-app']])"
       ])
     ).toEqual({
-      tags: ['v1.4.184', 'v1.4.189-rc.10', 'v1.4.199'],
+      tags: ['v1.4.184', 'v1.4.189-rc.10', 'v1.4.199', 'v1.4.205', 'v1.4.211'],
       commits: ['4bb337741c335cfcc428d3b4271023566e2dadb8']
     })
   })

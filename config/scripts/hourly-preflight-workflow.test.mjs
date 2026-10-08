@@ -62,11 +62,10 @@ describe('hourly build preflight', () => {
     expect(
       preflight.steps.find((step) => step.id === 'app_token').with['permission-contents']
     ).toBe('read')
-    expect(build.needs).toBe('preflight')
-    // The freshness gate lives on preflight's own `if`, not on this job's: the
-    // credential-scope contract requires this one to be exactly the repository
-    // guard, so the gate is enforced by `needs` skipping the job instead.
-    expect(build.needs).toBe('preflight')
+    expect(build.needs).toEqual(['preflight', 'relay-windows-process-tree'])
+    // The credential-scope contract requires this job's `if` to be exactly the
+    // repository guard, so the freshness gate is enforced by `needs` instead.
+    expect(build.if).toBe("github.repository == 'stablyai/orca'")
     expect(build.steps.find((step) => step.name === 'Checkout').with.ref).toBe(
       build.outputs.head_sha
     )

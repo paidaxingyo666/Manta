@@ -47,6 +47,14 @@ export function getMantaManagedCodexHomePath(): string {
   return managedHomePath
 }
 
+/** Config files a Manta-launched local Codex reads trust from, in the hook installer's lock order. */
+export function getLocalCodexTrustConfigFiles(agentHome: string): string[] {
+  return [
+    join(getMantaManagedCodexHomePath(), 'config.toml'),
+    join(agentHome, '.codex', 'config.toml')
+  ]
+}
+
 export function getCodexSessionBackfillStateDirPath(): string {
   return join(getMantaUserDataPath(), 'codex-session-backfill')
 }

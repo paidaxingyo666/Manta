@@ -18,6 +18,12 @@ import {
   readDaemonPidRecord
 } from '../daemon/daemon-init'
 
+const WINDOWS_DAEMON_STARTUP_TIMEOUT_MS = 30_000
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 export type OrcadDaemonStartup =
   | { state: 'live'; pid: number | null }
   | { state: 'degraded'; reason: string }
@@ -31,13 +37,25 @@ export type OrcadDaemonStartup =
  * — `daemonOwnsFreshPersistentPtys()` is what the runtime reads for that, and it answers
  * false here without any extra bookkeeping.
  */
-export async function startMantadDaemon(): Promise<OrcadDaemonStartup> {
+export async function startMantadDaemon(
+  platform: NodeJS.Platform = process.platform
+): Promise<OrcadDaemonStartup> {
+  // Why no login-session watch: that retires the daemon when the spawning macOS GUI login
+  // session dies. An mantad daemon must survive its SSH session ending — that is the point.
+  const policy = {
+    macosLoginSessionWatch: false,
+    // A freshly uploaded node.exe plus conpty can take well over 10 s on its first, AV-scanned exec.
+    ...(platform === 'win32' ? { startupTimeoutMs: WINDOWS_DAEMON_STARTUP_TIMEOUT_MS } : {})
+  }
   try {
-    // Why no login-session watch: that retires the daemon when the spawning macOS GUI login
-    // session dies. An mantad daemon must survive its SSH session ending — that is the point.
-    await initDaemonPtyProvider(undefined, { macosLoginSessionWatch: false })
+    await initDaemonPtyProvider(undefined, policy).catch((error: unknown) => {
+      // One warm retry: activation refuses a daemonless candidate, so a cold-start miss would
+      // otherwise leave a first deploy serving nothing.
+      console.warn(`[mantad] The terminal daemon did not start (${errorMessage(error)}); retrying`)
+      return initDaemonPtyProvider(undefined, policy)
+    })
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
+    const reason = errorMessage(error)
     console.error(
       `[mantad] The terminal daemon did not start: ${reason}\n` +
         '[mantad] Terminals will run in-process and WILL NOT survive an mantad restart.'

@@ -16,13 +16,12 @@ import {
   renderedLocalNames,
   stringParts
 } from './localization-copy-classification.mjs'
+import { isTestOnlySourcePath } from './test-only-source-path.mjs'
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'])
-// Why: test-only modules live beside their spec as `*-test-harness.ts` / `*-test-rig.ts` / `*-fixtures.ts` here, not under `__tests__/`.
-const TEST_SUPPORT_FILE_PATTERN =
-  /[.-](?:test-harness|test-rig|test-fixtures?|test-state|test-support|fixtures?)\.[cm]?[jt]sx?$/
 const SKIP_PATH_PARTS = new Set([
   '.git',
+  '.tmp',
   'dist',
   'node_modules',
   'out',
@@ -64,10 +63,7 @@ export function isSkippedFile(root, filePath) {
   if (
     relative.endsWith('.d.ts') ||
     relative.includes('.generated.') ||
-    relative.includes('.test.') ||
-    relative.includes('.spec.') ||
-    relative.includes('/__tests__/') ||
-    TEST_SUPPORT_FILE_PATTERN.test(relative)
+    isTestOnlySourcePath(relative)
   ) {
     return true
   }
@@ -162,10 +158,16 @@ export function collectLocalizationCandidates(
       return
     }
 
-    const kind = classifyStringNode(node, rendered, options)
-    if (kind) {
-      for (const part of stringParts(node)) {
-        pushReport(node, kind, part.text, part.dynamic)
+    if (
+      ts.isStringLiteralLike(node) ||
+      ts.isNoSubstitutionTemplateLiteral(node) ||
+      ts.isTemplateExpression(node)
+    ) {
+      const kind = classifyStringNode(node, rendered, options)
+      if (kind) {
+        for (const part of stringParts(node)) {
+          pushReport(node, kind, part.text, part.dynamic)
+        }
       }
     }
 

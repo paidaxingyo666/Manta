@@ -11,6 +11,7 @@ import { track } from '@/lib/telemetry'
 import { resolveAgentPaneAuthorityKey } from '@/store/slices/agent-pane-authority'
 import type { AgentStatusBatchUpdate, AgentStatusUpdate } from '@/store/slices/agent-status'
 import { observeAgentHookCompletionForNotification } from '../agent-hook-completion-notifications'
+import { recordSettledAgentCompletion } from '@/components/terminal-pane/pty-connection/title-repaint-completion'
 import { useAppStore } from '../../store'
 import {
   applyResolvedAgentTerminalTitleToTab,
@@ -227,7 +228,8 @@ export function createAgentStatusEventApplicator(args: {
         ...(data.evidenceObservedAt !== undefined
           ? { evidenceObservedAt: data.evidenceObservedAt }
           : {}),
-        stateStartedAt: data.stateStartedAt
+        stateStartedAt: data.stateStartedAt,
+        ...(Number.isFinite(data.turnStartedAt) ? { turnStartedAt: data.turnStartedAt } : {})
       },
       routing: {
         tabId: ownerTabId,
@@ -248,6 +250,12 @@ export function createAgentStatusEventApplicator(args: {
           worktreeId: statusWorktreeId,
           payload: notificationPayload,
           ...(options?.replay === true ? { seedOnly: true } : {})
+        })
+      } else if (options?.replay === true && resolvedPayload.state === 'done') {
+        // Why: a turn that ended before this renderer attached is settled; a repaint of it is not news.
+        recordSettledAgentCompletion(paneKey, {
+          ...resolvedPayload,
+          stateStartedAt: data.stateStartedAt
         })
       }
     }

@@ -135,7 +135,7 @@ export function MobileFilePreviewScreen({ route }: Props) {
         return
       }
       const loadedContent =
-        result.status === 'ready' && result.kind !== 'image'
+        result.status === 'ready' && result.kind !== 'image' && result.kind !== 'media'
           ? result.content
           : result.status === 'empty'
             ? ''
@@ -276,6 +276,7 @@ export function MobileFilePreviewScreen({ route }: Props) {
       </SafeAreaView>
       <MobileFilePreviewBody
         preview={preview}
+        client={client}
         relativePath={displayPath}
         title={title || translate('m.MobileFilePreviewScreen.f643b9935b', 'File')}
         editable={isEditableTerminalArtifact}

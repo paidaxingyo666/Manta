@@ -137,10 +137,12 @@ export const LOCALE_PHRASE_FIXES = {
     { pattern: /公关/g, replacement: 'PR', whenEnIncludes: 'PR' },
     { pattern: /虎鲸:\/\//g, replacement: 'manta://', whenEnIncludes: 'manta://' },
     { pattern: /代理商/g, replacement: '智能体', whenEnIncludes: 'agent' },
-    // Reversed from upstream, who normalise toward 代理: this fork's word for an
-    // agent is 智能体, and 代理 also means proxy — see fork-zh-terminology.mjs.
-    // 用户代理 is a browser's User-Agent, whose English also says "agent".
-    { pattern: /(?<!用户)代理/g, replacement: '智能体', whenEnIncludes: 'agent' },
+    {
+      pattern: /代理/g,
+      replacement: '智能体',
+      // Why: Manta names the Agent concept 智能体; 代理 stays for proxy and user-agent copy.
+      whenEnMatches: /(?<!user[ -])(?:sub)?agents?\b/i
+    },
     { pattern: /分支机构/g, replacement: '分支', whenEnIncludes: 'ranch' },
     { pattern: /座席/g, replacement: '智能体', whenEnIncludes: 'agent' },
     { pattern: /汽车/g, replacement: '自动', whenEnIncludes: 'Auto' },
@@ -160,7 +162,7 @@ export const LOCALE_PHRASE_FIXES = {
     { pattern: /电脑使用/g, replacement: '计算机控制', whenEnIncludes: 'Computer Use' },
     { pattern: /快捷方式/g, replacement: '快捷键', whenEnIncludes: 'Shortcuts' },
     { pattern: /入职清单/g, replacement: '入门清单', whenEnIncludes: 'Onboarding checklist' },
-    { pattern: /发射代理/g, replacement: '启动代理', whenEnIncludes: 'Launch agent' },
+    { pattern: /发射代理/g, replacement: '启动智能体', whenEnIncludes: 'Launch agent' },
     { pattern: /地位/g, replacement: '状态', whenEnIncludes: 'Status' },
     { pattern: /受让人/g, replacement: '负责人', whenEnIncludes: 'assignee' },
     { pattern: /开放工作区/g, replacement: '打开工作区', whenEnIncludes: 'Open workspace' },

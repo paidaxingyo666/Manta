@@ -22,6 +22,7 @@ vi.mock(
   '../../modules/manta-mobile-web-shell/src',
   mocks['../../modules/manta-mobile-web-shell/src']
 )
+vi.mock('../app-update/use-wall-app-update', mocks['../app-update/use-wall-app-update'])
 vi.mock('../transport/client-context', mocks['../transport/client-context'])
 vi.mock('./use-page-host-snapshot', mocks['./use-page-host-snapshot'])
 vi.mock('./use-mobile-web-shell-session', mocks['./use-mobile-web-shell-session'])

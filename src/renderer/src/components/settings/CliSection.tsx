@@ -9,11 +9,6 @@ import {
   MANTA_CLI_SKILL_UPDATE_COMMAND
 } from '@/lib/agent-feature-install-commands'
 import {
-  AGENT_SKILL_CLI_PREREQUISITE_NOTICE,
-  ensureMantaCliAvailableForAgentSkillTerminal,
-  isMantaCliAvailableOnPath
-} from '@/lib/agent-skill-cli-prerequisite'
-import {
   GLOBAL_AGENT_SKILL_SOURCE_KINDS,
   useInstalledAgentSkill
 } from '@/hooks/useInstalledAgentSkills'
@@ -26,11 +21,9 @@ import { AgentSkillSetupPanel } from './AgentSkillSetupPanel'
 import { CliRegistrationDialog } from './CliRegistrationDialog'
 import {
   buildSkillCommandForRuntime,
-  ensureWslCliAvailableForAgentSkillTerminal,
   getAgentSkillTerminalShellOverride,
   getSelectedAgentRuntime,
-  getSkillDiscoveryTargetForRuntime,
-  getWslCliDistroRequest
+  getSkillDiscoveryTargetForRuntime
 } from './CliSkillRuntimeSetup'
 import { WslCliRegistration } from './WslCliRegistration'
 import { useCliRegistrationActions } from './use-cli-registration-actions'
@@ -115,14 +108,6 @@ export function CliSection({
     settings,
     agentRuntime
   )
-  const getCliSkillPrerequisiteStatus = useCallback(
-    () =>
-      agentRuntime.runtime === 'wsl'
-        ? window.api.cli.getWslInstallStatus(getWslCliDistroRequest(agentRuntime))
-        : window.api.cli.getInstallStatus(),
-    [agentRuntime]
-  )
-
   const handleStatusChange = useCallback(
     (nextStatus: CliInstallStatus): void => {
       if (mountedRef.current) {
@@ -185,8 +170,8 @@ export function CliSection({
         </h2>
         <p className="text-xs text-muted-foreground">
           {translate(
-            'auto.components.settings.CliSection.6930feda9e',
-            'Use Manta from your terminal to open the app, manage worktrees, and interact with Manta terminals.'
+            'auto.components.settings.CliSection.outsideOrcaDescription',
+            'Manta terminals already have `manta`. Turn this on to use `manta` from other terminals outside Manta.'
           )}
         </p>
       </div>
@@ -350,16 +335,6 @@ export function CliSection({
               installed={cliSkillDetected}
               loading={cliSkillLoading}
               error={cliSkillError}
-              preInstallNotice={AGENT_SKILL_CLI_PREREQUISITE_NOTICE}
-              getPrerequisiteStatus={getCliSkillPrerequisiteStatus}
-              isPrerequisiteAvailable={isMantaCliAvailableOnPath}
-              onBeforeOpenTerminal={async () => {
-                await (agentRuntime.runtime === 'wsl'
-                  ? ensureWslCliAvailableForAgentSkillTerminal(agentRuntime)
-                  : ensureMantaCliAvailableForAgentSkillTerminal({
-                      onStatusChange: handleStatusChange
-                    }))
-              }}
               onRecheck={refreshCliSkill}
               freshnessSkillName={cliSkillFreshnessName}
             />

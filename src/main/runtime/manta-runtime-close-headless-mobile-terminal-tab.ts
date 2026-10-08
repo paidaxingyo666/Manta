@@ -11,6 +11,7 @@ import { buildHeadlessMobileSessionTabGroups } from './mobile-session-layout-pro
 import { appendRetiredTerminalSurfaceProofs } from './mobile-session-terminal-retirement-proof'
 import type { RuntimePtyWorktreeRecord } from './runtime-terminal-state-records'
 import type { TerminalPaneLayoutNode } from '../../shared/terminal-tab-types'
+import type { RuntimeSessionTabCloseReason } from '../../shared/runtime-session-contracts'
 
 export class MantaRuntimeWithCloseHeadlessMobileTerminalTab extends MantaRuntimeWithCloseStructuredAgentSessionTab {
   protected async closeHeadlessMobileTerminalTab(
@@ -22,6 +23,7 @@ export class MantaRuntimeWithCloseHeadlessMobileTerminalTab extends MantaRuntime
       killPtys?: boolean
       authorizedPty?: RuntimePtyWorktreeRecord
       force?: boolean
+      reason?: RuntimeSessionTabCloseReason
     } = {}
   ): Promise<void> {
     const closedParentTabId = tab.parentTabId
@@ -42,7 +44,8 @@ export class MantaRuntimeWithCloseHeadlessMobileTerminalTab extends MantaRuntime
       { kind: 'tab', tabId: closedParentTabId },
       {
         allowMissing: options.allowMissingPersistedTab,
-        force: options.force
+        force: options.force,
+        reason: options.reason
       }
     )
     if (!acknowledgeRetirement().matches) {

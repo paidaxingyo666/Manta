@@ -8,15 +8,16 @@ import { ConfirmModal } from '../components/ConfirmModal'
 import { NewWorktreeModalController } from '../components/NewWorktreeModalController'
 import { PickerModal } from '../components/PickerModal'
 import { translate } from '../i18n/i18n'
-import { styles } from '../theme/host-home-styles'
 import { colors } from '../theme/mobile-theme'
 import { hostNewWorktreeSessionRoute } from '../host-route-action-state'
 import { getWorktreeRowIdentity } from '../worktree/worktree-host-row-identity'
 import {
   workspaceGroupOptions,
-  workspaceSortOptions
+  workspaceSortOptions,
+  workspaceViewSharedNote
 } from '../worktree/workspace-list-picker-options'
 import { isWorktreePinned } from '../worktree/workspace-list-sections'
+import { hostScreenStyles as styles } from './host-screen-styles'
 import type { HostScreenController } from './use-host-screen-controller'
 
 export function HostScreenOverlays({ controller }: { controller: HostScreenController }) {
@@ -38,6 +39,7 @@ export function HostScreenOverlays({ controller }: { controller: HostScreenContr
       <PickerModal
         visible={state.showSortPicker}
         title={translate('m.index.845b15b213', 'Sort By')}
+        subtitle={workspaceViewSharedNote()}
         options={workspaceSortOptions()}
         selected={state.sortMode}
         onSelect={settings.handleSortChange}
@@ -47,6 +49,7 @@ export function HostScreenOverlays({ controller }: { controller: HostScreenContr
       <PickerModal
         visible={state.showGroupPicker}
         title={translate('m.index.7d559d8c19', 'Group By')}
+        subtitle={workspaceViewSharedNote()}
         options={workspaceGroupOptions()}
         selected={state.groupMode}
         onSelect={settings.handleGroupChange}
@@ -55,7 +58,10 @@ export function HostScreenOverlays({ controller }: { controller: HostScreenContr
 
       <BottomDrawer visible={state.showFilterModal} onClose={() => state.setShowFilterModal(false)}>
         <View style={styles.filterModalHeader}>
-          <Text style={styles.filterModalTitle}>{translate('m.index.4bc8c9f6fe', 'Filter')}</Text>
+          <View style={styles.filterModalHeading}>
+            <Text style={styles.filterModalTitle}>{translate('m.index.4bc8c9f6fe', 'Filter')}</Text>
+            <Text style={styles.filterModalSubtitle}>{workspaceViewSharedNote()}</Text>
+          </View>
           {settings.activeFilterCount > 0 && (
             <Pressable onPress={settings.clearFilters}>
               <Text style={styles.clearFiltersText}>

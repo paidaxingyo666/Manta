@@ -1,4 +1,3 @@
-import { desktopNotificationStreamUnsubscribe } from './desktop-notification-stream-operations'
 import { ensureDesktopNotificationChannel } from './desktop-notification-channel'
 import { reportPushToken } from './push-token-reporting'
 import type { RpcClient } from '../transport/rpc-client'
@@ -31,7 +30,6 @@ import {
 
 type SubscribeResult = {
   type: 'ready'
-  subscriptionId: string
   // Desktop counter lifetime (#8591); absent from runtimes that predate it.
   epoch?: string
 }
@@ -40,7 +38,6 @@ type SubscribeResult = {
 export function subscribeToDesktopNotifications(client: RpcClient, hostId: string): () => void {
   void ensureDesktopNotificationChannel().catch(() => {})
 
-  let subscriptionId: string | null = null
   let disposed = false
   // Why (#8591): survives the unsubscribe/resubscribe the app performs on every
   // socket drop, so a reconnect still knows its watermark and that it reconnected.
@@ -209,20 +206,17 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
 
   seedWatermarkFromStorage(session, hostId)
 
-  function unsubscribeServer(id: string) {
-    if (client.getState() === 'connected') {
-      desktopNotificationStreamUnsubscribe.request(client, { subscriptionId: id }).catch(() => {})
-    }
-  }
-
+  // The transport releases the host registration with the id from the current `ready`.
   const unsubscribeStream = client.subscribe('notifications.subscribe', {}, (data: unknown) => {
+    // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: every frame a shipped host or the transport sends is an object with a string `type`: the host's `ready`, `end`, notification and dismiss events, or the transport's `error`.
     const event = data as
       | NotificationEvent
       | DismissNotificationEvent
       | SubscribeResult
       | { type: 'end' }
+    // No dispose-before-ready arm: every transport detaches this listener inside
+    // `unsubscribeStream()`, so a callback that runs at all runs before disposal.
     if (event.type === 'ready') {
-      subscriptionId = (event as SubscribeResult).subscriptionId
       // Why here: the socket is authenticated and the desktop knows which paired
       // device it belongs to, which is what the token has to be filed against.
       // Fire-and-forget — a phone that cannot report a token still receives
@@ -230,11 +224,6 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
       void reportPushToken(client).catch(() => {})
       const isReconnect = session.connectedBefore
       session.connectedBefore = true
-      if (disposed) {
-        unsubscribeServer(subscriptionId)
-        unsubscribeStream()
-        return
-      }
       const readyEpoch = (event as SubscribeResult).epoch
       // Why (#8591) the await: on a cold app open the persisted read is still in
       // flight, so deciding here would see watermarkLoaded false and skip catch-up —
@@ -292,10 +281,6 @@ export function subscribeToDesktopNotifications(client: RpcClient, hostId: strin
 
   return () => {
     disposed = true
-    // Why: drop the local stream first — readiness can race unmount; don't hold the callback while a subscription id is pending.
     unsubscribeStream()
-    if (subscriptionId) {
-      unsubscribeServer(subscriptionId)
-    }
   }
 }

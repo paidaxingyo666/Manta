@@ -27,6 +27,8 @@ export type CompletionState = {
   pendingHookDoneTimer: ReturnType<typeof setTimeout> | null
   pendingHookDoneTitle: string | null
   pendingHookDonePayload: AgentCompletionStatusSnapshot | null
+  /** Turn a title repaint settled; only process exit reads it, so a late hook done still announces. */
+  repaintSettledTurn: number | null
 }
 
 type ProcessState = {
@@ -156,7 +158,11 @@ export function createAgentCompletionNotificationController({
     if (source !== 'hook' && state.pendingHookDoneTimer !== null) {
       return false
     }
-    if (state.requiresFreshWorking || state.lastCompletedTurn === state.currentTurn) {
+    if (
+      state.requiresFreshWorking ||
+      state.lastCompletedTurn === state.currentTurn ||
+      (source === 'process-exit' && state.repaintSettledTurn === state.currentTurn)
+    ) {
       return false
     }
     if (!options.isLive() || !processState.hasAgentRunEvidence) {
@@ -171,6 +177,18 @@ export function createAgentCompletionNotificationController({
       return false
     }
     if (completionIdentityAlreadyNotified(optionsOverride.completionIdentity)) {
+      return false
+    }
+    if (
+      source === 'title' &&
+      options.shouldAnnounceTitleCompletion?.({
+        title,
+        foregroundAgent: processState.lastForegroundAgent?.agent ?? null
+      }) === false
+    ) {
+      // Why: a repaint (Codex re-attaching to its app-server) replays working→idle with no turn behind it.
+      state.repaintSettledTurn = state.currentTurn
+      state.workingStatusObserved = false
       return false
     }
     state.lastCompletionToken = token

@@ -1,7 +1,5 @@
-import type {
-  AgentJournalApprovalMatchedAskRule,
-  AgentJournalApprovalSubject
-} from '../../../src/shared/agent-session-journal-types'
+import { nativeChatApprovalAcceptKey } from '../../../src/shared/native-chat-agent-support'
+import type { AgentJournalApprovalSubject } from '../../../src/shared/agent-session-journal-types'
 import { translate } from '../i18n/i18n'
 
 // Agent permission asks (e.g. Claude/Codex "Do you want to proceed?") surface
@@ -20,7 +18,6 @@ export type MobileChatPermission = {
   description?: string
   decisionReason?: string
   blockedPath?: string
-  matchedAskRule?: AgentJournalApprovalMatchedAskRule
   subject?: AgentJournalApprovalSubject
   detail?: string
   /** Structured prompt identity, present only when the host can cancel it exactly. */
@@ -38,7 +35,8 @@ const ESCAPE = String.fromCharCode(27)
  *  detectAgentPermission still takes precedence when it can read the real numbered
  *  options from the prompt text. */
 export function parseApprovalFromStatus(
-  interactivePrompt: string | undefined | null
+  interactivePrompt: string | undefined | null,
+  agent?: string
 ): MobileChatPermission | null {
   if (!interactivePrompt) {
     return null
@@ -67,7 +65,10 @@ export function parseApprovalFromStatus(
     }),
     detail: typeof summary === 'string' && summary.length > 0 ? summary : undefined,
     options: [
-      { label: translate('m.mobile.native.chat.permission.b23a6139b2.3ad0e3', 'Allow'), send: '1' },
+      {
+        label: translate('m.mobile.native.chat.permission.b23a6139b2.3ad0e3', 'Allow'),
+        send: nativeChatApprovalAcceptKey(agent)
+      },
       { label: translate('m.mobile.native.chat.permission.dc405d2023', 'Deny'), send: ESCAPE }
     ]
   }

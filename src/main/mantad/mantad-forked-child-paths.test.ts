@@ -4,6 +4,11 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { getWatcherProcessEntryPath } from '../ipc/parcel-watcher-entry-path'
+import {
+  FOREIGN_SQLITE_READER_ENTRY_FILENAME,
+  resolveForeignSqliteReaderEntryPath
+} from '../foreign-sqlite-readers/foreign-sqlite-reader-entry-path'
+import { currentWorkerEntryLayout } from '../worker-thread-entry-path'
 import { installMantadHostAdapters } from './mantad-entry'
 
 /**
@@ -20,6 +25,7 @@ describe('mantad forked-child paths', () => {
     // The layout build-mantad.mjs emits: the bundle and its children side by side.
     writeFileSync(join(deployRoot, 'mantad.js'), '')
     writeFileSync(join(deployRoot, 'parcel-watcher-process-entry.js'), '')
+    writeFileSync(join(deployRoot, FOREIGN_SQLITE_READER_ENTRY_FILENAME), '')
     originalArgv = process.argv
     process.argv = [process.execPath, join(deployRoot, 'mantad.js')]
     installMantadHostAdapters()
@@ -32,6 +38,13 @@ describe('mantad forked-child paths', () => {
 
   it('forks the watcher child shipped beside mantad.js', () => {
     expect(getWatcherProcessEntryPath()).toBe(join(deployRoot, 'parcel-watcher-process-entry.js'))
+  })
+
+  it('starts the foreign SQLite reader worker shipped beside mantad.js', () => {
+    // mantad.js is one bundle, so its __dirname is the deploy root.
+    expect(resolveForeignSqliteReaderEntryPath(currentWorkerEntryLayout(deployRoot))).toBe(
+      join(deployRoot, FOREIGN_SQLITE_READER_ENTRY_FILENAME)
+    )
   })
 
   it('ignores a decoy child under the working directory', () => {

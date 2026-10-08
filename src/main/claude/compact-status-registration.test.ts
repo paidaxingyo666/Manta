@@ -12,7 +12,9 @@ import {
 import { seedClaudeSubagentRosterFromSnapshots } from '../../shared/agent-hook-listener/providers/claude-roster-state'
 import type { AgentHookEventPayload } from '../../shared/agent-hook-listener/listener-event'
 import { makePaneKey } from '../../shared/stable-pane-id'
-import { applyManagedHooks, CLAUDE_EVENTS } from './hook-settings'
+import { CLAUDE_HOOK_EVENT_FIRST_VERSIONS } from './claude-hook-event-versions'
+import { CLAUDE_EVENTS, getClaudeManagedHookPlan } from './claude-managed-hook-events'
+import { applyManagedHooks } from './hook-settings'
 
 const PANE_KEY = makePaneKey('compact-registration', '11111111-1111-4111-8111-111111111111')
 const TURN_PROMPT_ID = '22222222-2222-4222-8222-222222222222'
@@ -107,13 +109,14 @@ describe('Claude compact hook registration', () => {
   it('writes PostCompact, and no PreCompact, into the settings Claude actually reads', () => {
     const written = applyManagedHooks(
       { hooks: {} },
-      { type: 'command', command: 'orca-claude-hook' },
-      'claude-hook.sh'
+      { type: 'command', command: 'manta-claude-hook' },
+      'claude-hook.sh',
+      getClaudeManagedHookPlan(CLAUDE_HOOK_EVENT_FIRST_VERSIONS.PostCompact)
     )
     const postCompact = written.hooks?.PostCompact ?? []
     expect(
       postCompact.some((definition) =>
-        (definition.hooks ?? []).some((entry) => entry.command === 'orca-claude-hook')
+        (definition.hooks ?? []).some((entry) => entry.command === 'manta-claude-hook')
       )
     ).toBe(true)
     expect(written.hooks?.PreCompact).toBeUndefined()

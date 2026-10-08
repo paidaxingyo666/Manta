@@ -13,6 +13,8 @@ import { isAgentTaskCompleteTrackingEnabled } from './agent-task-complete-settin
 import { isAgentProcessInspectionCostly } from '../agent-process-inspection-cost'
 import { isRemoteRuntimePtyId } from './paired-parked-terminal-restore'
 import { isRemoteExecutionHostPtyId } from '../remote-execution-host-pty'
+import { isTitleCompletionRepaint, recordSettledAgentCompletion } from './title-repaint-completion'
+import { readLastTerminalInputAt } from '@/lib/terminal-input-activity-coalescing'
 
 import type { ConnectPanePtySession } from './connect-pane-pty-session'
 
@@ -207,7 +209,26 @@ export function installTerminalKeydownFit(session: ConnectPanePtySession): void 
         currentAgentForExited !== exited.agent
       )
     },
+    // Why: the pane's only re-derivation of a process read where the shell emits no command marks.
+    onForegroundAgentExited: (exited) =>
+      session.paneForegroundAgentTracker?.onProcessExitConfirmed(exited),
+    shouldAnnounceTitleCompletion: ({ foregroundAgent }) => {
+      const state = useAppStore.getState()
+      return !isTitleCompletionRepaint({
+        paneKey: session.cacheKey,
+        currentRow: state.agentStatusByPaneKey[session.cacheKey],
+        foregroundAgent,
+        lastUserInputAt: readLastTerminalInputAt(
+          state.lastTerminalInputAtByPaneKey,
+          session.cacheKey
+        )
+      })
+    },
     dispatchCompletion: (title, meta) => {
+      recordSettledAgentCompletion(
+        session.cacheKey,
+        meta?.agentStatus ?? useAppStore.getState().agentStatusByPaneKey[session.cacheKey]
+      )
       if (meta?.source === 'process-exit') {
         session.clearSuppressedTitleSideEffects()
       }

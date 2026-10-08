@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "source-control.history-commit-files",
   "family": "git.history-commit-files",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "9bc2693acb8ac8cbfe303857d9d820386a118b14969b5e0740aa7ed05103fd87",
-  "scenarioSha256": "27e71d989da152adcbe40a02186df8b8a2e19a6a0e8bfe727e2133c4360f7639",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0a26f0498c96": {
       "name": "git.commitCompare#1",

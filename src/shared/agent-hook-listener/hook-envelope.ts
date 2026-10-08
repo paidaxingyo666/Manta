@@ -83,6 +83,7 @@ export function mergeAgentHookRequestHeaders(body: unknown, headers: IncomingHtt
   }
   return {
     ...metadata,
+    agentProcess: readHookHeader(headers, 'x-manta-agent-process'),
     payload: body
   }
 }

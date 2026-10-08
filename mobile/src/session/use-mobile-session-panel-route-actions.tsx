@@ -35,6 +35,7 @@ export function useMobileSessionPanelRouteActions(scope: MobileSessionPresentati
     createTabAgentOptions,
     agentSessionHistorySupported,
     clearDeliveredDiffComments,
+    sendDiffNotesToNewAgent,
     handleCreateTerminal
   } = scope
   const createTabAgentActions =
@@ -101,10 +102,12 @@ export function useMobileSessionPanelRouteActions(scope: MobileSessionPresentati
                 if (!delivery) {
                   return
                 }
-                void handleCreateTerminal(option.agent, {
-                  initialPrompt: delivery.prompt,
-                  onPromptSent: () => void clearDeliveredDiffComments(delivery.comments)
-                })
+                void sendDiffNotesToNewAgent(delivery, () =>
+                  handleCreateTerminal(option.agent, {
+                    initialPrompt: delivery.prompt,
+                    onPromptSent: () => void clearDeliveredDiffComments(delivery.comments)
+                  })
+                )
               }
             }))
           : createTabAgentLoadState === 'loaded'

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "speech.setup-sheet",
   "family": "speech.setup-sheet",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "5d978690e3626892b83bdba64537f9b1e1bb66c2060a00517ceead042a6d2334",
-  "scenarioSha256": "407a52b099cbf2fcb261010e4235dae2e5e16e11b386fb6bc99d5a2d237af541",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "05fbe06034a1": {
       "name": "speech.dictation.setup#1",

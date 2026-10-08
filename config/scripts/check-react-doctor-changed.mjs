@@ -39,7 +39,7 @@ const reportDir = mkdtempSync(join(tmpdir(), 'manta-react-doctor-'))
 const reportPath = join(reportDir, 'report.json')
 const args = [
   'dlx',
-  'react-doctor@0.9.1',
+  'react-doctor@0.9.14',
   '.',
   '--yes',
   '--scope',

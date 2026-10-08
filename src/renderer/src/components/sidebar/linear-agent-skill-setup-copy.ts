@@ -1,44 +1,14 @@
 import type { LocalAgentRuntime } from '../settings/CliSkillRuntimeSetup'
 import { translate } from '@/i18n/i18n'
 
-export function getLinearAgentSkillSetupMissingLabel(
-  cliAvailable: boolean,
-  skillInstalled: boolean
-): string {
-  if (!cliAvailable && !skillInstalled) {
-    return translate(
-      'auto.components.sidebar.LinearAgentSkillSetupPrompt.missingCliAndSkill',
-      'Manta CLI and Linear agent skill are missing.'
-    )
-  }
-  if (!cliAvailable) {
-    return translate(
-      'auto.components.sidebar.LinearAgentSkillSetupPrompt.missingCli',
-      'Manta CLI is missing.'
-    )
-  }
+export function getLinearAgentSkillSetupMissingLabel(): string {
   return translate(
     'auto.components.sidebar.LinearAgentSkillSetupPrompt.missingSkill',
     'Linear agent skill is missing.'
   )
 }
 
-export function getLinearAgentSkillSetupToastTitle(
-  cliAvailable: boolean,
-  skillInstalled: boolean
-): string {
-  if (!cliAvailable && !skillInstalled) {
-    return translate(
-      'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastMissingCliAndSkill',
-      'Manta CLI and Linear skill are missing'
-    )
-  }
-  if (!cliAvailable) {
-    return translate(
-      'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastMissingCli',
-      'Manta CLI is missing'
-    )
-  }
+export function getLinearAgentSkillSetupToastTitle(): string {
   return translate(
     'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastMissingSkill',
     'Linear skill is missing'
@@ -46,12 +16,10 @@ export function getLinearAgentSkillSetupToastTitle(
 }
 
 export function getLinearAgentSkillSetupToastDescription(
-  cliAvailable: boolean,
-  skillInstalled: boolean,
   remote: boolean,
   agentRuntime: LocalAgentRuntime
 ): string {
-  const baseDescription = getLinearAgentSkillSetupToastBaseDescription(cliAvailable, skillInstalled)
+  const baseDescription = getLinearAgentSkillSetupToastBaseDescription()
   if (remote) {
     return translate(
       'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastRemoteDescription',
@@ -69,22 +37,7 @@ export function getLinearAgentSkillSetupToastDescription(
   return baseDescription
 }
 
-function getLinearAgentSkillSetupToastBaseDescription(
-  cliAvailable: boolean,
-  skillInstalled: boolean
-): string {
-  if (!cliAvailable && !skillInstalled) {
-    return translate(
-      'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastInstallCliAndSkillDescription',
-      'Install the Manta CLI and the Linear skill to enable your agents to read and edit Linear tasks.'
-    )
-  }
-  if (!cliAvailable) {
-    return translate(
-      'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastInstallCliDescription',
-      'Install the Manta CLI to enable your agents to read and edit Linear tasks.'
-    )
-  }
+function getLinearAgentSkillSetupToastBaseDescription(): string {
   return translate(
     'auto.components.sidebar.LinearAgentSkillSetupPrompt.toastInstallSkillDescription',
     'Install the Linear skill to enable your agents to read and edit Linear tasks through the Manta CLI.'

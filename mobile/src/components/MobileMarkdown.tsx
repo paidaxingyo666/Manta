@@ -1,31 +1,18 @@
-import { openExternalLink } from '../platform/external-link'
-import { createMarkdownInlineMatcher, type MarkdownInlineMatch } from './markdown-inline-matcher'
+import { INLINE_TEXT_SELECTION } from './inline-text-selection'
 import { MobileSelectableText } from './MobileSelectableText'
-import {
-  Fragment,
-  createElement,
-  createContext,
-  memo,
-  useContext,
-  useMemo,
-  type ComponentType,
-  type ReactNode
-} from 'react'
-import { Pressable, ScrollView, Text as NativeText, View, type TextProps } from 'react-native'
-import { normalizeMobileMarkdownPreviewHtml } from './mobile-markdown-preview-html'
+import { Fragment, memo, useContext, useMemo, type ReactNode } from 'react'
+import { Pressable, ScrollView, Text as NativeText, View } from 'react-native'
 import { styles } from './mobile-markdown-styles'
 import {
-  detectFilePathSegments,
-  isFilePathCodeSpan,
-  normalizeFilePath
-} from './markdown-file-path-detection'
-import { routeMarkdownHref } from './markdown-href-routing'
-import {
-  isIntrawordUnderscoreToken,
-  trimAutolinkTrailingPunctuation
-} from './markdown-inline-token-rules'
+  MarkdownText,
+  MarkdownTextContext,
+  openMarkdownHref,
+  renderInline,
+  type MarkdownTextSetup
+} from './mobile-markdown-inline'
 import { isMobileMermaidLanguage } from './mobile-mermaid-language'
-import { parseMobileMarkdown } from './mobile-markdown-parser'
+import { useMobileMarkdownBlocks } from './use-mobile-markdown-blocks'
+import type { NativeChatVisualDirective } from '../../../src/shared/native-chat-visual-directive'
 import { MermaidDiagram } from './pr-sidebar/MermaidDiagram'
 import { translate } from '../i18n/i18n'
 
@@ -34,6 +21,8 @@ type Props = {
   fallback?: string
   /** Enables iOS range selection for native-chat transcript prose. */
   rangeSelectable?: boolean
+  /** Forward long presses from interactive Android transcript spans to the message. */
+  onLongPress?: () => void
   /** Multiplier for prose font size (paragraphs, lists, quotes). Defaults to 1;
    *  the chat view passes >1 so agent prose reads larger than the compact base. */
   textScale?: number
@@ -42,183 +31,29 @@ type Props = {
    *  optional :line(:col) suffix). Omitted on screens with no file viewer, where
    *  paths render as plain text (no behavior change). */
   onOpenFile?: (pathText: string) => void
+  /** Native-chat assistant prose only: renders `::orca-visual{...}` directive lines. Without it,
+   *  a directive line is ordinary text. Must be referentially stable (this component is memoized). */
+  renderVisual?: (directive: NativeChatVisualDirective, index: number) => ReactNode
 }
 
 const MAX_TABLE_ROWS = 40
 const MAX_TABLE_COLUMNS = 8
 /** Prose base size — passed to MermaidDiagram fallback mono text. */
 const MERMAID_BASE = 13
-const MarkdownTextContext = createContext<ComponentType<TextProps>>(NativeText)
-
-function MarkdownText(props: TextProps): React.JSX.Element {
-  const TextComponent = useContext(MarkdownTextContext)
-  return createElement(TextComponent, props)
-}
-
-// Web/mail hrefs open the system handler; file-target hrefs (file: URIs and
-// scheme-less paths — the entire desktop file-link contract) go to onOpenFile.
-function openMarkdownHref(href: string, onOpenFile?: (pathText: string) => void): void {
-  const route = routeMarkdownHref(href)
-  if (route.kind === 'web') {
-    // The seam, not react-native's `Linking`: this module is in the tasks page closure, and inside
-    // the shell's WebView `openURL` resolves without opening anything.
-    openExternalLink(route.url)
-    return
-  }
-  if (route.kind === 'file' && onOpenFile) {
-    onOpenFile(route.pathText)
-  }
-}
-
-// Render a plain (non-token) text run, splitting out tappable file paths when
-// onOpenFile is provided. Without it, paths stay plain text.
-function renderTextRun(
-  text: string,
-  keyPrefix: string,
-  onOpenFile?: (pathText: string) => void
-): ReactNode {
-  if (!onOpenFile) {
-    return text
-  }
-  const segments = detectFilePathSegments(text)
-  if (segments.length === 1 && segments[0]!.type === 'text') {
-    return text
-  }
-  return segments.map((segment, segmentIndex) => {
-    if (segment.type === 'file') {
-      return (
-        <MarkdownText
-          key={`${keyPrefix}:${segmentIndex}`}
-          style={styles.link}
-          onPress={() => onOpenFile(segment.path)}
-        >
-          {segment.value}
-        </MarkdownText>
-      )
-    }
-    return <Fragment key={`${keyPrefix}:${segmentIndex}`}>{segment.value}</Fragment>
-  })
-}
-
-function renderInline(text: string, onOpenFile?: (pathText: string) => void): ReactNode[] {
-  const parts: ReactNode[] = []
-  const pattern = createMarkdownInlineMatcher(
-    text,
-    /(`[^`]+`|~~[^~]+~~|\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|_[^_\n]+_|https?:\/\/[^\s<]+)/g,
-    true
-  )
-  let pendingStart = 0
-  let match: MarkdownInlineMatch | null
-
-  while ((match = pattern.exec())) {
-    const token = match[0]
-    // Intraword `_` runs (snake_case, dunder tails) are literal text per
-    // CommonMark; leaving them unflushed keeps surrounding file paths whole
-    // for detection in the eventual text run.
-    if (token.startsWith('_') && isIntrawordUnderscoreToken(text, match.index, token)) {
-      // Resume after the opener so real tokens inside the rejected span are still scanned.
-      pattern.lastIndex = match.index + 1
-      continue
-    }
-    if (match.index > pendingStart) {
-      parts.push(
-        renderTextRun(text.slice(pendingStart, match.index), `t${pendingStart}`, onOpenFile)
-      )
-    }
-    pendingStart = pattern.lastIndex
-    const key = `${match.index}:${token}`
-    const image = token.match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-    const link = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
-    if (image) {
-      parts.push(
-        <MarkdownText
-          key={key}
-          style={styles.link}
-          onPress={() => openMarkdownHref(image[2]!, onOpenFile)}
-        >
-          {image[1] || translate('m.MobileMarkdown.a22b42f760', 'image')}
-        </MarkdownText>
-      )
-    } else if (link) {
-      parts.push(
-        <MarkdownText
-          key={key}
-          style={styles.link}
-          onPress={() => openMarkdownHref(link[2]!, onOpenFile)}
-        >
-          {link[1]}
-        </MarkdownText>
-      )
-    } else if (/^https?:\/\//i.test(token)) {
-      const { url, trailing } = trimAutolinkTrailingPunctuation(token)
-      parts.push(
-        <MarkdownText
-          key={key}
-          style={styles.link}
-          onPress={() => openMarkdownHref(url, onOpenFile)}
-        >
-          {url}
-        </MarkdownText>
-      )
-      if (trailing) {
-        parts.push(<Fragment key={`${key}p`}>{trailing}</Fragment>)
-      }
-    } else if (token.startsWith('`')) {
-      const code = token.slice(1, -1)
-      if (onOpenFile && isFilePathCodeSpan(code)) {
-        parts.push(
-          <MarkdownText
-            key={key}
-            style={[styles.inlineCode, styles.inlineCodeLink]}
-            onPress={() => onOpenFile(normalizeFilePath(code.trim()))}
-          >
-            {code}
-          </MarkdownText>
-        )
-      } else {
-        parts.push(
-          <MarkdownText key={key} style={styles.inlineCode}>
-            {code}
-          </MarkdownText>
-        )
-      }
-    } else if (token.startsWith('~~')) {
-      parts.push(
-        <MarkdownText key={key} style={styles.strike}>
-          {renderTextRun(token.slice(2, -2), `${key}i`, onOpenFile)}
-        </MarkdownText>
-      )
-    } else if (token.startsWith('**') || token.startsWith('__')) {
-      parts.push(
-        <MarkdownText key={key} style={styles.bold}>
-          {renderTextRun(token.slice(2, -2), `${key}i`, onOpenFile)}
-        </MarkdownText>
-      )
-    } else {
-      parts.push(
-        <MarkdownText key={key} style={styles.italic}>
-          {renderTextRun(token.slice(1, -1), `${key}i`, onOpenFile)}
-        </MarkdownText>
-      )
-    }
-  }
-
-  if (pendingStart < text.length) {
-    parts.push(renderTextRun(text.slice(pendingStart), `t${pendingStart}`, onOpenFile))
-  }
-  return parts
-}
 
 function MobileMarkdownContent({
   content,
   fallback = '',
   rangeSelectable = false,
   textScale = 1,
-  onOpenFile
+  onOpenFile,
+  renderVisual
 }: Props) {
+  // Interactive children own their touches and must forward the row action.
+  const setup = useContext(MarkdownTextContext)
+  const rowLongPress = setup.androidTranscript ? setup.onLongPress : undefined
   const text = content?.trim() ?? ''
-  const previewText = useMemo(() => normalizeMobileMarkdownPreviewHtml(text), [text])
-  const blocks = useMemo(() => parseMobileMarkdown(previewText), [previewText])
+  const { blocks, directives } = useMobileMarkdownBlocks(text, renderVisual !== undefined)
   // Scale prose sizes; inline spans inherit fontSize from the wrapping Text.
   const scaled = (size: number): { fontSize: number; lineHeight: number } | null =>
     textScale !== 1 ? { fontSize: size * textScale, lineHeight: (size + 6) * textScale } : null
@@ -237,6 +72,14 @@ function MobileMarkdownContent({
   return (
     <View style={styles.root}>
       {blocks.map((block, index) => {
+        if (block.type === 'visual') {
+          const directive = directives[block.index]
+          return directive && renderVisual ? (
+            <Fragment key={`visual:${block.index}:${directive.file}`}>
+              {renderVisual(directive, block.index)}
+            </Fragment>
+          ) : null
+        }
         if (block.type === 'heading') {
           return (
             <MarkdownText
@@ -289,6 +132,7 @@ function MobileMarkdownContent({
               key={index}
               style={styles.imageFrame}
               onPress={() => openMarkdownHref(block.url, onOpenFile)}
+              onLongPress={rowLongPress}
             >
               <NativeText style={styles.link}>
                 {block.alt || translate('m.MobileMarkdown.7d36e16e08', 'Open image')}
@@ -391,9 +235,19 @@ function MobileMarkdownContent({
 }
 
 function MobileMarkdownInner(props: Props): React.JSX.Element | null {
-  const TextComponent = props.rangeSelectable ? MobileSelectableText : NativeText
+  const { rangeSelectable = false, onLongPress } = props
+  // Other Markdown surfaces retain their existing selection behavior.
+  const androidTranscript = rangeSelectable && !INLINE_TEXT_SELECTION
+  const setup = useMemo<MarkdownTextSetup>(
+    () => ({
+      TextComponent: rangeSelectable && !androidTranscript ? MobileSelectableText : NativeText,
+      androidTranscript,
+      ...(onLongPress ? { onLongPress } : {})
+    }),
+    [rangeSelectable, androidTranscript, onLongPress]
+  )
   return (
-    <MarkdownTextContext.Provider value={TextComponent}>
+    <MarkdownTextContext.Provider value={setup}>
       <MobileMarkdownContent {...props} />
     </MarkdownTextContext.Provider>
   )

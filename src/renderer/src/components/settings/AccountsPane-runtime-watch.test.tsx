@@ -31,7 +31,11 @@ describe('AccountsPane runtime account watch', () => {
     Object.defineProperty(window, 'api', {
       configurable: true,
       value: {
-        minimaxCredentials: { getStatus: vi.fn().mockResolvedValue({ configured: false }) }
+        minimaxCredentials: { getStatus: vi.fn().mockResolvedValue({ configured: false }) },
+        opencodeGoCredentials: { getStatus: vi.fn().mockResolvedValue({ configured: false }) },
+        zcodePlanCredentials: { getStatus: vi.fn().mockResolvedValue({ configured: false }) },
+        grokAccounts: { getStatus: vi.fn().mockResolvedValue({ configured: false }) },
+        cursorAccounts: { getStatus: vi.fn().mockResolvedValue({ configured: false }) }
       }
     })
   })

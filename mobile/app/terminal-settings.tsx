@@ -227,9 +227,9 @@ export default function TerminalSettingsScreen() {
         </Text>
         <Text style={styles.groupDescription}>
           {translate(
-            'm.terminal.settings.5185d36d47',
-            "While you're using a terminal on your phone, Manta shrinks it to fit your screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore this terminal or Restore all terminals on the banner to resize manually."
-          )}{' '}
+            'm.terminal.settings.77efd9994a',
+            "While you're using a terminal on your phone, Manta shrinks it to fit your screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore on the desktop banner to resize manually."
+          )}
         </Text>
 
         {hosts.length === 0 ? (

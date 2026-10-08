@@ -53,6 +53,7 @@ export function buildRelayHookPtyEnv(coordinates: {
     MANTA_AGENT_HOOK_TOKEN: coordinates.token,
     MANTA_AGENT_HOOK_ENV: coordinates.env,
     MANTA_AGENT_HOOK_VERSION: MANTA_HOOK_PROTOCOL_VERSION,
+    ORCA_AGENT_HOOK_OPENCODE_TUI: '1',
     MANTA_AGENT_HOOK_TRANSPORT: MANTA_HOOK_RAW_JSON_TRANSPORT
   }
   if (coordinates.endpointFileWritten) {

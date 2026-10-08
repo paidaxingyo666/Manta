@@ -1,3 +1,5 @@
+import { tokenizeCommandLine } from '../../shared/agent-command-line-entrypoint'
+import { qoderHookService } from '../qoder/hook-service'
 import { describe, expect, it, vi } from 'vitest'
 import { parse as parseJsonc } from 'jsonc-parser'
 import type { SFTPWrapper } from 'ssh2'
@@ -11,124 +13,27 @@ vi.mock('electron', () => ({
 import { CodexHookService } from '../codex/hook-service'
 import { DroidHookService } from '../droid/hook-service'
 import { CursorHookService } from '../cursor/hook-service'
-import { CURSOR_EVENTS, type CursorEvent } from '../cursor/hook-events'
+import { CURSOR_EVENTS } from '../cursor/hook-events'
 import { CommandCodeHookService } from '../command-code/hook-service'
 import { GeminiHookService } from '../gemini/hook-service'
 import { AntigravityHookService } from '../antigravity/hook-service'
 import { AmpHookService } from '../amp/hook-service'
 import { ClaudeHookService, claudeHookService } from '../claude/hook-service'
-import { openClaudeHookService } from '../openclaude/hook-service'
 import { GrokHookService } from '../grok/hook-service'
 import { CopilotHookService } from '../copilot/hook-service'
 import { HermesHookService } from '../hermes/hook-service'
 import { DevinHookService } from '../devin/hook-service'
 import { KimiHookService } from '../kimi/hook-service'
+import { JcodeHookService } from '../jcode/hook-service'
+import { openClaudeHookService } from '../openclaude/hook-service'
 import {
   installRemoteManagedAgentHooks,
   REMOTE_MANAGED_HOOK_INSTALLER_AGENTS
 } from './remote-managed-hook-installers'
-
-type FakeFs = {
-  files: Map<string, string>
-  dirs: Set<string>
-  modes: Map<string, number>
-  failRenameTo: Set<string>
-}
-
-const EXPECTED_CURSOR_HOOK_RESPONSES = {
-  beforeSubmitPrompt: '{"continue":true}',
-  stop: '{}',
-  preToolUse: '{"permission":"allow"}',
-  postToolUse: '{}',
-  postToolUseFailure: '{}',
-  beforeShellExecution: '{"permission":"allow"}',
-  beforeMCPExecution: '{"permission":"allow"}',
-  afterAgentResponse: '{}'
-} satisfies Record<CursorEvent, string>
-
-function createFakeSftp(initialFiles: Record<string, string> = {}): {
-  sftp: SFTPWrapper
-  fs: FakeFs
-} {
-  const fs: FakeFs = {
-    files: new Map(Object.entries(initialFiles)),
-    dirs: new Set(['/']),
-    modes: new Map(),
-    failRenameTo: new Set()
-  }
-  const noEntryError = (path: string) => ({ code: 2, message: `ENOENT ${path}` })
-  const fakeStats = (mode: number): { mode: number } => ({ mode })
-
-  const sftp = {
-    readFile: (path: string, _enc: string, cb: (err: unknown, data?: string) => void): void => {
-      const v = fs.files.get(path)
-      if (v === undefined) {
-        cb(noEntryError(path))
-        return
-      }
-      cb(null, v)
-    },
-    writeFile: (
-      path: string,
-      content: string,
-      options: string | { mode?: number },
-      cb: (err: unknown) => void
-    ): void => {
-      fs.files.set(path, content)
-      if (typeof options !== 'string' && options.mode !== undefined) {
-        fs.modes.set(path, options.mode)
-      }
-      cb(null)
-    },
-    rename: (src: string, dst: string, cb: (err: unknown) => void): void => {
-      if (fs.failRenameTo.has(dst)) {
-        cb({ code: 4, message: `rename failed ${dst}` })
-        return
-      }
-      const v = fs.files.get(src)
-      if (v === undefined) {
-        cb(noEntryError(src))
-        return
-      }
-      fs.files.set(dst, v)
-      fs.files.delete(src)
-      const mode = fs.modes.get(src)
-      if (mode !== undefined) {
-        fs.modes.set(dst, mode)
-        fs.modes.delete(src)
-      }
-      cb(null)
-    },
-    unlink: (path: string, cb: (err: unknown) => void): void => {
-      fs.files.delete(path)
-      fs.modes.delete(path)
-      cb(null)
-    },
-    chmod: (path: string, mode: number, cb: (err: unknown) => void): void => {
-      fs.modes.set(path, mode)
-      cb(null)
-    },
-    stat: (path: string, cb: (err: unknown, stats?: { mode: number }) => void): void => {
-      if (!fs.files.has(path)) {
-        cb(noEntryError(path))
-        return
-      }
-      cb(null, fakeStats(fs.modes.get(path) ?? 0o100644))
-    },
-    readdir: (path: string, cb: (err: unknown, list?: { filename: string }[]) => void): void => {
-      if (fs.dirs.has(path)) {
-        cb(null, [])
-        return
-      }
-      cb(noEntryError(path))
-    },
-    mkdir: (path: string, cb: (err: unknown) => void): void => {
-      fs.dirs.add(path)
-      cb(null)
-    }
-  } as unknown as SFTPWrapper
-  return { sftp, fs }
-}
+import {
+  createFakeSftp,
+  EXPECTED_CURSOR_HOOK_RESPONSES
+} from './remote-hook-service-installers.test-fixtures'
 
 describe('remote hook service installers', () => {
   it('always writes POSIX scripts for SSH remotes even from a Windows host', async () => {
@@ -181,6 +86,10 @@ describe('remote hook service installers', () => {
         {
           path: '/home/dev/.manta/agent-hooks/devin-hook.sh',
           install: (sftp: SFTPWrapper) => new DevinHookService().installRemote(sftp, '/home/dev')
+        },
+        {
+          path: '/home/dev/.manta/agent-hooks/jcode-hook.sh',
+          install: (sftp: SFTPWrapper) => new JcodeHookService().installRemote(sftp, '/home/dev')
         },
         {
           path: '/home/dev/.manta/agent-hooks/droid-hook.sh',
@@ -346,23 +255,36 @@ describe('remote hook service installers', () => {
     }
     for (const eventName of ['PreInvocation', 'PostInvocation', 'Stop']) {
       const command = antigravityConfig['manta-status'][eventName]?.[0]?.command
-      expect(command).toContain('/home/dev/.manta/agent-hooks/antigravity-hook.sh')
-      expect(command).toContain(`MANTA_ANTIGRAVITY_EVENT='${eventName}'`)
+      expect(tokenizeCommandLine(command ?? '').slice(0, 2)).toEqual(['/bin/sh', '-c'])
+      expect(tokenizeCommandLine(command ?? '')[2]).toContain(
+        '/home/dev/.manta/agent-hooks/antigravity-hook.sh'
+      )
+      expect(tokenizeCommandLine(command ?? '')[2]).toContain(
+        `MANTA_ANTIGRAVITY_EVENT='${eventName}'`
+      )
     }
     for (const eventName of ['PreToolUse', 'PostToolUse']) {
       const definition = antigravityConfig['manta-status'][eventName]?.[0]
       const command = definition?.hooks?.[0]?.command
       expect(definition?.matcher).toBe('*')
-      expect(command).toContain('/home/dev/.manta/agent-hooks/antigravity-hook.sh')
-      expect(command).toContain(`MANTA_ANTIGRAVITY_EVENT='${eventName}'`)
+      expect(tokenizeCommandLine(command ?? '')[2]).toContain(
+        '/home/dev/.manta/agent-hooks/antigravity-hook.sh'
+      )
+      expect(tokenizeCommandLine(command ?? '')[2]).toContain(
+        `MANTA_ANTIGRAVITY_EVENT='${eventName}'`
+      )
     }
     // Why: #2426 was an SSH report — a remote host missing the script must still answer the gate, not deny every tool.
-    expect(antigravityConfig['manta-status'].PreToolUse[0].hooks?.[0]?.command).toContain(
-      `printf '%s\\n' '{"decision":"ask"}'`
-    )
-    expect(antigravityConfig['manta-status'].PostToolUse[0].hooks?.[0]?.command).not.toContain(
-      '{"decision"'
-    )
+    expect(
+      tokenizeCommandLine(
+        antigravityConfig['manta-status'].PreToolUse[0].hooks?.[0]?.command ?? ''
+      )[2]
+    ).toContain(`printf '%s\\n' '{"decision":"ask"}'`)
+    expect(
+      tokenizeCommandLine(
+        antigravityConfig['manta-status'].PostToolUse[0].hooks?.[0]?.command ?? ''
+      )[2]
+    ).not.toContain('{"decision"')
 
     const ampPlugin = amp.fs.files.get('/home/dev/.config/amp/plugins/manta-agent-status.ts')
     expect(ampPlugin).toContain('/hook/amp')
@@ -689,6 +611,17 @@ describe('remote hook service installers', () => {
     expect(fs.modes.get('/home/dev/.manta/agent-hooks/copilot-hook.sh')).toBe(0o755)
   })
 
+  it('installs Qoder on the execution host with its own event endpoint', async () => {
+    const { sftp, fs } = createFakeSftp()
+    const result = await qoderHookService.installRemote(sftp, '/home/dev/')
+    expect(result.state).toBe('installed')
+    expect(result.configPath).toBe('/home/dev/.qoder/settings.json')
+    const settings = JSON.parse(fs.files.get(result.configPath) ?? '{}')
+    expect(settings.hooks.SessionEnd).toHaveLength(1)
+    expect(settings.hooks.Notification).toHaveLength(1)
+    expect(settings.hooks.TeammateIdle).toBeUndefined()
+    expect(fs.files.get('/home/dev/.manta/agent-hooks/qoder-hook.sh')).toContain('/hook/qoder')
+  })
   it('installs Droid and Copilot when running the aggregate remote installer (issue #7253)', async () => {
     const { sftp } = createFakeSftp()
     const results = await installRemoteManagedAgentHooks(sftp, '/home/dev', {

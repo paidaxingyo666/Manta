@@ -27,17 +27,27 @@ import {
 import { isTerminalLeafId, makePaneKey, parsePaneKey } from '../../shared/stable-pane-id'
 import { isOrcaSessionId, type OrcaSessionId } from '../../shared/manta-session-address'
 import {
+  STRUCTURED_WORKER_HANDLE_PREFIX,
+  isStructuredWorkerHandle
+} from '../../shared/structured-worker-handle'
+import {
   parseWorkerTerminalHostScope,
   type WorkerTerminalHostScope
 } from './orchestration/worker-terminal-process-liveness'
 
-// Deliberately not `term_`: `issueHandle` revalidates the renderer graph epoch against the
-// renderer-driven leaves map, so a main-minted `term_` leaf evaporates on the next window reload.
-export const STRUCTURED_WORKER_HANDLE_PREFIX = 'structworker_'
+export {
+  STRUCTURED_WORKER_HANDLE_PREFIX,
+  isStructuredWorkerHandle
+} from '../../shared/structured-worker-handle'
 export const STRUCTURED_WORKER_INCARNATION_PREFIX = 'structured:'
 
 export type StructuredWorkerIdentity = {
   handle: string
+  /**
+   * The session minted for the worker: its conversation id and `/clear` lineage root, which keys
+   * the handle, pane key and incarnation. Not necessarily the session running it now; worker-level
+   * readers and actors resolve that through `structuredWorkerSession`.
+   */
   sessionId: string
   /** Null when the entry was rehydrated from the durable row, which does not carry the provider. */
   agent: 'claude' | 'codex' | null
@@ -45,10 +55,6 @@ export type StructuredWorkerIdentity = {
   processIncarnation: string
   worktreeId: string
   hostScope: WorkerTerminalHostScope
-}
-
-export function isStructuredWorkerHandle(handle: string | null | undefined): boolean {
-  return typeof handle === 'string' && handle.startsWith(STRUCTURED_WORKER_HANDLE_PREFIX)
 }
 
 export function mintStructuredWorkerHandle(): string {
@@ -107,7 +113,7 @@ function persistedStructuredWorkerPaneKeyIsValid(
  *
  * NOT the runtime fence: the fence is an owner-generation counter that the host bumps during its
  * own transparent crash recovery, so fencing identity on it would make a recovered — but same —
- * worker fail `verifyDispatchCapability` forever and wedge release as `identity_unproven`. The
+ * worker fail its process check forever and wedge release as `identity_unproven`. The
  * session id is minted once per dispatch and survives that recovery, so it is the lineage.
  */
 export function structuredWorkerProcessIncarnation(sessionId: string): string {

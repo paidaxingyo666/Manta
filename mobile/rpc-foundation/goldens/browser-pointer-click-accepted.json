@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "browser.page-commands",
   "family": "browser.pointer-click",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "55971752f963202d30160851197a301089b0f3ebd0c46725af1a461d8310d658",
-  "scenarioSha256": "73faa87b359a11959543542016295bb6b36a10934dd99ad5c1a77a4290a608cd",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "002a5bcbde42": {
       "name": "browser.mouseClick#1",

@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "nativeChat.terminal-write",
   "family": "nativeChat.terminal-write",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "b98a3ca3818678b88cf629bc4635300a103637126a136f025a1600dc16f08008",
-  "scenarioSha256": "3e8804f21d32370bb0bc48c4ea3d182748d48dc19d73de1b50005f18368566ba",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "0c75127e9c76": {
       "name": "terminal.send#1",

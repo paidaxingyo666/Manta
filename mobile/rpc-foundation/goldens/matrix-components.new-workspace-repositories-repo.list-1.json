@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "workspace.repositories",
   "family": "components.new-workspace-repositories",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "64c1772f0f95a3c43fbb14398a8804b2b4784f7f18874e4fd79767ae634c7faa",
-  "scenarioSha256": "a888293b9b172d2ae5ecbd61dfc626b8bfc66a5575c8f99648806597c9ab8b62",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "12e70439f294": {
       "name": "repo.list#1",

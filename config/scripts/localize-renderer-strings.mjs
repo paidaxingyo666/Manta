@@ -334,6 +334,7 @@ async function collectCandidateFiles(root, relativeSourceRoot) {
         if (
           ![
             '.git',
+            '.tmp',
             'assets',
             'dist',
             'node_modules',

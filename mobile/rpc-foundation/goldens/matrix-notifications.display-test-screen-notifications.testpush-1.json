@@ -1,17 +1,8 @@
 {
+  "goldenFormatVersion": 6,
   "operation": "notifications.display-test-screen",
   "family": "notifications.display-test-screen",
   "namedDeltas": [],
-  "runnerVersion": 1,
-  "baseline": "3b75797b170823958c5ff4c7af26b418fee1a4cc",
-  "lockfileSha256": "befaa6fe05fafd6d433031c718e5f15866f88412dcaeeb0c46f1686915afe152",
-  "recorderSha256": "d4b7c0edf0743b31350da0b70e56af343578300b28b839106b42c8bcf9340a62",
-  "adapterSha256": "f55275c268e49679b37d72ce6cbe71186ce02c77fe3fd53f0f21e796502d62e8",
-  "scenarioSha256": "bfbc9bb5c68f5e3ca905d21d6128d710004b47f550de7d355aee310e3737a68b",
-  "platform": "darwin",
-  "scenarioVersion": 1,
-  "projectionVersion": 2,
-  "goldenFormatVersion": 5,
   "values": {
     "026965874dd4": {
       "name": "notifications.testPush#1",

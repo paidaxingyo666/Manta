@@ -78,9 +78,10 @@ export class RemoteRuntimeSharedControlConnection {
     method: string,
     params: unknown,
     timeoutMs: number,
-    callbacks: SharedControlTypes.SharedControlSubscriptionCallbacks<TResult>
+    callbacks: SharedControlTypes.SharedControlSubscriptionCallbacks<TResult>,
+    signal?: AbortSignal
   ): Promise<SharedControlTypes.RemoteRuntimeSharedSubscription> {
-    return this.channels.subscribe<TResult>({ method, params, timeoutMs, callbacks })
+    return this.channels.subscribe<TResult>({ method, params, timeoutMs, callbacks, signal })
   }
   close(error?: Error): void {
     this.intentionallyClosed = true

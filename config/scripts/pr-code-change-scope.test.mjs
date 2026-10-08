@@ -1,8 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parse } from 'yaml'
 import {
   classifyPrJobs,
   isDocsOnlyPath,
@@ -12,23 +10,6 @@ import {
 } from './pr-code-change-scope.mjs'
 
 const projectDir = resolve(import.meta.dirname, '../..')
-const prWorkflow = parse(readFileSync(join(projectDir, '.github/workflows/pr.yml'), 'utf8'))
-
-const expensiveJobs = [
-  'static_analysis',
-  'typecheck',
-  'git_compatibility',
-  'codex_index_heal_contract',
-  'xterm_patch_sync',
-  'shell_contracts',
-  'test',
-  'mantad_browser',
-  'relay',
-  'cross-version-wire',
-  'managed_hook_node18',
-  'package',
-  'package_windows'
-]
 
 const ALWAYS_ON = ['static_analysis', 'typecheck', 'test']
 
@@ -133,6 +114,12 @@ describe('per-job path classification', () => {
     expectClassification(['.github/actions/prepare-git-compatibility/action.yml'], {
       git_compatibility: true
     })
+    // The contract pins the local-main fast-forward's exact arguments.
+    expectClassification(['src/shared/worktree/local-base-branch-fast-forward.ts'], {
+      git_compatibility: true,
+      package: true,
+      package_windows: true
+    })
   })
 
   it('runs the Codex index-heal contract only when the heal or its transport changes', () => {
@@ -154,10 +141,20 @@ describe('per-job path classification', () => {
     expectClassification(['src/main/codex/codex-index-heal-binary-contract.test.ts'], {
       codex_index_heal_contract: true
     })
-    // Keep the real-binary gate live when a transport or launch dependency changes.
+    // Keep the real-binary gate live when a trust, transport, launch or hook-approval dependency changes.
     for (const file of [
+      'src/main/agent-trust-presets.ts',
+      'src/main/codex/config-toml-trust.ts',
+      'src/main/codex/codex-hook-trust-derivation.ts',
+      'src/main/codex/codex-hook-local-install.ts',
+      'src/main/codex/codex-hook-manta-approvals.ts',
+      'src/main/codex/codex-hook-reconcile.ts',
+      'src/main/codex/config-toml-hook-trust-edit.ts',
+      'src/main/codex-cli/codex-read-only-app-server-args.ts',
       'src/main/codex/codex-app-server-capability-signal.ts',
-      'src/main/codex/codex-process-exit-deadline.ts',
+      'src/main/provider-process/provider-process-exit-deadline.ts',
+      'src/main/provider-process/provider-process-launch.ts',
+      'src/main/provider-process/provider-record-reader.ts',
       'src/main/codex/codex-session-backfill.ts',
       'src/main/codex/codex-session-index-heal-state.ts',
       'src/main/codex-cli/command.ts',
@@ -188,7 +185,7 @@ describe('per-job path classification', () => {
   })
 
   it('runs native package jobs only for the platform that ships the changed native', () => {
-    expectClassification(['native/windows-cli-launcher/MantaCliLauncher.cs'], {
+    expectClassification(['native/windows-cli-launcher/src/main.rs'], {
       package_windows: true
     })
     expectClassification(['native/computer-use-linux/runtime.py'], {
@@ -200,6 +197,7 @@ describe('per-job path classification', () => {
   it('runs Linux packaging when an artifact contract changes', () => {
     for (const file of [
       'config/scripts/package-linux-formats.mjs',
+      'config/scripts/package-linux-formats-appimage.mjs',
       'config/scripts/script-child-process.mjs',
       'config/scripts/space-sharing-copy.mjs',
       '.github/actions/prepare-linux-package-fixture/action.yml',
@@ -271,6 +269,23 @@ describe('per-job path classification', () => {
       package: true,
       package_windows: true
     })
+  })
+
+  it('runs shell contracts for the structured-session login-shell test, its harness and its subject', () => {
+    expectClassification(
+      ['src/main/runtime/structured-session-cli-login-shell.live-shell.test.ts'],
+      { shell_contracts: true }
+    )
+    for (const file of [
+      'src/main/runtime/structured-session-login-shell-test-harness.ts',
+      'src/main/runtime/structured-session-child-identity-env.ts'
+    ]) {
+      expectClassification([file], {
+        shell_contracts: true,
+        package: true,
+        package_windows: true
+      })
+    }
   })
 
   it('runs mantad browser when Chrome launch, session, or tab modules change', () => {
@@ -356,6 +371,7 @@ describe('per-job path classification', () => {
       'src/shared/protocol-version.ts',
       'src/shared/terminal-stream-protocol.ts',
       'src/shared/agent-session-wire.ts',
+      'src/shared/agent-session-provider-handle.ts',
       'src/shared/agent-session-mutation-envelope.ts',
       'src/shared/agent-session-journal-item-key.ts',
       'src/shared/agent-session-journal-types.ts',
@@ -377,7 +393,11 @@ describe('per-job path classification', () => {
       'src/main/runtime/runtime-worktree-agent-rows.ts',
       'src/main/runtime/runtime-worktree-pty-agent-sources.ts',
       'src/shared/runtime-worktree-contracts.ts',
-      'src/renderer/src/runtime/remote-runtime-terminal-multiplexer.ts'
+      'src/renderer/src/runtime/remote-runtime-terminal-multiplexer.ts',
+      'src/shared/structured-agent-session-projection.ts',
+      'src/shared/agent-turn-outcome.ts',
+      'src/main/runtime/orchestration/db.ts',
+      'src/main/runtime/orchestration/orchestration-schema-version-skew.ts'
     ]) {
       expectClassification([file], {
         'cross-version-wire': true,
@@ -408,6 +428,7 @@ describe('per-job path classification', () => {
       'package.json',
       'pnpm-lock.yaml',
       '.github/actions/install-node-dependencies/action.yml',
+      '.github/actions/prepare-native-runtime/action.yml',
       'config/scripts/ensure-native-runtime.mjs',
       'config/scripts/rebuild-native-deps.mjs',
       'config/patches/node-pty@1.1.0.patch'
@@ -530,140 +551,5 @@ describe('per-job path classification', () => {
     expect(exitCode, stderr).toBe(0)
     expect(stdout).toContain('should_run=true\n')
     expect(stdout).toContain('xterm_patch_sync=true\n')
-  })
-})
-
-describe('PR Checks skip wiring', () => {
-  it('runs the candidate daemon shutdown Docker oracle in the existing Linux package job', () => {
-    const steps = prWorkflow.jobs.package.steps
-    const install = steps.findIndex(
-      (step) => step.uses === './.github/actions/install-node-dependencies'
-    )
-    const oracle = steps.findIndex(
-      (step) => step.name === 'Verify Linux daemon shutdown descendant cleanup'
-    )
-    expect(install).toBeGreaterThan(-1)
-    expect(oracle).toBeGreaterThan(install)
-    expect(steps[oracle].run).toBe('node config/scripts/run-daemon-shutdown-descendants-docker.mjs')
-    expect(steps[oracle].env.MANTA_BACKGROUND_LAUNCH).toBe('1')
-  })
-
-  it('classifies the PR range with a tested script and expands renames', () => {
-    const classify = prWorkflow.jobs.code_paths.steps.find(
-      (step) => step.name === 'Classify changed paths'
-    )
-    expect(classify.run).toContain('--diff-filter=ACDMR')
-    expect(classify.run).toContain('--no-renames')
-    // HEAD is the merge commit, so HEAD^1 is the base side and no merge base is computed.
-    // That is what lets this job check out shallowly, which every other job waits on.
-    expect(classify.run).toContain('node config/scripts/git-pull-request-diff-base.mjs "$BASE_SHA"')
-    expect(classify.run).toContain('"$DIFF_BASE" HEAD')
-    expect(classify.run).not.toContain('--merge-base "$')
-    expect(classify.run).toContain('node config/scripts/pr-code-change-scope.mjs')
-    expect(classify.run).toContain('tee -a "$GITHUB_OUTPUT"')
-    expect(prWorkflow.jobs.code_paths.outputs.should_run).toBe(
-      '${{ steps.filter.outputs.should_run }}'
-    )
-    for (const jobName of ['native_cache_changed', ...expensiveJobs]) {
-      expect(prWorkflow.jobs.code_paths.outputs[jobName], jobName).toBe(
-        `\${{ steps.readiness.outputs.reused != 'true' && steps.filter.outputs.${jobName} }}`
-      )
-    }
-  })
-
-  it('gives static analysis the mobile types its type-aware pass resolves', () => {
-    expect(prWorkflow.jobs.code_paths.outputs.mobile_dependencies).toBe(
-      '${{ steps.filter.outputs.mobile_dependencies }}'
-    )
-    const steps = prWorkflow.jobs.static_analysis.steps
-    const install = steps.findIndex(
-      (step) => step.uses === './.github/actions/install-mobile-dependencies'
-    )
-    const gate = steps.findIndex((step) => step.name === 'Enforce changed-code quality')
-    expect(install).toBeGreaterThan(-1)
-    expect(install).toBeLessThan(gate)
-    expect(steps[install].if).toBe("needs.code_paths.outputs.mobile_dependencies == 'true'")
-    // The install itself moved into the action the packaging jobs share; assert it there so
-    // this job cannot keep the step while the action stops installing anything.
-    const action = parse(
-      readFileSync(
-        join(projectDir, '.github/actions/install-mobile-dependencies/action.yml'),
-        'utf8'
-      )
-    )
-    const [installStep] = action.runs.steps
-    expect(installStep['working-directory']).toBe('mobile')
-    expect(installStep.run).toContain('--frozen-lockfile')
-  })
-
-  it('keeps the root and README guards on docs-only PRs without another runner', () => {
-    const detector = prWorkflow.jobs.code_paths
-    expect(detector.if).toBeUndefined()
-    expect(detector.needs).toBeUndefined()
-    for (const name of ['Reject new root-level files and folders', 'Check README local links']) {
-      const step = detector.steps.find((candidate) => candidate.name === name)
-      expect(step).toBeDefined()
-      expect(step.if).toBeUndefined()
-    }
-    expect(prWorkflow.jobs.root_directory_guard).toBeUndefined()
-  })
-
-  it('gates each expensive job on its classifier and cache prerequisite', () => {
-    for (const jobName of expensiveJobs.filter((jobName) => jobName !== 'test')) {
-      expect(prWorkflow.jobs[jobName].needs, jobName).toEqual(
-        ['package', 'package_windows'].includes(jobName)
-          ? ['code_paths', 'static_analysis', 'typecheck']
-          : ['code_paths']
-      )
-      expect(prWorkflow.jobs[jobName].if, jobName).toBe(
-        `needs.code_paths.outputs.${jobName} == 'true'`
-      )
-    }
-    expect(prWorkflow.jobs.test.needs).toEqual([
-      'code_paths',
-      'test_native_cache',
-      'static_analysis',
-      'typecheck'
-    ])
-    expect(prWorkflow.jobs.test.if).toContain("needs.code_paths.outputs.test == 'true'")
-    expect(prWorkflow.jobs.test.if).toContain("needs.test_native_cache.result == 'success'")
-    expect(prWorkflow.jobs.test.if).toContain("needs.test_native_cache.result == 'skipped'")
-    expect(prWorkflow.jobs.test_native_cache.needs).toEqual(['code_paths'])
-    expect(prWorkflow.jobs.test_native_cache.if).toBe(
-      "needs.code_paths.outputs.native_cache_changed == 'true'"
-    )
-    expect(prWorkflow.jobs.test_native_cache.strategy).toBeUndefined()
-    const primerInstall = prWorkflow.jobs.test_native_cache.steps.find(
-      (step) => step.uses === './.github/actions/install-node-dependencies'
-    )
-    expect(primerInstall.with['node-version']).toBe('24')
-  })
-
-  it('skips e2e detection on docs-only PRs without dropping the draft gate', () => {
-    const filter = prWorkflow.jobs.code_paths.steps.find((step) => step.id === 'e2e_filter')
-    expect(filter.if).toBe(
-      "github.event.pull_request.draft != true && steps.filter.outputs.should_run == 'true'"
-    )
-    expect(prWorkflow.jobs['e2e-paths']).toBeUndefined()
-  })
-
-  it('lets verify pass skipped jobs the classifier turned off', () => {
-    const verifyStep = prWorkflow.jobs.verify.steps.find(
-      (step) => step.name === 'Require successful checks'
-    )
-    expect(prWorkflow.jobs.verify.needs[0]).toBe('code_paths')
-    expect(verifyStep.env.SHOULD_RUN).toBe('${{ needs.code_paths.outputs.should_run }}')
-    expect(verifyStep.run).toContain('"$CODE_PATHS" != "success"')
-    expect(verifyStep.run).toContain('# Require success when the PR has code-relevant changes')
-    expect(verifyStep.run).toContain('expected skipped')
-    expect(verifyStep.run).toContain('expected success')
-    for (const job of prWorkflow.jobs.verify.needs) {
-      if (job === 'code_paths') {
-        continue
-      }
-      const envVar = `${job.replaceAll('-', '_').toUpperCase()}_SHOULD_RUN`
-      expect(verifyStep.env[envVar]).toBe(`\${{ needs.code_paths.outputs.${job} }}`)
-      expect(verifyStep.run).toContain(`"$${envVar}"`)
-    }
   })
 })

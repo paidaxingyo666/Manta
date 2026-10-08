@@ -9,12 +9,18 @@ import { resolveConflictDisplay } from './pr-conflict-presentation'
 import { prConflictStyles as styles } from './pr-conflict-styles'
 import { prAiTriageStyles as triageStyles } from './pr-ai-triage-styles'
 import { translate } from '../../i18n/i18n'
+import { AgentLaunchNotice } from '../AgentLaunchNotice'
+import type { MobileAgentLaunchAvailability } from '../../session/mobile-agent-launch-availability'
 
 // Launches the "Resolve conflicts with AI" agent. Absent for display-only usages.
 export type PrConflictsTriage = {
   resolveConflicts: () => void
   isBusy: boolean
+  availability: MobileAgentLaunchAvailability
+  success: string | null
   error: string | null
+  warning: string | null
+  undeliveredPrompt: string | null
 }
 
 type Props = {
@@ -172,7 +178,7 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
               pressed && triageStyles.triageButtonPressed
             ]}
             onPress={triage.resolveConflicts}
-            disabled={triage.isBusy}
+            disabled={triage.isBusy || triage.availability !== 'available'}
             accessibilityRole="button"
             accessibilityLabel="Resolve conflicts with AI"
           >
@@ -185,7 +191,14 @@ export function PRConflictingFilesSection({ pr, isRefreshing = false, triage }: 
               {translate('m.PRConflictingFilesSection.ceb7ab5c67', 'Resolve conflicts with AI')}
             </Text>
           </Pressable>
-          {triage.error ? <Text style={triageStyles.triageError}>{triage.error}</Text> : null}
+          <AgentLaunchNotice
+            availability={triage.availability}
+            success={triage.success}
+            error={triage.error}
+            warning={triage.warning}
+            undeliveredPrompt={triage.undeliveredPrompt}
+            errorStyle={triageStyles.triageError}
+          />
         </View>
       ) : null}
     </PRSection>

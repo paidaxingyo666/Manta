@@ -90,10 +90,13 @@ describe('serveMantaApp', () => {
     spawnMock.mockReset()
     spawnSyncMock.mockReset()
     process.env.MANTA_APP_EXECUTABLE = '/Applications/Manta.app/Contents/MacOS/Manta'
+    // These cover Electron serve itself; the mantad default is in launch-serve-runtime.test.ts.
+    process.env.ORCA_SERVE_RUNTIME = 'electron'
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
+    delete process.env.ORCA_SERVE_RUNTIME
     delete process.env.MANTA_APP_EXECUTABLE
     delete process.env.MANTA_APP_EXECUTABLE_NEEDS_APP_ROOT
     delete process.env.MANTA_USER_DATA_PATH

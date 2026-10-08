@@ -5,6 +5,7 @@ import SettingsMenuScreen from '../src/settings/settings-menu-screen'
 import { MobileSettingsSection } from '../src/settings/mobile-settings-menu'
 import { PendingCredentialCleanupCard } from '../src/settings/pending-credential-cleanup-card'
 import { translate } from '../src/i18n/i18n'
+import { SettingsAppUpdateSection } from '../src/settings/settings-app-update-section'
 
 export default function NativeSettingsRoute() {
   const router = useRouter()
@@ -24,6 +25,7 @@ export default function NativeSettingsRoute() {
           }
         ]}
       />
+      <SettingsAppUpdateSection />
       <PendingCredentialCleanupCard />
     </SettingsMenuScreen>
   )

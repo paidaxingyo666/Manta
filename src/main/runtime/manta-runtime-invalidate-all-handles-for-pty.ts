@@ -140,7 +140,6 @@ export class MantaRuntimeWithInvalidateAllHandlesForPty extends MantaRuntimeWith
     options: { awaitsRegistration?: boolean } = {}
   ): void {
     this.invalidatePtyControllerInventoryForLifecycle(ptyId)
-    this.pendingPtySurfaceRetirementsByPtyId.delete(ptyId)
     const existingPty = this.ptysById.get(ptyId)
     if (
       existingPty &&

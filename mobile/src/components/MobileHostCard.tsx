@@ -182,7 +182,6 @@ const styles = StyleSheet.create({
   metaText: { flex: 1, fontSize: 12, color: colors.textSecondary },
   worktreeMetaText: {
     marginTop: 2,
-    marginLeft: spacing.xl,
     fontSize: 12,
     color: colors.textMuted
   },

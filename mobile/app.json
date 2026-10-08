@@ -2,7 +2,7 @@
   "expo": {
     "name": "Manta",
     "slug": "manta-mobile",
-    "version": "0.0.52",
+    "version": "0.0.53",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -78,7 +78,7 @@
       "allowBackup": false,
       "permissions": ["RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
       "package": "cn.sh.manta.mobile",
-      "versionCode": 18
+      "versionCode": 19
     },
     "plugins": [
       "expo-router",
