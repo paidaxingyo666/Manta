@@ -1362,6 +1362,15 @@
             "f38095bad3": "空白终端"
           }
         }
+      },
+      "tab": {
+        "agent": {
+          "host": {
+            "launch": {
+              "35ffae1326": "批注已发送"
+            }
+          }
+        }
       }
     },
     "MobileRichMarkdownEditor": {
@@ -2288,6 +2297,21 @@
       "web": {
         "cbc943bb24": "终端文档启动失败 - {{value0}}"
       }
+    },
+    "MobileNativeChatQueuedMessages": {
+      "2ed7e2e6b4": "发送",
+      "c5d7275d9c": "恢复"
+    },
+    "MobileNativeChatStopButton": {
+      "48d37a247d": "停止"
+    },
+    "MobileFileMediaPreview": {
+      "12cb691cea": "重试",
+      "f1fa0725eb": "等待桌面端…"
+    },
+    "AgentLaunchNotice": {
+      "83e0b4512d": "无法复制",
+      "7860758a15": "已复制"
     }
   },
   "mobile": {

@@ -37,7 +37,7 @@ export const workspaceSortOptions = localizedConstant((): PickerOption<MobileSor
   {
     value: 'manual',
     label: translate('m.workspace.list.picker.options.172192615e', 'Manual'),
-    subtitle: 'Desktop drag order'
+    subtitle: translate("m.workspace.list.picker.options.75eee69fc0", "Desktop drag order")
   }
 ])
 

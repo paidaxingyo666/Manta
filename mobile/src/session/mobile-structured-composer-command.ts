@@ -63,7 +63,7 @@ export async function dispatchMobileStructuredCommand(input: {
           unknown = true
           return {
             accepted: false,
-            error: 'Conversation operation was not confirmed.'
+            error: translate("m.mobile.structured.composer.command.f978ef89b6", "Conversation operation was not confirmed.")
           }
         }
         return result.status === 'accepted'

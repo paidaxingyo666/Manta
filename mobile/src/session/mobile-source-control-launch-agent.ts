@@ -18,6 +18,7 @@ import { filterEnabledTuiAgents } from '../../../src/shared/tui-agent-selection'
 import type { TuiAgent } from '../../../src/shared/tui-agent'
 import { isMobileTuiAgent } from '../tasks/mobile-tui-agents'
 import type { MobileAgentLaunchContext } from './mobile-new-tab-agent-loader'
+import { translate } from '../i18n/i18n'
 
 export type MobileSourceControlLaunchAgent =
   /** `recipe`: the action's saved recipe, for its prompt template; null with no action. */
@@ -46,7 +47,7 @@ export function resolveMobileSourceControlLaunchAgent(
   ) {
     return {
       kind: 'unavailable',
-      message: 'The saved agent for this action is not available on this workspace host.'
+      message: translate("m.mobile.source.control.launch.agent.c028e45eff", "The saved agent for this action is not available on this workspace host.")
     }
   }
   const agent = pickSourceControlLaunchAgent({
@@ -57,7 +58,7 @@ export function resolveMobileSourceControlLaunchAgent(
   })
   return agent
     ? { kind: 'agent', agent, recipe }
-    : { kind: 'unavailable', message: 'No enabled AI agent was detected on this workspace host.' }
+    : { kind: 'unavailable', message: translate("m.mobile.source.control.launch.agent.38424199f0", "No enabled AI agent was detected on this workspace host.") }
 }
 
 function readLaunchAgentSettings(settings: unknown): LaunchAgentSettings | null {

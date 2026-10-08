@@ -7,6 +7,7 @@ import {
   resolveMobileAgentLaunchAvailability,
   type MobileAgentLaunchAvailability
 } from './mobile-agent-launch-availability'
+import { translate } from '../i18n/i18n'
 
 // Launches an agent for the PR triage actions ("Fix checks with AI" / "Resolve
 // conflicts with AI") via launchAgentWithPrompt; see pr-ai-triage-launch.ts.
@@ -80,7 +81,7 @@ export function useMobilePrAiTriage(input: Input) {
         return false
       }
       if (!client || connState !== 'connected') {
-        setNotice(key, { ...NO_LAUNCH_NOTICE, error: 'Waiting for desktop…' })
+        setNotice(key, { ...NO_LAUNCH_NOTICE, error: translate("m.use.mobile.pr.ai.triage.597bfe99c4", "Waiting for desktop…") })
         triggerError()
         return false
       }
@@ -113,7 +114,7 @@ export function useMobilePrAiTriage(input: Input) {
         triggerError()
         setNotice(key, {
           ...NO_LAUNCH_NOTICE,
-          error: err instanceof Error ? err.message : 'Failed to launch agent'
+          error: err instanceof Error ? err.message : translate("m.use.mobile.pr.ai.triage.eb65aabdc8", "Failed to launch agent")
         })
         return false
       } finally {

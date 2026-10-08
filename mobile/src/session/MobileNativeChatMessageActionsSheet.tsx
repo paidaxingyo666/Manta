@@ -8,6 +8,7 @@ import { BottomDrawer } from '../components/BottomDrawer'
 import { useClipboardWriter } from '../platform/clipboard'
 import { colors, spacing, typography } from '../theme/mobile-theme'
 import { nativeChatMessagePlainText } from './mobile-native-chat-message-plain-text'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   /** The long-pressed message. The owner mounts this only while the sheet is open. */
@@ -40,7 +41,7 @@ export function MobileNativeChatMessageActionsSheet({
           onClose={closeSheet}
           actions={[
             {
-              label: 'Copy message',
+              label: translate("m.MobileNativeChatMessageActionsSheet.b3d84e5299", "Copy message"),
               icon: Copy,
               disabled: text.length === 0,
               onPress: () => {
@@ -53,7 +54,7 @@ export function MobileNativeChatMessageActionsSheet({
               }
             },
             {
-              label: 'Select text',
+              label: translate("m.MobileNativeChatMessageActionsSheet.367ed28fee", "Select text"),
               icon: TextSelect,
               disabled: text.length === 0,
               onPress: () => {
@@ -80,7 +81,7 @@ function SelectTextScreen({
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Select text</Text>
+          <Text style={styles.title}>{translate("m.MobileNativeChatMessageActionsSheet.367ed28fee", "Select text")}</Text>
           <Pressable
             onPress={onClose}
             hitSlop={12}

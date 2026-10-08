@@ -7,6 +7,7 @@ import {
 } from '../session/mobile-existing-agent-launch'
 import type { MobileAgentLaunchAvailability } from '../session/mobile-agent-launch-availability'
 import { colors, spacing, typography } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 type Props = {
   availability: MobileAgentLaunchAvailability
@@ -44,7 +45,7 @@ export function AgentLaunchNotice({
     return null
   }
   const copyLabel =
-    copyState && copyState.prompt === undeliveredPrompt ? copyState.label : 'Copy prompt'
+    copyState && copyState.prompt === undeliveredPrompt ? copyState.label : translate("m.AgentLaunchNotice.cff1e8bebf", "Copy prompt")
   return (
     <View style={styles.notice}>
       {confirmation ? <Text style={styles.successText}>{confirmation}</Text> : null}
@@ -54,8 +55,8 @@ export function AgentLaunchNotice({
         <Pressable
           onPress={() => {
             clipboard.writeText(undeliveredPrompt).then(
-              () => setCopyState({ prompt: undeliveredPrompt, label: 'Copied' }),
-              () => setCopyState({ prompt: undeliveredPrompt, label: "Couldn't copy" })
+              () => setCopyState({ prompt: undeliveredPrompt, label: translate("m.AgentLaunchNotice.7860758a15", "Copied") }),
+              () => setCopyState({ prompt: undeliveredPrompt, label: translate("m.AgentLaunchNotice.83e0b4512d", "Couldn't copy") })
             )
           }}
           accessibilityRole="button"

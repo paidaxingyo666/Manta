@@ -1,6 +1,7 @@
 import { ArrowUpFromLine, X } from 'lucide-react-native'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors, radii, spacing } from '../theme/mobile-theme'
+import { translate } from '../i18n/i18n'
 
 /** Home's update notice, drawn in the host card's frame so it reads as part of that list. */
 export function AppUpdateCard(props: {
@@ -8,7 +9,7 @@ export function AppUpdateCard(props: {
   onPress: () => void
   onDismiss: () => void
 }) {
-  const title = `Manta ${props.version} is available`
+  const title = translate("m.AppUpdateCard.327ba90dbd", "Manta {{value0}} is available", { value0: props.version })
   return (
     <View style={styles.card}>
       <Pressable
@@ -25,7 +26,7 @@ export function AppUpdateCard(props: {
             {title}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
-            Tap to update
+            {translate("m.AppUpdateCard.e15bb2777e", "Tap to update")}
           </Text>
         </View>
       </Pressable>

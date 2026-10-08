@@ -151,6 +151,12 @@
             "4a36a2e93d": "Pull ({{value0}})",
             "7816735a4c": "Push",
             "dc5665ae76": "Push ({{value0}})"
+          },
+          "launch": {
+            "agent": {
+              "38424199f0": "No enabled AI agent was detected on this workspace host.",
+              "c028e45eff": "The saved agent for this action is not available on this workspace host."
+            }
           }
         }
       },
@@ -198,6 +204,11 @@
             "action": {
               "1a6063ae20": "Switch to chat view",
               "76a2ac32a6": "Switch to terminal view"
+            }
+          },
+          "stream": {
+            "frame": {
+              "6109b6b7f9": "Transcript stream ended"
             }
           }
         }
@@ -268,7 +279,8 @@
         "composer": {
           "command": {
             "1b2277ee53": "Conversation operation is unconfirmed; retry checks the same operation.",
-            "137e5d6e8e": "Wait for pending work to finish before using this command."
+            "137e5d6e8e": "Wait for pending work to finish before using this command.",
+            "f978ef89b6": "Conversation operation was not confirmed."
           }
         },
         "send": {
@@ -353,7 +365,8 @@
             "05a18882b1": "Alphabetical by name",
             "b50aa4cb12": "Name",
             "45c98be3a6": "Agents that need attention, then recent activity",
-            "ea011082cd": "Agent activity"
+            "ea011082cd": "Agent activity",
+            "75eee69fc0": "Desktop drag order"
           }
         }
       }
@@ -468,7 +481,8 @@
         "1ea3fa201c": "Large (125%)",
         "d0e28eb0a6": "Default (100%)",
         "080b3ca143": "Smaller (75%)",
-        "862a2e3353": "Smallest (50%)"
+        "862a2e3353": "Smallest (50%)",
+        "77efd9994a": "While you're using a terminal on your phone, Manta shrinks it to fit your screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore on the desktop banner to resize manually."
       }
     },
     "sparse": {
@@ -564,6 +578,12 @@
         "pr": {
           "actions": {
             "01a9dd9c0e": "Not connected"
+          },
+          "ai": {
+            "triage": {
+              "eb65aabdc8": "Failed to launch agent",
+              "597bfe99c4": "Waiting for desktop…"
+            }
           }
         },
         "terminal": {
@@ -775,7 +795,8 @@
       "6b0db92a6c": "more tool calls",
       "5df068822d": "{{value0}} tool {{value1}}",
       "58bde2fc06": "image",
-      "e88fa76bb4": "Result"
+      "e88fa76bb4": "Result",
+      "645191d29c": "Message from"
     },
     "MobileNativeChatQuestion": {
       "a6c3892e34": "Type your reply…",
@@ -1112,7 +1133,8 @@
       "938a1a102b": "This desktop needs a newer Manta Mobile app. Update Manta Mobile from {{value0}}, then try this host again.",
       "0b8f38e4de": "Update Manta on your computer",
       "682bbfb813": "Update Manta Mobile",
-      "e21ce244af": "If this message stays, remove this host and pair it again."
+      "e21ce244af": "If this message stays, remove this host and pair it again.",
+      "386e624668": "Get Manta {{value0}}"
     },
     "SetupHookTrustDrawer": {
       "3def439a17": "Don't run",
@@ -1219,6 +1241,15 @@
         "agent": {
           "selection": {
             "f38095bad3": "Blank Terminal"
+          }
+        }
+      },
+      "tab": {
+        "agent": {
+          "host": {
+            "launch": {
+              "35ffae1326": "Notes sent"
+            }
           }
         }
       }
@@ -1360,6 +1391,13 @@
             "92606cad19": "Bots",
             "0964119c2c": "Humans",
             "8fabd9b4d4": "All"
+          }
+        }
+      },
+      "ai": {
+        "triage": {
+          "launch": {
+            "9a71429876": "This action's saved prompt is empty. Update Source Control AI settings on your computer."
           }
         }
       }
@@ -2255,7 +2293,9 @@
       "f24ff178ab": "Plan file:",
       "c5bf577559": "Ask rule:",
       "e235b1ee4c": "Blocked path:",
-      "a784e8b5e0": "Reason:"
+      "a784e8b5e0": "Reason:",
+      "cfbf09def2": "This request needs a newer version of Manta.",
+      "e4ca744e2a": "Needs access to:"
     },
     "NotificationOnboardingPreview": {
       "7f7868532b": "now",
@@ -2288,6 +2328,60 @@
         "4e38949c67": "Reconnect or remove this host from the Manta app.",
         "cc4297959e": "Re-pair"
       }
+    },
+    "rpc": {
+      "client": {
+        "stream": {
+          "registry": {
+            "12510e6f03": "Streaming request ended before it was ready.",
+            "022acb1d2e": "Connection interrupted"
+          }
+        }
+      }
+    },
+    "app": {
+      "update": {
+        "settings": {
+          "rows": {
+            "7044099667": "Check for updates",
+            "fdbb13e309": "Version",
+            "c4e6a1e8fe": "Update",
+            "031ac9e67e": "Update to Manta"
+          }
+        }
+      }
+    },
+    "MobileNativeChatMessageActionsSheet": {
+      "367ed28fee": "Select text",
+      "b3d84e5299": "Copy message"
+    },
+    "MobileNativeChatQueuedMessages": {
+      "39824a97f6": "Edit message",
+      "2ed7e2e6b4": "Send",
+      "bed85b35fa": "Steer",
+      "c5d7275d9c": "Resume"
+    },
+    "MobileNativeChatStopButton": {
+      "48d37a247d": "Stop"
+    },
+    "MobileNativeChatVisual": {
+      "a5704a890c": "Visualization unavailable"
+    },
+    "AppUpdateCard": {
+      "e15bb2777e": "Tap to update",
+      "327ba90dbd": "Manta {{value0}} is available"
+    },
+    "MobileFileMediaPreview": {
+      "ecdfd4e3b3": "Loading media...",
+      "38ce24df5b": "Downloading {{value0}} of {{value1}}",
+      "12cb691cea": "Retry",
+      "f1fa0725eb": "Waiting for desktop...",
+      "887e77ba30": "Unable to load media"
+    },
+    "AgentLaunchNotice": {
+      "83e0b4512d": "Couldn't copy",
+      "7860758a15": "Copied",
+      "cff1e8bebf": "Copy prompt"
     }
   },
   "mobile": {

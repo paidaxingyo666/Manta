@@ -3,6 +3,7 @@ import { Square } from 'lucide-react-native'
 import { NATIVE_CHAT_TURN_STATUS_COPY } from '../../../src/shared/native-chat-turn-status'
 import { colors } from '../theme/mobile-theme'
 import { styles } from './mobile-native-chat-view-styles'
+import { translate } from '../i18n/i18n'
 
 /** The chat header's Stop. `held`: this phone's own Stop request is still in flight. */
 export function MobileNativeChatStopButton({
@@ -12,7 +13,7 @@ export function MobileNativeChatStopButton({
   onStop?: () => void
   held: boolean
 }): React.JSX.Element {
-  const label = held ? NATIVE_CHAT_TURN_STATUS_COPY.stopping : 'Stop'
+  const label = held ? NATIVE_CHAT_TURN_STATUS_COPY.stopping : translate("m.MobileNativeChatStopButton.48d37a247d", "Stop")
   return (
     <Pressable
       style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}

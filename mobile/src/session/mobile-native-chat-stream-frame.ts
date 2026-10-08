@@ -1,6 +1,7 @@
 import { applyAppend, replaceList } from '../../../src/shared/native-chat-merge'
 import type { NativeChatMerger } from '../../../src/shared/native-chat-merge'
 import type { NativeChatMessage } from '../../../src/shared/native-chat-types'
+import { translate } from '../i18n/i18n'
 
 export type MobileNativeChatStreamFrame = {
   type?: string
@@ -80,7 +81,7 @@ export function applyMobileNativeChatStreamFrame(args: {
   }
   // Why: a feed's token is its own, so an end that reaches here was not asked for; the feed is dead.
   if (frame.type === 'end') {
-    return { kind: 'error', error: 'Transcript stream ended' }
+    return { kind: 'error', error: translate("m.mobile.native.chat.stream.frame.6109b6b7f9", "Transcript stream ended") }
   }
   if (frame.type !== 'snapshot' && frame.type !== 'replacement' && frame.type !== 'appended') {
     return { kind: 'ignored' }

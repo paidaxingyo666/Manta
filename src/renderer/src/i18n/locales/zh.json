@@ -18483,7 +18483,7 @@
       "interruptedContinue": {
         "continue": "继续",
         "failed": "无法继续此聊天。请重试，或发送一条消息。",
-        "explanation": "继续后，代理会先检查其上一步是否已完成。"
+        "explanation": "继续后，智能体会先检查其上一步是否已完成。"
       },
       "rewind": {
         "unsupported": "此聊天无法返回到更早的消息。",

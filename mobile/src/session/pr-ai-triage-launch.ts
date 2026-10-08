@@ -8,6 +8,7 @@ import {
 } from './mobile-existing-agent-launch'
 import { loadMobileAgentLaunchContext } from './mobile-new-tab-agent-loader'
 import { resolveMobileSourceControlLaunchAgent } from './mobile-source-control-launch-agent'
+import { translate } from '../i18n/i18n'
 
 // Launch path for the phone's AI buttons ("Fix checks with AI", "Resolve conflicts with AI", commit
 // recovery, review notes). The host starts the agent and delivers the prompt; the phone never
@@ -61,7 +62,7 @@ export async function launchAgentWithPrompt(args: {
     return {
       kind: 'not-started',
       message:
-        "This action's saved prompt is empty. Update Source Control AI settings on your computer."
+        translate("m.pr.ai.triage.launch.9a71429876", "This action's saved prompt is empty. Update Source Control AI settings on your computer.")
     }
   }
   const launched = await launchAgentInExistingWorkspace({

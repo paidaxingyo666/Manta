@@ -9,6 +9,7 @@ import { MOBILE_NATIVE_CHAT_VISUAL_INITIAL_HEIGHT } from './mobile-native-chat-v
 import { MobileNativeChatVisualFrame } from './MobileNativeChatVisualFrame'
 import { useMobileNativeChatVisual } from './use-mobile-native-chat-visual'
 import type { MobileNativeChatVisualRender } from './mobile-native-chat-visual-context'
+import { translate } from '../i18n/i18n'
 
 const DEFAULT_TITLE = 'Visualization'
 
@@ -69,7 +70,7 @@ export const MobileNativeChatVisual = memo(function MobileNativeChatVisual({
         accessibilityHint="Tries to load it again"
         style={styles.unavailable}
       >
-        <Text style={styles.unavailableText}>Visualization unavailable</Text>
+        <Text style={styles.unavailableText}>{translate("m.MobileNativeChatVisual.a5704a890c", "Visualization unavailable")}</Text>
       </Pressable>
     )
   }

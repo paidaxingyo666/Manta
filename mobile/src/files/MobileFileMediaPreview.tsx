@@ -8,6 +8,7 @@ import { createMobileMediaSink } from './mobile-media-preview-cache'
 import { MobileMediaPlayback } from './MobileMediaPlayback'
 import { filePreviewStyles as styles } from './mobile-file-preview-styles'
 import { formatPreviewByteLength } from './mobile-file-preview-response'
+import { translate } from '../i18n/i18n'
 
 type State = { uri: string } | { error: string } | { bytes: number; total: number }
 type Props = { media: MobileFileMedia; client: MobileFilePreviewRpcSender | null; title: string }
@@ -41,7 +42,7 @@ function MediaDownload({ media, client, title }: Props) {
           }
         } catch (error) {
           if (!controller.signal.aborted) {
-            setState({ error: error instanceof Error ? error.message : 'Unable to load media' })
+            setState({ error: error instanceof Error ? error.message : translate("m.MobileFileMediaPreview.887e77ba30", "Unable to load media") })
           }
         }
       })()
@@ -54,7 +55,7 @@ function MediaDownload({ media, client, title }: Props) {
   if (!client) {
     return (
       <View style={styles.state}>
-        <Text style={styles.stateText}>Waiting for desktop...</Text>
+        <Text style={styles.stateText}>{translate("m.MobileFileMediaPreview.f1fa0725eb", "Waiting for desktop...")}</Text>
       </View>
     )
   }
@@ -70,7 +71,7 @@ function MediaDownload({ media, client, title }: Props) {
           onPress={() => setAttempt(attempt + 1)}
           accessibilityRole="button"
         >
-          <Text style={styles.retryText}>Retry</Text>
+          <Text style={styles.retryText}>{translate("m.MobileFileMediaPreview.12cb691cea", "Retry")}</Text>
         </Pressable>
       </View>
     )
@@ -80,8 +81,8 @@ function MediaDownload({ media, client, title }: Props) {
       <ActivityIndicator color={colors.textSecondary} />
       <Text style={styles.stateText}>
         {state.total
-          ? `Downloading ${formatPreviewByteLength(state.bytes)} of ${formatPreviewByteLength(state.total)}`
-          : 'Loading media...'}
+          ? translate("m.MobileFileMediaPreview.38ce24df5b", "Downloading {{value0}} of {{value1}}", { value0: formatPreviewByteLength(state.bytes), value1: formatPreviewByteLength(state.total) })
+          : translate("m.MobileFileMediaPreview.ecdfd4e3b3", "Loading media...")}
       </Text>
     </View>
   )
