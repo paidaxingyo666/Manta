@@ -1,4 +1,5 @@
 import type { ChildProcess } from 'node:child_process'
+import type { ChildProcessHandle } from '../../shared/child-process/process-spec'
 import { restartCancelledWatcherChild } from './parcel-watcher-cancellation-restart'
 import { WatcherCancellationTracker } from './parcel-watcher-cancellation-tracker'
 import { getWatcherProcessEntryPath, watcherProcessEntryExists } from './parcel-watcher-entry-path'
@@ -53,6 +54,15 @@ export class WatcherProcessSupervisor {
   private ownedChildren = new WatcherOwnedChildren()
 
   constructor(private readonly options: WatcherProcessSupervisorOptions = {}) {}
+
+  /** Read by the release fault harness and resource probe, which kill and measure the live child. */
+  get child(): ChildProcessHandle | null {
+    return this.slot.child
+  }
+
+  get canaryDir(): string | null {
+    return this.slot.canaryDir
+  }
 
   subscribe(
     dir: string,
