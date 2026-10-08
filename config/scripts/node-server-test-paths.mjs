@@ -13,7 +13,7 @@ export function nodeServerTestPaths({ artifact = false, crossRuntime = false } =
     'src/main/persistence/loading-store/profile-state',
     'src/main/sqlite',
     'src/main/mantad/mantad-entry.test.ts',
-    'src/main/mantad/mantad-push-startup.test.ts',
+    // mantad-push-startup.test.ts is omitted: the fork drops upstream's desktop push path (7b03817426).
     // The mantad server's identity and stop path, which Windows SSH hosts rely on (W2).
     'src/main/mantad/mantad-instance-lock.test.ts',
     'src/main/mantad/mantad-process-start-time.test.ts',

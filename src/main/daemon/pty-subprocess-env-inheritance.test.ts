@@ -104,7 +104,7 @@ describe('createPtySubprocess', () => {
         cwd: 'C:\\repo',
         env: {
           MANTA_AGENT_TEAMS_TEAM_ID: 'team-test',
-          manta_agent_hook_node: 'C:\\Stale\\node.exe',
+          orca_agent_hook_node: 'C:\\Stale\\node.exe',
           MANTA_PATH_ROOT: 'C:\\Users\\manta\\AppData\\Local',
           PATH: '%manta_path_root%\\agy\\bin;C:\\Windows'
         }
@@ -116,7 +116,7 @@ describe('createPtySubprocess', () => {
     }
 
     expect(spawnMock.mock.calls.at(-1)?.[2].env.ORCA_AGENT_HOOK_NODE).toBe(process.execPath)
-    expect(spawnMock.mock.calls.at(-1)?.[2].env.manta_agent_hook_node).toBeUndefined()
+    expect(spawnMock.mock.calls.at(-1)?.[2].env.orca_agent_hook_node).toBeUndefined()
     expect(spawnMock.mock.calls.at(-1)?.[2].env.PATH).toBe(
       'C:\\Users\\manta\\AppData\\Local\\agy\\bin;C:\\Windows'
     )

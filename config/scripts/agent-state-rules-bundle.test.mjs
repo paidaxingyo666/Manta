@@ -14,6 +14,7 @@ import {
   promoteAgentStateRules,
   publishAgentStateRules
 } from './agent-state-rules-bundle.mjs'
+import { MAIN_RELEASE_REPO } from '../../src/shared/release-channel.ts'
 import { agentStateRulesTag } from './release-tag-patterns.mjs'
 
 const REPO = 'stablyai/orca'
@@ -40,7 +41,7 @@ describe('agent state rules bundle build', () => {
   it('publishes to the exact URL the app fetches', () => {
     for (const channel of ['next', 'stable']) {
       expect(agentStateRulesDownloadUrl(channel)).toBe(
-        `https://github.com/${REPO}/releases/download/${agentStateRulesTag(AGENT_STATE_RULES_ENGINE_VERSION, channel)}/${AGENT_STATE_RULES_ASSET}`
+        `https://github.com/${MAIN_RELEASE_REPO}/releases/download/${agentStateRulesTag(AGENT_STATE_RULES_ENGINE_VERSION, channel)}/${AGENT_STATE_RULES_ASSET}`
       )
     }
   })

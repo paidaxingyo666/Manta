@@ -57,7 +57,7 @@ describe('git remote operations', () => {
 
     expect(gitExecFileAsyncMock).toHaveBeenCalledWith(['config', '--list', '-z'], { cwd: '/repo' })
     expect(gitExecFileAsyncMock).toHaveBeenLastCalledWith(
-      ['push', '--set-upstream', 'pr-prateek-manta', 'HEAD:prateek/fix-sidebar-agents-toggle'],
+      ['push', '--set-upstream', 'pr-prateek-orca', 'HEAD:prateek/fix-sidebar-agents-toggle'],
       { cwd: '/repo' }
     )
   })

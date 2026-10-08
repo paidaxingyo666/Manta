@@ -56,7 +56,7 @@ describe('legacyRelayBridge', () => {
 
   it('declines an endpoint that does not sit in its own version directory', () => {
     expect(
-      legacyRelayBridge('/usr/bin/node', '/tmp/.orca-relay-1000/relay-1a2b/relay-92ff.sock')
+      legacyRelayBridge('/usr/bin/node', '/tmp/.manta-relay-1000/relay-1a2b/relay-92ff.sock')
     ).toBeNull()
     expect(legacyRelayBridge('/usr/bin/node', '/home/dev/.manta-remote/relay-92ff.sock')).toBeNull()
   })

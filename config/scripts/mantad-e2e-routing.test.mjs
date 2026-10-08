@@ -45,10 +45,10 @@ it('routes the auto-convert spec from its conversion sources and harness', () =>
   expectRouted(
     [
       'src/main/ssh/mantad-runtime-conversion.ts',
-      'tests/e2e/helpers/orcad-convert-flow.ts',
-      'tests/e2e/helpers/orcad-convert-host.ts',
+      'tests/e2e/helpers/mantad-convert-flow.ts',
+      'tests/e2e/helpers/mantad-convert-host.ts',
       'tests/e2e/helpers/mantad-template-variant.ts',
-      'tests/e2e/helpers/orcad-upgrade-profile.ts'
+      'tests/e2e/helpers/mantad-upgrade-profile.ts'
     ],
     ORCAD_AUTO_CONVERT_E2E_SPEC
   )
@@ -61,8 +61,8 @@ it('routes the idle-exit spec from its idle sources and the shared convert harne
   expectRouted(
     [
       'src/shared/mantad-idle-exit.ts',
-      'tests/e2e/helpers/orcad-convert-flow.ts',
-      'tests/e2e/helpers/orcad-convert-host.ts'
+      'tests/e2e/helpers/mantad-convert-flow.ts',
+      'tests/e2e/helpers/mantad-convert-host.ts'
     ],
     ORCAD_IDLE_EXIT_E2E_SPEC
   )

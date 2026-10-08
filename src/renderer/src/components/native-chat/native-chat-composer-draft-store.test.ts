@@ -330,7 +330,7 @@ describe('native-chat composer draft store', () => {
   })
 
   it('brings a pasted image back after a reload as one to attach again, by name', async () => {
-    const pasted = { id: 'p-1', path: '/var/folders/T/orca-paste-1-0f.png' }
+    const pasted = { id: 'p-1', path: '/var/folders/T/manta-paste-1-0f.png' }
     modules.attachments.appendNativeChatAttachmentCache('tab-1:pane', [pasted, IMAGES[0]])
     modules.drafts.writeNativeChatDraftCache('tab-1:pane', 'caption')
     modules.store.flushNativeChatComposerDrafts()
@@ -348,7 +348,7 @@ describe('native-chat composer draft store', () => {
 
   it('keeps a draft that holds only a pasted image, as one to attach again', async () => {
     modules.attachments.appendNativeChatAttachmentCache('tab-1:pane', [
-      { id: 'p-1', path: '/tmp/orca-paste-1-0f.png', connectionId: 'ssh-1' }
+      { id: 'p-1', path: '/tmp/manta-paste-1-0f.png', connectionId: 'ssh-1' }
     ])
 
     const reloaded = await reload()

@@ -12,7 +12,7 @@ $ErrorActionPreference='Stop'
 if($env:GITHUB_ACTIONS -ne 'true' -or $env:ORCA_ISOLATED_SSH_CI -ne '1'){throw 'Disposable CI only'}
 $shells=@{'pinned-cmd'='cmd';'pinned-powershell'='powershell';'legacy-opt-out'='cmd';'orcad-cmd'='cmd';'orcad-powershell'='powershell';'orcad-convert'='cmd';'orcad-cli-managed'='cmd';'orcad-cli-convert'='cmd';'orcad-cli-relay-kept'='cmd'}
 # App-level cells drive the e2e build (and the bundled CLI) against the host; each greps one tagged test.
-$appCells=@{'orcad-convert'=@('tests/e2e/ssh-orcad-auto-convert.spec.ts','');'orcad-cli-managed'=@('tests/e2e/ssh-orcad-windows-cli-matrix.spec.ts','@orcad-cli-managed');'orcad-cli-convert'=@('tests/e2e/ssh-orcad-windows-cli-matrix.spec.ts','@orcad-cli-convert');'orcad-cli-relay-kept'=@('tests/e2e/ssh-orcad-windows-cli-matrix.spec.ts','@orcad-cli-relay-kept')}
+$appCells=@{'orcad-convert'=@('tests/e2e/ssh-mantad-auto-convert.spec.ts','');'orcad-cli-managed'=@('tests/e2e/ssh-mantad-windows-cli-matrix.spec.ts','@orcad-cli-managed');'orcad-cli-convert'=@('tests/e2e/ssh-mantad-windows-cli-matrix.spec.ts','@orcad-cli-convert');'orcad-cli-relay-kept'=@('tests/e2e/ssh-mantad-windows-cli-matrix.spec.ts','@orcad-cli-relay-kept')}
 $electronBuilt=$false
 if($Context.accounts.Count -lt $Cells.Count){throw 'Each cell needs its own private account'}
 $seenApp=$false
@@ -58,7 +58,7 @@ function Test-PrivateWmiLaunch([string]$Account) {
   if($match.Success){return $match.Groups[1].Value}else{return 'no-output'}
 }
 
-# App-level cells (tests/e2e/ssh-orcad-auto-convert.spec.ts, ssh-orcad-windows-cli-matrix.spec.ts). Last
+# App-level cells (tests/e2e/ssh-mantad-auto-convert.spec.ts, ssh-orcad-windows-cli-matrix.spec.ts). Last
 # in the run: they switch native modules to Electron's ABI, which the vitest cells cannot load.
 function Invoke-AppCell($Account,[string]$Descriptor,[string]$Log,[string]$Spec,[string]$Grep) {
   $ready=Invoke-PrivateSsh $Account.name 'git init -q orca-convert-repo && git -C orca-convert-repo -c user.name=manta -c user.email=manta@example.invalid commit -q --allow-empty -m init && echo ORCA_REPO_READY'

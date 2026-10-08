@@ -241,8 +241,8 @@ describe('discardStagedStartupCommand', () => {
 describe('sweepStaleStagedStartupCommands', () => {
   it('removes only staged scripts older than an hour', () => {
     const now = Date.now()
-    const stale = join(directory, 'manta-launch-aaaa.sh')
-    const fresh = join(directory, 'manta-launch-bbbb.sh')
+    const stale = join(directory, 'orca-launch-aaaa.sh')
+    const fresh = join(directory, 'orca-launch-bbbb.sh')
     const unrelated = join(directory, 'something-else.sh')
     for (const path of [stale, fresh, unrelated]) {
       writeFileSync(path, '')
@@ -251,7 +251,7 @@ describe('sweepStaleStagedStartupCommands', () => {
     utimesSync(stale, staleSeconds, staleSeconds)
     utimesSync(unrelated, staleSeconds, staleSeconds)
     sweepStaleStagedStartupCommands({ directory, now })
-    expect(readdirSync(directory).sort()).toEqual(['manta-launch-bbbb.sh', 'something-else.sh'])
+    expect(readdirSync(directory).sort()).toEqual(['orca-launch-bbbb.sh', 'something-else.sh'])
   })
 })
 

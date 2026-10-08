@@ -186,7 +186,7 @@ describe('Claude profile history sharing on Windows', () => {
     fs.writeFileSync(join(f.defaultHome, 'history.jsonl'), 'd1\n')
     fs.writeFileSync(join(f.profileHome, 'history.jsonl.manta-profile-merge'), 'd1\nsaved\n')
     fs.mkdirSync(join(f.profileHome, 'todos.manta-profile-merge'))
-    fs.writeFileSync(join(f.profileHome, 'todos.orca-profile-merge/t.json'), 't')
+    fs.writeFileSync(join(f.profileHome, 'todos.manta-profile-merge/t.json'), 't')
     const report = await f.share()
     expect(report.warnings).toEqual([])
     expect(f.history()).toBe('d1\nsaved\n')

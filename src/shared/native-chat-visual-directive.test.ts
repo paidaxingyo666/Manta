@@ -143,7 +143,7 @@ describe('streaming tail', () => {
   it.each([
     ':',
     '::',
-    '::manta',
+    '::orca',
     '::orca-visual{',
     '::orca-visual{file="a.ht',
     '  ::orca-visual{file="a.html"}'
@@ -158,7 +158,7 @@ describe('streaming tail', () => {
     '::other',
     '::orca-visualx',
     '    ::orca-visual{',
-    '- ::manta'
+    '- ::orca'
   ])('does not hold back %j', (line) => {
     expect(isPendingNativeChatVisualDirectiveTail(line)).toBe(false)
   })

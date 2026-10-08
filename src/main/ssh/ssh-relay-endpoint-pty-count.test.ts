@@ -55,7 +55,7 @@ describe('asking a relay how many PTYs it runs', () => {
 
   it('never guesses a relay whose socket was relocated outside its version directory', async () => {
     await expect(
-      countRelayEndpointPtys(conn, '/usr/bin/node', '/tmp/.orca-relay-1000/relay-x/relay-abc.sock')
+      countRelayEndpointPtys(conn, '/usr/bin/node', '/tmp/.manta-relay-1000/relay-x/relay-abc.sock')
     ).resolves.toBeNull()
     expect(exec).not.toHaveBeenCalled()
   })

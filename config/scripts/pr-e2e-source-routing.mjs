@@ -15,7 +15,7 @@ const NATIVE_IME_HARNESS =
 export const PR_E2E_SOURCE_ROUTES = [
   {
     id: 'serve.orcad-mode-switch',
-    specs: ['tests/e2e/orcad-serve-mode-switch.spec.ts'],
+    specs: ['tests/e2e/mantad-serve-mode-switch.spec.ts'],
     matches: (file) =>
       /^tests\/e2e\/helpers\/(?:manta-serve-cli-host|headless-paired-runtime-host)\.ts$/.test(
         file
@@ -35,23 +35,23 @@ export const PR_E2E_SOURCE_ROUTES = [
   },
   {
     id: 'ssh.orcad-auto-convert',
-    specs: ['tests/e2e/ssh-orcad-auto-convert.spec.ts'],
+    specs: ['tests/e2e/ssh-mantad-auto-convert.spec.ts'],
     matches: (file) =>
-      /^tests\/e2e\/helpers\/(?:orcad-convert-(?:flow|host)|mantad-template-variant|orcad-upgrade-profile)\.ts$/.test(
+      /^tests\/e2e\/helpers\/(?:mantad-convert-(?:flow|host)|mantad-template-variant|mantad-upgrade-profile)\.ts$/.test(
         file
       ) ||
       (isProductSource(file) &&
-        /^src\/main\/(?:ipc\/ssh-host-server-|ssh\/(?:ssh-host-server-|orcad-runtime-conversion|orcad-migration-|orcad-retained-source|orcad-runtime-deployment))/.test(
+        /^src\/main\/(?:ipc\/ssh-host-server-|ssh\/(?:ssh-host-server-|mantad-runtime-conversion|mantad-migration-|mantad-retained-source|mantad-runtime-deployment))/.test(
           file
         ))
   },
   {
     id: 'ssh.orcad-idle-exit',
-    specs: ['tests/e2e/ssh-orcad-idle-exit.spec.ts'],
+    specs: ['tests/e2e/ssh-mantad-idle-exit.spec.ts'],
     matches: (file) =>
-      /^tests\/e2e\/helpers\/orcad-convert-(?:flow|host)\.ts$/.test(file) ||
+      /^tests\/e2e\/helpers\/mantad-convert-(?:flow|host)\.ts$/.test(file) ||
       (isProductSource(file) &&
-        /^src\/(?:main\/(?:mantad\/mantad-(?:idle-|managed-idle-)|ssh\/mantad-(?:managed-wake|managed-tunnel|recovery-slot|remote-launch))|shared\/orcad-idle-exit)/.test(
+        /^src\/(?:main\/(?:mantad\/mantad-(?:idle-|managed-idle-)|ssh\/mantad-(?:managed-wake|managed-tunnel|recovery-slot|remote-launch))|shared\/mantad-idle-exit)/.test(
           file
         ))
   },

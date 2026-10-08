@@ -188,7 +188,7 @@ jobs:
           path: ${{ runner.temp }}/hostile-host-prebuild-lanes
       - name: Merge verified Linux slots
         run: |
-          node config/scripts/merge-orcad-prebuilds.mjs "$RUNNER_TEMP"/hostile-host-prebuild-lanes/*
+          node config/scripts/merge-mantad-prebuilds.mjs "$RUNNER_TEMP"/hostile-host-prebuild-lanes/*
           pnpm build:mantad-prebuilds --require-slots linux-x64-glibc,linux-x64-musl,linux-x64-glibc217
       # The deploy materializes rung A, B and C addons from this template; only the x64 Linux
       # slots exist here, so it is built for those two, and glibc217 is staged beside its base.

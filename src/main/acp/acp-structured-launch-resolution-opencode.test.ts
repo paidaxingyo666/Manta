@@ -164,7 +164,7 @@ describe('OpenCode ACP launch resolution', () => {
       inheritedEnv,
       'darwin'
     ).env
-    expect(Object.keys(child).filter((key) => key.startsWith('ORCA_OPENCODE_'))).toEqual([])
+    expect(Object.keys(child).filter((key) => /^(ORCA|MANTA)_OPENCODE_/.test(key))).toEqual([])
     expect(child.OPENCODE_CONFIG_DIR).toBe('/home/user/.config/opencode-mine')
   })
 

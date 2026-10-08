@@ -211,7 +211,7 @@ describe('no -EncodedCommand in the W1 builders', () => {
     'mantad-remote-readiness-wait.ts',
     'mantad-remote-record-file.ts',
     'mantad-remote-build-hash.ts',
-    'orcad-managed-remote-stop.ts',
+    'mantad-managed-remote-stop.ts',
     'mantad-remote-runtime-control.ts'
   ])('%s', (file) => {
     const code = readFileSync(join(__dirname, file), 'utf8')

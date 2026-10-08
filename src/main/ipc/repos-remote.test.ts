@@ -228,13 +228,13 @@ describe('repos:addRemote', () => {
         cwd === '/home/user/manta' && argv[0] === 'rev-parse'
           ? Promise.resolve({ stdout: '\n0123abcd\n', stderr: '' })
           : cwd === '/home/user/manta' && argv[0] === 'config'
-            ? Promise.resolve({ stdout: 'https://github.com/stablyai/orca.git\n', stderr: '' })
+            ? Promise.resolve({ stdout: 'https://github.com/stablyai/manta.git\n', stderr: '' })
             : Promise.reject(new Error('fatal: not a git repository'))
       )
 
       const result = await handlers.get('repos:cloneRemote')!(null, {
         connectionId: 'conn-1',
-        url: 'https://github.com/stablyai/orca.git',
+        url: 'https://github.com/stablyai/manta.git',
         destination: '/home/user'
       })
 
@@ -261,7 +261,7 @@ describe('repos:addRemote', () => {
     await expect(
       handlers.get('repos:cloneRemote')!(null, {
         connectionId: 'conn-1',
-        url: 'https://github.com/stablyai/orca.git',
+        url: 'https://github.com/stablyai/manta.git',
         destination: '/home/user'
       })
     ).rejects.toThrow('"manta" is already a Manta project')
@@ -278,9 +278,9 @@ describe('repos:addRemote', () => {
       addedAt: 1000,
       kind: 'git',
       gitRemoteIdentity: {
-        canonicalKey: 'github.com/stablyai/orca',
+        canonicalKey: 'github.com/stablyai/manta',
         remoteName: 'origin',
-        remoteUrl: 'https://github.com/stablyai/orca.git'
+        remoteUrl: 'https://github.com/stablyai/manta.git'
       }
     }
     mockStore.getRepos.mockReturnValue([existing])

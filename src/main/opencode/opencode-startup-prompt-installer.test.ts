@@ -78,6 +78,8 @@ describe('OpenCode startup prompt installer', () => {
   it.each(['opencode', 'opencode2'] as const)(
     'keeps real source provenance and composes the %s status and prompt in one final overlay',
     (agent) => {
+      const statusPlugin =
+        agent === 'opencode2' ? 'orca-opencode2-status.js' : 'manta-opencode-status.js'
       const source = join(root, 'real-source')
       mkdirSync(join(source, 'plugins'), { recursive: true })
       writeFileSync(join(source, 'plugins', 'user.js'), 'user bytes')
@@ -105,9 +107,9 @@ describe('OpenCode startup prompt installer', () => {
       expect(installOpenCodeStartupPromptForLaunch(env)).toBe(true)
       expect(env.OPENCODE_CONFIG_DIR).toBe(statusOverlay)
       expect(env.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBe(source)
-      expect(
-        readFileSync(join(statusOverlay, 'plugins', `manta-${agent}-status.js`), 'utf8')
-      ).toContain('ORCA_STATUS_AGENT')
+      expect(readFileSync(join(statusOverlay, 'plugins', statusPlugin), 'utf8')).toContain(
+        'ORCA_STATUS_AGENT'
+      )
       expect(
         existsSync(join(statusOverlay, 'plugins', 'manta-opencode-startup-prompt', 'tui.js'))
       ).toBe(true)
@@ -120,7 +122,7 @@ describe('OpenCode startup prompt installer', () => {
       expect(nested.OPENCODE_CONFIG_DIR).toBe(statusOverlay)
       expect(nested.MANTA_OPENCODE_SOURCE_CONFIG_DIR).toBe(source)
       expect(readFileSync(join(source, 'plugins', 'user.js'), 'utf8')).toBe('user bytes')
-      expect(existsSync(join(source, 'plugins', `manta-${agent}-status.js`))).toBe(false)
+      expect(existsSync(join(source, 'plugins', statusPlugin))).toBe(false)
     }
   )
   it.each(['inherited', 'explicit'] as const)(
@@ -205,7 +207,9 @@ describe('OpenCode startup prompt installer', () => {
     expect(env.MANTA_OPENCODE_CONFIG_DIR).toBe(env.OPENCODE_CONFIG_DIR)
     expect(env.OPENCODE_CONFIG_CONTENT).toBe('{"model":"opencode/model"}')
     expect(
-      existsSync(join(env.OPENCODE_CONFIG_DIR, 'plugins', 'manta-opencode-startup-prompt', 'tui.js'))
+      existsSync(
+        join(env.OPENCODE_CONFIG_DIR, 'plugins', 'manta-opencode-startup-prompt', 'tui.js')
+      )
     ).toBe(true)
     expect(existsSync(join(env.OPENCODE_CONFIG_DIR, 'plugins', 'manta-opencode-status.js'))).toBe(
       false

@@ -28,9 +28,9 @@ it('drops old provider candidates before another host with identical project IDs
   }
   search.mockResolvedValueOnce([{ accountId: 'local-user', displayName: 'Local user' }])
   const { rerender } = render(<TaskPageJiraIssueAssigneeField model={model} />)
-  fireEvent.click(screen.getByRole('button', { name: 'Assignee' }))
-  await screen.findByRole('button', { name: 'Local user' })
-  expect(screen.getByRole('button', { name: 'Assign to me (Local me)' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('combobox', { name: 'Assignee' }))
+  await screen.findByRole('option', { name: 'Local user' })
+  expect(screen.getByRole('option', { name: 'Assign to me (Local me)' })).toBeTruthy()
   expect(search).toHaveBeenCalledWith(null, 'PRJ', '', 'same-site')
 
   search.mockReturnValueOnce(new Promise(() => {}))
@@ -39,11 +39,11 @@ it('drops old provider candidates before another host with identical project IDs
       model={{ ...model, providerRuntimeContextKey: 'runtime:remote', jiraStatusCurrent: false }}
     />
   )
-  expect(screen.queryByRole('button', { name: 'Local user' })).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: 'Assignee' }))
+  expect(screen.queryByRole('option', { name: 'Local user' })).toBeNull()
+  fireEvent.click(screen.getByRole('combobox', { name: 'Assignee' }))
   await waitFor(() => expect(search).toHaveBeenCalledTimes(2))
-  expect(screen.queryByRole('button', { name: 'Local user' })).toBeNull()
-  expect(screen.queryByRole('button', { name: 'Assign to me (Local me)' })).toBeNull()
+  expect(screen.queryByRole('option', { name: 'Local user' })).toBeNull()
+  expect(screen.queryByRole('option', { name: 'Assign to me (Local me)' })).toBeNull()
   rerender(
     <TaskPageJiraIssueAssigneeField
       model={{
@@ -56,6 +56,6 @@ it('drops old provider candidates before another host with identical project IDs
       }}
     />
   )
-  fireEvent.click(screen.getByRole('button', { name: 'Assign to me (Remote me)' }))
+  fireEvent.click(screen.getByRole('option', { name: 'Assign to me (Remote me)' }))
   expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ accountId: 'remote-me' }))
 })

@@ -337,9 +337,9 @@ describe('sweepStaleCodexScratchHomes', () => {
       return join(root, name)
     }
     try {
-      const staleTrust = dir('manta-codex-hook-trust-old', hoursAgo(2))
-      const staleVersion = dir('manta-codex-version-old', hoursAgo(2))
-      const live = dir('manta-codex-hook-trust-live', new Date())
+      const staleTrust = dir('orca-codex-hook-trust-old', hoursAgo(2))
+      const staleVersion = dir('orca-codex-version-old', hoursAgo(2))
+      const live = dir('orca-codex-hook-trust-live', new Date())
       const unrelated = dir('someone-else-old', hoursAgo(2))
 
       await sweepStaleCodexScratchHomes()

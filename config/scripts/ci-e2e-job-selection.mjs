@@ -41,13 +41,13 @@ export const NODE_NETWORK_E2E_SPEC =
 export const LOCALHOST_SSH_E2E_SPEC = 'tests/e2e/ssh-localhost.spec.ts'
 export const NATIVE_IME_E2E_SPEC = 'tests/e2e/terminal-ibus-hangul-native.spec.ts'
 // Needs the packaged mantad slot, which only its own job builds.
-export const ORCAD_SERVE_MODE_SWITCH_E2E_SPEC = 'tests/e2e/orcad-serve-mode-switch.spec.ts'
+export const ORCAD_SERVE_MODE_SWITCH_E2E_SPEC = 'tests/e2e/mantad-serve-mode-switch.spec.ts'
 // Needs the mantad template for its host's target, which only its own job builds.
-export const ORCAD_AUTO_CONVERT_E2E_SPEC = 'tests/e2e/ssh-orcad-auto-convert.spec.ts'
+export const ORCAD_AUTO_CONVERT_E2E_SPEC = 'tests/e2e/ssh-mantad-auto-convert.spec.ts'
 // Windows-only; its own job runs it on a Windows runner.
 export const WINDOWS_MISSING_APPDATA_E2E_SPEC = 'tests/e2e/windows-missing-appdata-startup.spec.ts'
 // Runs in the auto-convert job, which builds the template it needs.
-export const ORCAD_IDLE_EXIT_E2E_SPEC = 'tests/e2e/ssh-orcad-idle-exit.spec.ts'
+export const ORCAD_IDLE_EXIT_E2E_SPEC = 'tests/e2e/ssh-mantad-idle-exit.spec.ts'
 export const DEDICATED_E2E_SPECS = [
   ...DOCKER_SSH_E2E_SPECS,
   NODE_NETWORK_E2E_SPEC,

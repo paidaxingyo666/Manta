@@ -121,6 +121,12 @@ afterwards was 19 files, every one either a brand seam the rule now covers
 or an upstream pin re-based to the fork's bytes. The mirror extension took
 seconds.
 
+After the merge commit, run `python3 .claude/skills/upstream-sync/fix-renamed-paths.py`.
+The mirror renames upstream's new `orcad-*` files but a reference to a module that has
+no Manta twin yet keeps the old spelling — 933 imports, mocks, script and workflow
+paths on 2026-10-08. The script rewrites a path only when the old one does not exist
+and the Manta one does, so it is safe to rerun.
+
 After the merge, **read what the mirror declined** (`build-mirror.py` prints
 the top of it; `sweep-brand.py refs/sync/base` lists it for the tree). A
 brand-bearing name upstream introduced this sync that neither rule could

@@ -57,7 +57,7 @@ describe('Claude profile history sharing', () => {
         'existing'
       )
       expect(
-        fs.readFileSync(join(f.profileHome, 'projects.orca-profile-merge/conflict.jsonl'), 'utf8')
+        fs.readFileSync(join(f.profileHome, 'projects.manta-profile-merge/conflict.jsonl'), 'utf8')
       ).toBe('private')
       fs.writeFileSync(join(f.defaultHome, 'projects/later.jsonl'), 'later')
       expect(fs.readFileSync(join(f.profileHome, 'projects/later.jsonl'), 'utf8')).toBe('later')
@@ -66,7 +66,7 @@ describe('Claude profile history sharing', () => {
   itLinks('recovers a directory swap interrupted before link publication', async () => {
     const f = fixture()
     fs.mkdirSync(join(f.profileHome, 'projects.manta-profile-merge'))
-    fs.writeFileSync(join(f.profileHome, 'projects.orca-profile-merge/session.jsonl'), 'saved')
+    fs.writeFileSync(join(f.profileHome, 'projects.manta-profile-merge/session.jsonl'), 'saved')
     await f.share()
     expect(fs.realpathSync(join(f.profileHome, 'projects'))).toBe(
       fs.realpathSync(join(f.defaultHome, 'projects'))

@@ -60,7 +60,9 @@ describe('PR workflow parallelism', () => {
       expect(UNIT_EXCLUDE).toContain(`tests/e2e/relay-region-${name}.unit.test.ts`)
     }
     const relay = workflow.jobs.relay
-    expect(relay.if).toBe("needs.code_paths.outputs.relay == 'true'")
+    expect(relay.needs).toEqual(['code_paths', 'preflight'])
+    expect(relay.if).toContain("needs.code_paths.outputs.relay == 'true'")
+    expect(relay.if).toContain("needs.preflight.result == 'success'")
     expect(relay.steps).toContainEqual(
       expect.objectContaining({ 'working-directory': 'relay-server', run: 'npm run check' })
     )

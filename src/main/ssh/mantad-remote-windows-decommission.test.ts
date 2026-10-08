@@ -152,12 +152,16 @@ describe('Windows mantad GC', () => {
     await gcOldOrcadVersions(gcOptions())
     const passOptions = vi.mocked(gcOldRemoteInstallVersions).mock.calls[0]?.[5]
     return (
-      (await passOptions?.resolveExtraPinnedDirNames?.(['orcad-a', 'orcad-b', 'orcad-c'])) ?? null
+      (await passOptions?.resolveExtraPinnedDirNames?.(['mantad-a', 'mantad-b', 'mantad-c'])) ??
+      null
     )
   }
 
   it('screens every candidate in one node.exe and pins all but the proven dead', async () => {
-    expect(await screen('__ORCAD_LIVENESS__ LIVE,DEAD,UNKNOWN\r\n')).toEqual(['orcad-a', 'orcad-c'])
+    expect(await screen('__ORCAD_LIVENESS__ LIVE,DEAD,UNKNOWN\r\n')).toEqual([
+      'mantad-a',
+      'mantad-c'
+    ])
     const screens = mockExec.mock.calls.filter(([, command]) =>
       String(command).includes('liveness-many')
     )

@@ -287,7 +287,7 @@ describe('rollbackOrcad', () => {
     expect(result).toMatchObject({ outcome: 'failed', code: 'orcad_activation_no_readiness' })
     expect(result.outcome === 'failed' && result.reason).toContain('Recover to restore')
     expect(result.outcome === 'failed' && result.reason).toContain(
-      'Last lines of mantad.log:\norcad: listen EADDRINUSE'
+      'Last lines of mantad.log:\nmantad: listen EADDRINUSE'
     )
     expect(log).toEqual([
       `stop:${ACTIVE}`,

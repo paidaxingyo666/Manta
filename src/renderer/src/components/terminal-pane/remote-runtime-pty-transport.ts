@@ -2912,5 +2912,6 @@ export function createRemoteRuntimePtyTransport(
       viewportBatcher.clear()
     }
   }
-  return withRemoteReattachInputBuffer(transport)
+  // Why: the outer reattach buffer drops type-ahead on attach; a parked pane's own buffer must see it first.
+  return preconnectInputBuffer ? transport : withRemoteReattachInputBuffer(transport)
 }

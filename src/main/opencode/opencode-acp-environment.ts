@@ -2,7 +2,8 @@ import { restoreOrStripOverlayEnv } from '../../shared/agent-overlay-env'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { isOpenCodeLegacySharedConfigDir } from './legacy-shared-config-dir'
 
-const ORCA_ENV_PREFIXES = ['ORCA_OPENCODE_', 'ORCA_DATA_ACCOUNT_']
+// Manta renamed the overlay/agent keys but kept ORCA_ for the plugin API and startup prompt keys.
+const ORCA_ENV_PREFIXES = ['ORCA_OPENCODE_', 'MANTA_OPENCODE_', 'ORCA_DATA_ACCOUNT_']
 const ACCOUNT_ENV_KEYS = ['XDG_DATA_HOME', 'XDG_STATE_HOME', 'OPENCODE_DB', 'OPENCODE_AUTH_CONTENT']
 
 /**

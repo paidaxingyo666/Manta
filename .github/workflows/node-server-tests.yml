@@ -461,7 +461,7 @@ jobs:
       - name: Merge the lanes and gate the full slot matrix
         shell: bash
         run: |
-          node config/scripts/merge-orcad-prebuilds.mjs "$RUNNER_TEMP"/orcad-prebuild-lanes/*
+          node config/scripts/merge-mantad-prebuilds.mjs "$RUNNER_TEMP"/orcad-prebuild-lanes/*
           pnpm build:mantad-prebuilds --require-slots
           pnpm build:mantad-prebuilds --require-slots linux-x64-glibc217
       - run: pnpm build:mantad-template

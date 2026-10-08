@@ -125,6 +125,10 @@ describe('moved-code base normalization budget', () => {
       if (args.includes('--unified=0')) {
         return '@@ -0,0 +1 @@\n+brandNewCall()\n'
       }
+      // Fork's partial-clone blob hydration pass; its output is unused.
+      if (args.includes('--numstat')) {
+        return ''
+      }
       throw new Error(`Unexpected Git arguments: ${args.join(' ')}`)
     })
     const baseline = Array.from({ length: 1000 }, (_, index) => `base_line_${index}()`)

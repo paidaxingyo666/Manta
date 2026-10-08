@@ -76,7 +76,7 @@ const rollback = (): Promise<unknown> =>
   })
 
 function stateMutation(command: string): StateMutation | null {
-  if (!command.includes('mantad-state-snapshots/')) {
+  if (!command.includes('orcad-state-snapshots/')) {
     return null
   }
   if (command.includes('.mantad-state-restore-stage')) {

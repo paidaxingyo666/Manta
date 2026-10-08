@@ -66,9 +66,9 @@ describe('jcode managed hook command quoting', () => {
 
   it('is what a bare path fails to do, which is why the quoting exists', () => {
     // Regression anchor: the unquoted Windows path loses every separator, so jcode
-    // execs `C:Usersme.orcaagent-hooksjcode-hook.cmd` and no hook ever fires.
+    // execs `C:Usersme.mantaagent-hooksjcode-hook.cmd` and no hook ever fires.
     expect(tokenizeLikeJcode('C:\\Users\\me\\.manta\\agent-hooks\\jcode-hook.cmd')).toEqual([
-      'C:Usersme.orcaagent-hooksjcode-hook.cmd'
+      'C:Usersme.mantaagent-hooksjcode-hook.cmd'
     ])
   })
 

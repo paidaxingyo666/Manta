@@ -170,7 +170,7 @@ export class FakeOrcadHost {
         : `__ORCAD_RECORD_PRESENT__\n${this.wakeOwner}`
     }
     const version = /\/mantad-(\d+\.\d+\.\d+\+[0-9a-f]+)/u.exec(command)?.[1] ?? null
-    const snapshot = /mantad-state-snapshots\/([A-Za-z0-9][A-Za-z0-9.+-]*)/u.exec(command)?.[1]
+    const snapshot = /orcad-state-snapshots\/([A-Za-z0-9][A-Za-z0-9.+-]*)/u.exec(command)?.[1]
     if (command.includes('__ORCAD_RECORD_PRESENT__') && command.includes('mantad.lock')) {
       const owner = [...this.alive][0]
       return owner

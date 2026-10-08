@@ -109,7 +109,7 @@ function expectNoSlotOrSnapshotRemoved(): void {
   for (const command of removals) {
     // A file inside a slot (a consumed stop request) may go; the slot directory never does.
     expect(command).not.toMatch(/rm -r?f '[^']*\/mantad-\d[^'/]*\/?'/u)
-    expect(command).not.toMatch(/rm -r?f '[^']*mantad-state-snapshots/u)
+    expect(command).not.toMatch(/rm -r?f '[^']*orcad-state-snapshots/u)
   }
 }
 
