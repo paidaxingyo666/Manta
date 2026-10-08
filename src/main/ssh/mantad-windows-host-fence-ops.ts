@@ -1,7 +1,7 @@
 /**
  * The activation fence's ownership check and conditional release inside the Windows host script,
  * matching the POSIX guard in `mantad-activation-fence-scope.ts`, and the exited-own-lock check of
- * `orcad-exited-own-lock.ts`.
+ * `mantad-exited-own-lock.ts`.
  */
 import {
   ORCAD_FENCE_LOST_EXIT,

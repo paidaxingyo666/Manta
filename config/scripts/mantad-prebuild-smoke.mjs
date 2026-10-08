@@ -55,7 +55,7 @@ export async function runOrcadPrebuildSmoke({ slot, prebuildsDir }) {
   const result = runProcessSync({
     program: node,
     args: [
-      join(import.meta.dirname, 'orcad-prebuild-smoke-child.cjs'),
+      join(import.meta.dirname, 'mantad-prebuild-smoke-child.cjs'),
       nodePtyDir,
       NODE_RUNTIME_PIN.version,
       ...compatAddonPaths(slot, nodePtyDir)

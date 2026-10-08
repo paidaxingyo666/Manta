@@ -31,8 +31,14 @@ def exists(base, p):
     return any(os.path.exists(full + e) for e in TRY)
 
 
+NAME = re.compile(r"""(['"`])([\w.-]*[Oo]rca[\w.-]*\.(?:cjs|mjs|js|ts|tsx|json|ps1|sh|nsh))\1""")
+
+
 def main():
     files = subprocess.run(['git', 'ls-files', '-z'], capture_output=True).stdout.decode().split('\0')
+    # A bare file name (`join(dir, 'orcad-x.cjs')`, `argv[1].endsWith('orcad-x.mjs')`) is judged
+    # against every tracked basename: renamed only when no file has the old name and one has the new.
+    names = {os.path.basename(f) for f in files}
     total = 0
     for f in files:
         if f.startswith(SKIP) or not f.endswith(CODE + SHELL):
@@ -49,8 +55,16 @@ def main():
             changed.append(path)
             return rebrand(path)
 
+        def fix_name(m):
+            name = m.group(2)
+            if name in names or rebrand(name) not in names:
+                return m.group(0)
+            changed.append(name)
+            return m.group(1) + rebrand(name) + m.group(1)
+
         if f.endswith(CODE):
             new = QUOTED.sub(lambda m: m.group(1) + fix(m.group(2)) + m.group(1), text)
+            new = NAME.sub(fix_name, new)
         else:
             new = BARE.sub(lambda m: fix(m.group(1)), text)
         if new != text:

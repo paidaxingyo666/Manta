@@ -302,7 +302,8 @@ it('runs the Bun and Node cross-runtime tests on Linux against pinned inputs', (
   expect(setupBun.uses).toMatch(/^oven-sh\/setup-bun@[0-9a-f]{40}$/)
   // Mirrors LAST_BUN_ORCAD_VERSION in src/main/mantad/mantad-node-slot-fixture.ts.
   expect(setupBun.with['bun-version']).toBe('1.4.2')
-  const build = steps.find((step) => String(step.run).includes('build-mantad-bun.mjs'))
+  // The pinned commit predates the rename, so its checkout still names the script orcad.
+  const build = steps.find((step) => String(step.run).includes('build-orcad-bun.mjs'))
   expect(build.env.BUN_ORCAD_COMMIT).toMatch(/^[0-9a-f]{40}$/)
   expect(setupBun.if).toBe("runner.os == 'Linux'")
   expect(build.id).toBe('bun-orcad')

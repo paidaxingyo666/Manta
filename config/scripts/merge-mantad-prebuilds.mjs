@@ -4,7 +4,7 @@
  * Each CI lane builds only its own slot (build-mantad-prebuilds.mjs), so the desktop template
  * build needs their union before `--require-slots` can pass.
  *
- * Usage: node config/scripts/merge-orcad-prebuilds.mjs [--out <dir>] <tree> [<tree> ...]
+ * Usage: node config/scripts/merge-mantad-prebuilds.mjs [--out <dir>] <tree> [<tree> ...]
  */
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -92,7 +92,7 @@ function parseArgs(argv) {
   return { sources, outDir }
 }
 
-if (process.argv[1]?.endsWith('merge-orcad-prebuilds.mjs')) {
+if (process.argv[1]?.endsWith('merge-mantad-prebuilds.mjs')) {
   const { sources, outDir } = parseArgs(process.argv.slice(2))
   const merged = mergeOrcadPrebuildTrees(sources, outDir)
   console.log(

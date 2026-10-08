@@ -102,6 +102,6 @@ async function main() {
   }
 }
 
-if (process.argv[1]?.endsWith('build-orcad-node.mjs')) {
+if (process.argv[1]?.endsWith('build-mantad-node.mjs')) {
   await main()
 }

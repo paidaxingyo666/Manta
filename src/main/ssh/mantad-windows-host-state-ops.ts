@@ -3,7 +3,7 @@
  * restore, the newest-write probe, and the first-activation owner admission.
  *
  * Same contract and tokens as the POSIX commands in `mantad-state-snapshot.ts` and
- * `orcad-initial-activation-admission.ts`. The snapshot is a directory copy (`state/`) rather
+ * `mantad-initial-activation-admission.ts`. The snapshot is a directory copy (`state/`) rather
  * than a tar: there is no tar in Node, and spawning `tar.exe` would be a second process. It is
  * built under a partial name and renamed into place, so a half-written snapshot is never
  * `PRESENT`. Symlinks and junctions anywhere in captured state fail closed, as on POSIX.

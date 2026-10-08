@@ -180,7 +180,7 @@ jobs:
           git fetch --no-tags --depth=1 origin "$BUN_ORCAD_COMMIT"
           git worktree add --detach "$RUNNER_TEMP/bun-orcad-source" "$BUN_ORCAD_COMMIT"
           pnpm --dir "$RUNNER_TEMP/bun-orcad-source" install --frozen-lockfile --ignore-scripts
-          node "$RUNNER_TEMP/bun-mantad-source/config/scripts/build-mantad-bun.mjs" --out-dir "$RUNNER_TEMP/bun-orcad"
+          node "$RUNNER_TEMP/bun-orcad-source/config/scripts/build-orcad-bun.mjs" --out-dir "$RUNNER_TEMP/bun-orcad"
           echo "slot=$RUNNER_TEMP/bun-orcad" >> "$GITHUB_OUTPUT"
           echo "executable=$(command -v bun)" >> "$GITHUB_OUTPUT"
       # Linux release slots come from the floor and Alpine lanes; this slot serves local tests.

@@ -210,8 +210,8 @@ test('docs routes stay namespaced and the generated source uses /docs as its bas
 
 test('GIF media helpers use the shared poster and video variants', async () => {
   const media = await import(pathToFileURL(path.join(siteRoot, 'src', 'lib', 'demoMedia.mjs')).href)
-  assert.equal(media.posterFor('/docs/manta-design-mode.gif'), '/docs/posters/manta-design-mode.jpg')
-  assert.equal(media.videoFor('/docs/manta-design-mode.gif'), '/docs/videos/orca-design-mode.mp4')
+  assert.equal(media.posterFor('/docs/orca-design-mode.gif'), '/docs/posters/orca-design-mode.jpg')
+  assert.equal(media.videoFor('/docs/orca-design-mode.gif'), '/docs/videos/orca-design-mode.mp4')
   assert.equal(media.posterFor('/docs/tab-split.gif'), '/docs/posters/tab-split.jpg')
   assert.equal(media.videoFor('/docs/tab-split.gif'), '/docs/videos/tab-split.mp4')
 

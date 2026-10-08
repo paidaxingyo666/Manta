@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { Worktree } from './workspace-list-sections'
 import { buildSections } from './workspace-list-sections'
-import { DEFAULT_MOBILE_WORKSPACE_STATUSES } from './mobile-workspace-statuses'
+import { defaultMobileWorkspaceStatuses } from './mobile-workspace-statuses'
 
 function worktree(overrides: Partial<Worktree> = {}): Worktree {
   const worktreePath = join('/tmp', 'manta', 'worktrees', 'feature')
@@ -43,7 +43,7 @@ describe('a pinned parent with an unpinned child', () => {
       'repo',
       new Set(),
       new Map(),
-      DEFAULT_MOBILE_WORKSPACE_STATUSES,
+      defaultMobileWorkspaceStatuses(),
       new Set(),
       showPinnedInGroups
     )
