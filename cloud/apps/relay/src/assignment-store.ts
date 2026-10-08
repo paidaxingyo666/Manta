@@ -80,10 +80,13 @@ import type {
 import type { RegionalRehomeSafetySnapshot } from './relay-observability.js'
 import {
   combineRegionalRehomeSafety,
+  nextRegionalRehomeSqlFailuresBreach,
   REGIONAL_REHOME_RECONNECTS_PER_CELL_LIMIT,
   REGIONAL_REHOME_SQL_FAILURES_PER_CELL_LIMIT,
   regionalRehomePoolPressure,
-  regionalRehomeSafetyFailure
+  regionalRehomeSafetyFailure,
+  regionalRehomeSqlFailuresSustained,
+  type RegionalRehomeSqlFailuresBreach
 } from './regional-rehome-safety.js'
 import {
   REGIONAL_REHOME_ARRIVAL_WINDOW_MS,
@@ -3755,6 +3758,7 @@ export class RelayAssignmentStore {
   }
 
   private idleRegionalCandidateCursor: IdleRehomeHostCursor = null
+  private regionalRehomeSqlFailuresBreach: RegionalRehomeSqlFailuresBreach = null
   private readonly regionalRehomePollTelemetry = new RegionalRehomePollTelemetry()
 
   async selectIdleRegionalRehomeCandidates(
@@ -3786,6 +3790,19 @@ export class RelayAssignmentStore {
       return gated('budget-closed')
     }
     const fleetSafety = await this.readRegionalRehomeFleetSafety(this.database, now)
+    const sqlBreach = nextRegionalRehomeSqlFailuresBreach(
+      this.regionalRehomeSqlFailuresBreach,
+      combineRegionalRehomeSafety(processSafety, fleetSafety).sqlFailures,
+      now
+    )
+    this.regionalRehomeSqlFailuresBreach = sqlBreach
+    // Source cells only pause on sql failures; the poll is the regular observer that latches.
+    if (sqlBreach && regionalRehomeSqlFailuresSustained(sqlBreach)) {
+      const event = await this.disableRegionalRehomeForSafety(this.database, now, 'sql_failures', fleetSafety)
+      if (event) console.warn(JSON.stringify({ ...event, sustainedMs: now - sqlBreach.since }))
+      this.regionalRehomeSqlFailuresBreach = null
+      return gated('fleet-safety')
+    }
     if (regionalRehomeFleetSafetyFailure(processSafety, fleetSafety, now)) return gated('fleet-safety')
     const startedAt = performance.now()
     const selection = await selectIdleRegionalRehomes({
@@ -3821,8 +3838,8 @@ export class RelayAssignmentStore {
       return { outcome: 'deferred', reason: 'cohort-closed' }
     }
     let safetyDisable: Record<string, string | number> | null = null
-    // Set on every fleet-safety failure, disable or not: the pause is durable
-    // and global either way, so no later candidate in this poll can get past it.
+    // Set on every fleet-safety failure, disable or not: the pause is global
+    // either way, so no later candidate in this poll can get past it.
     let safetyPaused = false
     let targetDeferral: RegionalRehomeTargetDeferral | null = null
     // Lock order: control, worker, host rows, then the target cell row alone,
@@ -5968,7 +5985,9 @@ export class RelayAssignmentStore {
       input.now
     )
     if (safetyFailure) {
-      input.onSafetyDisabled(await this.pauseRegionalRehomeForSafety(
+      // A sql spike alone is usually one DB stall: pause this claim and leave
+      // the latch to the director's sustained-breach check.
+      input.onSafetyDisabled(safetyFailure === 'sql_failures' ? null : await this.pauseRegionalRehomeForSafety(
         transaction,
         input.worker,
         input.now,
@@ -6343,7 +6362,18 @@ export class RelayAssignmentStore {
     reason: string,
     fleetSafety: RegionalRehomeFleetSafety
   ): Promise<Record<string, string | number> | null> {
-    const disabled = await transaction.query(
+    const event = await this.disableRegionalRehomeForSafety(transaction, now, reason, fleetSafety)
+    await this.incrementRegionalRehomeWorkerFailure(transaction, worker, now)
+    return event
+  }
+
+  private async disableRegionalRehomeForSafety(
+    database: RelayDatabase,
+    now: number,
+    reason: string,
+    fleetSafety: RegionalRehomeFleetSafety
+  ): Promise<Record<string, string | number> | null> {
+    const disabled = await database.query(
       `UPDATE relay_region_rehome_control
        SET generation = generation + 1, enabled = 0, updated_at = ?
        WHERE control_id = 'global' AND enabled = 1
@@ -6353,27 +6383,23 @@ export class RelayAssignmentStore {
     // The durable disable is otherwise invisible: nothing else records why
     // claims stopped and inspection only shows enabled=false. Logged after
     // the transaction commits so a rollback cannot fabricate the record.
-    let event: Record<string, string | number> | null = null
-    if (disabled.length > 0) {
-      event = {
-        event: 'orca_relay_regional_rehome_safety_disabled',
-        reason,
-        controlGeneration: integer(disabled[0]!, 'generation'),
-        now,
-        requiredCells: fleetSafety.requiredCells,
-        missingCells: fleetSafety.missingCells,
-        observedAt: fleetSafety.observedAt,
-        sqlFailures: fleetSafety.sqlFailures,
-        reconnects: fleetSafety.reconnects,
-        maxReconnects: fleetSafety.maxReconnects,
-        controlActivityRecoveryFailures: fleetSafety.controlActivityRecoveryFailures,
-        databasePoolWaiting: fleetSafety.databasePoolWaiting,
-        databasePoolWaitersMax: fleetSafety.databasePoolWaitersMax,
-        databasePoolWaitMsMax: fleetSafety.databasePoolWaitMsMax
-      }
+    if (disabled.length === 0) return null
+    return {
+      event: 'orca_relay_regional_rehome_safety_disabled',
+      reason,
+      controlGeneration: integer(disabled[0]!, 'generation'),
+      now,
+      requiredCells: fleetSafety.requiredCells,
+      missingCells: fleetSafety.missingCells,
+      observedAt: fleetSafety.observedAt,
+      sqlFailures: fleetSafety.sqlFailures,
+      reconnects: fleetSafety.reconnects,
+      maxReconnects: fleetSafety.maxReconnects,
+      controlActivityRecoveryFailures: fleetSafety.controlActivityRecoveryFailures,
+      databasePoolWaiting: fleetSafety.databasePoolWaiting,
+      databasePoolWaitersMax: fleetSafety.databasePoolWaitersMax,
+      databasePoolWaitMsMax: fleetSafety.databasePoolWaitMsMax
     }
-    await this.incrementRegionalRehomeWorkerFailure(transaction, worker, now)
-    return event
   }
 
 
