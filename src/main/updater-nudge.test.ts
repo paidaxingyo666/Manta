@@ -138,7 +138,10 @@ describe('updater-nudge', () => {
         json: async () => ({ id: 'campaign-1', minVersion: '1.0.0', rollout: killSwitch })
       })
 
-      await expect(fetchNudge()).resolves.toEqual({ id: 'campaign-1', minVersion: '1.0.0' })
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toEqual({
+        id: 'campaign-1',
+        minVersion: '1.0.0'
+      })
       expect(isRolloutFlagActive('pinned-relay-default', install)).toBe(true)
       expect(netFetchMock).toHaveBeenCalledTimes(1)
     })
@@ -146,17 +149,17 @@ describe('updater-nudge', () => {
     it('reads a block even when there is no nudge campaign', async () => {
       netFetchMock.mockResolvedValue({ ok: true, json: async () => ({ rollout: killSwitch }) })
 
-      await expect(fetchNudge()).resolves.toBeNull()
+      await expect(fetchNudge('https://example.test/nudge.json')).resolves.toBeNull()
       expect(isRolloutFlagActive('pinned-relay-default', install)).toBe(true)
     })
 
     it('keeps the last block when a later request fails', async () => {
       netFetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ rollout: killSwitch }) })
-      await fetchNudge()
+      await fetchNudge('https://example.test/nudge.json')
       netFetchMock.mockResolvedValueOnce({ ok: false })
-      await fetchNudge()
+      await fetchNudge('https://example.test/nudge.json')
       netFetchMock.mockRejectedValueOnce(new Error('network down'))
-      await fetchNudge()
+      await fetchNudge('https://example.test/nudge.json')
 
       expect(isRolloutFlagActive('pinned-relay-default', install)).toBe(true)
     })

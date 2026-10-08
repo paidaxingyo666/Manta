@@ -166,7 +166,7 @@ describe('zsh deferred startup after prompt-hook replacement', () => {
             : []),
           'O_LK=$(command -v manta-dev)',
           'O_IR=${+functions[__manta_deferred_line_init]}',
-          'O_SR=${+widgets[__orca_saved_line_init]}',
+          'O_SR=${+widgets[__manta_saved_line_init]}',
           ...(scheduleCleanup
             ? [
                 'O_SC=${+functions[__manta_deferred_sched_init]}',
@@ -219,7 +219,7 @@ describe('zsh deferred startup after prompt-hook replacement', () => {
       if (unavailableSched) {
         // Stock completion modules can fail before the fixture restores module_path.
         expect(result.output).not.toContain('zsh/sched')
-        expect(result.output).not.toContain('__orca_arm_deferred_line_init:')
+        expect(result.output).not.toContain('__manta_arm_deferred_line_init:')
         expect(result.values.O_SE).toBe('UNSET')
       }
       if (scheduledPrecmd) {

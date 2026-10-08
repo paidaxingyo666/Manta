@@ -105,7 +105,7 @@ export const ZSH_USER_ZSHENV_SOURCE_BLOCK = `{
   if (( ! $+_manta_deferred_init_done )); then
     builtin typeset -ag precmd_functions
     (( \${precmd_functions[(Ie)__manta_deferred_init]} )) || precmd_functions+=(__manta_deferred_init)
-    __orca_arm_deferred_line_init
+    __manta_arm_deferred_line_init
   fi
 }`
 

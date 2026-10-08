@@ -205,7 +205,7 @@ ${
     : ''
 }  builtin unset _manta_shell_features _manta_histfile
 ${ZSH_DEFERRED_LINE_INIT_CLEANUP_BLOCK}
-  builtin unfunction __manta_deferred_init __manta_has_feature __orca_arm_deferred_line_init
+  builtin unfunction __manta_deferred_init __manta_has_feature __manta_arm_deferred_line_init
 }`
 }
 

@@ -48,6 +48,10 @@ it('runs Mobile Checks on any shared-module or root lockfile change, on a pull r
     readFileSync(new URL('../../.github/workflows/mobile.yml', import.meta.url), 'utf8')
   )
   for (const paths of [workflow.on.pull_request.paths, workflow.on.push.paths]) {
+    // A required check runs on every pull request: a path filter would leave a PR waiting forever.
+    if (paths === undefined) {
+      continue
+    }
     for (const file of ['src/shared/any/module.ts', 'pnpm-lock.yaml']) {
       expect(paths.some((pattern) => matchesGlob(file, pattern))).toBe(true)
     }

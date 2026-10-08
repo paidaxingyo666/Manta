@@ -28,7 +28,7 @@ const HOST = process.env[ORCAD_CONVERT_HOST_ENV]
 const TEMPLATE_SOURCE = process.env.ORCA_E2E_ORCAD_CONVERT_TEMPLATE
 // Long enough that a connected client's own traffic never lets it lapse mid-test.
 const IDLE_TIMEOUT_MS = 15_000
-const RECORD = '/root/.manta/mantad-idle-stop.json'
+const RECORD = '/root/.manta/orcad-idle-stop.json'
 
 /** PIDs of running mantad slots; empty once every slot has exited. */
 function runningOrcadPids(target: DockerSshRelayTarget): string[] {

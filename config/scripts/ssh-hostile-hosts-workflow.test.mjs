@@ -71,7 +71,7 @@ describe('SSH hostile-host workflow', () => {
     const merge = workflow.jobs.hosts.steps.find(
       (step) => step.name === 'Merge verified Linux slots'
     )
-    expect(merge.run).toContain('node config/scripts/merge-orcad-prebuilds.mjs')
+    expect(merge.run).toContain('node config/scripts/merge-mantad-prebuilds.mjs')
     expect(merge.run).toContain('--require-slots linux-x64-glibc,linux-x64-musl,linux-x64-glibc217')
     expect(workflow.jobs.hosts.steps.indexOf(merge)).toBeLessThan(
       workflow.jobs.hosts.steps.findIndex(
