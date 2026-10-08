@@ -4,9 +4,9 @@ import { toast } from 'sonner'
 import {
   ORCAD_RECOVERY_CHANGED_STATE_CODE,
   type OrcadManagedRuntimeStatus
-} from '../../../../shared/orcad-managed-runtime'
+} from '../../../../shared/mantad-managed-runtime'
 import type { PublicKnownRuntimeEnvironment } from '../../../../shared/runtime-environments'
-import type { ManagedOrcadPreloadApi } from '../../../../preload/api/managed-orcad-api'
+import type { ManagedOrcadPreloadApi } from '../../../../preload/api/managed-mantad-api'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { translate } from '@/i18n/i18n'
 import { Button } from '../ui/button'

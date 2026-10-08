@@ -8,36 +8,36 @@
  * destination proves its commit, and is never deleted afterwards.
  */
 import { randomUUID } from 'node:crypto'
-import type { OrcadManagedConversionResult } from '../../shared/orcad-managed-runtime'
-import type { OrcadMigrationSourceCutover } from '../../shared/orcad-migration-source-cutover'
-import { recordManagedOrcadMigration } from '../../shared/runtime-environment-managed-orcad-store'
+import type { OrcadManagedConversionResult } from '../../shared/mantad-managed-runtime'
+import type { OrcadMigrationSourceCutover } from '../../shared/mantad-migration-source-cutover'
+import { recordManagedOrcadMigration } from '../../shared/runtime-environment-managed-mantad-store'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import {
   redactRuntimeEnvironment,
   type KnownRuntimeEnvironment
 } from '../../shared/runtime-environments'
 import { runTargetLifecycle } from '../ipc/ssh-target-lifecycle-queue'
-import { environmentMatchesManagedOrcadCutover } from './orcad-managed-migration-status'
-import { requireManagedOrcadInfrastructure } from './orcad-managed-runtime-context'
-import { ensureOrcadManagedTunnel } from './orcad-managed-tunnel'
+import { environmentMatchesManagedOrcadCutover } from './mantad-managed-migration-status'
+import { requireManagedOrcadInfrastructure } from './mantad-managed-runtime-context'
+import { ensureOrcadManagedTunnel } from './mantad-managed-tunnel'
 import {
   commitOrcadMigrationDestination,
   type OrcadMigrationDestinationCatalog
-} from './orcad-migration-cutover-coordinator'
-import { removeOrcadMigrationJournalsForDestination } from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-coordinator'
+import { removeOrcadMigrationJournalsForDestination } from './mantad-migration-cutover-journal'
 import {
   fenceOrcadMigrationSource,
   resolveOrcadMigrationFence
-} from './orcad-migration-source-fence'
+} from './mantad-migration-source-fence'
 import type { SshTarget } from '../../shared/ssh-types'
 import {
   assessOrcadMigrationTerminals,
   type CensusHostRelayTerminals,
   retireProvenExitedLeases,
   type ListRelayPtyIds
-} from './orcad-migration-terminal-gate'
-import { createManagedOrcadEnvironment } from './orcad-runtime-deployment'
-import { retainOrcadMigrationSource } from './orcad-migration-source-retention'
+} from './mantad-migration-terminal-gate'
+import { createManagedOrcadEnvironment } from './mantad-runtime-deployment'
+import { retainOrcadMigrationSource } from './mantad-migration-source-retention'
 import { hasRegisteredDirectSshAuthority } from './ssh-target-registry'
 
 export type OrcadManagedConversionArgs = {

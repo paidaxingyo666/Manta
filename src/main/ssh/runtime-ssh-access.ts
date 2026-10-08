@@ -15,15 +15,15 @@ import {
   prepareRuntimeEnvironmentSshAccessLink,
   prepareRuntimeEnvironmentSshAccessUnlink
 } from '../../shared/runtime-environment-ssh-access-store'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type { SshTarget } from '../../shared/ssh-types'
 import { runTargetLifecycle } from '../ipc/ssh-target-lifecycle-queue'
-import { requireManagedOrcadInfrastructure } from './orcad-managed-runtime-context'
+import { requireManagedOrcadInfrastructure } from './mantad-managed-runtime-context'
 import {
   closeOrcadManagedTunnel,
   ensureOrcadManagedTunnel,
   startOrcadManagedTunnel
-} from './orcad-managed-tunnel'
+} from './mantad-managed-tunnel'
 import { verifyRuntimeEnvironmentSshTunnel } from './runtime-ssh-access-verification'
 import { hasRegisteredDirectSshAuthority } from './ssh-target-registry'
 

@@ -16,7 +16,7 @@ import {
 import {
   ORCAD_CANCEL_MANAGED_STOP_FLAG,
   ORCAD_COMPLETE_MANAGED_STOP_FLAG
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import {
   ORCAD_WINDOWS_BREAKAWAY_CONTRACT,
   WINDOWS_BREAKAWAY_LAUNCH_FLAG
@@ -51,7 +51,7 @@ if (process.argv[2] === WINDOWS_BREAKAWAY_LAUNCH_FLAG) {
   process.argv[2] === ORCAD_COMPLETE_MANAGED_STOP_FLAG ||
   process.argv[2] === ORCAD_CANCEL_MANAGED_STOP_FLAG
 ) {
-  void import('./orcad-managed-stop-command').then(({ runOrcadManagedStopCommandAndExit }) =>
+  void import('./mantad-managed-stop-command').then(({ runOrcadManagedStopCommandAndExit }) =>
     runOrcadManagedStopCommandAndExit(process.argv.slice(2))
   )
 } else {

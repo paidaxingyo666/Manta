@@ -21,7 +21,7 @@ import {
   terminalsRunElsewhere,
   type HostRelayTerminalProof,
   type ListRelayPtyIds
-} from './orcad-migration-terminal-gate'
+} from './mantad-migration-terminal-gate'
 
 export async function relayTerminalsOnConnect(args: {
   store: Pick<Store, 'getSshRemotePtyLeases'>

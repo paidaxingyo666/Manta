@@ -1,7 +1,7 @@
 import type { WorkspaceHostScope } from './ui-chrome-types'
 import type { SavedPortForward } from './ssh-types'
-import { requiredRecord } from './orcad-migration-dormant-value-validation'
-import { boundedStringArray } from './orcad-migration-manifest-fields'
+import { requiredRecord } from './mantad-migration-dormant-value-validation'
+import { boundedStringArray } from './mantad-migration-manifest-fields'
 
 export function parseStringArray(value: unknown, max: number): string[] {
   return boundedStringArray(

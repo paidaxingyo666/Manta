@@ -3,11 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('../ipc/pty/provider/registry', () => ({ getSshPtyProvider: vi.fn(() => undefined) }))
 
 import { toAppSshPtyId } from '../providers/ssh-pty-id'
-import { assessOrcadMigrationTerminals } from './orcad-migration-terminal-gate'
+import { assessOrcadMigrationTerminals } from './mantad-migration-terminal-gate'
 import {
   ORCAD_MIGRATION_RELAY_LIST_BUDGET_MS,
   orcadMigrationRelayPtyLister
-} from './orcad-migration-relay-pty-lister'
+} from './mantad-migration-relay-pty-lister'
 
 const TARGET = 'ssh-win'
 const noLeases = { getSshRemotePtyLeases: () => [] }

@@ -4,7 +4,7 @@ import {
   resolveOrcadIdlePollMs,
   type OrcadIdleProbe,
   type OrcadIdleVerdict
-} from './orcad-idle-exit-monitor'
+} from './mantad-idle-exit-monitor'
 
 function harness(options: { timeoutMs?: number; lastClientActivityAt?: number } = {}) {
   let now = 1_000

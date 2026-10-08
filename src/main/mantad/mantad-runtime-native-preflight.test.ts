@@ -5,7 +5,7 @@ import type {
   WatcherProcessHooks
 } from '../ipc/parcel-watcher-process-subscription'
 import { PtySpawnHealthTimeoutError } from '../daemon/pty-subprocess/spawn-preflight'
-import { preflightOrcadNativeRuntime } from './orcad-runtime-native-preflight'
+import { preflightOrcadNativeRuntime } from './mantad-runtime-native-preflight'
 import { WindowsProcessTableTimeoutError } from '../windows/windows-process-table-timeout-error'
 
 const fixture = vi.hoisted(() => ({

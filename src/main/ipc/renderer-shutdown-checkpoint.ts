@@ -3,7 +3,7 @@ import type { ExecutionHostId } from '../../shared/execution-host'
 import type { PersistedUIState } from '../../shared/persisted-ui-state-types'
 import type { WorkspaceSessionState } from '../../shared/workspace-session-state-types'
 import type { Store } from '../persistence'
-import { isFrozenOrcadSourceSessionPartition } from '../ssh/orcad-retained-source'
+import { isFrozenOrcadSourceSessionPartition } from '../ssh/mantad-retained-source'
 
 type StageBeforeUnloadSyncArgs = {
   sessions: { state: WorkspaceSessionState; hostId?: ExecutionHostId }[]

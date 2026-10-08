@@ -3,7 +3,7 @@ import type { SshTarget } from '../../shared/ssh-types'
 import {
   OrcadHostUnsupportedError,
   OrcadStdioBridgeUnavailableError
-} from './orcad-host-unavailable'
+} from './mantad-host-unavailable'
 import {
   resolveHostServerOnConnect,
   type HostServerOnConnectDeps

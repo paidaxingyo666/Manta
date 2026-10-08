@@ -26,9 +26,9 @@ import {
   quiesceInterruptedOrcadSlot,
   type OrcadSlotIdentity,
   type OrcadSlotOptions
-} from './orcad-recovery-slot'
+} from './mantad-recovery-slot'
 import { joinRemotePath } from './ssh-remote-platform'
-import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/orcad-managed-runtime'
+import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/mantad-managed-runtime'
 
 export type OrcadIncumbentRecoveryOptions = OrcadSlotOptions & {
   /** The operator accepted restoring the snapshot over state a launched build changed. */

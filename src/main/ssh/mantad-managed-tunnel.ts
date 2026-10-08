@@ -2,16 +2,16 @@ import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import { resolveEnvironment } from '../../shared/runtime-environment-store'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { SshConnection } from './ssh-connection'
-import { probeManagedOrcadTunnel } from './orcad-managed-tunnel-resume'
-import { ensureManagedOrcadServing } from './orcad-managed-serving'
-import { OrcadManagedTunnelManager } from './orcad-managed-tunnel-manager'
+import { probeManagedOrcadTunnel } from './mantad-managed-tunnel-resume'
+import { ensureManagedOrcadServing } from './mantad-managed-serving'
+import { OrcadManagedTunnelManager } from './mantad-managed-tunnel-manager'
 import { getSshConnectionManager, getSshTargetRegistryStore } from './ssh-target-registry'
 import {
   MANAGED_ORCAD_TUNNEL_TARGETING,
   type OrcadTunnelStartChecks
-} from './orcad-managed-tunnel-target'
+} from './mantad-managed-tunnel-target'
 
-export { OrcadManagedTunnelManager } from './orcad-managed-tunnel-manager'
+export { OrcadManagedTunnelManager } from './mantad-managed-tunnel-manager'
 
 const managedTunnels = new OrcadManagedTunnelManager({
   getConnectionManager: getSshConnectionManager,

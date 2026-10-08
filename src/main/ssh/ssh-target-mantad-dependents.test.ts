@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { getDefaultWorkspaceSession } from '../../shared/constants'
 import type { ExecutionHostId } from '../../shared/execution-host'
-import { collectDependentStateBlockers } from './ssh-target-orcad-dependents'
-import { emptyDependentStateStore } from './ssh-target-orcad-dependents-fixture'
-import { orcadTargetBlockerMessage } from './ssh-target-orcad-claims'
+import { collectDependentStateBlockers } from './ssh-target-mantad-dependents'
+import { emptyDependentStateStore } from './ssh-target-mantad-dependents-fixture'
+import { orcadTargetBlockerMessage } from './ssh-target-mantad-claims'
 
 const HOST: ExecutionHostId = 'ssh:ssh-1'
 

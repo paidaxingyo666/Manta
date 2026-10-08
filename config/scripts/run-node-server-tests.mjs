@@ -8,7 +8,7 @@ import {
   ORCAD_PROFILE_PREFLIGHT_FLAG,
   parseOrcadProfilePreflight
 } from '../../src/shared/mantad-profile-preflight.ts'
-import { packagedNodeRuntimePath } from './build-orcad-node.mjs'
+import { packagedNodeRuntimePath } from './build-mantad-node.mjs'
 import { ensurePinnedNodeExecutable } from './pinned-node-downloads.mjs'
 import { currentTarget } from './server-build-target.mjs'
 import { UNIT_INCLUDE } from './ci-unit-files.mjs'

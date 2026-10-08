@@ -4,7 +4,7 @@
  * the migration references it. The live profile is never passed here.
  */
 import type { StoreRuntimeState } from '../loading-store/store-runtime-state'
-import type { OrcadMigrationManifest } from '../../../shared/orcad-migration-manifest'
+import type { OrcadMigrationManifest } from '../../../shared/mantad-migration-manifest'
 import { orcadSourceFolderWorkspaceIds, repoBelongsToOrcadSource } from './orcad-source-ownership'
 
 export function subtractOrcadSourceCatalogState(

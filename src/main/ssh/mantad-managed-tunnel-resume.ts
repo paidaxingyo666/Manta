@@ -6,7 +6,7 @@ import {
 } from '../../shared/runtime-environments'
 import type { SshConnection } from './ssh-connection'
 import type { SshTarget } from '../../shared/ssh-types'
-import type { OrcadManagedServing } from './orcad-managed-serving'
+import type { OrcadManagedServing } from './mantad-managed-serving'
 import type { SshConnectionManager } from './ssh-connection-manager'
 import type { SshPortForwardManager } from './ssh-port-forward'
 import type { getSshTargetRegistryStore } from './ssh-target-registry'
@@ -15,12 +15,12 @@ import {
   managedTunnelAccess,
   recordActiveOrcadTunnel,
   type ActiveOrcadTunnel
-} from './orcad-managed-tunnel-active'
+} from './mantad-managed-tunnel-active'
 import {
   environmentForwardChecks,
   forwardToVerifiedOrcad,
   type OrcadManagedTunnelTargeting
-} from './orcad-managed-tunnel-target'
+} from './mantad-managed-tunnel-target'
 
 export type OrcadManagedTunnelProbe = (
   environment: KnownRuntimeEnvironment,

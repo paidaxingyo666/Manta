@@ -5,7 +5,7 @@ import type { OrcadRollbackOptions, OrcadRollbackResult } from './mantad-remote-
 import { isUnconfirmedSshCommandTermination } from './ssh-relay-deploy-helpers'
 import { withRolledBackVersion } from './mantad-activation-record'
 import { writeOrcadActivationRecord } from './mantad-activation-record-store'
-import { launchAndJudgeOrcadSlot } from './orcad-candidate-launch-verdict'
+import { launchAndJudgeOrcadSlot } from './mantad-candidate-launch-verdict'
 import { assessOrcadRollback } from './mantad-update-plan'
 import { MANTAD_LOG_FILENAME } from './mantad-remote-launch'
 import {
@@ -37,17 +37,17 @@ import {
   orcadSlotDir,
   resolveOrcadSlotIdentity,
   type OrcadSlotIdentity
-} from './orcad-recovery-slot'
-import { orcadSnapshotPath } from './orcad-incumbent-recovery'
+} from './mantad-recovery-slot'
+import { orcadSnapshotPath } from './mantad-incumbent-recovery'
 import {
   putTransactionIncumbentBack,
   restoreAfterRejectedCandidate
-} from './orcad-transaction-incumbent'
+} from './mantad-transaction-incumbent'
 import {
   readOrcadRollbackBarrierTarget,
   rollbackBarrierRefusal,
   stopIncumbentBehindTerminalBarrier
-} from './orcad-rollback-terminal-barrier'
+} from './mantad-rollback-terminal-barrier'
 import { withOrcadLogTail } from './mantad-remote-log-tail'
 import { errorMessage } from '../../shared/error-message'
 

@@ -14,7 +14,7 @@ import {
 import {
   forgetHeldOrcadFence,
   orcadFenceTokensHeldByExitedProcesses
-} from './orcad-held-fence-tokens'
+} from './mantad-held-fence-tokens'
 import { readBoundedOrcadRemoteRecord } from './mantad-remote-record-file'
 import { execOrcadRemote, type OrcadRemoteExecTarget } from './mantad-remote-runtime-control'
 import {

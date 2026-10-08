@@ -1,7 +1,7 @@
-import type { OrcadManagedStopRequest } from '../../shared/orcad-stop-request'
-import { persistOrcadDaemonRetirementRecord } from './orcad-completed-stop-receipt'
+import type { OrcadManagedStopRequest } from '../../shared/mantad-stop-request'
+import { persistOrcadDaemonRetirementRecord } from './mantad-completed-stop-receipt'
 import type { OrcadDaemonRetirement } from './mantad-daemon-retirement'
-import { stopOrcadAutomationScheduler } from './orcad-automations'
+import { stopOrcadAutomationScheduler } from './mantad-automations'
 
 // Lazy like the rest of mantad's daemon graph: the entry module must not load it at import time.
 async function retireLazily(): Promise<OrcadDaemonRetirement> {

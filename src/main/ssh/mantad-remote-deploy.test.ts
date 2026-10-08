@@ -46,7 +46,7 @@ import {
 import { emptyOrcadActivationRecord, withActivatedVersion } from './mantad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import { isReadinessRead } from './mantad-activation-host-test-harness'
-import { isSnapshotCaptureCommand } from './orcad-snapshot-capture-command'
+import { isSnapshotCaptureCommand } from './mantad-snapshot-capture-command'
 import type { SshConnection } from './ssh-connection'
 import { NODE_RUNTIME_PIN } from '../../shared/node-runtime-pin'
 import { serializeOrcadActivationTransaction } from './mantad-activation-transaction'

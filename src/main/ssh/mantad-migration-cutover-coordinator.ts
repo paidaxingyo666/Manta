@@ -11,29 +11,29 @@ import type {
   OrcadMigrationCatalogAbortResult,
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import type {
   OrcadMigrationSnapshotChunkRequest,
   OrcadMigrationSnapshotChunkResult
-} from '../../shared/orcad-migration-scrollback'
+} from '../../shared/mantad-migration-scrollback'
 import type {
   OrcadMigrationSourceCutover,
   OrcadMigrationSourceCutoverPhase
-} from '../../shared/orcad-migration-source-cutover'
-import { resolveDurableOrcadCatalogMutation } from './orcad-catalog-durable-mutation'
-import { ORCAD_MIGRATION_DESTINATION_UNSUPPORTED } from './orcad-migration-catalog-client'
+} from '../../shared/mantad-migration-source-cutover'
+import { resolveDurableOrcadCatalogMutation } from './mantad-catalog-durable-mutation'
+import { ORCAD_MIGRATION_DESTINATION_UNSUPPORTED } from './mantad-migration-catalog-client'
 import {
   listOrcadMigrationSourceCutovers,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
-import { releaseOrcadMigrationFence } from './orcad-migration-source-fence'
+} from './mantad-migration-cutover-journal'
+import { releaseOrcadMigrationFence } from './mantad-migration-source-fence'
 import {
   transferOrcadMigrationSnapshots,
   type OrcadMigrationSnapshotSource
-} from './orcad-migration-snapshot-coordinator'
-import { assertOrcadMigrationSourceUnchanged } from './orcad-migration-source-assertions'
-import type { OrcadMigrationPreflightStore } from './ssh-target-orcad-preflight'
-import type { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
+} from './mantad-migration-snapshot-coordinator'
+import { assertOrcadMigrationSourceUnchanged } from './mantad-migration-source-assertions'
+import type { OrcadMigrationPreflightStore } from './ssh-target-mantad-preflight'
+import type { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
 
 /** The destination's catalog operations, served by the T6-9 mantad.migration.* client. */
 export type OrcadMigrationDestinationCatalog = {

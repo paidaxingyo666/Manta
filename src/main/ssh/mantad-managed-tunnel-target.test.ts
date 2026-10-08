@@ -4,8 +4,8 @@ import type { SshPortForwardManager } from './ssh-port-forward'
 import {
   OrcadManagedIdentityError,
   type OrcadTunnelIdentity
-} from './orcad-managed-tunnel-identity'
-import { forwardToVerifiedOrcad } from './orcad-managed-tunnel-target'
+} from './mantad-managed-tunnel-identity'
+import { forwardToVerifiedOrcad } from './mantad-managed-tunnel-target'
 
 const FOREIGN: OrcadTunnelIdentity = { verdict: 'foreign', detail: '4001: Unauthorized' }
 

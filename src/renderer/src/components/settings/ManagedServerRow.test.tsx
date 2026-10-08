@@ -3,9 +3,9 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { OrcadManagedRuntimeStatus } from '../../../../shared/orcad-managed-runtime'
+import type { OrcadManagedRuntimeStatus } from '../../../../shared/mantad-managed-runtime'
 import type { PublicKnownRuntimeEnvironment } from '../../../../shared/runtime-environments'
-import type { ManagedOrcadPreloadApi } from '../../../../preload/api/managed-orcad-api'
+import type { ManagedOrcadPreloadApi } from '../../../../preload/api/managed-mantad-api'
 import { ManagedServerRow } from './ManagedServerRow'
 
 vi.mock('sonner', () => ({ toast: { message: vi.fn(), error: vi.fn() } }))

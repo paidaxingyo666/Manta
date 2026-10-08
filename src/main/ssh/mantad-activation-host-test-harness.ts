@@ -9,7 +9,7 @@ import {
   withActivatedVersion,
   type OrcadActivationRecord
 } from './mantad-activation-record'
-import { isSnapshotCaptureCommand } from './orcad-snapshot-capture-command'
+import { isSnapshotCaptureCommand } from './mantad-snapshot-capture-command'
 import { sshCommandExitError } from './ssh-relay-exec-command'
 
 export const OLD = '0.1.0+aa01'

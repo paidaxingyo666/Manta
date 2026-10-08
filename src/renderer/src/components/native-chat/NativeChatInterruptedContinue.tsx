@@ -10,9 +10,9 @@ import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
 } from '../../../../shared/agent-session-journal-types'
-import { latestNativeChatOrcaStopCut } from '../../../../shared/native-chat-orca-stop-cut'
+import { latestNativeChatOrcaStopCut } from '../../../../shared/native-chat-manta-stop-cut'
 import { AGENT_SESSION_CONTINUE_INTERRUPTED_RUNTIME_CAPABILITY } from '../../../../shared/agent-session-continue-interrupted-capability'
-import type { NativeChatOrcaStopView } from './native-chat-orca-stop-context'
+import type { NativeChatOrcaStopView } from './native-chat-manta-stop-context'
 import { useStructuredAgentSessionHostLabel } from './use-structured-agent-session-host-label'
 import { useNativeChatRestartResuming } from '../native-chat-resume-on-restart-store'
 import { useNativeChatLaunchResumePending } from '../native-chat-launch-resume-decision'

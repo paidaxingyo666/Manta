@@ -1,8 +1,8 @@
 import type { PublicKnownRuntimeEnvironment } from './runtime-environments'
 import type { OrcadTerminalCensus } from './mantad-terminal-census'
-import type { OrcadMigrationBlocker } from './orcad-migration-preflight'
-import type { OrcadMigrationSourceCutoverPhase } from './orcad-migration-source-cutover'
-import type { OrcadDaemonRetirementVerdict } from './orcad-stop-request'
+import type { OrcadMigrationBlocker } from './mantad-migration-preflight'
+import type { OrcadMigrationSourceCutoverPhase } from './mantad-migration-source-cutover'
+import type { OrcadDaemonRetirementVerdict } from './mantad-stop-request'
 
 export const ORCAD_MANAGED_REMOTE_PORT = 6_768
 

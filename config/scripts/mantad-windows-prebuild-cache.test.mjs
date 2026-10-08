@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { NODE_RUNTIME_PIN } from '../../src/shared/node-runtime-pin.ts'
-import { sha256Of } from './orcad-prebuild-slot-contents.mjs'
+import { sha256Of } from './mantad-prebuild-slot-contents.mjs'
 import {
   validateWindowsPrebuildCache,
   windowsPrebuildCacheIdentity,

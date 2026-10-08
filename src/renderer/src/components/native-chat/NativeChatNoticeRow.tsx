@@ -11,9 +11,9 @@ import {
   type AgentSessionHostStatusPresentation
 } from '../../../../shared/agent-session-host-status-rows'
 import type { NativeChatTextBlock } from '../../../../shared/native-chat-types'
-import { useNativeChatOrcaStopView } from './native-chat-orca-stop-context'
-import { nativeChatOrcaStopRowText } from './native-chat-orca-stop-words'
-import { AGENT_SESSION_ORCA_STOP_PRESENTATION } from '../../../../shared/agent-session-orca-stop'
+import { useNativeChatOrcaStopView } from './native-chat-manta-stop-context'
+import { nativeChatOrcaStopRowText } from './native-chat-manta-stop-words'
+import { AGENT_SESSION_ORCA_STOP_PRESENTATION } from '../../../../shared/agent-session-manta-stop'
 import { ProviderFrameRow } from './NativeChatTranscriptChrome'
 
 const HOST_STATUS_WORDS: Record<AgentSessionHostStatusPresentation, () => string> = {

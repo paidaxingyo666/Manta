@@ -6,7 +6,7 @@ import {
   rollbackManagedOrcadEnvironment,
   stopManagedOrcadEnvironment,
   updateManagedOrcadEnvironment
-} from '../ssh/orcad-runtime-lifecycle'
+} from '../ssh/mantad-runtime-lifecycle'
 import type { ManagedServerActions } from '../runtime/managed-server-actions-registry'
 import type { ExecutionHostId } from '../../shared/execution-host'
 import { retireRemovedRuntimeEnvironment } from './runtime-environment-removal-cleanup'

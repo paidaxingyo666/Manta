@@ -3,12 +3,12 @@ import type {
   OrcadMigrationCatalogAbortResult,
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import {
   abortStagedOrcadMigrationCatalogDurably,
   commitStagedOrcadMigrationCatalogDurably,
   stageOrcadMigrationCatalogDurably
-} from './orcad-migration-catalog-import'
+} from './mantad-migration-catalog-import'
 
 describe('durable mantad migration catalog import', () => {
   it('does not acknowledge staging until its dormant manifest is durable', async () => {

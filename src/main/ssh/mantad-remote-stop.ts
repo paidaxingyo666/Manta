@@ -21,11 +21,11 @@ import {
   createOrcadDecommissionTransaction,
   withOrcadDecommissionProcessExited,
   withOrcadDecommissionStopDispatched
-} from './orcad-decommission-transaction'
-import { readRemoteOrcadManagedStopTarget } from './orcad-managed-remote-stop'
-import { settleOrcadDecommissionStop } from './orcad-decommission-stop'
-import type { OrcadSlotOptions } from './orcad-recovery-slot'
-import type { OrcadDecommissionResult } from '../../shared/orcad-decommission'
+} from './mantad-decommission-transaction'
+import { readRemoteOrcadManagedStopTarget } from './mantad-managed-remote-stop'
+import { settleOrcadDecommissionStop } from './mantad-decommission-stop'
+import type { OrcadSlotOptions } from './mantad-recovery-slot'
+import type { OrcadDecommissionResult } from '../../shared/mantad-decommission'
 import type { OrcadTerminalCensus } from '../../shared/mantad-terminal-census'
 
 export type OrcadDecommissionOptions = OrcadSlotOptions & {

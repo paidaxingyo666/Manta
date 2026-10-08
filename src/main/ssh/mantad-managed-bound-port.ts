@@ -9,7 +9,7 @@ import {
 } from '../../shared/runtime-environments'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { ServeReadiness } from '../server/serve-readiness'
-import { managedOrcadInstallDir } from './orcad-managed-runtime-context'
+import { managedOrcadInstallDir } from './mantad-managed-runtime-context'
 import { resolveOrcadRemoteContext } from './mantad-remote-context'
 import {
   parseOrcadReadinessWaitOutput,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ORCAD_TERMINAL_CENSUS_RUNTIME_CAPABILITY } from '../../shared/orcad-runtime-capabilities'
+import { ORCAD_TERMINAL_CENSUS_RUNTIME_CAPABILITY } from '../../shared/mantad-runtime-capabilities'
 import {
   createEnvironmentFromPairingOffer,
   type KnownRuntimeEnvironment
@@ -10,8 +10,8 @@ const mocks = vi.hoisted(() => ({ send: vi.fn(), ensure: vi.fn(), verify: vi.fn(
 vi.mock('../../shared/remote-runtime-client', () => ({
   sendRemoteRuntimeRequestWithStatusPreflight: mocks.send
 }))
-vi.mock('./orcad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.ensure }))
-vi.mock('./orcad-managed-serving-verify', () => ({ verifyOrcadManagedServing: mocks.verify }))
+vi.mock('./mantad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.ensure }))
+vi.mock('./mantad-managed-serving-verify', () => ({ verifyOrcadManagedServing: mocks.verify }))
 
 const { collectManagedTerminalCensus } = await import('./mantad-terminal-census-client')
 const collect = (record: OrcadActivationRecord) =>

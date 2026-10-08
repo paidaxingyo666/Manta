@@ -9,9 +9,9 @@
  */
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import type { SshTarget } from '../../shared/ssh-types'
-import { orcadBoundPort } from './orcad-managed-bound-port'
-import { managedOrcadSlot } from './orcad-managed-runtime-context'
-import { wakeStoppedManagedOrcad } from './orcad-managed-wake'
+import { orcadBoundPort } from './mantad-managed-bound-port'
+import { managedOrcadSlot } from './mantad-managed-runtime-context'
+import { wakeStoppedManagedOrcad } from './mantad-managed-wake'
 import { resolveOrcadRemoteContext } from './mantad-remote-context'
 import type { SshConnection } from './ssh-connection'
 

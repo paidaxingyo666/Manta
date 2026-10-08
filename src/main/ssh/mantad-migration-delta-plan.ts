@@ -6,24 +6,24 @@
  * so the delta manifest carries only rows and dormant state no earlier migration owns. Nothing
  * that overlaps an earlier migration is merged into the server.
  */
-import type { OrcadDeltaMovePreview, OrcadDeltaMoveRow } from '../../shared/orcad-managed-runtime'
+import type { OrcadDeltaMovePreview, OrcadDeltaMoveRow } from '../../shared/mantad-managed-runtime'
 import type {
   OrcadMigrationCatalogPayload,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
-import { isRetainedOrcadMigrationSourceCutover } from '../../shared/orcad-migration-source-cutover'
-import type { OrcadMigrationSourceCutover } from '../../shared/orcad-migration-source-cutover'
+} from '../../shared/mantad-migration-manifest'
+import { isRetainedOrcadMigrationSourceCutover } from '../../shared/mantad-migration-source-cutover'
+import type { OrcadMigrationSourceCutover } from '../../shared/mantad-migration-source-cutover'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { Store } from '../persistence'
 import { collectOrcadMigrationSourceCatalog } from '../persistence/migrating-orcad-catalog/orcad-source-catalog'
-import { listOrcadMigrationCutoverChainForTarget } from './orcad-migration-cutover-journal'
+import { listOrcadMigrationCutoverChainForTarget } from './mantad-migration-cutover-journal'
 import {
   createOrcadMigrationManifest,
   orcadMigrationCatalogIds
-} from './orcad-migration-manifest-export'
-import type { OrcadMigrationSnapshotSource } from './orcad-migration-snapshot-coordinator'
-import { collectUntransferredDependentBlockers } from './ssh-target-orcad-dependents'
-import type { OrcadMigrationPreflightStore } from './ssh-target-orcad-preflight'
+} from './mantad-migration-manifest-export'
+import type { OrcadMigrationSnapshotSource } from './mantad-migration-snapshot-coordinator'
+import { collectUntransferredDependentBlockers } from './ssh-target-mantad-dependents'
+import type { OrcadMigrationPreflightStore } from './ssh-target-mantad-preflight'
 
 export type OrcadDeltaSourceStore = OrcadMigrationPreflightStore & OrcadMigrationSnapshotSource
 

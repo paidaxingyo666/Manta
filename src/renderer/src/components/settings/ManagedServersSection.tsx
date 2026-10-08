@@ -1,7 +1,7 @@
 import { Loader2 } from 'lucide-react'
 import { useCallback, useEffect, useId, useState } from 'react'
 import { toast } from 'sonner'
-import type { OrcadManagedPendingMigrationRow } from '../../../../shared/orcad-managed-runtime'
+import type { OrcadManagedPendingMigrationRow } from '../../../../shared/mantad-managed-runtime'
 import type { PublicKnownRuntimeEnvironment } from '../../../../shared/runtime-environments'
 import type { SshTarget } from '../../../../shared/ssh-types'
 import { useMountedRef } from '@/hooks/useMountedRef'

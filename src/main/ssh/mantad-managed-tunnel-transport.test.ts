@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { OrcadManagedTunnelTransportProvider } from './orcad-managed-tunnel-transport'
-import { knownOrcadTunnelTransport } from './orcad-tunnel-transport-memo'
+import { OrcadManagedTunnelTransportProvider } from './mantad-managed-tunnel-transport'
+import { knownOrcadTunnelTransport } from './mantad-tunnel-transport-memo'
 import type { SshConnection } from './ssh-connection'
 import type {
   PortForwardStartOptions,

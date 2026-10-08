@@ -5,7 +5,7 @@
 import type { Page } from '@stablyai/playwright-test'
 import { expect } from './manta-app'
 import { readPersistedProfileState } from './persisted-profile-state'
-import { findOrcadMigrationSourceCutoverForTarget } from '../../../src/main/ssh/orcad-migration-cutover-journal'
+import { findOrcadMigrationSourceCutoverForTarget } from '../../../src/main/ssh/mantad-migration-cutover-journal'
 
 const CONVERT_TIMEOUT_MS = 8 * 60_000
 

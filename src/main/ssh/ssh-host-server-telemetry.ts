@@ -12,7 +12,7 @@ import {
 import { track } from '../telemetry/client'
 import type { HostServerConnectEvent } from './ssh-host-server-connect-events'
 import type { SshHostPlatformFacts } from './ssh-host-platform-memo'
-import type { OrcadTunnelTransport } from './orcad-tunnel-transport-memo'
+import type { OrcadTunnelTransport } from './mantad-tunnel-transport-memo'
 import { durationBucket } from './ssh-remote-runtime-telemetry'
 
 type HostProps = Pick<EventProps<'ssh_host_server_decided'>, 'host_os' | 'host_arch' | 'host_libc'>

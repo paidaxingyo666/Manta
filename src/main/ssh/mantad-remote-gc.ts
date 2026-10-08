@@ -25,7 +25,7 @@ import {
   orcadLivenessProbeCommand
 } from './mantad-remote-launch'
 import { gcRemoteNodeRuntimeStore } from './remote-node-runtime-store-gc'
-import { readOrcadGcTransactionPins } from './orcad-gc-transaction-pins'
+import { readOrcadGcTransactionPins } from './mantad-gc-transaction-pins'
 import { isWindowsRemoteHost, joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import { RELAY_REMOTE_DIR } from './relay-protocol'
 import { orcadRemoteBaseDir, orcadWindowsHostOpCommand } from './mantad-remote-windows-node'

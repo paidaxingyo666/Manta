@@ -7,27 +7,27 @@ import {
   type KnownRuntimeEnvironment
 } from '../../shared/runtime-environments'
 import type { SshTarget } from '../../shared/ssh-types'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type { SshConnection } from './ssh-connection'
 import { isAuthError } from './ssh-connection-utils'
 import type { SshConnectionManager } from './ssh-connection-manager'
 import { SshPortForwardManager } from './ssh-port-forward'
-import { OrcadManagedTunnelTransportProvider } from './orcad-managed-tunnel-transport'
+import { OrcadManagedTunnelTransportProvider } from './mantad-managed-tunnel-transport'
 import {
   OrcadManagedTunnelResumeRecovery,
   type OrcadManagedServingCheck,
   type OrcadManagedTunnelProbe,
   type OrcadManagedTunnelResumeOptions
-} from './orcad-managed-tunnel-resume'
-import type { OrcadManagedServing } from './orcad-managed-serving'
+} from './mantad-managed-tunnel-resume'
+import type { OrcadManagedServing } from './mantad-managed-serving'
 import {
   dropActiveOrcadTunnel,
   managedTunnelAccess,
   recordActiveOrcadTunnel,
   supersededTunnelError,
   type ActiveOrcadTunnel
-} from './orcad-managed-tunnel-active'
-import { checkManagedTunnelServing, type OrcadTunnelServing } from './orcad-managed-tunnel-serving'
+} from './mantad-managed-tunnel-active'
+import { checkManagedTunnelServing, type OrcadTunnelServing } from './mantad-managed-tunnel-serving'
 import type { getSshTargetRegistryStore } from './ssh-target-registry'
 import {
   environmentForwardChecks,
@@ -35,7 +35,7 @@ import {
   PERSISTED_PORT_TARGETING,
   type OrcadManagedTunnelTargeting,
   type OrcadTunnelStartChecks
-} from './orcad-managed-tunnel-target'
+} from './mantad-managed-tunnel-target'
 
 export type OrcadManagedTunnelDependencies = {
   getConnectionManager: () => SshConnectionManager | null

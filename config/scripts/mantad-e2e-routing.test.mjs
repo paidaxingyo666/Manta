@@ -44,7 +44,7 @@ it('routes the missing-AppData spec from its startup sources and harness', () =>
 it('routes the auto-convert spec from its conversion sources and harness', () => {
   expectRouted(
     [
-      'src/main/ssh/orcad-runtime-conversion.ts',
+      'src/main/ssh/mantad-runtime-conversion.ts',
       'tests/e2e/helpers/orcad-convert-flow.ts',
       'tests/e2e/helpers/orcad-convert-host.ts',
       'tests/e2e/helpers/mantad-template-variant.ts',
@@ -52,7 +52,7 @@ it('routes the auto-convert spec from its conversion sources and harness', () =>
     ],
     ORCAD_AUTO_CONVERT_E2E_SPEC
   )
-  expect(selectPrE2eSpecs(['src/main/ssh/orcad-runtime-conversion.test.ts'])).not.toContain(
+  expect(selectPrE2eSpecs(['src/main/ssh/mantad-runtime-conversion.test.ts'])).not.toContain(
     ORCAD_AUTO_CONVERT_E2E_SPEC
   )
 })
@@ -60,7 +60,7 @@ it('routes the auto-convert spec from its conversion sources and harness', () =>
 it('routes the idle-exit spec from its idle sources and the shared convert harness', () => {
   expectRouted(
     [
-      'src/shared/orcad-idle-exit.ts',
+      'src/shared/mantad-idle-exit.ts',
       'tests/e2e/helpers/orcad-convert-flow.ts',
       'tests/e2e/helpers/orcad-convert-host.ts'
     ],

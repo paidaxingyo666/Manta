@@ -97,7 +97,7 @@ describe('Claude account profile setup', () => {
     expect((await f.setup()).warnings).toEqual([])
     const hooks = read(join(home, 'settings.json')).hooks
     expect(hooks.Notification).toContainEqual(mine)
-    expect(hooks.Stop).toEqual(orca.Stop)
+    expect(hooks.Stop).toEqual(manta.Stop)
   })
   itLinks('refuses another account in the same slot without creating anything', async () => {
     const f = fixture()

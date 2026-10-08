@@ -6,8 +6,8 @@ import {
   consumeOrcadIdleStopRecord,
   orcadIdleStopRecordPath,
   writeOrcadIdleStopRecord
-} from './orcad-idle-stop-record'
-import { createIdleStopRecordOwnership } from './orcad-managed-idle-exit-host'
+} from './mantad-idle-stop-record'
+import { createIdleStopRecordOwnership } from './mantad-managed-idle-exit-host'
 
 let root: string
 

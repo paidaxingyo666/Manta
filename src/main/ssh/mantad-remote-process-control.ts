@@ -10,7 +10,7 @@ import { MANTAD_READINESS_FILENAME } from './mantad-remote-launch'
 import {
   ORCAD_STOP_REQUEST_FILENAME,
   ORCAD_STOP_REQUESTS_CAPABILITY
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import { selectOrcadSlotRuntimeCommand } from './mantad-remote-runtime'
 import { MANTAD_PID_FILENAME, posixProcessAliveShellFunction } from './mantad-remote-host-support'
 import { windowsStopOrcadCommand } from './mantad-remote-process-control-windows'

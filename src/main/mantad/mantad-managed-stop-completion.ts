@@ -13,25 +13,25 @@ import {
   type OrcadManagedStopInstance,
   type OrcadManagedStopRequest,
   type OrcadManagedStopVerdict
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import {
   START_TIME_TOLERANCE_MS,
   startTimesWithinTolerance
 } from '../daemon/daemon-process-start-time'
-import { readOrcadProcessStartedAtMs } from './orcad-process-start-time'
+import { readOrcadProcessStartedAtMs } from './mantad-process-start-time'
 import { hasErrorCode, inspectProcessSignal } from '../daemon/daemon-process-inspection'
-import { persistOrcadCompletedStopReceipt } from './orcad-completed-stop-receipt'
-import { readOrcadManagedStopDecision } from './orcad-managed-stop-decision'
-import { withdrawOrcadManagedStopRequest } from './orcad-managed-stop-cancellation'
+import { persistOrcadCompletedStopReceipt } from './mantad-completed-stop-receipt'
+import { readOrcadManagedStopDecision } from './mantad-managed-stop-decision'
+import { withdrawOrcadManagedStopRequest } from './mantad-managed-stop-cancellation'
 import {
   orcadInstanceLockNames,
   orcadManagedStopRequestPath,
   readOrcadManagedStopRequest
-} from './orcad-managed-stop-request'
+} from './mantad-managed-stop-request'
 import {
   ORCAD_STOP_COMPLETION_POLL_ATTEMPTS,
   ORCAD_STOP_COMPLETION_POLL_MS
-} from './orcad-stop-deadlines'
+} from './mantad-stop-deadlines'
 
 export type OrcadProcessProbe = (pid: number) => 'alive' | 'missing' | 'unverifiable'
 

@@ -4,9 +4,9 @@ import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationCatalogState,
   type OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
-import type { OrcadMigrationTerminalScrollbackSnapshot } from '../../shared/orcad-migration-scrollback'
-import { transferOrcadMigrationSnapshots } from './orcad-migration-snapshot-coordinator'
+} from '../../shared/mantad-migration-manifest'
+import type { OrcadMigrationTerminalScrollbackSnapshot } from '../../shared/mantad-migration-scrollback'
+import { transferOrcadMigrationSnapshots } from './mantad-migration-snapshot-coordinator'
 
 const BYTES = Buffer.from('resume these bytes', 'utf8')
 const SNAPSHOT: OrcadMigrationTerminalScrollbackSnapshot = {

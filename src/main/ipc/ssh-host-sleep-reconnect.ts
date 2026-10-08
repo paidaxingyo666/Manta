@@ -1,5 +1,5 @@
 import { powerMonitor } from 'electron'
-import { recoverOrcadManagedTunnelsAfterHostResume } from '../ssh/orcad-managed-tunnel'
+import { recoverOrcadManagedTunnelsAfterHostResume } from '../ssh/mantad-managed-tunnel'
 import type { SshRelaySession } from '../ssh/ssh-relay-session'
 import { activeSessions } from './ssh-active-relay-sessions'
 import { connectionManager } from './ssh-ipc-context'

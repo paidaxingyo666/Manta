@@ -8,7 +8,7 @@ import { MessageRow } from './NativeChatMessageRow'
 import {
   NativeChatOrcaStopContext,
   type NativeChatOrcaStopView
-} from './native-chat-orca-stop-context'
+} from './native-chat-manta-stop-context'
 
 afterEach(cleanup)
 

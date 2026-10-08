@@ -3,7 +3,7 @@
 // journal each time, never stored: the client shows Continue from it, and the host re-checks it
 // under the session lock before Continue sends anything.
 
-import { readAgentSessionOrcaStop, type AgentSessionOrcaStopCause } from './agent-session-orca-stop'
+import { readAgentSessionOrcaStop, type AgentSessionOrcaStopCause } from './agent-session-manta-stop'
 import { isRootAgentJournalItem } from './agent-session-journal-producer'
 import type { AgentJournalRenderItem, AgentJournalSubmission } from './agent-session-journal-types'
 import { STALE_SESSION_ROW_PREFIX } from './agent-session-stop-row-identity'

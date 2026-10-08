@@ -21,7 +21,7 @@ import {
   planOrcadDecommissionRecovery,
   type OrcadDecommissionRecoveryPlan,
   type OrcadDecommissionTransaction
-} from './orcad-decommission-transaction'
+} from './mantad-decommission-transaction'
 import { errorMessage } from '../../shared/error-message'
 
 export const ORCAD_ACTIVATION_TRANSACTION_FILENAME = 'transaction.json'

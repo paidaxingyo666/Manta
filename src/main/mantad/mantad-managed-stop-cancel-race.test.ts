@@ -2,17 +2,17 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it, vi } from 'vitest'
-import type * as StopDecision from './orcad-managed-stop-decision'
+import type * as StopDecision from './mantad-managed-stop-decision'
 
 const decisions = vi.hoisted(() => ({ read: vi.fn<() => string | null>() }))
-vi.mock('./orcad-managed-stop-decision', async (importOriginal) => ({
+vi.mock('./mantad-managed-stop-decision', async (importOriginal) => ({
   ...(await importOriginal<typeof StopDecision>()),
   readOrcadManagedStopDecision: decisions.read
 }))
 
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
-import { completeOrcadManagedStop } from './orcad-managed-stop-completion'
-import { orcadManagedStopRequestPath } from './orcad-managed-stop-request'
+import { completeOrcadManagedStop } from './mantad-managed-stop-completion'
+import { orcadManagedStopRequestPath } from './mantad-managed-stop-request'
 
 const roots: string[] = []
 afterEach(() => {

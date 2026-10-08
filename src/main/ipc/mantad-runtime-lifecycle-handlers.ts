@@ -1,10 +1,10 @@
 import { ipcMain } from 'electron'
-import type { OrcadManagedRuntimeStatus } from '../../shared/orcad-managed-runtime'
+import type { OrcadManagedRuntimeStatus } from '../../shared/mantad-managed-runtime'
 import {
   createManagedOrcadEnvironment,
   getManagedOrcadRuntimeStatus
-} from '../ssh/orcad-runtime-lifecycle'
-import { registerOrcadSshProvisioningHandlers } from './orcad-ssh-provisioning-handlers'
+} from '../ssh/mantad-runtime-lifecycle'
+import { registerOrcadSshProvisioningHandlers } from './mantad-ssh-provisioning-handlers'
 
 export function registerOrcadRuntimeLifecycleHandlers(options: {
   getUserDataPath: () => string

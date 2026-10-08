@@ -2,8 +2,8 @@ import { vi, type Mock } from 'vitest'
 import type {
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
-import type { OrcadMigrationDestinationCatalog } from './orcad-migration-cutover-coordinator'
+} from '../../shared/mantad-migration-manifest'
+import type { OrcadMigrationDestinationCatalog } from './mantad-migration-cutover-coordinator'
 
 type Catalog = OrcadMigrationDestinationCatalog
 

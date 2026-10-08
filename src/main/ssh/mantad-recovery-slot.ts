@@ -25,7 +25,7 @@ import { orcadActivationTransactionRoot } from './mantad-activation-lock'
 import {
   initialOrcadActivationAdmissionCommand,
   parseInitialOrcadActivationAdmission
-} from './orcad-initial-activation-admission'
+} from './mantad-initial-activation-admission'
 
 export const ORCAD_SLOT_STOP_WAIT_SECONDS = 20
 

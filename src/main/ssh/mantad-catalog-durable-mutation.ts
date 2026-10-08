@@ -1,4 +1,4 @@
-import type { OrcadMigrationCatalogState } from '../../shared/orcad-migration-manifest'
+import type { OrcadMigrationCatalogState } from '../../shared/mantad-migration-manifest'
 
 export async function resolveDurableOrcadCatalogMutation(
   mutate: () => Promise<OrcadMigrationCatalogState>,

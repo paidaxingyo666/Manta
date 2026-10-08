@@ -14,15 +14,15 @@ import {
   type OrcadManagedStopCancellation,
   type OrcadManagedStopCompletion,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
-import { cancelOrcadManagedStop } from './orcad-managed-stop-cancellation'
-import { readOrcadCompletedStopReceipt } from './orcad-completed-stop-receipt'
-import { readOrcadManagedStopRequest } from './orcad-managed-stop-request'
+} from '../../shared/mantad-stop-request'
+import { cancelOrcadManagedStop } from './mantad-managed-stop-cancellation'
+import { readOrcadCompletedStopReceipt } from './mantad-completed-stop-receipt'
+import { readOrcadManagedStopRequest } from './mantad-managed-stop-request'
 import { ZodError } from 'zod'
 import {
   completeOrcadManagedStop,
   type OrcadManagedStopCompletionOptions
-} from './orcad-managed-stop-completion'
+} from './mantad-managed-stop-completion'
 
 export async function runOrcadManagedStopCommand(
   argv: readonly string[],

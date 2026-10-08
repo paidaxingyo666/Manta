@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SshRemotePtyLease } from '../../shared/ssh-types'
 import type { HostServerOnConnectResult } from './ssh-host-server-on-connect'
-import type { ListRelayPtyIds } from './orcad-migration-terminal-gate'
+import type { ListRelayPtyIds } from './mantad-migration-terminal-gate'
 import { relayTerminalsOnceConnected } from './ssh-host-relay-terminals-once-connected'
 import { relayTerminalsOnConnect } from './ssh-host-relay-terminals-on-connect'
 

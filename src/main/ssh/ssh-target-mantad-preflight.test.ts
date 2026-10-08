@@ -8,7 +8,7 @@ import { Store } from '../persistence/loading-store/store'
 import {
   preflightOrcadMigrationExport,
   type OrcadMigrationPreflightStore
-} from './ssh-target-orcad-preflight'
+} from './ssh-target-mantad-preflight'
 
 const TARGET: SshTarget = {
   id: 'ssh-prod',

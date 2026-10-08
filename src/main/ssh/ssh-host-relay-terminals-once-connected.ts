@@ -12,7 +12,7 @@ import {
   terminalsRunElsewhere,
   type CensusHostRelayTerminals,
   type ListRelayPtyIds
-} from './orcad-migration-terminal-gate'
+} from './mantad-migration-terminal-gate'
 
 type RelayDecision = Extract<HostServerOnConnectResult, { route: 'relay' }>
 

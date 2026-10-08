@@ -5,11 +5,11 @@ import {
   type OrcadMigrationCatalogState,
   type OrcadMigrationImportReceipt,
   type OrcadMigrationManifest
-} from '../../../shared/orcad-migration-manifest'
+} from '../../../shared/mantad-migration-manifest'
 import type {
   OrcadMigrationSnapshotChunkRequest,
   OrcadMigrationSnapshotChunkResult
-} from '../../../shared/orcad-migration-scrollback'
+} from '../../../shared/mantad-migration-scrollback'
 import type { RepoLifecycleOperations } from '../loading-store/repo-lifecycle-operations'
 import type { StoreRuntimeState } from '../loading-store/store-runtime-state'
 import type { WriteSchedulingOperations } from '../loading-store/write-scheduling'

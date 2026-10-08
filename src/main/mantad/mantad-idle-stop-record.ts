@@ -11,8 +11,8 @@ import {
   ORCAD_IDLE_STOP_RECORD_FILENAME,
   OrcadIdleStopRecordSchema,
   type OrcadIdleStopRecord
-} from '../../shared/orcad-idle-exit'
-import type { OrcadIdleExitEvidence } from './orcad-idle-exit-monitor'
+} from '../../shared/mantad-idle-exit'
+import type { OrcadIdleExitEvidence } from './mantad-idle-exit-monitor'
 import { hasErrorCode } from '../daemon/daemon-process-inspection'
 
 const RECORD_MAX_BYTES = 16 * 1024

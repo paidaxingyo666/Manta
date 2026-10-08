@@ -7,36 +7,36 @@ import { getAppEnvironment } from '../../shared/app-environment'
 import { randomUUID } from 'node:crypto'
 import { assertRuntimeEnvironmentNotReconciling } from '../../shared/runtime-environment-reconciliation-record'
 import { listEnvironments } from '../../shared/runtime-environment-store'
-import { addManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
+import { addManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-mantad-store'
 import { redactRuntimeEnvironment } from '../../shared/runtime-environments'
 import {
   ORCAD_MANAGED_REMOTE_PORT,
   type OrcadManagedDeployResult
-} from '../../shared/orcad-managed-runtime'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+} from '../../shared/mantad-managed-runtime'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import { runTargetLifecycle } from '../ipc/ssh-target-lifecycle-queue'
 import { materializeOrcadArtifact } from './mantad-artifact-materializer'
 import {
   closeOrcadManagedTunnel,
   ensureOrcadManagedTunnel,
   startOrcadManagedTunnel
-} from './orcad-managed-tunnel'
+} from './mantad-managed-tunnel'
 import { recoverInterruptedOrcadActivation } from './mantad-activation-recovery'
 import { readOrcadActivationRecord } from './mantad-activation-record-store'
 import { resolveOrcadRemoteContext } from './mantad-remote-context'
 import { deployOrcad } from './mantad-remote-deploy'
-import { pruneManagedOrcadVersions } from './orcad-managed-version-gc'
-import { tunneledOrcadPairingCode } from './orcad-tunneled-pairing'
+import { pruneManagedOrcadVersions } from './mantad-managed-version-gc'
+import { tunneledOrcadPairingCode } from './mantad-tunneled-pairing'
 import { hasRegisteredDirectSshAuthority } from './ssh-target-registry'
-import { resolveOrcadMigrationFence } from './orcad-migration-source-fence'
+import { resolveOrcadMigrationFence } from './mantad-migration-source-fence'
 import type { SshTarget } from '../../shared/ssh-types'
-import { deployedOrcadTunnelChecks } from './orcad-managed-tunnel-identity'
+import { deployedOrcadTunnelChecks } from './mantad-managed-tunnel-identity'
 import {
   isForceableOrcadDeferral,
   managedOrcadSlot,
   probeManagedOrcadReadiness,
   requireManagedOrcadInfrastructure
-} from './orcad-managed-runtime-context'
+} from './mantad-managed-runtime-context'
 
 export async function createManagedOrcadEnvironment(
   userDataPath: string,

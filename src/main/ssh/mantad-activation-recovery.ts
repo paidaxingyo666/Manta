@@ -18,13 +18,13 @@ import {
   withStaleOrcadActivationRecoveryLock
 } from './mantad-activation-lock'
 import { RemoteInstallLockBusyError } from './ssh-relay-install-lock'
-import { ensureOrcadSlotServing, resolveOrcadSlotIdentity } from './orcad-recovery-slot'
-import { reconcileOrcadDecommission } from './orcad-decommission-recovery'
+import { ensureOrcadSlotServing, resolveOrcadSlotIdentity } from './mantad-recovery-slot'
+import { reconcileOrcadDecommission } from './mantad-decommission-recovery'
 import {
   recoverOrcadIncumbent,
   type OrcadIncumbentRecoveryOptions
-} from './orcad-incumbent-recovery'
-import type { OrcadManagedRefusal } from '../../shared/orcad-managed-runtime'
+} from './mantad-incumbent-recovery'
+import type { OrcadManagedRefusal } from '../../shared/mantad-managed-runtime'
 import { errorMessage } from '../../shared/error-message'
 
 export type OrcadActivationRecoveryResult =

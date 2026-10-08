@@ -55,7 +55,7 @@ import {
   skipForMissingInputs,
   hostServerTarget,
   locatePinnedNodeForTests
-} from './orcad-node-slot-fixture'
+} from './mantad-node-slot-fixture'
 
 // GC runs its real commands, against this machine instead of an SSH host.
 const { execMock } = vi.hoisted(() => ({ execMock: vi.fn() }))

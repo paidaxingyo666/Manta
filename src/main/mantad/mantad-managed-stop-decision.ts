@@ -13,8 +13,8 @@ import {
   OrcadManagedStopRequestSchema,
   type OrcadManagedStopDecision,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
-import { orcadStopReceiptPath, readOrcadStopReceipt } from './orcad-completed-stop-receipt'
+} from '../../shared/mantad-stop-request'
+import { orcadStopReceiptPath, readOrcadStopReceipt } from './mantad-completed-stop-receipt'
 import { hasErrorCode } from '../daemon/daemon-process-inspection'
 
 export type OrcadManagedStopDecisionValue = OrcadManagedStopDecision['decision']

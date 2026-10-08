@@ -6,10 +6,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   listOrcadMigrationSourceCutovers,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
-import { orcadMigrationCutoverFixture } from './orcad-migration-cutover-fixture'
-import { listPendingManagedOrcadMigrations } from './orcad-managed-migration-status'
-import { retainOrcadMigrationSource } from './orcad-migration-source-retention'
+} from './mantad-migration-cutover-journal'
+import { orcadMigrationCutoverFixture } from './mantad-migration-cutover-fixture'
+import { listPendingManagedOrcadMigrations } from './mantad-managed-migration-status'
+import { retainOrcadMigrationSource } from './mantad-migration-source-retention'
 
 let userDataPath: string
 

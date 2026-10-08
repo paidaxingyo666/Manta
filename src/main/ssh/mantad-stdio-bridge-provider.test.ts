@@ -5,13 +5,13 @@ import { join } from 'node:path'
 import { PassThrough } from 'node:stream'
 import type { ClientChannel } from 'ssh2'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
-import { OrcadStdioBridgeUnavailableError } from './orcad-host-unavailable'
-import type { OrcadStdioBridge } from './orcad-stdio-bridge'
+import { OrcadStdioBridgeUnavailableError } from './mantad-host-unavailable'
+import type { OrcadStdioBridge } from './mantad-stdio-bridge'
 import {
   ORCAD_STDIO_BRIDGE_MAX_CHANNELS,
   OrcadStdioBridgePortForwardProvider
-} from './orcad-stdio-bridge-provider'
-import { spawnLocalBridgeChannel, startEchoServer } from './orcad-stdio-bridge-test-channel'
+} from './mantad-stdio-bridge-provider'
+import { spawnLocalBridgeChannel, startEchoServer } from './mantad-stdio-bridge-test-channel'
 import { ORCAD_WINDOWS_HOST_SCRIPT } from './mantad-windows-host-script'
 import type { SshConnection } from './ssh-connection'
 import type { StartedPortForward } from './ssh-port-forward-provider'

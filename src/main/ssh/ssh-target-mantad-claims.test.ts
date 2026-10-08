@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type { SshRemotePtyLease, SshTarget } from '../../shared/ssh-types'
-import { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
-import { emptyDependentStateStore } from './ssh-target-orcad-dependents-fixture'
+import { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
+import { emptyDependentStateStore } from './ssh-target-mantad-dependents-fixture'
 
 type SetupOptions = {
   target?: Partial<SshTarget>

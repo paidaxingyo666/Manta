@@ -6,7 +6,7 @@ import {
 } from '../../../../shared/protocol-version'
 import type { ProjectHostSetup, ProjectHostSetupState } from '../../../../shared/project-types'
 import { translate } from '@/i18n/i18n'
-import { pickerExecutionHosts } from '../../../../shared/managed-orcad-execution-host'
+import { pickerExecutionHosts } from '../../../../shared/managed-mantad-execution-host'
 
 export type SetupHostOption = {
   id: ExecutionHostId

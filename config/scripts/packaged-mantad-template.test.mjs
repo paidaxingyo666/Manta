@@ -17,7 +17,7 @@ const {
   findOrcadTemplateMachOFiles,
   resealOrcadTemplateManifest,
   resealSignedWindowsApp
-} = require('./packaged-orcad-template.cjs')
+} = require('./packaged-mantad-template.cjs')
 
 const PTY = 'node_modules/node-pty/build/Release/pty.node'
 const MACH_O_64 = Buffer.from([0xcf, 0xfa, 0xed, 0xfe, 1, 2, 3, 4])

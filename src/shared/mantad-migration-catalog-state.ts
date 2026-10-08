@@ -3,9 +3,9 @@ import {
   type OrcadMigrationCatalogAbortResult,
   type OrcadMigrationCatalogState,
   type OrcadMigrationManifest
-} from './orcad-migration-manifest'
-import { parseOrcadMigrationSnapshotUploadStates } from './orcad-migration-scrollback'
-import { isRecord } from './orcad-migration-manifest-fields'
+} from './mantad-migration-manifest'
+import { parseOrcadMigrationSnapshotUploadStates } from './mantad-migration-scrollback'
+import { isRecord } from './mantad-migration-manifest-fields'
 
 export function parseOrcadMigrationCatalogState(
   value: unknown,

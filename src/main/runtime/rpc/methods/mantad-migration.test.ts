@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationManifest
-} from '../../../../shared/orcad-migration-manifest'
+} from '../../../../shared/mantad-migration-manifest'
 import { computeOrcadMigrationManifestSha256 } from '../../../mantad/mantad-migration-manifest-digest'
 import type { MantaRuntimeService } from '../../manta-runtime'
 import { eraseRpcMethods, isStreamingMethod, type RpcContext } from '../core'
 import { ALL_RPC_METHODS } from './index'
-import { ORCAD_MIGRATION_METHODS } from './orcad-migration'
+import { ORCAD_MIGRATION_METHODS } from './mantad-migration'
 
 function manifest(): OrcadMigrationManifest {
   const unsigned = {

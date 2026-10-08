@@ -1,4 +1,4 @@
-import type * as TerminalBarrier from './orcad-rollback-terminal-barrier'
+import type * as TerminalBarrier from './mantad-rollback-terminal-barrier'
 /**
  * The deploy and rollback drivers end to end against a Windows host whose every host op is answered by a
  * fake: no POSIX command, no `-EncodedCommand` and no PowerShell hop on the mantad path.
@@ -23,7 +23,7 @@ vi.mock('./mantad-remote-record-file', async (importOriginal) => ({
   writeAtomicOrcadRemoteRecord: vi.fn().mockResolvedValue(undefined)
 }))
 // The managed stop's Windows commands are covered by mantad-remote-windows-decommission.test.ts.
-vi.mock('./orcad-rollback-terminal-barrier', async (importOriginal) => ({
+vi.mock('./mantad-rollback-terminal-barrier', async (importOriginal) => ({
   ...(await importOriginal<typeof TerminalBarrier>()),
   readOrcadRollbackBarrierTarget: async (_options: unknown, version: string) => ({
     state: 'ready',

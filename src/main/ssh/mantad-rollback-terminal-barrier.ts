@@ -9,10 +9,10 @@
 import {
   readRemoteOrcadManagedStopTarget,
   type OrcadManagedStopTarget
-} from './orcad-managed-remote-stop'
-import { settleOrcadDecommissionStop } from './orcad-decommission-stop'
-import type { OrcadSlotOptions } from './orcad-recovery-slot'
-import type { OrcadManagedStopContext } from '../../shared/orcad-stop-request'
+} from './mantad-managed-remote-stop'
+import { settleOrcadDecommissionStop } from './mantad-decommission-stop'
+import type { OrcadSlotOptions } from './mantad-recovery-slot'
+import type { OrcadManagedStopContext } from '../../shared/mantad-stop-request'
 
 export type OrcadRollbackBarrier =
   | { state: 'retired' }

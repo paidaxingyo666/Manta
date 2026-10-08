@@ -8,7 +8,7 @@ import { writeManagedScript } from '../agent-hooks/installer-utils'
 import { getMantaManagedCodexHomePath } from './codex-home-paths'
 import { getManagedCommand, getManagedScriptPath } from './codex-hook-definition'
 import { installCodexHooksExclusively } from './codex-hook-local-install'
-import { getManagedCodexHookHome, readStopgapOrcaHashes } from './codex-hook-orca-approvals'
+import { getManagedCodexHookHome, readStopgapOrcaHashes } from './codex-hook-manta-approvals'
 import {
   refreshCodexRuntimeUserHooksExclusively,
   removeCodexHooksExclusively

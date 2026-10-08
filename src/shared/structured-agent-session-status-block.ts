@@ -1,6 +1,6 @@
 import { readAgentSessionFailureFact } from './agent-session-failure'
 import type { AgentJournalStatusItem, AgentJournalTurnScope } from './agent-session-journal-types'
-import { readAgentSessionOrcaStop } from './agent-session-orca-stop'
+import { readAgentSessionOrcaStop } from './agent-session-manta-stop'
 import type { NativeChatTextBlock } from './native-chat-types'
 
 /** A status row as the line a chat paints: named fields only, so a host-only key never leaks. */

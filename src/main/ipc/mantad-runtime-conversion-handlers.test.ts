@@ -7,18 +7,18 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('electron', () => ({ ipcMain: { handle: mocks.handle } }))
-vi.mock('../ssh/orcad-runtime-conversion', () => ({
+vi.mock('../ssh/mantad-runtime-conversion', () => ({
   convertSshTargetToManagedOrcad: mocks.convert
 }))
-vi.mock('../ssh/orcad-managed-migration-status', () => ({
+vi.mock('../ssh/mantad-managed-migration-status', () => ({
   listPendingManagedOrcadMigrations: mocks.pending
 }))
-vi.mock('../ssh/orcad-runtime-conversion-wiring', () => ({
+vi.mock('../ssh/mantad-runtime-conversion-wiring', () => ({
   conversionCollaborators: () => ({ marker: 'live-collaborators' })
 }))
 
 const { registerOrcadRuntimeConversionHandlers } =
-  await import('./orcad-runtime-conversion-handlers')
+  await import('./mantad-runtime-conversion-handlers')
 
 function handler(channel: string): (_event: unknown, args?: unknown) => unknown {
   const registration = mocks.handle.mock.calls.find(([name]) => name === channel)

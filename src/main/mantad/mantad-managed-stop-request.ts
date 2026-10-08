@@ -10,7 +10,7 @@ import {
   type OrcadManagedStopContext,
   type OrcadManagedStopInstance,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import { readOrcadInstanceLockRecord } from './mantad-instance-lock'
 
 /** Keyed by the lock nonce, so a request for a previous instance is never this one's. */

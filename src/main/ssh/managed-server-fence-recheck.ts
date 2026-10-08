@@ -5,7 +5,7 @@
  */
 import type { SshTarget } from '../../shared/ssh-types'
 import { checkManagedServerUpdate } from './managed-server-update-check'
-import { MANAGED_ORCAD_FENCED_DETAIL } from './orcad-managed-serving'
+import { MANAGED_ORCAD_FENCED_DETAIL } from './mantad-managed-serving'
 import type {
   HostServerOnConnectDeps,
   HostServerOnConnectResult

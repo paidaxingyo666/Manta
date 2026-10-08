@@ -2,14 +2,14 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { mergeOrcadPrebuildTrees } from './merge-orcad-prebuilds.mjs'
+import { mergeOrcadPrebuildTrees } from './merge-mantad-prebuilds.mjs'
 import {
   COMPAT_SLOT_ADDONS,
   findSlotProblems,
   isCompatSlot,
   mergeManifest,
   sha256Of
-} from './orcad-prebuild-slot-contents.mjs'
+} from './mantad-prebuild-slot-contents.mjs'
 
 const dirs = []
 function temp() {

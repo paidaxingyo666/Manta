@@ -7,8 +7,8 @@ import { cpSync, mkdirSync, rmSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { NODE_RUNTIME_PIN } from '../../src/shared/node-runtime-pin.ts'
-import { nodeGypRebuild, stageNodeAddonApi } from './orcad-prebuild-node-gyp.mjs'
-import { COMPAT_SLOT_ADDONS, SLOT_NAPI_VERSION } from './orcad-prebuild-slot-contents.mjs'
+import { nodeGypRebuild, stageNodeAddonApi } from './mantad-prebuild-node-gyp.mjs'
+import { COMPAT_SLOT_ADDONS, SLOT_NAPI_VERSION } from './mantad-prebuild-slot-contents.mjs'
 
 const require = createRequire(import.meta.url)
 

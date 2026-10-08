@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { encodePairingOffer, parsePairingCode, PAIRING_OFFER_VERSION } from '../../shared/pairing'
 import type { ServeReadiness } from '../server/serve-readiness'
-import { tunneledOrcadPairingCode } from './orcad-tunneled-pairing'
+import { tunneledOrcadPairingCode } from './mantad-tunneled-pairing'
 
 function readiness(endpoint = 'ws://[::1]:6768/runtime?mode=paired#fragment'): ServeReadiness {
   return {

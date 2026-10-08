@@ -1,9 +1,9 @@
-import type { OrcadMigrationStagedCatalog } from './orcad-migration-manifest'
+import type { OrcadMigrationStagedCatalog } from './mantad-migration-manifest'
 import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   parseOrcadMigrationManifest
-} from './orcad-migration-manifest-validation'
-import { isRecord } from './orcad-migration-manifest-fields'
+} from './mantad-migration-manifest-validation'
+import { isRecord } from './mantad-migration-manifest-fields'
 
 export const MAX_ORCAD_MIGRATION_STAGED_CATALOGS = 4
 

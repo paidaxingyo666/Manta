@@ -1,6 +1,6 @@
 import { STATUS_METHODS } from './status'
 import { ORCAD_TERMINAL_CENSUS_METHODS } from './mantad-terminal-census'
-import { ORCAD_MIGRATION_METHODS } from './orcad-migration'
+import { ORCAD_MIGRATION_METHODS } from './mantad-migration'
 import { AI_VAULT_METHODS } from './ai-vault'
 import { AUTOMATION_METHODS } from './automations'
 import { REPO_METHODS } from './repo'

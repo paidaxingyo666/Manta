@@ -8,7 +8,7 @@ import type { SshTarget } from '../../../shared/ssh-types'
 import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
 import { closeTestStores, createSqliteTestStore } from '../../persistence-test-harness'
 import { Store } from '../loading-store/store'
-import { createOrcadMigrationManifest } from '../../ssh/orcad-migration-manifest-export'
+import { createOrcadMigrationManifest } from '../../ssh/mantad-migration-manifest-export'
 import {
   getProfileTerminalScrollbackSnapshotRoot,
   readTerminalScrollbackStoredBytesSync,

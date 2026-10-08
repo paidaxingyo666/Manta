@@ -1,5 +1,5 @@
 import { getDefaultWorkspaceSession } from '../../shared/constants'
-import type { DependentStateStore } from './ssh-target-orcad-dependents'
+import type { DependentStateStore } from './ssh-target-mantad-dependents'
 
 /** A store with no client state referencing any SSH target. */
 export function emptyDependentStateStore(

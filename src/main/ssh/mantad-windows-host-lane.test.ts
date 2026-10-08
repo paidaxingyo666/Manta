@@ -22,7 +22,7 @@ import { proveWindowsRelayTerminalGate } from './mantad-windows-relay-terminal-g
 import { proveWindowsStdioBridge } from './mantad-windows-stdio-bridge-test-cell'
 import { deployOrcad } from './mantad-remote-deploy'
 import { orcadLivenessProbeCommand, parseOrcadLiveness } from './mantad-remote-launch'
-import { orcadSlotDir, type OrcadSlotOptions } from './orcad-recovery-slot'
+import { orcadSlotDir, type OrcadSlotOptions } from './mantad-recovery-slot'
 import { decommissionRemoteOrcad } from './mantad-remote-stop'
 import { readOrcadActivationRecord } from './mantad-activation-record-store'
 import { gcOldOrcadVersions } from './mantad-remote-gc'

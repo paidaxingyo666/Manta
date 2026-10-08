@@ -15,7 +15,7 @@ import {
   recordManagedOrcadMigration,
   refreshManagedOrcadPairing,
   removeManagedOrcadEnvironment
-} from './runtime-environment-managed-orcad-store'
+} from './runtime-environment-managed-mantad-store'
 import {
   getRuntimeEnvironmentSidecarPath,
   readCurrentRuntimeEnvironmentSidecarEntry,

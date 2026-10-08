@@ -6,21 +6,21 @@
  * setup did activate is stopped first, so a later conversion starts fresh rather than deferring.
  */
 import { listEnvironments } from '../../shared/runtime-environment-store'
-import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
-import { findOrcadMigrationSourceCutoverForTarget } from './orcad-migration-cutover-journal'
-import { releaseUndeployedMigrationFence } from './orcad-migration-source-fence'
-import { closeOrcadManagedTunnel } from './orcad-managed-tunnel'
-import type { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
+import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-mantad-store'
+import { findOrcadMigrationSourceCutoverForTarget } from './mantad-migration-cutover-journal'
+import { releaseUndeployedMigrationFence } from './mantad-migration-source-fence'
+import { closeOrcadManagedTunnel } from './mantad-managed-tunnel'
+import type { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
 import { withOrcadActivationLock } from './mantad-activation-lock'
 import { withDeactivatedVersion } from './mantad-activation-record'
 import {
   readOrcadActivationRecord,
   writeOrcadActivationRecord
 } from './mantad-activation-record-store'
-import { managedOrcadSlot } from './orcad-managed-runtime-context'
+import { managedOrcadSlot } from './mantad-managed-runtime-context'
 import { resolveOrcadRemoteContext } from './mantad-remote-context'
 import { orcadStopFreedTheHost } from './mantad-remote-process-control'
-import { orcadSlotDir, stopOrcadSlot } from './orcad-recovery-slot'
+import { orcadSlotDir, stopOrcadSlot } from './mantad-recovery-slot'
 import { getSshConnectionManager, getSshTargetRegistryStore } from './ssh-target-registry'
 import { errorMessage } from '../../shared/error-message'
 

@@ -154,7 +154,7 @@
     "../src/main/codex/codex-hook-identity.ts",
     "../src/main/codex/codex-hook-legacy-cleanup.ts",
     "../src/main/codex/codex-hook-local-install.ts",
-    "../src/main/codex/codex-hook-orca-approvals.ts",
+    "../src/main/codex/codex-hook-manta-approvals.ts",
     "../src/main/codex/codex-hook-approval-first-write.ts",
     "../src/main/codex/codex-hook-hash-lookup.ts",
     "../src/main/codex/codex-hook-trust-derivation.ts",

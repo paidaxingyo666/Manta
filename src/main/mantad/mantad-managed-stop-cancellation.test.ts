@@ -6,17 +6,17 @@ import {
   ORCAD_CANCEL_MANAGED_STOP_FLAG,
   OrcadManagedStopCancellationSchema,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
-import { orcadManagedStopRequestPath } from './orcad-managed-stop-request'
-import { cancelOrcadManagedStop } from './orcad-managed-stop-cancellation'
+import { orcadManagedStopRequestPath } from './mantad-managed-stop-request'
+import { cancelOrcadManagedStop } from './mantad-managed-stop-cancellation'
 import {
   claimOrcadManagedStopDecision,
   readOrcadManagedStopDecision
-} from './orcad-managed-stop-decision'
-import { completeOrcadManagedStop } from './orcad-managed-stop-completion'
-import { runOrcadManagedStopCancelCommand } from './orcad-managed-stop-command'
-import { installOrcadStopRequestListeners } from './orcad-stop-request-listener'
+} from './mantad-managed-stop-decision'
+import { completeOrcadManagedStop } from './mantad-managed-stop-completion'
+import { runOrcadManagedStopCancelCommand } from './mantad-managed-stop-command'
+import { installOrcadStopRequestListeners } from './mantad-stop-request-listener'
 
 const roots: string[] = []
 afterEach(() => {

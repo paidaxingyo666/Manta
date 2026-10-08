@@ -5,7 +5,7 @@ import {
   ORCAD_STDIO_BRIDGE_READY,
   ORCAD_STDIO_BRIDGE_REFUSED,
   type OrcadStdioBridgeMode
-} from './orcad-stdio-bridge-script'
+} from './mantad-stdio-bridge-script'
 
 export type OrcadStdioBridgeSignal = 'ready' | 'refused' | 'no-node'
 

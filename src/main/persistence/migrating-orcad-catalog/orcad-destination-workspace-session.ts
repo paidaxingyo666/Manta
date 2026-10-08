@@ -1,5 +1,5 @@
-import { serializeOrcadMigrationValue } from '../../../shared/orcad-migration-manifest'
-import { isRecord } from '../../../shared/orcad-migration-manifest-fields'
+import { serializeOrcadMigrationValue } from '../../../shared/mantad-migration-manifest'
+import { isRecord } from '../../../shared/mantad-migration-manifest-fields'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
 import { SESSION_FOCUS_FIELDS } from '../../../shared/workspace-session-host-field-ownership'

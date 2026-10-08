@@ -5,7 +5,7 @@ import {
   indexExecutionHostsById,
   pickerExecutionHosts,
   widenSavedExecutionHostIds
-} from './managed-orcad-execution-host'
+} from './managed-mantad-execution-host'
 import type { SshConnectionState } from './ssh-types'
 
 const SSH_TARGETS = new Map([['omarchy-target', 'Omarchy']])

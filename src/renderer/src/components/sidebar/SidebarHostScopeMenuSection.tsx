@@ -13,7 +13,7 @@ import type {
 import {
   expandEquivalentExecutionHostIds,
   pickerExecutionHosts
-} from '../../../../shared/managed-orcad-execution-host'
+} from '../../../../shared/managed-mantad-execution-host'
 import {
   getCheckedHostRows,
   getSidebarHostHealthLabel,

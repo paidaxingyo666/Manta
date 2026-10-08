@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type { SshTarget } from '../../shared/ssh-types'
 import { closeTestStores, createSqliteTestStore } from '../persistence-test-harness'
 import { Store } from '../persistence/loading-store/store'
@@ -11,12 +11,12 @@ import {
   commitOrcadMigrationDestination,
   stageOrcadMigrationDestination,
   type OrcadMigrationCutoverContext
-} from './orcad-migration-cutover-coordinator'
-import { ORCAD_MIGRATION_DESTINATION_UNSUPPORTED } from './orcad-migration-catalog-client'
-import { listOrcadMigrationSourceCutovers } from './orcad-migration-cutover-journal'
-import { fenceOrcadMigrationSource } from './orcad-migration-source-fence'
-import { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
-import { fakeOrcadMigrationDestination as fakeDestination } from './orcad-migration-destination-fake'
+} from './mantad-migration-cutover-coordinator'
+import { ORCAD_MIGRATION_DESTINATION_UNSUPPORTED } from './mantad-migration-catalog-client'
+import { listOrcadMigrationSourceCutovers } from './mantad-migration-cutover-journal'
+import { fenceOrcadMigrationSource } from './mantad-migration-source-fence'
+import { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
+import { fakeOrcadMigrationDestination as fakeDestination } from './mantad-migration-destination-fake'
 
 const TARGET: SshTarget = {
   id: 'ssh-prod',

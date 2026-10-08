@@ -5,10 +5,10 @@
 import type {
   OrcadManagedConversionResult,
   OrcadManagedDeployResult
-} from '../../shared/orcad-managed-runtime'
+} from '../../shared/mantad-managed-runtime'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { HostServerOnConnectResult } from './ssh-host-server-on-connect'
-import { classifyOrcadHostUnavailable } from './orcad-host-unavailable'
+import { classifyOrcadHostUnavailable } from './mantad-host-unavailable'
 
 export type HostServerConnectEvent =
   | {

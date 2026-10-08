@@ -9,8 +9,8 @@ import type { SshConnection } from './ssh-connection'
 import type { SshConnectionManager } from './ssh-connection-manager'
 import type { SshConnectionStore } from './ssh-connection-store'
 import type { SshPortForwardManager } from './ssh-port-forward'
-import { OrcadManagedTunnelManager } from './orcad-managed-tunnel'
-import type { OrcadManagedTunnelTargeting } from './orcad-managed-tunnel-target'
+import { OrcadManagedTunnelManager } from './mantad-managed-tunnel'
+import type { OrcadManagedTunnelTargeting } from './mantad-managed-tunnel-target'
 import { createCancelledConnectAttemptError } from './ssh-connect-attempt-cancellation'
 
 function createEnvironment(linkKind: 'orcadDeployment' | 'sshAccess'): KnownRuntimeEnvironment {

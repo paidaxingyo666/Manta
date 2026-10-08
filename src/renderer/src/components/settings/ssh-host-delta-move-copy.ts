@@ -1,5 +1,5 @@
 /** Words for moving what an older build added to a converted host; every string is catalogued. */
-import type { OrcadDeltaMoveRow } from '../../../../shared/orcad-managed-runtime'
+import type { OrcadDeltaMoveRow } from '../../../../shared/mantad-managed-runtime'
 import { translate } from '@/i18n/i18n'
 
 export function deltaMoveRowLabel(row: OrcadDeltaMoveRow): string {

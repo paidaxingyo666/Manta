@@ -7,13 +7,13 @@ import { toSshExecutionHostId } from '../../shared/execution-host'
 import type {
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
-import type { OrcadMigrationSnapshotChunkRequest } from '../../shared/orcad-migration-scrollback'
+} from '../../shared/mantad-migration-manifest'
+import type { OrcadMigrationSnapshotChunkRequest } from '../../shared/mantad-migration-scrollback'
 import type { SshTarget } from '../../shared/ssh-types'
 import { closeTestStores, createSqliteTestStore } from '../persistence-test-harness'
 import { Store } from '../persistence/loading-store/store'
-import { createOrcadMigrationManifest } from './orcad-migration-manifest-export'
-import { transferOrcadMigrationSnapshots } from './orcad-migration-snapshot-coordinator'
+import { createOrcadMigrationManifest } from './mantad-migration-manifest-export'
+import { transferOrcadMigrationSnapshots } from './mantad-migration-snapshot-coordinator'
 
 const TARGET: SshTarget = {
   id: 'ssh-prod',

@@ -2,17 +2,17 @@ import type {
   OrcadMigrationCatalogAbortResult,
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import type {
   OrcadMigrationSnapshotChunkRequest,
   OrcadMigrationSnapshotChunkResult
-} from '../../shared/orcad-migration-scrollback'
+} from '../../shared/mantad-migration-scrollback'
 import {
   abortStagedOrcadMigrationCatalogDurably,
   commitStagedOrcadMigrationCatalogDurably,
   getOrcadMigrationCatalogState,
   stageOrcadMigrationCatalogDurably
-} from './orcad-migration-catalog-import'
+} from './mantad-migration-catalog-import'
 import { MantaRuntimeWithResolveWaiter } from './manta-runtime-resolve-waiter'
 import type { RuntimeStore } from './runtime-store-contract'
 import type { Store } from '../persistence'

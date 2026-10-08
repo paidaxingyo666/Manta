@@ -12,14 +12,14 @@
 import type {
   OrcadManagedConversionResult,
   OrcadManagedDeployResult
-} from '../../shared/orcad-managed-runtime'
+} from '../../shared/mantad-managed-runtime'
 import type {
   SshManagedServerRelayReason,
   SshManagedServerServingNote,
   SshManagedServerUpdateNote,
   SshTarget
 } from '../../shared/ssh-types'
-import { MANAGED_ORCAD_FENCED_DETAIL, type OrcadManagedServing } from './orcad-managed-serving'
+import { MANAGED_ORCAD_FENCED_DETAIL, type OrcadManagedServing } from './mantad-managed-serving'
 import {
   checkManagedServerUpdate,
   type ManagedServerUpdateDeps
@@ -27,7 +27,7 @@ import {
 import {
   classifyOrcadHostUnavailable,
   ORCAD_TUNNEL_UNAVAILABLE_REASON
-} from './orcad-host-unavailable'
+} from './mantad-host-unavailable'
 import {
   decidedEvent,
   reportHostServerConversion,

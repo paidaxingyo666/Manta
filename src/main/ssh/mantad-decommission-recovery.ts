@@ -1,8 +1,8 @@
 /** Recovering an interrupted decommission from its journal entry; see orcad-decommission-transaction. */
 import { writeOrcadActivationRecord } from './mantad-activation-record-store'
 import type { OrcadActivationRecoveryResult } from './mantad-activation-recovery'
-import type { OrcadDecommissionRecoveryPlan } from './orcad-decommission-transaction'
-import { settleOrcadDecommissionStop } from './orcad-decommission-stop'
+import type { OrcadDecommissionRecoveryPlan } from './mantad-decommission-transaction'
+import { settleOrcadDecommissionStop } from './mantad-decommission-stop'
 import { orcadLivenessProbeCommand, parseOrcadLiveness } from './mantad-remote-launch'
 import { execOrcadRemote } from './mantad-remote-runtime-control'
 import {
@@ -10,7 +10,7 @@ import {
   orcadSlotDir,
   resolveOrcadSlotIdentity,
   type OrcadSlotOptions
-} from './orcad-recovery-slot'
+} from './mantad-recovery-slot'
 
 export async function reconcileOrcadDecommission(
   options: OrcadSlotOptions,

@@ -5,9 +5,9 @@
 import type {
   OrcadManagedCancelStopResult,
   OrcadManagedStopResult
-} from '../../shared/orcad-managed-runtime'
-import type { OrcadDaemonRetirementVerdict } from '../../shared/orcad-stop-request'
-import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
+} from '../../shared/mantad-managed-runtime'
+import type { OrcadDaemonRetirementVerdict } from '../../shared/mantad-stop-request'
+import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-mantad-store'
 import type {
   KnownRuntimeEnvironment,
   OrcadDeploymentLink
@@ -15,18 +15,18 @@ import type {
 import { recoverInterruptedOrcadActivation } from './mantad-activation-recovery'
 import { withStaleOrcadActivationRecoveryLock } from './mantad-activation-lock'
 import { readOrcadActivationTransaction } from './mantad-activation-transaction-store'
-import { reconcileOrcadDecommission } from './orcad-decommission-recovery'
-import { cancelRemoteOrcadManagedStop } from './orcad-managed-remote-stop'
+import { reconcileOrcadDecommission } from './mantad-decommission-recovery'
+import { cancelRemoteOrcadManagedStop } from './mantad-managed-remote-stop'
 import {
   managedOrcadSlot,
   requireManagedOrcadInfrastructure,
   resolveLinkedOrcadContext
-} from './orcad-managed-runtime-context'
-import { closeOrcadManagedTunnel, ensureOrcadManagedTunnel } from './orcad-managed-tunnel'
-import { clearManagedOrcadUpdateDeferral } from './orcad-managed-update-deferrals'
-import { removeOrcadMigrationJournalsForDestination } from './orcad-migration-cutover-journal'
+} from './mantad-managed-runtime-context'
+import { closeOrcadManagedTunnel, ensureOrcadManagedTunnel } from './mantad-managed-tunnel'
+import { clearManagedOrcadUpdateDeferral } from './mantad-managed-update-deferrals'
+import { removeOrcadMigrationJournalsForDestination } from './mantad-migration-cutover-journal'
 import { decommissionRemoteOrcad } from './mantad-remote-stop'
-import { withManagedOrcadLifecycle } from './orcad-runtime-maintenance'
+import { withManagedOrcadLifecycle } from './mantad-runtime-maintenance'
 import { collectManagedTerminalCensus } from './mantad-terminal-census-client'
 import { RemoteInstallLockBusyError } from './ssh-relay-install-lock'
 

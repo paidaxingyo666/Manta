@@ -13,7 +13,7 @@ import {
 import {
   expandEquivalentExecutionHostIds,
   pickerExecutionHosts
-} from '../../../../shared/managed-orcad-execution-host'
+} from '../../../../shared/managed-mantad-execution-host'
 import type { RuntimeCompatVerdict } from '../../../../shared/protocol-compat'
 import type { SshConnectionState, SshConnectionStatus } from '../../../../shared/ssh-types'
 import type { PublicKnownRuntimeEnvironment } from '../../../../shared/runtime-environments'

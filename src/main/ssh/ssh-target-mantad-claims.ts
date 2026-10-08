@@ -5,17 +5,17 @@
  * leases: moving a direct SSH host's state into a managed server is the catalog migration.
  */
 import type { Store } from '../persistence'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type {
   OrcadMigrationBlocker,
   OrcadMigrationPreflight
-} from '../../shared/orcad-migration-preflight'
+} from '../../shared/mantad-migration-preflight'
 import type { SshTarget } from '../../shared/ssh-types'
 import {
   collectDependentStateBlockers,
   dependentStateMessage,
   type DependentStateStore
-} from './ssh-target-orcad-dependents'
+} from './ssh-target-mantad-dependents'
 
 type ClaimStore = DependentStateStore &
   Pick<

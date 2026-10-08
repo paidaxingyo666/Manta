@@ -3,7 +3,7 @@
 
 import type { AgentSessionOperationRow } from '../../shared/agent-session-operation-ledger'
 import type { AgentSessionRecord } from '../../shared/agent-session-record'
-import type { AgentSessionOrcaStopCause } from '../../shared/agent-session-orca-stop'
+import type { AgentSessionOrcaStopCause } from '../../shared/agent-session-manta-stop'
 import type { AgentSessionTabTable } from './agent-session-tab-table'
 
 export type RetiredAgentSessionClaimKey = { keyId: string; retiredAt: number }

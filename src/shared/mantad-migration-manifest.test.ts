@@ -10,7 +10,7 @@ import {
   parseOrcadMigrationManifest,
   serializeOrcadMigrationValue,
   type OrcadMigrationImportReceipt
-} from './orcad-migration-manifest'
+} from './mantad-migration-manifest'
 
 function receipt(index: number, overrides: Partial<OrcadMigrationImportReceipt> = {}) {
   return {

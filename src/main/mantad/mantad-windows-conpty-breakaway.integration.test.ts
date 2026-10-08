@@ -20,7 +20,7 @@ import {
   installPackagedOrcadSlotForTests,
   locatePinnedNodeForTests,
   skipForMissingInputs
-} from './orcad-node-slot-fixture'
+} from './mantad-node-slot-fixture'
 
 const pinnedNode = locatePinnedNodeForTests()
 const windows = process.platform === 'win32'

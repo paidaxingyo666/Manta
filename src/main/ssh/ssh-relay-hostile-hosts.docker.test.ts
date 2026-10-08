@@ -18,7 +18,7 @@ import { NODE_RUNTIME_PIN } from '../../shared/node-runtime-pin'
 import { ORCAD_PARCEL_WATCHER_NATIVE } from '../../shared/mantad-artifacts'
 import type { SshConnection } from './ssh-connection'
 import { HOSTILE_HOST_CELLS, selectHostileHostCells } from './ssh-hostile-host-cells'
-import { proveManagedOrcadCell } from './ssh-hostile-host-managed-orcad'
+import { proveManagedOrcadCell } from './ssh-hostile-host-managed-mantad'
 import {
   assertCell,
   connectHostileHost,

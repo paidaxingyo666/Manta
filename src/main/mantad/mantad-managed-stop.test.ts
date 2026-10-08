@@ -5,28 +5,28 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   OrcadManagedStopCompletionSchema,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import { acquireMantadInstanceLock, type MantadInstanceLock } from './mantad-instance-lock'
 import {
   orcadManagedStopRequestPath,
   validateOrcadManagedStopRequest
-} from './orcad-managed-stop-request'
+} from './mantad-managed-stop-request'
 import {
   completeOrcadManagedStop,
   type OrcadManagedStopCompletionOptions
-} from './orcad-managed-stop-completion'
+} from './mantad-managed-stop-completion'
 import {
   orcadStopReceiptPath,
   readOrcadCompletedStopReceipt,
   readOrcadDaemonRetirementRecord
-} from './orcad-completed-stop-receipt'
-import { prepareOrcadManagedStop } from './orcad-managed-stop-admission'
-import { runOrcadManagedStopCommand } from './orcad-managed-stop-command'
+} from './mantad-completed-stop-receipt'
+import { prepareOrcadManagedStop } from './mantad-managed-stop-admission'
+import { runOrcadManagedStopCommand } from './mantad-managed-stop-command'
 import {
   ORCAD_DAEMON_RETIREMENT_TIMEOUT_MS,
   MANTAD_SHUTDOWN_DEADLINE_MS,
   ORCAD_STOP_COMPLETION_POLL_MS
-} from './orcad-stop-deadlines'
+} from './mantad-stop-deadlines'
 
 const roots: string[] = []
 afterEach(() => {

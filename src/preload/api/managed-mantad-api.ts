@@ -11,7 +11,7 @@ import type {
   OrcadManagedRollbackResult,
   OrcadManagedRuntimeStatus,
   OrcadManagedStopResult
-} from '../../shared/orcad-managed-runtime'
+} from '../../shared/mantad-managed-runtime'
 import type { PublicKnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import type {
   RuntimeSshAccessLinkRequest,

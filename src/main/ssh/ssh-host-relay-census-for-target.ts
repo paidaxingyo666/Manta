@@ -1,6 +1,6 @@
 import type { SshTarget } from '../../shared/ssh-types'
-import type { CensusHostRelayTerminals } from './orcad-migration-terminal-gate'
-import { requireManagedOrcadInfrastructure } from './orcad-managed-runtime-context'
+import type { CensusHostRelayTerminals } from './mantad-migration-terminal-gate'
+import { requireManagedOrcadInfrastructure } from './mantad-managed-runtime-context'
 import {
   beginSshHostCensus,
   currentSshOwner,

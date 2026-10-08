@@ -2,13 +2,13 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/orcad-stop-request'
+import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/mantad-stop-request'
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
-import { orcadManagedStopRequestPath } from './orcad-managed-stop-request'
+import { orcadManagedStopRequestPath } from './mantad-managed-stop-request'
 import {
   installOrcadStopRequestListeners,
   type OrcadStopRequestListener
-} from './orcad-stop-request-listener'
+} from './mantad-stop-request-listener'
 
 const roots: string[] = []
 const listeners: OrcadStopRequestListener[] = []

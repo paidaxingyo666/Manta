@@ -13,7 +13,7 @@ import { invalidateAuthorizedRootsCache } from '../registered-worktree-roots-cac
 import { notifyReposChanged } from './repos-changed-notification'
 import { ProjectUpdateIpcArgs, parseProjectGroupIpcArgs } from './repo-ipc-arg-schemas'
 import { listReposForExecutionHost } from './host-repo-catalog-snapshot'
-import { visibleRepos } from '../../ssh/orcad-retained-source'
+import { visibleRepos } from '../../ssh/mantad-retained-source'
 
 export function registerRepoCatalogHandlers(mainWindow: BrowserWindow, store: Store): void {
   // Why one shared reference: enrichment dedupes coalesced callers by callback identity, so a fresh

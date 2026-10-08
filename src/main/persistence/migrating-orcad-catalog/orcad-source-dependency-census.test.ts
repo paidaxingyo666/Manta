@@ -4,7 +4,7 @@ import type { FolderWorkspace } from '../../../shared/folder-workspace-types'
 import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationManifest
-} from '../../../shared/orcad-migration-manifest'
+} from '../../../shared/mantad-migration-manifest'
 import type { Repo } from '../../../shared/repo-types'
 import type { SshTarget } from '../../../shared/ssh-types'
 import { worktreeWorkspaceKey } from '../../../shared/workspace-scope'

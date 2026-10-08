@@ -46,9 +46,9 @@ import {
   slotGlibcFloor,
   slotSourceFiles,
   SLOT_NAPI_VERSION
-} from './orcad-prebuild-slot-contents.mjs'
-import { compileCompatAddons } from './orcad-prebuild-compat-addons.mjs'
-import { nodeGypRebuild, stageNodeAddonApi } from './orcad-prebuild-node-gyp.mjs'
+} from './mantad-prebuild-slot-contents.mjs'
+import { compileCompatAddons } from './mantad-prebuild-compat-addons.mjs'
+import { nodeGypRebuild, stageNodeAddonApi } from './mantad-prebuild-node-gyp.mjs'
 import { ensurePinnedNodeExecutable, preparePinnedNodeDir } from './pinned-node-downloads.mjs'
 
 export { readManifest }
@@ -364,7 +364,7 @@ async function main() {
     return
   }
   if (process.argv.includes('--smoke')) {
-    const { runOrcadPrebuildSmoke } = await import('./orcad-prebuild-smoke.mjs')
+    const { runOrcadPrebuildSmoke } = await import('./mantad-prebuild-smoke.mjs')
     await runOrcadPrebuildSmoke({ slot: slotName(), prebuildsDir: PREBUILDS_DIR })
     return
   }

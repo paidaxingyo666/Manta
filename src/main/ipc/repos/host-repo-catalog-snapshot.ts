@@ -12,7 +12,7 @@ import {
 import { isAdmissibleDirectSshAuthority } from '../../../shared/ssh-retained-payload-admission'
 import { isCurrentSshProviderAuthority } from '../../ssh/ssh-provider-authority'
 import { getSshGitProvider } from '../../providers/ssh-git-dispatch'
-import { visibleRepos } from '../../ssh/orcad-retained-source'
+import { visibleRepos } from '../../ssh/mantad-retained-source'
 
 function hasValidCatalogSshAuthority(
   args: ListReposForExecutionHostArgs

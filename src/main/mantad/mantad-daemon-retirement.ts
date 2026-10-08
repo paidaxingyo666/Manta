@@ -10,8 +10,8 @@ import {
   releaseDaemonRetirementFence,
   requestIdleDaemonRetirement
 } from '../daemon/daemon-init'
-import type { OrcadDaemonRetirementVerdict } from '../../shared/orcad-stop-request'
-import { ORCAD_DAEMON_RETIREMENT_TIMEOUT_MS } from './orcad-stop-deadlines'
+import type { OrcadDaemonRetirementVerdict } from '../../shared/mantad-stop-request'
+import { ORCAD_DAEMON_RETIREMENT_TIMEOUT_MS } from './mantad-stop-deadlines'
 
 export type OrcadDaemonRetirement = {
   retirement: OrcadDaemonRetirementVerdict

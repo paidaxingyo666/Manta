@@ -25,7 +25,7 @@ import {
   readKnownOrcaHashes,
   getRealHomeCodexHookHome,
   type CodexHookHome
-} from './codex-hook-orca-approvals'
+} from './codex-hook-manta-approvals'
 import type { CodexHookAnswer } from './codex-hook-trust-derivation'
 import { readKnownCodexHookAnswer } from './codex-hook-hash-lookup'
 import { resolveCodexHookStatusHome } from './codex-hook-reconcile'

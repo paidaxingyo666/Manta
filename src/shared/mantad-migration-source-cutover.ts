@@ -6,7 +6,7 @@ import { z } from 'zod'
 import {
   parseOrcadMigrationManifest,
   type OrcadMigrationManifest
-} from './orcad-migration-manifest'
+} from './mantad-migration-manifest'
 
 export const ORCAD_MIGRATION_SOURCE_CUTOVER_VERSION = 1
 export const MAX_ORCAD_MIGRATION_SOURCE_CUTOVERS = 4

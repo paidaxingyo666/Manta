@@ -6,7 +6,7 @@ import type { Repo } from '../../shared/repo-types'
 import type { SshTarget } from '../../shared/ssh-types'
 import { computeOrcadMigrationManifestSha256 } from '../mantad/mantad-migration-manifest-digest'
 import { emptyDormantPayload } from '../persistence/migrating-orcad-catalog/orcad-source-dormant-state'
-import { createOrcadMigrationManifest } from './orcad-migration-manifest-export'
+import { createOrcadMigrationManifest } from './mantad-migration-manifest-export'
 
 const TARGET: SshTarget = {
   id: 'ssh-prod',

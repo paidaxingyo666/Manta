@@ -32,7 +32,7 @@ import {
   NativeChatInterruptedContinue,
   useNativeChatInterruptedContinuation
 } from './NativeChatInterruptedContinue'
-import { NativeChatOrcaStopContext } from './native-chat-orca-stop-context'
+import { NativeChatOrcaStopContext } from './native-chat-manta-stop-context'
 import { structuredSessionNotices } from './native-chat-structured-session-notices'
 import { NativeChatPromptSlotNotices } from './NativeChatComposerNotices'
 import { useNativeChatComposerError } from './use-native-chat-composer-notice'

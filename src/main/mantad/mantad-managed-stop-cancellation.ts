@@ -3,12 +3,12 @@ import { rmSync } from 'node:fs'
 import type {
   OrcadManagedStopCancellation,
   OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
-import { claimOrcadManagedStopDecision } from './orcad-managed-stop-decision'
+} from '../../shared/mantad-stop-request'
+import { claimOrcadManagedStopDecision } from './mantad-managed-stop-decision'
 import {
   orcadManagedStopRequestPath,
   readOrcadManagedStopRequest
-} from './orcad-managed-stop-request'
+} from './mantad-managed-stop-request'
 
 /** `dispatched` means mantad already began stopping; only its completion can say how it ended. */
 export function cancelOrcadManagedStop(

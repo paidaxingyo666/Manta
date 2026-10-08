@@ -28,7 +28,7 @@ import {
 } from './mantad-activation-lock'
 import { orcadActivationFenceRefusal } from './mantad-activation-fence-hold'
 import { ORCAD_STARTUP_READINESS_TIMEOUT_MS } from '../../shared/mantad-profile-preflight'
-import { rollbackOrcadLocked } from './orcad-rollback-transition'
+import { rollbackOrcadLocked } from './mantad-rollback-transition'
 
 export type OrcadRollbackOptions = {
   conn: SshConnection

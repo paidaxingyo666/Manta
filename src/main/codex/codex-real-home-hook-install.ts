@@ -26,7 +26,7 @@ import {
   getRealHomeCodexHookHome,
   isKnownOrcaHash,
   readKnownOrcaHashes
-} from './codex-hook-orca-approvals'
+} from './codex-hook-manta-approvals'
 import { getMantaUserDataPath, getSystemCodexHomePath } from './codex-home-paths'
 import { mutateRealHomeHooksPreservingUserTrust } from './codex-user-hook-trust-moves'
 import { sweepRealHomeCodexHook } from './codex-real-home-hook-sweep'

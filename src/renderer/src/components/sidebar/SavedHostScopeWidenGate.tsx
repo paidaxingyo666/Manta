@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useAppStore } from '@/store'
 import { ALL_EXECUTION_HOSTS_SCOPE, type ExecutionHostId } from '../../../../shared/execution-host'
-import { widenSavedExecutionHostIds } from '../../../../shared/managed-orcad-execution-host'
+import { widenSavedExecutionHostIds } from '../../../../shared/managed-mantad-execution-host'
 import { useSidebarHostScopeOptions } from './use-sidebar-host-scope-options'
 
 /**

@@ -1,12 +1,12 @@
 import { setRuntimeBrowserCommandsFactory } from '../runtime/runtime-browser-commands-factory'
 import { startOrcadBrowserProvider } from './mantad-browser-startup'
-import { OrcadRuntimeLifetime, type OrcadRuntimeCleanup } from './orcad-runtime-lifetime'
-import type { OrcadManagedStopInstance } from '../../shared/orcad-stop-request'
+import { OrcadRuntimeLifetime, type OrcadRuntimeCleanup } from './mantad-runtime-lifetime'
+import type { OrcadManagedStopInstance } from '../../shared/mantad-stop-request'
 import { acquireMantadInstanceLock } from './mantad-instance-lock'
 import { ORCAD_BUNDLED_LAUNCHER_ENV } from './mantad-bundled-runtime'
 import { resolveMantadExitCode } from './mantad-exit-code'
 import { recordAgentSessionRuntimeEnd } from '../runtime/agent-session-runtime-end-record'
-import { MANTAD_SHUTDOWN_DEADLINE_MS } from './orcad-stop-deadlines'
+import { MANTAD_SHUTDOWN_DEADLINE_MS } from './mantad-stop-deadlines'
 import {
   acquireProfileStateRuntimeAdmission,
   type ProfileStateRuntimeAdmission

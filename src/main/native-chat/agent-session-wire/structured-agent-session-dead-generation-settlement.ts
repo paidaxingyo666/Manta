@@ -47,7 +47,7 @@ import {
   exitedRootTurnScope,
   settledRootTurnScope
 } from './structured-agent-session-exit-turn-scope'
-import { orcaStopRowBody } from './structured-agent-session-orca-stop-row'
+import { orcaStopRowBody } from './structured-agent-session-manta-stop-row'
 import {
   hasUnfinishedStructuredAgentSessionWork,
   isInProgressStructuredAgentSessionItem,

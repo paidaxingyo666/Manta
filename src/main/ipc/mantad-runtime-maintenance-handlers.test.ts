@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('electron', () => ({ ipcMain: { handle: mocks.handle } }))
-vi.mock('../ssh/orcad-runtime-lifecycle', () => ({
+vi.mock('../ssh/mantad-runtime-lifecycle', () => ({
   updateManagedOrcadEnvironment: mocks.update,
   rollbackManagedOrcadEnvironment: mocks.rollback,
   recoverManagedOrcadEnvironment: mocks.recover,
@@ -23,7 +23,7 @@ vi.mock('./runtime-environment-removal-cleanup', () => ({
 }))
 
 const { registerOrcadRuntimeMaintenanceHandlers } =
-  await import('./orcad-runtime-maintenance-handlers')
+  await import('./mantad-runtime-maintenance-handlers')
 
 const invalidateTransport = vi.fn()
 const clearHostServerStatus = vi.fn()

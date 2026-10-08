@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   OrcadManagedStopCancellationSchema,
   OrcadManagedStopCompletionSchema
-} from './orcad-stop-request'
+} from './mantad-stop-request'
 
 const request = {
   schemaVersion: 1,

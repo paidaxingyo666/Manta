@@ -2,11 +2,11 @@ import { ipcMain } from 'electron'
 import type {
   OrcadManagedConversionResult,
   OrcadManagedPendingMigrationRow
-} from '../../shared/orcad-managed-runtime'
-import { listPendingManagedOrcadMigrations } from '../ssh/orcad-managed-migration-status'
-import { convertSshTargetToManagedOrcad } from '../ssh/orcad-runtime-conversion'
-import { conversionCollaborators } from '../ssh/orcad-runtime-conversion-wiring'
-import { requiredString } from './orcad-runtime-lifecycle-handlers'
+} from '../../shared/mantad-managed-runtime'
+import { listPendingManagedOrcadMigrations } from '../ssh/mantad-managed-migration-status'
+import { convertSshTargetToManagedOrcad } from '../ssh/mantad-runtime-conversion'
+import { conversionCollaborators } from '../ssh/mantad-runtime-conversion-wiring'
+import { requiredString } from './mantad-runtime-lifecycle-handlers'
 
 export function registerOrcadRuntimeConversionHandlers(getUserDataPath: () => string): void {
   ipcMain.handle(

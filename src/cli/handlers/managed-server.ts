@@ -10,8 +10,8 @@ import type {
   OrcadManagedRollbackResult,
   OrcadManagedRuntimeStatus,
   OrcadManagedStopResult
-} from '../../shared/orcad-managed-runtime'
-import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/orcad-managed-runtime'
+} from '../../shared/mantad-managed-runtime'
+import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/mantad-managed-runtime'
 import { MANAGED_SERVER_RUNTIME_CAPABILITY } from '../../shared/protocol-version'
 import type { RuntimeStatus } from '../../shared/runtime-types'
 import type { CommandHandler, HandlerContext } from '../dispatch'

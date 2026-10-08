@@ -11,7 +11,7 @@ import type {
   AgentJournalRenderItem,
   AgentJournalSubmission
 } from '../../../../shared/agent-session-journal-types'
-import { AGENT_SESSION_ORCA_STOP_PRESENTATION } from '../../../../shared/agent-session-orca-stop'
+import { AGENT_SESSION_ORCA_STOP_PRESENTATION } from '../../../../shared/agent-session-manta-stop'
 import {
   isBackgroundTaskBlock,
   isSubagentGroupBlock,

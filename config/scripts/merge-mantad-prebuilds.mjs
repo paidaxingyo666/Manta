@@ -9,7 +9,7 @@
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
-import { findSlotProblems, mergeManifest, readManifest } from './orcad-prebuild-slot-contents.mjs'
+import { findSlotProblems, mergeManifest, readManifest } from './mantad-prebuild-slot-contents.mjs'
 
 const ROOT = resolve(import.meta.dirname, '..', '..')
 

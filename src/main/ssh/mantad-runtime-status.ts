@@ -1,13 +1,13 @@
-import type { OrcadManagedRuntimeStatus } from '../../shared/orcad-managed-runtime'
+import type { OrcadManagedRuntimeStatus } from '../../shared/mantad-managed-runtime'
 import { runTargetLifecycle } from '../ipc/ssh-target-lifecycle-queue'
 import type { OrcadActivationTransaction } from './mantad-activation-transaction'
 import { readOrcadActivationTransaction } from './mantad-activation-transaction-store'
 import {
   requireManagedOrcadEnvironment,
   resolveLinkedOrcadContext
-} from './orcad-managed-runtime-context'
-import { currentManagedOrcadUpdateDeferral } from './orcad-managed-update-deferrals'
-import { findIncompleteManagedOrcadMigration } from './orcad-managed-migration-status'
+} from './mantad-managed-runtime-context'
+import { currentManagedOrcadUpdateDeferral } from './mantad-managed-update-deferrals'
+import { findIncompleteManagedOrcadMigration } from './mantad-managed-migration-status'
 import { collectManagedTerminalCensus } from './mantad-terminal-census-client'
 
 /** Read-only: what the host's activation record and journal say, without repairing either. */

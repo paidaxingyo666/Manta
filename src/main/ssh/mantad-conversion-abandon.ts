@@ -3,21 +3,21 @@
  * registered held nothing; a registered one must prove through an abort that it holds nothing,
  * and is unregistered before the fence goes so no later start re-fences the host to it.
  */
-import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
+import { removeManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-mantad-store'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
-import { closeOrcadManagedTunnel } from './orcad-managed-tunnel'
+import { closeOrcadManagedTunnel } from './mantad-managed-tunnel'
 import {
   abortOrcadMigrationCutover,
   type OrcadMigrationAbortResult,
   type OrcadMigrationCutoverContext,
   type OrcadMigrationDestinationCatalog
-} from './orcad-migration-cutover-coordinator'
-import { findOrcadMigrationSourceCutoverForTarget } from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-coordinator'
+import { findOrcadMigrationSourceCutoverForTarget } from './mantad-migration-cutover-journal'
 import {
   releaseOrcadMigrationFence,
   releaseUndeployedMigrationFence
-} from './orcad-migration-source-fence'
+} from './mantad-migration-source-fence'
 
 export async function abandonOrcadConversion(args: {
   userDataPath: string

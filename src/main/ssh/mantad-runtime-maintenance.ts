@@ -4,7 +4,7 @@
  * is unverifiable, never zero, so an update over live or uncounted terminals defers (D7).
  */
 import { getAppEnvironment } from '../../shared/app-environment'
-import { refreshManagedOrcadPairing } from '../../shared/runtime-environment-managed-orcad-store'
+import { refreshManagedOrcadPairing } from '../../shared/runtime-environment-managed-mantad-store'
 import { assertRuntimeEnvironmentNotReconciling } from '../../shared/runtime-environment-reconciliation-record'
 import {
   redactRuntimeEnvironment,
@@ -14,18 +14,18 @@ import type {
   OrcadManagedDeployResult,
   OrcadManagedRecoveryResult,
   OrcadManagedRollbackResult
-} from '../../shared/orcad-managed-runtime'
+} from '../../shared/mantad-managed-runtime'
 import { runTargetLifecycle } from '../ipc/ssh-target-lifecycle-queue'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { recoverInterruptedOrcadActivation } from './mantad-activation-recovery'
 import { probeActiveOrcadReadiness } from './mantad-active-readiness'
 import { materializeOrcadArtifact } from './mantad-artifact-materializer'
 import { CURRENT_ORCAD_DAEMON_PROTOCOL } from './mantad-daemon-protocol-crossing'
-import { ensureOrcadManagedTunnel } from './orcad-managed-tunnel'
+import { ensureOrcadManagedTunnel } from './mantad-managed-tunnel'
 import {
   clearManagedOrcadUpdateDeferral,
   recordManagedOrcadUpdateDeferral
-} from './orcad-managed-update-deferrals'
+} from './mantad-managed-update-deferrals'
 import {
   isForceableOrcadDeferral,
   managedOrcadInstallDir,
@@ -33,16 +33,16 @@ import {
   probeManagedOrcadReadiness,
   requireManagedOrcadEnvironment,
   resolveLinkedOrcadContext
-} from './orcad-managed-runtime-context'
+} from './mantad-managed-runtime-context'
 import type { OrcadRemoteContext } from './mantad-remote-context'
 import { readRemoteOrcadBuildHash } from './mantad-remote-build-hash'
 import { deployOrcad } from './mantad-remote-deploy'
-import { pruneManagedOrcadVersions } from './orcad-managed-version-gc'
+import { pruneManagedOrcadVersions } from './mantad-managed-version-gc'
 import { rollbackOrcad } from './mantad-remote-rollback'
 import { collectManagedTerminalCensus } from './mantad-terminal-census-client'
-import { findIncompleteManagedOrcadMigration } from './orcad-managed-migration-status'
-import { latestOrcadMigrationInto } from './orcad-migration-rollback-mark'
-import { tunneledOrcadPairingCode } from './orcad-tunneled-pairing'
+import { findIncompleteManagedOrcadMigration } from './mantad-managed-migration-status'
+import { latestOrcadMigrationInto } from './mantad-migration-rollback-mark'
+import { tunneledOrcadPairingCode } from './mantad-tunneled-pairing'
 
 type LifecycleArgs = { selector: string; signal?: AbortSignal }
 

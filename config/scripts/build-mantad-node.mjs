@@ -10,7 +10,7 @@ import {
 } from '../../src/shared/node-runtime-pin.ts'
 import { orcadNodeRuntimeRelativePath } from '../../src/shared/mantad-artifacts.ts'
 import { ORCAD_PREBUILDS_DIR } from './build-mantad-prebuilds.mjs'
-import { findSlotProblems, readManifest } from './orcad-prebuild-slot-contents.mjs'
+import { findSlotProblems, readManifest } from './mantad-prebuild-slot-contents.mjs'
 import { ensurePinnedNodeExecutable } from './pinned-node-downloads.mjs'
 import { runProcessSync } from './script-child-process.mjs'
 import { currentTarget } from './server-build-target.mjs'

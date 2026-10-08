@@ -4,7 +4,7 @@ import type {
   OrcadMigrationDormantWorktreeLineage,
   OrcadMigrationDormantWorkspaceLineage,
   OrcadMigrationDormantWorktreeMeta
-} from './orcad-migration-manifest'
+} from './mantad-migration-manifest'
 import type { SparsePreset } from './worktree/create-types'
 import type { WorkspaceLineage, WorktreeLineage } from './worktree/lineage-types'
 import type { WorktreeMeta } from './worktree/meta-types'
@@ -19,7 +19,7 @@ import {
   requiredString,
   requiredStringOrEmpty,
   stringArray
-} from './orcad-migration-dormant-value-validation'
+} from './mantad-migration-dormant-value-validation'
 
 const MAX_RETIRED_NAMES = 2_048
 

@@ -14,7 +14,7 @@ import {
 } from './mantad-remote-readiness-wait'
 import { execOrcadRemote } from './mantad-remote-runtime-control'
 import { readBoundedOrcadRemoteRecord } from './mantad-remote-record-file'
-import { orcadSlotDir, type OrcadSlotOptions } from './orcad-recovery-slot'
+import { orcadSlotDir, type OrcadSlotOptions } from './mantad-recovery-slot'
 import { isWindowsRemoteHost, joinRemotePath } from './ssh-remote-platform'
 import { isUnconfirmedSshCommandTermination } from './ssh-relay-deploy-helpers'
 import {
@@ -36,7 +36,7 @@ import {
   type OrcadManagedStopCompletion,
   type OrcadManagedStopContext,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 
 const LOCK_RECORD_MAX_BYTES = 64 * 1024
 

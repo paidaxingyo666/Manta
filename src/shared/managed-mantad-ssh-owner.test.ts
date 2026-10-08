@@ -3,7 +3,7 @@ import {
   getLegacyManagedOrcadOwnerEnvironmentId,
   getManagedOrcadFenceEnvironmentId,
   isEphemeralRuntimeSshOwner
-} from './managed-orcad-ssh-owner'
+} from './managed-mantad-ssh-owner'
 
 describe('managed mantad SSH fence', () => {
   it('reads the fence from orcadFence, never from owner', () => {

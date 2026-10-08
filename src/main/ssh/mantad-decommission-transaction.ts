@@ -11,7 +11,7 @@ import {
   type OrcadActivationRecord
 } from './mantad-activation-record'
 import { ORCAD_ACTIVATION_TRANSACTION_SCHEMA_VERSION } from './mantad-activation-transaction-schema'
-import type { OrcadManagedStopRequest } from '../../shared/orcad-stop-request'
+import type { OrcadManagedStopRequest } from '../../shared/mantad-stop-request'
 
 export type OrcadDecommissionTransaction = {
   schemaVersion: typeof ORCAD_ACTIVATION_TRANSACTION_SCHEMA_VERSION

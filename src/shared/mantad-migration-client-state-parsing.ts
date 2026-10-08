@@ -6,19 +6,19 @@ import {
 import type {
   OrcadMigrationClientHostedBrowserCloseIntent,
   OrcadMigrationUiRoutingState
-} from './orcad-migration-client-state'
+} from './mantad-migration-client-state'
 import type { PersistedMobileClientTabSelections } from './persisted-state-types'
 import type { ManualRepoOrderEntry, WorkspaceHostOrder } from './ui-chrome-types'
 import type { SavedPortForward } from './ssh-types'
-import { isRecord } from './orcad-migration-manifest-fields'
+import { isRecord } from './mantad-migration-manifest-fields'
 import {
   isWorkspaceHostId,
   isWorkspaceHostScope,
   nullableString,
   parseSavedPortForwards as parseSavedPortForwardsValue,
   parseStringArray
-} from './orcad-migration-client-state-value-validation'
-import { requiredRecord } from './orcad-migration-dormant-value-validation'
+} from './mantad-migration-client-state-value-validation'
+import { requiredRecord } from './mantad-migration-dormant-value-validation'
 
 export const MAX_ORCAD_MIGRATION_CLIENT_SELECTIONS = 4_096
 export const MAX_ORCAD_MIGRATION_CLIENT_ROUTING_ENTRIES = 16_384

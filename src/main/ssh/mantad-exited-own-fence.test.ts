@@ -33,7 +33,7 @@ vi.mock('./ssh-relay-deploy-helpers', async (importOriginal) => {
 const { orcadActivationFenceRefusal } = await import('./mantad-activation-fence-hold')
 const { withOrcadActivationLock } = await import('./mantad-activation-lock')
 const { initOrcadHeldFenceTokenFile, ORCAD_HELD_FENCE_TOKENS_FILE_NAME } =
-  await import('./orcad-held-fence-tokens')
+  await import('./mantad-held-fence-tokens')
 const { getRemoteHostPlatform } = await import('./ssh-remote-platform')
 
 // Above every Linux and macOS pid_max, so no process can hold it.

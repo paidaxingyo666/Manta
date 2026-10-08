@@ -1,6 +1,6 @@
 import type { WorkerDispatchRow } from '../../types'
 import type { OrchestrationDb } from '../orchestration-db'
-import { dispatchAssigneeOrcaSessionId } from '../../dispatch-assignee-orca-session-id'
+import { dispatchAssigneeOrcaSessionId } from '../../dispatch-assignee-manta-session-id'
 
 /**
  * A start that dies before `prepareStartingWorkerAuthority` never filled the Dispatch context in,

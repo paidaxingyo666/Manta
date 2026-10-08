@@ -7,7 +7,7 @@ vi.mock('./runtime-rpc-client', async (importOriginal) => ({
 }))
 
 import { RuntimeRpcCallError } from './runtime-rpc-result'
-import { resolveStructuredSessionOrcaSessionId } from './structured-session-orca-session-id'
+import { resolveStructuredSessionOrcaSessionId } from './structured-session-manta-session-id'
 
 const LIVE = '7e3b9d15-2c4a-4f86-a0b1-5c9e2d7f3b64'
 const ROOT = '4a1f6c2e-8b3d-4e7a-9c15-0d2b6e8f1a37'

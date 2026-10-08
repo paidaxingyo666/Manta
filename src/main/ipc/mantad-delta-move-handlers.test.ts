@@ -19,30 +19,30 @@ vi.mock('electron', () => ({ ipcMain: { handle: mocks.handle } }))
 vi.mock('../../shared/runtime-environment-store', () => ({
   listEnvironments: () => [{ id: 'env-1' }]
 }))
-vi.mock('../ssh/orcad-managed-runtime-context', () => ({
+vi.mock('../ssh/mantad-managed-runtime-context', () => ({
   requireManagedOrcadInfrastructure: () => ({
     claims: {},
     targetStore: { getOrcadMigrationSource: () => ({ getSshTarget: () => mocks.target }) }
   })
 }))
-vi.mock('../ssh/orcad-migration-delta-move', () => ({
+vi.mock('../ssh/mantad-migration-delta-move', () => ({
   runOrcadDeltaMove: mocks.move,
   keepOrcadServerVersion: mocks.keep
 }))
-vi.mock('../ssh/orcad-runtime-conversion-wiring', () => ({
+vi.mock('../ssh/mantad-runtime-conversion-wiring', () => ({
   orcadMigrationDestinationFor: () => ({})
 }))
-vi.mock('../ssh/orcad-migration-relay-pty-lister', () => ({
+vi.mock('../ssh/mantad-migration-relay-pty-lister', () => ({
   orcadMigrationRelayPtyLister: () => null
 }))
-vi.mock('../ssh/orcad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: vi.fn() }))
+vi.mock('../ssh/mantad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: vi.fn() }))
 vi.mock('../ssh/ssh-target-registry', () => ({ hasRegisteredDirectSshAuthority: () => false }))
 vi.mock('./ssh-session-teardown', () => ({ disconnectRegisteredSshTarget: vi.fn() }))
 vi.mock('./runtime-environment-managed-tunnel', () => ({
   publishResolvedChangedHostStatus: mocks.publish
 }))
 
-const { registerOrcadDeltaMoveHandlers } = await import('./orcad-delta-move-handlers')
+const { registerOrcadDeltaMoveHandlers } = await import('./mantad-delta-move-handlers')
 
 function handler(channel: string): (_event: unknown, args: unknown) => Promise<unknown> {
   const registration = mocks.handle.mock.calls.find(([name]) => name === channel)

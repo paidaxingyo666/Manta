@@ -43,7 +43,7 @@ import { getRemoteHostPlatform } from './ssh-remote-platform'
 import { SSH_EXEC_TIMEOUT_CODE, isUnconfirmedSshCommandTermination } from './ssh-relay-exec-command'
 import type { SshConnection } from './ssh-connection'
 import { BUILD_HASH, FakeOrcadHost, NEW, OLD } from './mantad-activation-host-test-harness'
-import { isSnapshotCaptureCommand } from './orcad-snapshot-capture-command'
+import { isSnapshotCaptureCommand } from './mantad-snapshot-capture-command'
 
 let host = new FakeOrcadHost()
 type StateMutation = 'capture' | 'restore'

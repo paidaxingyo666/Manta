@@ -2,7 +2,7 @@ import type { Store } from '../persistence'
 import {
   listOrcadMigrationSourceCutovers,
   setOrcadMigrationJournalChangeListener
-} from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-journal'
 
 /** Keeps the store's scrollback retention in step with the journal, from startup on. */
 export function installOrcadMigrationScrollbackRetention(

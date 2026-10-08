@@ -12,7 +12,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { spawnProcess } from '../../shared/child-process/run-process'
 import { ORCAD_NODE_RUNTIME_MARKER_FILENAME } from '../../shared/mantad-artifacts'
-import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/orcad-stop-request'
+import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/mantad-stop-request'
 import {
   killChildAndWait,
   killProfileDaemons,
@@ -25,7 +25,7 @@ import {
   installPackagedOrcadSlotForTests,
   locatePinnedNodeForTests,
   skipForMissingInputs
-} from './orcad-node-slot-fixture'
+} from './mantad-node-slot-fixture'
 
 const pinnedNode = locatePinnedNodeForTests()
 const skip = skipForMissingInputs('artifact', [

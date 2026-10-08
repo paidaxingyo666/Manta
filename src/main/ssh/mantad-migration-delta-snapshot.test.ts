@@ -2,19 +2,19 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import { encodePairingOffer, PAIRING_OFFER_VERSION } from '../../shared/pairing'
-import { addManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
+import { addManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-mantad-store'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import type { Repo } from '../../shared/repo-types'
 import type { SshTarget } from '../../shared/ssh-types'
 import { folderWorkspaceKey } from '../../shared/workspace-scope'
 import { closeTestStores, createSqliteTestStore } from '../persistence-test-harness'
 import { Store } from '../persistence/loading-store/store'
-import { listOrcadMigrationSourceCutovers } from './orcad-migration-cutover-journal'
-import { fakeOrcadMigrationDestination } from './orcad-migration-destination-fake'
-import { runOrcadDeltaMove } from './orcad-migration-delta-move'
-import { reconcileManagedOrcadSshTargets } from './orcad-retained-source'
+import { listOrcadMigrationSourceCutovers } from './mantad-migration-cutover-journal'
+import { fakeOrcadMigrationDestination } from './mantad-migration-destination-fake'
+import { runOrcadDeltaMove } from './mantad-migration-delta-move'
+import { reconcileManagedOrcadSshTargets } from './mantad-retained-source'
 import { SshConnectionStore } from './ssh-connection-store'
 import { runTargetLifecycle } from '../ipc/ssh-target-lifecycle-queue'
 
@@ -27,10 +27,10 @@ vi.mock('./ssh-target-registry', () => ({
   getSshTargetRegistryStore: () => mocks.state.targetStore,
   hasRegisteredDirectSshAuthority: () => false
 }))
-vi.mock('./orcad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
-vi.mock('./orcad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.ensureTunnel }))
+vi.mock('./mantad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
+vi.mock('./mantad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.ensureTunnel }))
 
-const { convertSshTargetToManagedOrcad } = await import('./orcad-runtime-conversion')
+const { convertSshTargetToManagedOrcad } = await import('./mantad-runtime-conversion')
 
 const TARGET: SshTarget = {
   id: 'ssh-prod',

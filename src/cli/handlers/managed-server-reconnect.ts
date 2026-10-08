@@ -3,7 +3,7 @@
  * its connection close mid-call. That is expected, not a failure: read the host's status once the
  * runtime answers again and report what the action left behind.
  */
-import type { OrcadManagedRuntimeStatus } from '../../shared/orcad-managed-runtime'
+import type { OrcadManagedRuntimeStatus } from '../../shared/mantad-managed-runtime'
 import type { HandlerContext } from '../dispatch'
 import { printResult } from '../format'
 import { RuntimeClientError, type RuntimeRpcSuccess } from '../runtime-client'

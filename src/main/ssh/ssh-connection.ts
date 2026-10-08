@@ -91,7 +91,7 @@ import {
 import type { FileUploadSession } from '../providers/types'
 import { openSshSessionChannelWithRetry, waitForSshChannelOpen } from './ssh-channel-open'
 import { withTimeout } from '../../shared/promise-timeout-fallback'
-import { isEphemeralRuntimeSshOwner } from '../../shared/managed-orcad-ssh-owner'
+import { isEphemeralRuntimeSshOwner } from '../../shared/managed-mantad-ssh-owner'
 export type { SshConnectionCallbacks } from './ssh-connection-utils'
 
 type HostKeyTrustSources = {

@@ -12,7 +12,7 @@ import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import { MantaRuntimeService } from '../runtime/manta-runtime'
 import { MantaRuntimeRpcServer } from '../runtime/runtime-rpc'
 import { verifyRuntimePairingIdentity } from '../runtime/runtime-environment-identity-verification'
-import { verifyManagedOrcadTunnelIdentity } from './orcad-managed-tunnel-identity'
+import { verifyManagedOrcadTunnelIdentity } from './mantad-managed-tunnel-identity'
 
 vi.mock('../git/worktree', () => ({
   listWorktrees: vi.fn().mockResolvedValue([]),

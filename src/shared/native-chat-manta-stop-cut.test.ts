@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { agentSessionFailureFact } from './agent-session-failure'
 import { agentSessionFailureWords } from './agent-session-failure-words'
-import { readAgentSessionOrcaStop } from './agent-session-orca-stop'
+import { readAgentSessionOrcaStop } from './agent-session-manta-stop'
 import { agentJournalItemKey } from './agent-session-journal-item-key'
 import type { AgentJournalRenderItem, AgentJournalTurnOutcome } from './agent-session-journal-types'
 import { withNativeChatCutTurnNotices } from './native-chat-cut-turn-notice'
 import {
   latestNativeChatOrcaStopCut,
   orcaShutdownRowClientMessageId
-} from './native-chat-orca-stop-cut'
+} from './native-chat-manta-stop-cut'
 
 const LEGACY_TEXT =
   'Codex stopped while this response was in progress. You can continue in this conversation.'

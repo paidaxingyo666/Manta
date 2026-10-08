@@ -2,16 +2,16 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
-import type { OrcadMigrationManifest } from '../../shared/orcad-migration-manifest'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
+import type { OrcadMigrationManifest } from '../../shared/mantad-migration-manifest'
 import { encodePairingOffer, PAIRING_OFFER_VERSION } from '../../shared/pairing'
-import { addManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-orcad-store'
+import { addManagedOrcadEnvironment } from '../../shared/runtime-environment-managed-mantad-store'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import type { SshManagedServerStatus, SshTarget } from '../../shared/ssh-types'
 import { closeTestStores, createSqliteTestStore } from '../persistence-test-harness'
 import { Store } from '../persistence/loading-store/store'
-import { fakeOrcadMigrationDestination } from '../ssh/orcad-migration-destination-fake'
-import { assessOrcadMigrationTerminals } from '../ssh/orcad-migration-terminal-gate'
+import { fakeOrcadMigrationDestination } from '../ssh/mantad-migration-destination-fake'
+import { assessOrcadMigrationTerminals } from '../ssh/mantad-migration-terminal-gate'
 import { SshConnectionStore } from '../ssh/ssh-connection-store'
 
 const mocks = vi.hoisted(() => {
@@ -23,14 +23,14 @@ vi.mock('../ssh/ssh-target-registry', () => ({
   getSshTargetRegistryStore: () => mocks.state.targetStore,
   hasRegisteredDirectSshAuthority: () => false
 }))
-vi.mock('../ssh/orcad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
-vi.mock('../ssh/orcad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: vi.fn() }))
+vi.mock('../ssh/mantad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
+vi.mock('../ssh/mantad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: vi.fn() }))
 vi.mock('./ssh-connect-flow', () => ({ connectTarget: vi.fn() }))
 vi.mock('./ssh-terminate-sessions', () => ({ terminateSshTargetSessions: vi.fn() }))
 vi.mock('./ssh-session-teardown', () => ({ teardownSshTargetTransport: vi.fn() }))
 vi.mock('./ssh-host-server-connect', () => ({ publishRelayTerminalsStatus: vi.fn() }))
 
-const { convertSshTargetToManagedOrcad } = await import('../ssh/orcad-runtime-conversion')
+const { convertSshTargetToManagedOrcad } = await import('../ssh/mantad-runtime-conversion')
 const { moveSshHostToManagedServer } = await import('./ssh-managed-server-move')
 
 const TARGET: SshTarget = {

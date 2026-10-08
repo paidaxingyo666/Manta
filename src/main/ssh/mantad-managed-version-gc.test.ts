@@ -10,7 +10,7 @@ const { gcMock, readRecordMock } = vi.hoisted(() => ({
 vi.mock('./mantad-remote-gc', () => ({ gcOldOrcadVersions: gcMock }))
 vi.mock('./mantad-activation-record-store', () => ({ readOrcadActivationRecord: readRecordMock }))
 
-import { provenLiveDaemonVersion, pruneManagedOrcadVersions } from './orcad-managed-version-gc'
+import { provenLiveDaemonVersion, pruneManagedOrcadVersions } from './mantad-managed-version-gc'
 
 function readiness(terminalDaemon: unknown): ServeReadiness {
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: only health.terminalDaemon is read.

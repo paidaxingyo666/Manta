@@ -13,8 +13,8 @@ import type { ElectronApplication, Page } from '@stablyai/playwright-test'
 import { expect, test } from './helpers/manta-app'
 import { waitForSessionReady } from './helpers/store'
 import { createRestartSession } from './helpers/manta-restart'
-import { reconnect } from './helpers/orcad-convert-flow'
-import { ORCAD_CONVERT_HOST_ENV } from './helpers/orcad-convert-host'
+import { reconnect } from './helpers/mantad-convert-flow'
+import { ORCAD_CONVERT_HOST_ENV } from './helpers/mantad-convert-host'
 import {
   cleanupDockerSshRelayTarget,
   DOCKER_SSH_RELAY_REMOTE_REPO_PATH,
@@ -22,7 +22,7 @@ import {
   startDockerSshRelayTarget,
   type DockerSshRelayTarget
 } from './helpers/docker-ssh-relay-target'
-import { ORCAD_E2E_IDLE_TIMEOUT_ENV } from '../../src/shared/orcad-idle-exit'
+import { ORCAD_E2E_IDLE_TIMEOUT_ENV } from '../../src/shared/mantad-idle-exit'
 
 const HOST = process.env[ORCAD_CONVERT_HOST_ENV]
 const TEMPLATE_SOURCE = process.env.ORCA_E2E_ORCAD_CONVERT_TEMPLATE

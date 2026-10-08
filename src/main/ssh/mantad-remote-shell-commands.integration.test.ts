@@ -55,7 +55,7 @@ import {
   restoreOrcadStateSnapshotCommand
 } from './mantad-state-snapshot'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
-import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/orcad-stop-request'
+import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/mantad-stop-request'
 
 const host = getRemoteHostPlatform('linux-x64')
 let root = ''

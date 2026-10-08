@@ -1,15 +1,15 @@
 import { rmSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { listEnvironments } from '../../shared/runtime-environment-store'
-import { recordManagedOrcadMigration } from '../../shared/runtime-environment-managed-orcad-store'
-import { orcadMigrationCutoverFixture } from './orcad-migration-cutover-fixture'
-import { writeOrcadMigrationSourceCutover } from './orcad-migration-cutover-journal'
+import { recordManagedOrcadMigration } from '../../shared/runtime-environment-managed-mantad-store'
+import { orcadMigrationCutoverFixture } from './mantad-migration-cutover-fixture'
+import { writeOrcadMigrationSourceCutover } from './mantad-migration-cutover-journal'
 import {
   createManagedLifecycleHarness,
   MANAGED_PREVIOUS_VERSION,
   MANAGED_VERSION,
   managedReadiness
-} from './orcad-managed-lifecycle-test-fixture'
+} from './mantad-managed-lifecycle-test-fixture'
 
 const mocks = vi.hoisted(() => {
   const state: { store: unknown } = { store: null }
@@ -42,8 +42,8 @@ vi.mock('./mantad-artifact-materializer', () => ({
   materializeOrcadArtifact: async () => '/local/mantad'
 }))
 vi.mock('./mantad-local-build-hash', () => ({ computeLocalOrcadBuildHash: () => 'local-hash' }))
-vi.mock('./orcad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.ensureTunnel }))
-vi.mock('./orcad-managed-migration-status', () => ({
+vi.mock('./mantad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.ensureTunnel }))
+vi.mock('./mantad-managed-migration-status', () => ({
   findIncompleteManagedOrcadMigration: mocks.pendingMigration
 }))
 vi.mock('./mantad-activation-transaction-store', () => ({
@@ -55,7 +55,7 @@ const {
   recoverManagedOrcadEnvironment,
   rollbackManagedOrcadEnvironment,
   updateManagedOrcadEnvironment
-} = await import('./orcad-runtime-lifecycle')
+} = await import('./mantad-runtime-lifecycle')
 
 const idle = { liveSessions: 0, startedSinceActivation: 0, daemonProtocolVersion: 7 }
 let harness: ReturnType<typeof createManagedLifecycleHarness>

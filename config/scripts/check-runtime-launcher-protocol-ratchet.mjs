@@ -19,7 +19,7 @@ export const RUNTIME_LAUNCHER_PATHS = [
   // mantad slot layout: which runtime file a packaged slot carries.
   'src/shared/mantad-artifacts.ts',
   'config/scripts/build-mantad.mjs',
-  'config/scripts/build-orcad-node.mjs',
+  'config/scripts/build-mantad-node.mjs',
   'config/scripts/build-mantad-template.mjs',
   // Remote slot runtime selection.
   'src/main/ssh/mantad-remote-runtime.ts',

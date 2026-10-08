@@ -14,14 +14,14 @@ vi.mock('./ssh-relay-install-lock', async (importOriginal) => ({
 
 import { execCommand } from './ssh-relay-deploy-helpers'
 import { acquireInstallLock } from './ssh-relay-install-lock'
-import { wakeStoppedManagedOrcad } from './orcad-managed-wake'
+import { wakeStoppedManagedOrcad } from './mantad-managed-wake'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshConnection } from './ssh-connection'
 import { FakeOrcadHost, OLD } from './mantad-activation-host-test-harness'
 import {
   ORCAD_E2E_IDLE_TIMEOUT_ENV,
   ORCAD_MANAGED_ACTIVATION_ROOT_ENV
-} from '../../shared/orcad-idle-exit'
+} from '../../shared/mantad-idle-exit'
 
 let host = new FakeOrcadHost()
 

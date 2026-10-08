@@ -7,7 +7,7 @@
 import type { NodeRuntimeTarget } from '../../shared/node-runtime-pin'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { readOrcadActivationRecord } from './mantad-activation-record-store'
-import { orcadSlotDir, type OrcadSlotOptions } from './orcad-recovery-slot'
+import { orcadSlotDir, type OrcadSlotOptions } from './mantad-recovery-slot'
 import { gcOldOrcadVersions } from './mantad-remote-gc'
 import { relayRuntimeStorePins } from './ssh-relay-runtime-ladder'
 

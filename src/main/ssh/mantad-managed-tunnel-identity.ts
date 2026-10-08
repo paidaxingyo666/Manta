@@ -4,7 +4,7 @@
  * call that completes the pairing handshake and reports the paired runtime id does.
  */
 import { parsePairingCode, type PairingOffer } from '../../shared/pairing'
-import { ORCAD_MANAGED_REMOTE_PORT } from '../../shared/orcad-managed-runtime'
+import { ORCAD_MANAGED_REMOTE_PORT } from '../../shared/mantad-managed-runtime'
 import {
   isRecoverableRemoteRuntimeConnectionError,
   toRemoteRuntimeClientErrorLike
@@ -16,8 +16,8 @@ import {
 } from '../../shared/runtime-environments'
 import { verifyRuntimePairingIdentity } from '../runtime/runtime-environment-identity-verification'
 import type { ServeReadiness } from '../server/serve-readiness'
-import { orcadBoundPort } from './orcad-managed-bound-port'
-import { tunneledOrcadPairingCode } from './orcad-tunneled-pairing'
+import { orcadBoundPort } from './mantad-managed-bound-port'
+import { tunneledOrcadPairingCode } from './mantad-tunneled-pairing'
 
 /** `unreachable` means nothing answered; it is never evidence about which server holds the port. */
 export type OrcadTunnelIdentity =

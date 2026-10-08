@@ -2,8 +2,8 @@
  * The managed tunnel's transport choice, made each time a tunnel starts: the SSH local forward
  * wherever the host allows it, and the stdio bridge where its sshd refuses forwarding.
  */
-import { OrcadStdioBridgePortForwardProvider } from './orcad-stdio-bridge-provider'
-import { rememberOrcadTunnelTransport } from './orcad-tunnel-transport-memo'
+import { OrcadStdioBridgePortForwardProvider } from './mantad-stdio-bridge-provider'
+import { rememberOrcadTunnelTransport } from './mantad-tunnel-transport-memo'
 import type { SshConnection } from './ssh-connection'
 import type {
   PortForwardStartOptions,

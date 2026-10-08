@@ -2,7 +2,7 @@ import type {
   OrcadMigrationCatalogAbortResult,
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import type { Store } from '../persistence'
 
 type OrcadMigrationCatalogFlushStore = Pick<Store, 'flushPendingOrThrowAsync'>

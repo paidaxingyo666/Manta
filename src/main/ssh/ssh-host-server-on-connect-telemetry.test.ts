@@ -3,8 +3,8 @@ import type { SshTarget } from '../../shared/ssh-types'
 import {
   OrcadHostUnsupportedError,
   OrcadStdioBridgeUnavailableError
-} from './orcad-host-unavailable'
-import type { ManagedOrcadAutoUpdateOutcome } from './orcad-managed-auto-update'
+} from './mantad-host-unavailable'
+import type { ManagedOrcadAutoUpdateOutcome } from './mantad-managed-auto-update'
 import type { HostServerConnectEvent } from './ssh-host-server-connect-events'
 import {
   resolveHostServerOnConnect,

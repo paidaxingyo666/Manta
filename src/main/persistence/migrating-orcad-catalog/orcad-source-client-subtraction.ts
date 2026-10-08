@@ -1,10 +1,10 @@
-import type { OrcadMigrationManifest } from '../../../shared/orcad-migration-manifest'
-import { serializeOrcadMigrationValue } from '../../../shared/orcad-migration-manifest'
+import type { OrcadMigrationManifest } from '../../../shared/mantad-migration-manifest'
+import { serializeOrcadMigrationValue } from '../../../shared/mantad-migration-manifest'
 import { parsePersistedAutomationHostFilter } from '../../../shared/automation-host-filter'
 import { hostStableKey } from '../../../shared/automation-owner-key'
 import { toRuntimeExecutionHostId } from '../../../shared/execution-host'
 import { composeWorktreeHostIdentity } from '../../../shared/worktree/host-qualified-identity'
-import type { OrcadMigrationClientStatePayload } from '../../../shared/orcad-migration-client-state'
+import type { OrcadMigrationClientStatePayload } from '../../../shared/mantad-migration-client-state'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import {
   MAX_CLIENT_HOSTED_BROWSER_CLOSE_INTENTS,

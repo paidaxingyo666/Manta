@@ -5,8 +5,8 @@ import {
   type PersistedClientHostedBrowserPage
 } from './client-hosted-browser-page-record'
 import type { BrowserWorkspace } from './browser-workspace-types'
-import { assertOrcadMigrationDormantWorkspaceSessionReferences } from './orcad-migration-dormant-session-validation'
-import { parseOrcadMigrationClientState } from './orcad-migration-client-state'
+import { assertOrcadMigrationDormantWorkspaceSessionReferences } from './mantad-migration-dormant-session-validation'
+import { parseOrcadMigrationClientState } from './mantad-migration-client-state'
 import type { WorkspaceSessionState } from './workspace-session-state-types'
 
 const OWNER = 'repo-1::/srv/worktree'

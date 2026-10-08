@@ -26,7 +26,7 @@ import {
 } from './mantad-remote-record-file'
 import { launchOrcadAndAwaitReadiness } from './mantad-remote-runtime-control'
 import { probeActiveOrcadReadiness } from './mantad-active-readiness'
-import { completeRemoteOrcadManagedStop } from './orcad-managed-remote-stop'
+import { completeRemoteOrcadManagedStop } from './mantad-managed-remote-stop'
 import {
   installOrcadWindowsHostScript,
   orcadWindowsNodeCommandLine,
@@ -37,7 +37,7 @@ import {
   ORCAD_WINDOWS_HOST_SCRIPT,
   ORCAD_WINDOWS_HOST_SCRIPT_FILENAME
 } from './mantad-windows-host-script'
-import type { OrcadSlotOptions } from './orcad-recovery-slot'
+import type { OrcadSlotOptions } from './mantad-recovery-slot'
 import { NODE_RUNTIME_ASSETS } from '../../shared/node-runtime-pin'
 
 const mockExec = vi.mocked(execCommand)

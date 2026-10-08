@@ -4,9 +4,9 @@
  * forwards to the port the new server actually bound.
  */
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
-import type { OrcadManagedServing } from './orcad-managed-serving'
-import type { OrcadManagedServingCheck } from './orcad-managed-tunnel-resume'
-import type { ActiveOrcadTunnel } from './orcad-managed-tunnel-active'
+import type { OrcadManagedServing } from './mantad-managed-serving'
+import type { OrcadManagedServingCheck } from './mantad-managed-tunnel-resume'
+import type { ActiveOrcadTunnel } from './mantad-managed-tunnel-active'
 import type { SshPortForwardManager } from './ssh-port-forward'
 import type { SshTarget } from '../../shared/ssh-types'
 

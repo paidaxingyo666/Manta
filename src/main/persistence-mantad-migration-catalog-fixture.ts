@@ -4,7 +4,7 @@ import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationDormantStatePayload,
   type OrcadMigrationManifest
-} from '../shared/orcad-migration-manifest'
+} from '../shared/mantad-migration-manifest'
 import type { ProjectGroup } from '../shared/project-group-types'
 import type { Repo } from '../shared/repo-types'
 import { getDefaultWorkspaceSession } from '../shared/constants'

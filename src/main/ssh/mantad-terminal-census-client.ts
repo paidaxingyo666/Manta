@@ -2,7 +2,7 @@
  * Asks a managed mantad, through its tunnel, how many terminals its daemon runs. Every failure,
  * including an older host without the method, reads as an unverifiable census, never as zero.
  */
-import { ORCAD_TERMINAL_CENSUS_RUNTIME_CAPABILITY } from '../../shared/orcad-runtime-capabilities'
+import { ORCAD_TERMINAL_CENSUS_RUNTIME_CAPABILITY } from '../../shared/mantad-runtime-capabilities'
 import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/electron-remote-runtime-client-capabilities'
 import {
   getPreferredPairingOffer,
@@ -15,8 +15,8 @@ import {
 } from '../../shared/mantad-terminal-census'
 import { sendRemoteRuntimeRequestWithStatusPreflight } from '../../shared/remote-runtime-client'
 import type { OrcadActivationRecord } from './mantad-activation-record'
-import { ensureOrcadManagedTunnel } from './orcad-managed-tunnel'
-import { verifyOrcadManagedServing } from './orcad-managed-serving-verify'
+import { ensureOrcadManagedTunnel } from './mantad-managed-tunnel'
+import { verifyOrcadManagedServing } from './mantad-managed-serving-verify'
 
 const UNVERIFIABLE: OrcadTerminalCensus = {
   liveSessions: null,

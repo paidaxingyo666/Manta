@@ -15,7 +15,6 @@ import {
   type SubscribeNativeChatTranscriptArgs
 } from '../native-chat/transcript-watch'
 import { abortWhenRendererGone } from './renderer-lifetime-abort'
-import { agentHookServer } from '../agent-hooks/server'
 import { nativeChatTranscriptPathOnExecutionHost } from '../native-chat/ssh-transcript-path'
 
 // Re-export so existing test imports of `clearNativeChatTranscriptCache` from

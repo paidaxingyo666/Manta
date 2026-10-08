@@ -31,8 +31,8 @@ import {
   type OrcadFence
 } from './mantad-activation-fence-scope'
 import { orcadRemoteBaseDir, orcadWindowsHostOpCommand } from './mantad-remote-windows-node'
-import { forgetHeldOrcadFence, rememberHeldOrcadFence } from './orcad-held-fence-tokens'
-import { exitedOwnLockProof } from './orcad-exited-own-lock'
+import { forgetHeldOrcadFence, rememberHeldOrcadFence } from './mantad-held-fence-tokens'
+import { exitedOwnLockProof } from './mantad-exited-own-lock'
 import { isWindowsRemoteHost, joinRemotePath, type RemoteHostPlatform } from './ssh-remote-platform'
 import {
   ORCAD_ACTIVATION_TRANSACTION_DIRNAME,

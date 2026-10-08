@@ -11,7 +11,7 @@ import {
   locatePinnedNodeForTests,
   skipForMissingInputs,
   writeNodeSlotFixture
-} from './orcad-node-slot-fixture'
+} from './mantad-node-slot-fixture'
 
 const pinnedNode = locatePinnedNodeForTests()
 // Any Node other than the slot's runtime path plays the service unit's launcher.

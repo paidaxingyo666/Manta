@@ -6,7 +6,7 @@ import { agentSessionFailureFact } from '../../../shared/agent-session-failure'
 import {
   AGENT_SESSION_ORCA_STOP_PRESENTATION,
   isAgentSessionOrcaStopCause
-} from '../../../shared/agent-session-orca-stop'
+} from '../../../shared/agent-session-manta-stop'
 import type { AgentSessionResumeTrigger } from '../../../shared/agent-session-resume-marker'
 import {
   agentSessionFailureWords,
@@ -23,7 +23,7 @@ import {
   readAgentJournalTurnOutcome
 } from '../../../shared/agent-session-turn-record'
 import { agentTurnVerdict } from '../../../shared/agent-turn-outcome'
-import { orcaShutdownRowClientMessageId } from '../../../shared/native-chat-orca-stop-cut'
+import { orcaShutdownRowClientMessageId } from '../../../shared/native-chat-manta-stop-cut'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
 import type { StructuredAgentSessionLogger } from './structured-agent-session-logger'
 

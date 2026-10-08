@@ -20,7 +20,7 @@ import {
   slotSourceFiles,
   SLOT_NAPI_VERSION,
   windowsConptyRuntimeDir
-} from './orcad-prebuild-slot-contents.mjs'
+} from './mantad-prebuild-slot-contents.mjs'
 import {
   ORCAD_ADDON_NAPI_VERSION,
   orcadTemplateTargetFilenames

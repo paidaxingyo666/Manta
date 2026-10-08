@@ -11,7 +11,7 @@ vi.mock('electron', async () => {
   return { powerMonitor: new EventEmitter() }
 })
 vi.mock('./ssh-ipc-context', () => ({ connectionManager: manager }))
-vi.mock('../ssh/orcad-managed-tunnel', () => ({
+vi.mock('../ssh/mantad-managed-tunnel', () => ({
   recoverOrcadManagedTunnelsAfterHostResume: recoverManagedTunnels
 }))
 

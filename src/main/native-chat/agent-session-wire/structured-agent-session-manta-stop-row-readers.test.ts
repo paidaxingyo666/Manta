@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest'
 import { agentJournalItemKey } from '../../../shared/agent-session-journal-item-key'
 import type { AgentJournalRenderItem } from '../../../shared/agent-session-journal-types'
 import { withNativeChatCutTurnNotices } from '../../../shared/native-chat-cut-turn-notice'
-import { latestNativeChatOrcaStopCut } from '../../../shared/native-chat-orca-stop-cut'
+import { latestNativeChatOrcaStopCut } from '../../../shared/native-chat-manta-stop-cut'
 import { nativeChatTurnFold } from '../../../shared/native-chat-turn-fold'
-import { orcaStopRowBody } from './structured-agent-session-orca-stop-row'
+import { orcaStopRowBody } from './structured-agent-session-manta-stop-row'
 
 const LEGACY_TEXT =
   'Codex stopped while this response was in progress. You can continue in this conversation.'

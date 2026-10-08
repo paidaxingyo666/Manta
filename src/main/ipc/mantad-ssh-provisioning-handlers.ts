@@ -1,10 +1,10 @@
 import { ipcMain } from 'electron'
-import type { OrcadSshProvisioningRequest } from '../../shared/orcad-ssh-provisioning'
+import type { OrcadSshProvisioningRequest } from '../../shared/mantad-ssh-provisioning'
 import {
   createOrcadSshHost,
   listPendingOrcadSshProvisioning,
   resumeOrcadSshHost
-} from '../ssh/orcad-ssh-provisioning'
+} from '../ssh/mantad-ssh-provisioning'
 
 export function registerOrcadSshProvisioningHandlers(getUserDataPath: () => string): void {
   ipcMain.handle(

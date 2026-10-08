@@ -1,8 +1,8 @@
-export { createManagedOrcadEnvironment } from './orcad-runtime-deployment'
-export { getManagedOrcadRuntimeStatus } from './orcad-runtime-status'
+export { createManagedOrcadEnvironment } from './mantad-runtime-deployment'
+export { getManagedOrcadRuntimeStatus } from './mantad-runtime-status'
 export {
   recoverManagedOrcadEnvironment,
   rollbackManagedOrcadEnvironment,
   updateManagedOrcadEnvironment
-} from './orcad-runtime-maintenance'
-export { cancelManagedOrcadStop, stopManagedOrcadEnvironment } from './orcad-runtime-decommission'
+} from './mantad-runtime-maintenance'
+export { cancelManagedOrcadStop, stopManagedOrcadEnvironment } from './mantad-runtime-decommission'

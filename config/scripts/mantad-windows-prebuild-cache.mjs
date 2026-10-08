@@ -12,7 +12,7 @@ import {
   sha256Of,
   slotSourceFiles,
   SLOT_NAPI_VERSION
-} from './orcad-prebuild-slot-contents.mjs'
+} from './mantad-prebuild-slot-contents.mjs'
 
 const require = createRequire(import.meta.url)
 const root = resolve(import.meta.dirname, '../..')
@@ -25,7 +25,7 @@ export const WINDOWS_PREBUILD_CACHE_INPUTS = [
   'config/patches/node-pty@1.1.0.patch',
   'src/shared/node-runtime-pin.ts',
   'config/scripts/build-mantad-prebuilds.mjs',
-  'config/scripts/orcad-prebuild-slot-contents.mjs',
+  'config/scripts/mantad-prebuild-slot-contents.mjs',
   'config/scripts/mantad-windows-prebuild-cache.mjs',
   'config/scripts/node-pty-job-ownership.cjs',
   'config/scripts/windows-pe-machine.cjs',

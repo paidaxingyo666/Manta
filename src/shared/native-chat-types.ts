@@ -11,7 +11,7 @@ import type {
   AgentSessionBackgroundTaskRunState
 } from './agent-session-background-task-wire'
 import type { AgentSessionTokenUsage } from './agent-session-context-usage'
-import type { AgentSessionOrcaStop } from './agent-session-orca-stop'
+import type { AgentSessionOrcaStop } from './agent-session-manta-stop'
 import type { AgentSessionFailureFact } from './agent-session-failure'
 import type {
   AgentJournalMessageSendMode,

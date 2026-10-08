@@ -18,10 +18,10 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('./orcad-managed-runtime-context', () => ({
+vi.mock('./mantad-managed-runtime-context', () => ({
   requireManagedOrcadTargetStore: () => mocks.targetStore
 }))
-vi.mock('./orcad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
+vi.mock('./mantad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
 vi.mock('./ssh-provider-authority', () => ({ rotateSshProviderAuthority: mocks.rotate }))
 vi.mock('../../shared/runtime-environment-store', () => ({
   listEnvironments: () =>
@@ -32,7 +32,7 @@ import {
   createOrcadSshHost,
   listPendingOrcadSshProvisioning,
   resumeOrcadSshHost
-} from './orcad-ssh-provisioning'
+} from './mantad-ssh-provisioning'
 
 const request = {
   requestId: 'request-1',

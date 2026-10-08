@@ -8,7 +8,7 @@ const { spawnMock, resolveLocalServeRuntimeMock, serveWithOrcadMock } = vi.hoist
 }))
 
 vi.mock('child_process', () => ({ spawn: spawnMock, spawnSync: vi.fn() }))
-vi.mock('./serve-orcad-launch', () => ({
+vi.mock('./serve-mantad-launch', () => ({
   resolveLocalServeRuntime: resolveLocalServeRuntimeMock,
   serveWithOrcad: serveWithOrcadMock
 }))

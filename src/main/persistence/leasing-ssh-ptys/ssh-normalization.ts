@@ -11,7 +11,7 @@ import {
   SSH_REMOTE_RUNTIMES
 } from '../../../shared/ssh-types'
 import { normalizeSshPendingPtyKill } from '../../../shared/ssh-pending-pty-kill'
-import { getLegacyManagedOrcadOwnerEnvironmentId } from '../../../shared/managed-orcad-ssh-owner'
+import { getLegacyManagedOrcadOwnerEnvironmentId } from '../../../shared/managed-mantad-ssh-owner'
 
 export type LegacySshTarget = SshTarget & {
   remoteWorkspaceSyncEnabled?: unknown

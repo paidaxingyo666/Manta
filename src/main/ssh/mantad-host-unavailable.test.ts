@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   classifyOrcadHostUnavailable,
   orcadCandidateLaunchFailureCode
-} from './orcad-host-unavailable'
+} from './mantad-host-unavailable'
 import { OrcadWindowsLaunchRefusedError } from './mantad-remote-launch-windows'
 import { OrcadWindowsCommandLineError } from './mantad-remote-windows-node'
 

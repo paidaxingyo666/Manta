@@ -3,7 +3,7 @@ import { cpSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import process from 'node:process'
-import { prebuildCompileGypi } from './orcad-prebuild-slot-contents.mjs'
+import { prebuildCompileGypi } from './mantad-prebuild-slot-contents.mjs'
 
 const require = createRequire(import.meta.url)
 const ROOT = join(import.meta.dirname, '..', '..')

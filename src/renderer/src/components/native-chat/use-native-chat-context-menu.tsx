@@ -40,7 +40,7 @@ import { isMacPlatform, nativeChatToggleShortcutLabel } from './native-chat-shor
 import { TabWorkspaceLayoutMenuSection } from '@/components/tab-bar/TabWorkspaceLayoutMenuSection'
 import { canMoveTabToNewPaneColumn } from '@/components/tab-bar/tab-move-to-pane-column'
 import { isEditableTarget } from '@/lib/editable-target'
-import { NativeChatCopyOrcaSessionIdMenuItem } from './NativeChatCopyOrcaSessionIdMenuItem'
+import { NativeChatCopyOrcaSessionIdMenuItem } from './NativeChatCopyMantaSessionIdMenuItem'
 import type { TabSplitDirection } from '@/store/slices/tabs'
 
 type NativeChatContextMenuState = {

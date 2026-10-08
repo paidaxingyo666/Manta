@@ -9,8 +9,8 @@ import {
   listUserSshConfigHostSummaries,
   resolveUserSshConfigHost
 } from '../ssh/ssh-config-host-picker'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
-import { closeOrcadManagedTunnel } from '../ssh/orcad-managed-tunnel'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
+import { closeOrcadManagedTunnel } from '../ssh/mantad-managed-tunnel'
 import { rotateSshProviderAuthority } from '../ssh/ssh-provider-authority'
 import { getSshTargetRegistryStore } from '../ssh/ssh-target-registry'
 import {

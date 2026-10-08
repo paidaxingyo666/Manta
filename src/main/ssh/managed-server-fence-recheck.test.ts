@@ -5,7 +5,7 @@ import {
   recheckFencedManagedServer,
   scheduleManagedServerFenceRecheck
 } from './managed-server-fence-recheck'
-import { MANAGED_ORCAD_FENCED_DETAIL } from './orcad-managed-serving'
+import { MANAGED_ORCAD_FENCED_DETAIL } from './mantad-managed-serving'
 
 const TARGET: SshTarget = { id: 'box', label: 'Box', host: 'box', port: 22, username: 'me' }
 

@@ -8,7 +8,7 @@ import {
   findSlotProblems,
   isCompatSlot,
   readManifest
-} from './orcad-prebuild-slot-contents.mjs'
+} from './mantad-prebuild-slot-contents.mjs'
 import { ensurePinnedNodeExecutable } from './pinned-node-downloads.mjs'
 import { runProcessSync } from './script-child-process.mjs'
 

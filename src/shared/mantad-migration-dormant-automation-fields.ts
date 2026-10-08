@@ -6,7 +6,7 @@ import {
   requiredRecord,
   requiredString,
   requiredStringOrEmpty
-} from './orcad-migration-dormant-value-validation'
+} from './mantad-migration-dormant-value-validation'
 
 // Field checks for dormant automations and their final runs; each throws its specific error.
 

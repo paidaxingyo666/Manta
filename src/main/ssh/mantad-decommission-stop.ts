@@ -9,12 +9,12 @@ import { isUnconfirmedSshCommandTermination } from './ssh-relay-deploy-helpers'
 import {
   cancelRemoteOrcadManagedStop,
   completeRemoteOrcadManagedStop
-} from './orcad-managed-remote-stop'
-import type { OrcadSlotOptions } from './orcad-recovery-slot'
+} from './mantad-managed-remote-stop'
+import type { OrcadSlotOptions } from './mantad-recovery-slot'
 import type {
   OrcadDaemonRetirementVerdict,
   OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import { errorMessage } from '../../shared/error-message'
 
 export type OrcadDecommissionStopSettlement =

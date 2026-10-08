@@ -9,12 +9,12 @@
 import type {
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import {
   decodeOrcadMigrationSnapshotChunk,
   type OrcadMigrationSnapshotChunkRequest,
   type OrcadMigrationSnapshotChunkResult
-} from '../../shared/orcad-migration-scrollback'
+} from '../../shared/mantad-migration-scrollback'
 import type { Store } from '../persistence'
 
 export type OrcadMigrationSnapshotSource = Pick<Store, 'readOrcadMigrationSourceSnapshotChunk'>

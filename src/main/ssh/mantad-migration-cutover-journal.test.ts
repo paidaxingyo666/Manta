@@ -2,14 +2,14 @@ import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { orcadMigrationCutoverFixture as cutover } from './orcad-migration-cutover-fixture'
+import { orcadMigrationCutoverFixture as cutover } from './mantad-migration-cutover-fixture'
 import {
   findOrcadMigrationSourceCutoverForTarget,
   listOrcadMigrationSourceCutovers,
   orcadMigrationCutoverJournalDirectory,
   removeOrcadMigrationSourceCutover,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-journal'
 
 let userDataPath: string
 beforeEach(() => {

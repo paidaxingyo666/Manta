@@ -5,7 +5,7 @@ import {
   confirmOrcadMigrationTerminalsUnderFence,
   retireProvenExitedLeases,
   type ListRelayPtyIds
-} from './orcad-migration-terminal-gate'
+} from './mantad-migration-terminal-gate'
 
 function store(leases: Pick<SshRemotePtyLease, 'ptyId' | 'state'>[]) {
   const full = leases.map((lease) => ({ ...lease, targetId: 'ssh-1', createdAt: 1, updatedAt: 1 }))

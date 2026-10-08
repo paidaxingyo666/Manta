@@ -9,8 +9,8 @@ import {
   ORCAD_SLOT_STOP_WAIT_SECONDS,
   type OrcadSlotIdentity,
   type OrcadSlotOptions
-} from './orcad-recovery-slot'
-import { recoverOrcadIncumbent } from './orcad-incumbent-recovery'
+} from './mantad-recovery-slot'
+import { recoverOrcadIncumbent } from './mantad-incumbent-recovery'
 import { errorMessage } from '../../shared/error-message'
 
 /** Null once the incumbent provably exited; otherwise why not, with the fence kept if it may still change. */

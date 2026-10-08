@@ -12,13 +12,13 @@ import {
   requiredRecord,
   requiredString,
   requiredStringOrEmpty
-} from './orcad-migration-dormant-value-validation'
+} from './mantad-migration-dormant-value-validation'
 import {
   parseOutputSnapshot,
   parsePrecheck,
   parsePrecheckResult,
   parseUsage
-} from './orcad-migration-dormant-automation-fields'
+} from './mantad-migration-dormant-automation-fields'
 
 const FINAL_RUN_STATUSES = new Set<unknown>([
   'completed',

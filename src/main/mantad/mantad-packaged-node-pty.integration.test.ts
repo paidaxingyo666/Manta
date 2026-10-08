@@ -8,7 +8,7 @@ import { runProcess } from '../../shared/child-process/run-process'
 import { NODE_RUNTIME_PIN } from '../../shared/node-runtime-pin'
 import { ORCAD_NODE_PTY_DIR } from '../../shared/mantad-artifacts'
 import { removeTreeSync } from '../../shared/windows-transient-lock-removal'
-import { locatePinnedNodeForTests, skipForMissingInputs } from './orcad-node-slot-fixture'
+import { locatePinnedNodeForTests, skipForMissingInputs } from './mantad-node-slot-fixture'
 
 const packageDir = resolve('out/mantad')
 const pinnedNode = locatePinnedNodeForTests()

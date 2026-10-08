@@ -28,16 +28,16 @@ import {
   managedServer,
   reconnect,
   targetLeases
-} from './helpers/orcad-convert-flow'
-import { seedRelayEraProfile, seedRelayEraTarget } from './helpers/orcad-upgrade-profile'
-import { ORCAD_CONVERT_HOST_ENV, startOrcadConvertHost } from './helpers/orcad-convert-host'
+} from './helpers/mantad-convert-flow'
+import { seedRelayEraProfile, seedRelayEraTarget } from './helpers/mantad-upgrade-profile'
+import { ORCAD_CONVERT_HOST_ENV, startOrcadConvertHost } from './helpers/mantad-convert-host'
 import { mutateStoppedProfileState } from './helpers/persisted-profile-state'
-import { mantaCliResult, runCompiledOrcaCli } from './helpers/compiled-orca-cli'
+import { mantaCliResult, runCompiledOrcaCli } from './helpers/compiled-manta-cli'
 import {
   killHostOrcad,
   listHostOrcadProcesses,
   listHostOrcadServerProcesses
-} from './helpers/windows-host-orcad-processes'
+} from './helpers/windows-host-mantad-processes'
 import { readWindowsHostCellDescriptor } from '../../src/main/ssh/ssh-windows-host-cells'
 import { runtimeHostContactFromSnapshot } from '../../src/shared/runtime-host-contact'
 import type {

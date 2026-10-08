@@ -10,9 +10,9 @@
 import {
   ORCAD_MIGRATION_SOURCE_CUTOVER_VERSION,
   type OrcadMigrationSourceCutover
-} from '../../shared/orcad-migration-source-cutover'
-import type { OrcadDeltaMoveResult } from '../../shared/orcad-managed-runtime'
-import { recordManagedOrcadMigration } from '../../shared/runtime-environment-managed-orcad-store'
+} from '../../shared/mantad-migration-source-cutover'
+import type { OrcadDeltaMoveResult } from '../../shared/mantad-managed-runtime'
+import { recordManagedOrcadMigration } from '../../shared/runtime-environment-managed-mantad-store'
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { Store } from '../persistence'
@@ -21,30 +21,30 @@ import {
   commitOrcadMigrationDestination,
   type OrcadMigrationCutoverContext,
   type OrcadMigrationDestinationCatalog
-} from './orcad-migration-cutover-coordinator'
+} from './mantad-migration-cutover-coordinator'
 import {
   findOrcadMigrationSourceCutoverForTarget,
   listOrcadMigrationCutoverChainForTarget,
   removeOrcadMigrationSourceCutover,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-journal'
 import {
   committedOrcadMigrationChain,
   orcadDeltaSourceStore,
   planOrcadDeltaMove,
   unfinishedOrcadDelta,
   type OrcadDeltaMovePlan
-} from './orcad-migration-delta-plan'
-import { retainOrcadMigrationSource } from './orcad-migration-source-retention'
+} from './mantad-migration-delta-plan'
+import { retainOrcadMigrationSource } from './mantad-migration-source-retention'
 import {
   assessOrcadMigrationTerminals,
   retireProvenExitedLeases,
   type CensusHostRelayTerminals,
   type ListRelayPtyIds
-} from './orcad-migration-terminal-gate'
-import { currentOrcadSourceFingerprint } from './orcad-retained-source'
-import type { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
-import { orcadMigrationRefusalReason } from './orcad-migration-refusal-reason'
+} from './mantad-migration-terminal-gate'
+import { currentOrcadSourceFingerprint } from './mantad-retained-source'
+import type { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
+import { orcadMigrationRefusalReason } from './mantad-migration-refusal-reason'
 import { errorMessage } from '../../shared/error-message'
 
 export type OrcadDeltaMoveArgs = {

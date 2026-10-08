@@ -8,17 +8,17 @@
  */
 import { isLiveSshPtyLease } from '../../shared/ssh-pty-lease-liveness'
 import type { Store } from '../persistence'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type {
   OrcadMigrationBlocker,
   OrcadMigrationPreflight
-} from '../../shared/orcad-migration-preflight'
+} from '../../shared/mantad-migration-preflight'
 import {
   createOrcadMigrationManifest,
   type OrcadMigrationExportStore
-} from './orcad-migration-manifest-export'
-import { collectTargetCatalogBlockers } from './ssh-target-orcad-claims'
-import { collectUntransferredDependentBlockers } from './ssh-target-orcad-dependents'
+} from './mantad-migration-manifest-export'
+import { collectTargetCatalogBlockers } from './ssh-target-mantad-claims'
+import { collectUntransferredDependentBlockers } from './ssh-target-mantad-dependents'
 
 export type OrcadMigrationPreflightStore = OrcadMigrationExportStore &
   Pick<

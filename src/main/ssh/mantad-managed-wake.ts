@@ -24,7 +24,7 @@ import {
   resolveOrcadSlotIdentity,
   slotLiveness,
   type OrcadSlotOptions
-} from './orcad-recovery-slot'
+} from './mantad-recovery-slot'
 
 export type OrcadManagedWake =
   | { outcome: 'serving' | 'not-activated' | 'unverifiable' }

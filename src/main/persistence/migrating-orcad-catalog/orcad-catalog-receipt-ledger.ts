@@ -7,8 +7,8 @@ import {
   MAX_ORCAD_MIGRATION_IMPORT_RECEIPTS,
   type OrcadMigrationImportReceipt,
   type OrcadMigrationManifest
-} from '../../../shared/orcad-migration-manifest'
-import { MAX_ORCAD_MIGRATION_EVICTED_RECEIPTS } from '../../../shared/orcad-migration-evicted-receipts'
+} from '../../../shared/mantad-migration-manifest'
+import { MAX_ORCAD_MIGRATION_EVICTED_RECEIPTS } from '../../../shared/mantad-migration-evicted-receipts'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 
 // A client resumes a stage within minutes; a week only covers a host left offline meanwhile.

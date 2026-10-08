@@ -1,5 +1,5 @@
 /** The managed tunnels a client holds, and the one rule for whether one still belongs to its server. */
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import {
   getRuntimeSshAccess,
   type KnownRuntimeEnvironment,

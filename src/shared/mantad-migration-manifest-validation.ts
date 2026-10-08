@@ -4,7 +4,7 @@ import type {
   OrcadMigrationImportReceipt,
   OrcadMigrationManifest,
   OrcadMigrationManifestSource
-} from './orcad-migration-manifest'
+} from './mantad-migration-manifest'
 import type { ProjectGroup } from './project-group-types'
 import type { Repo } from './repo-types'
 import {
@@ -15,11 +15,11 @@ import {
   requiredDate,
   requiredFiniteNumber,
   requiredString
-} from './orcad-migration-manifest-fields'
+} from './mantad-migration-manifest-fields'
 import {
   assertOrcadMigrationDormantStateReferences,
   parseOrcadMigrationDormantState
-} from './orcad-migration-dormant-state-validation'
+} from './mantad-migration-dormant-state-validation'
 
 export const ORCAD_MIGRATION_MANIFEST_VERSION = 1 as const
 export type OrcadMigrationManifestVersion = typeof ORCAD_MIGRATION_MANIFEST_VERSION

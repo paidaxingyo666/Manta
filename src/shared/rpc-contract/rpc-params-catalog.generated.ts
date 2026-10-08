@@ -23,7 +23,7 @@ import {
   PairingProvisionRelayParamsSchema
 } from '../mobile-relay-credential-contract'
 import { MobileWebBundleChunkParamsSchema } from '../mobile-web-bundle/bundle-rpc-contract'
-import { OrcadMigrationSnapshotChunkRequestSchema } from '../orcad-migration-scrollback'
+import { OrcadMigrationSnapshotChunkRequestSchema } from '../mantad-migration-scrollback'
 import { OrcadTerminalCensusParamsSchema } from '../mantad-terminal-census'
 import { pluginConsentRequestSchema } from '../plugins/plugin-consent-request'
 import {
@@ -374,7 +374,7 @@ import {
   NotificationUnsubscribeParams,
   NotificationsSubscribeParams
 } from './notifications-params'
-import { OrcadMigrationCatalogParams } from './orcad-migration-params'
+import { OrcadMigrationCatalogParams } from './mantad-migration-params'
 import {
   FederationDispatchParams,
   FederationFleetSnapshotParams,

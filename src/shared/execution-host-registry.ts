@@ -17,7 +17,7 @@ import type { SshConnectionState, SshConnectionStatus } from './ssh-types'
 import type { RuntimeEnvironmentSource } from './runtime-environments'
 import type { GlobalSettings } from './global-settings-types'
 import type { Repo } from './repo-types'
-import { annotateManagedOrcadExecutionHosts } from './managed-orcad-execution-host'
+import { annotateManagedOrcadExecutionHosts } from './managed-mantad-execution-host'
 
 export type ExecutionHostHealth =
   | 'local'

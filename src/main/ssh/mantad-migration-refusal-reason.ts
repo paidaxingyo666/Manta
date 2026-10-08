@@ -1,7 +1,7 @@
 import type {
   OrcadMigrationBlocker,
   OrcadMigrationDependencyKind
-} from '../../shared/orcad-migration-preflight'
+} from '../../shared/mantad-migration-preflight'
 
 const DEPENDENCY_WORDS: Record<OrcadMigrationDependencyKind, string> = {
   'saved-port-forward': 'saved port forwards',

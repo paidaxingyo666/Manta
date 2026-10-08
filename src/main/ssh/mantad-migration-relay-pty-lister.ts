@@ -9,7 +9,7 @@
 import { getSshPtyProvider } from '../ipc/pty/provider/registry'
 import type { IPtyProvider } from '../providers/types'
 import { toRelaySshPtyId } from '../providers/ssh-pty-id'
-import type { ListRelayPtyIds } from './orcad-migration-terminal-gate'
+import type { ListRelayPtyIds } from './mantad-migration-terminal-gate'
 import { listPreviousRelayPtyIds } from './ssh-legacy-relay-routing'
 
 /** Long enough for a Windows relay's first process-table read, short enough to block a click. */

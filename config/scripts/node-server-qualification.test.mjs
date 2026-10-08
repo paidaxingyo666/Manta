@@ -39,7 +39,7 @@ it.each([
   'src/main/daemon/entry.ts',
   'src/relay/index.ts',
   'config/scripts/build-mantad-prebuilds.mjs',
-  'config/scripts/orcad-prebuild-slot-contents.mjs',
+  'config/scripts/mantad-prebuild-slot-contents.mjs',
   'src/shared/node-runtime-pin.ts'
 ])('retains all platforms for platform-flavoured input %s', (file) => {
   expect(nodeServerQualification([file], scope)).toEqual({

@@ -6,9 +6,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type {
   OrcadDeltaMovePreview,
   OrcadDeltaMoveResult
-} from '../../../../shared/orcad-managed-runtime'
+} from '../../../../shared/mantad-managed-runtime'
 import type { SshTarget } from '../../../../shared/ssh-types'
-import type { ManagedOrcadPreloadApi } from '../../../../preload/api/managed-orcad-api'
+import type { ManagedOrcadPreloadApi } from '../../../../preload/api/managed-mantad-api'
 import { SshHostDeltaMoveDialog } from './SshHostDeltaMoveDialog'
 
 vi.mock('../ui/dialog', () => ({

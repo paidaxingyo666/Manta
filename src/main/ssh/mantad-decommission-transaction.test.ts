@@ -8,9 +8,9 @@ import {
   createOrcadDecommissionTransaction,
   withOrcadDecommissionProcessExited,
   withOrcadDecommissionStopDispatched
-} from './orcad-decommission-transaction'
+} from './mantad-decommission-transaction'
 import { FakeOrcadHost, NEW } from './mantad-activation-host-test-harness'
-import type { OrcadManagedStopRequest } from '../../shared/orcad-stop-request'
+import type { OrcadManagedStopRequest } from '../../shared/mantad-stop-request'
 
 const T = new Date('2026-02-02T00:00:00.000Z')
 const ID = '7f1c2a7e-6c1b-4a8e-9f0e-0a1b2c3d4e5f'

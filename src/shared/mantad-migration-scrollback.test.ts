@@ -8,7 +8,7 @@ import {
   parseOrcadMigrationTerminalScrollbackSnapshots,
   type OrcadMigrationSnapshotChunkRequest,
   type OrcadMigrationTerminalScrollbackSnapshot
-} from './orcad-migration-scrollback'
+} from './mantad-migration-scrollback'
 import { TERMINAL_SCROLLBACK_STORE_BYTE_LIMIT } from './terminal-scrollback-limits'
 
 const DIGEST = 'a'.repeat(64)

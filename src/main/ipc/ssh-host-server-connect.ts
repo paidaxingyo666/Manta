@@ -141,7 +141,7 @@ export async function refineRelayTerminalDecision(
       { censusHostRelayTerminalsFor }
     ] = await Promise.all([
       import('../ssh/ssh-host-relay-terminals-once-connected'),
-      import('../ssh/orcad-migration-relay-pty-lister'),
+      import('../ssh/mantad-migration-relay-pty-lister'),
       import('../ssh/ssh-host-relay-census-for-target')
     ])
     const refined = await relayTerminalsOnceConnected({

@@ -3,11 +3,11 @@
  * its projects and can reach them over its own relay. New builds hide those rows and serve the host
  * from the server. They are never deleted automatically.
  */
-import type { OrcadMigrationSourceCutover } from '../../shared/orcad-migration-source-cutover'
+import type { OrcadMigrationSourceCutover } from '../../shared/mantad-migration-source-cutover'
 import {
   listOrcadMigrationSourceCutovers,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-journal'
 
 /** Marks a committed migration as finished for this build while its source rows stay. */
 export function retainOrcadMigrationSource(

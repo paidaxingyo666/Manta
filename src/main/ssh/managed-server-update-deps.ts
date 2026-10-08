@@ -1,8 +1,8 @@
 /** The live update-check collaborators, shared by the connect decision and the tunnel restore. */
 import { getAppEnvironment } from '../../shared/app-environment'
 import type { ManagedServerUpdateDeps } from './managed-server-update-check'
-import { autoUpdateManagedOrcadEnvironment } from './orcad-managed-auto-update'
-import { requireManagedOrcadTargetStore } from './orcad-managed-runtime-context'
+import { autoUpdateManagedOrcadEnvironment } from './mantad-managed-auto-update'
+import { requireManagedOrcadTargetStore } from './mantad-managed-runtime-context'
 
 export function managedServerUpdateDeps(userDataPath: string): ManagedServerUpdateDeps {
   const registry = requireManagedOrcadTargetStore()

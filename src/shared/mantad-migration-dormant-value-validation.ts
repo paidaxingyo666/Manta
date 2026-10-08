@@ -4,7 +4,7 @@ import {
   boundedStringArray,
   isRecord,
   nonEmptyString
-} from './orcad-migration-manifest-fields'
+} from './mantad-migration-manifest-fields'
 
 export const MAX_ORCAD_MIGRATION_DORMANT_ROWS = 16_384
 export const MAX_ORCAD_MIGRATION_DORMANT_NAMESPACES = 256

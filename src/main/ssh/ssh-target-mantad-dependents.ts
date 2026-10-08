@@ -11,8 +11,8 @@ import {
   type OrcadMigrationBlocker,
   type OrcadMigrationDependency,
   type OrcadMigrationDependencyKind
-} from '../../shared/orcad-migration-preflight'
-import type { OrcadMigrationManifest } from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-preflight'
+import type { OrcadMigrationManifest } from '../../shared/mantad-migration-manifest'
 
 export type DependentStateStore = Pick<
   Store,

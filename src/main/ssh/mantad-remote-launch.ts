@@ -31,13 +31,13 @@ import {
 } from './mantad-remote-host-support'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { selectOrcadSlotRuntimeCommand } from './mantad-remote-runtime'
-import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/orcad-stop-request'
+import { ORCAD_STOP_REQUEST_FILENAME } from '../../shared/mantad-stop-request'
 import { windowsOrcadLivenessProbeCommand } from './mantad-remote-liveness-windows'
 import {
   ORCAD_E2E_IDLE_TIMEOUT_ENV,
   ORCAD_MANAGED_ACTIVATION_ROOT_ENV,
   readOrcadE2EIdleTimeoutMs
-} from '../../shared/orcad-idle-exit'
+} from '../../shared/mantad-idle-exit'
 
 export {
   MANTAD_LOG_FILENAME,

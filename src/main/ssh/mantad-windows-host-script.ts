@@ -22,8 +22,8 @@ import {
 import {
   ORCAD_STOP_REQUEST_FILENAME,
   ORCAD_STOP_REQUESTS_CAPABILITY
-} from '../../shared/orcad-stop-request'
-import { ORCAD_STDIO_BRIDGE_FUNCTION } from './orcad-stdio-bridge-script'
+} from '../../shared/mantad-stop-request'
+import { ORCAD_STDIO_BRIDGE_FUNCTION } from './mantad-stdio-bridge-script'
 import {
   ORCAD_WINDOWS_FENCE_PRELUDE,
   ORCAD_WINDOWS_HOST_FENCE_OPS

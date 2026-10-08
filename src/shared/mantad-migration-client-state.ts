@@ -12,9 +12,9 @@ import {
   parseMobileSelections,
   parseSavedPortForwards,
   parseUiRouting
-} from './orcad-migration-client-state-parsing'
-import { isWorkspaceHostId } from './orcad-migration-client-state-value-validation'
-import { isRecord } from './orcad-migration-manifest-fields'
+} from './mantad-migration-client-state-parsing'
+import { isWorkspaceHostId } from './mantad-migration-client-state-value-validation'
+import { isRecord } from './mantad-migration-manifest-fields'
 import type { ClientHostedBrowserCloseIntent } from './client-hosted-browser-close-intent'
 
 export type OrcadMigrationUiRoutingState = {

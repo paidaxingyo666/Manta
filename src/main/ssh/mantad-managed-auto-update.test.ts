@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { emptyOrcadActivationRecord, type OrcadActivationRecord } from './mantad-activation-record'
-import { OrcadHostUnsupportedError } from './orcad-host-unavailable'
+import { OrcadHostUnsupportedError } from './mantad-host-unavailable'
 
 const mocks = vi.hoisted(() => {
   const state: { record: OrcadActivationRecord | null } = { record: null }
@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('./orcad-runtime-maintenance', () => ({
+vi.mock('./mantad-runtime-maintenance', () => ({
   withManagedOrcadLifecycle: (
     _userData: string,
     _selector: string,
@@ -20,13 +20,13 @@ vi.mock('./orcad-runtime-maintenance', () => ({
   ) => run({ environment: { id: 'env-1' }, deployment: {} }),
   runManagedOrcadUpdate: mocks.runUpdate
 }))
-vi.mock('./orcad-managed-runtime-context', () => ({
+vi.mock('./mantad-managed-runtime-context', () => ({
   resolveLinkedOrcadContext: async () => ({
     activationRecord: mocks.state.record,
     serverTarget: 'linux-x64'
   })
 }))
-vi.mock('./orcad-managed-migration-status', () => ({
+vi.mock('./mantad-managed-migration-status', () => ({
   findIncompleteManagedOrcadMigration: mocks.migrating
 }))
 vi.mock('./mantad-artifact-materializer', () => ({ materializeOrcadArtifact: mocks.materialize }))
@@ -36,7 +36,7 @@ import {
   autoUpdateManagedOrcadEnvironment,
   planManagedOrcadAutoUpdate,
   resetBundledOrcadVersionsForTests
-} from './orcad-managed-auto-update'
+} from './mantad-managed-auto-update'
 
 function record(overrides: Partial<OrcadActivationRecord>): OrcadActivationRecord {
   return { ...emptyOrcadActivationRecord(), active: '0.1.0+old', ...overrides }

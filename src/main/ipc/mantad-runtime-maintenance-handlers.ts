@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { registerManagedServerActions } from '../runtime/managed-server-actions-registry'
-import { createManagedOrcadActions, type ManagedOrcadActionOptions } from './managed-orcad-actions'
-import { requiredString } from './orcad-runtime-lifecycle-handlers'
+import { createManagedOrcadActions, type ManagedOrcadActionOptions } from './managed-mantad-actions'
+import { requiredString } from './mantad-runtime-lifecycle-handlers'
 
 export function registerOrcadRuntimeMaintenanceHandlers(options: ManagedOrcadActionOptions): void {
   const actions = createManagedOrcadActions(options)

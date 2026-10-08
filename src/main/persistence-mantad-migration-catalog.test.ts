@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { MAX_ORCAD_MIGRATION_STAGED_CATALOGS } from '../shared/orcad-migration-manifest'
+import { MAX_ORCAD_MIGRATION_STAGED_CATALOGS } from '../shared/mantad-migration-manifest'
 import { getDefaultWorkspaceSession } from '../shared/constants'
 import { folderWorkspaceKey, worktreeWorkspaceKey } from '../shared/workspace-scope'
 import { MAX_RETIREMENT_NAMESPACES } from './worktree-retirement-namespace'
@@ -16,7 +16,7 @@ import {
   REPOSITORY,
   dormantState,
   manifest
-} from './persistence-orcad-migration-catalog-fixture'
+} from './persistence-mantad-migration-catalog-fixture'
 import {
   createStore,
   makeRepo,

@@ -1,5 +1,5 @@
 /** The last update each managed server deferred in this session, so status can report it. */
-import type { OrcadManagedDeferral } from '../../shared/orcad-managed-runtime'
+import type { OrcadManagedDeferral } from '../../shared/mantad-managed-runtime'
 import { compareAppVersions } from '../../shared/app-version'
 
 type RecordedDeferral = OrcadManagedDeferral & { deferredAt: string }

@@ -7,30 +7,30 @@
  * A fence without a journal is never released here: only the destination can say what happened.
  */
 import { randomUUID } from 'node:crypto'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
-import type { OrcadMigrationBlocker } from '../../shared/orcad-migration-preflight'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
+import type { OrcadMigrationBlocker } from '../../shared/mantad-migration-preflight'
 import {
   ORCAD_MIGRATION_SOURCE_CUTOVER_VERSION,
   type OrcadMigrationSourceCutover
-} from '../../shared/orcad-migration-source-cutover'
+} from '../../shared/mantad-migration-source-cutover'
 import type { SshTarget } from '../../shared/ssh-types'
-import { createOrcadMigrationManifest } from './orcad-migration-manifest-export'
+import { createOrcadMigrationManifest } from './mantad-migration-manifest-export'
 import {
   findOrcadMigrationSourceCutoverForTarget,
   removeOrcadMigrationSourceCutover,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-journal'
 import {
   confirmOrcadMigrationTerminalsUnderFence,
   type OrcadMigrationTerminalVerdict
-} from './orcad-migration-terminal-gate'
-import type { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
+} from './mantad-migration-terminal-gate'
+import type { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
 import {
   isBlockingOrcadMigrationBlocker,
   preflightOrcadMigrationExport,
   type OrcadMigrationPreflightStore
-} from './ssh-target-orcad-preflight'
-import { orcadMigrationRefusalReason } from './orcad-migration-refusal-reason'
+} from './ssh-target-mantad-preflight'
+import { orcadMigrationRefusalReason } from './mantad-migration-refusal-reason'
 
 export type OrcadMigrationFenceState =
   | { state: 'none' }

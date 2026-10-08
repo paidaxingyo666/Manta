@@ -1,6 +1,6 @@
 import type { NodeRuntimeTarget } from '../../shared/node-runtime-pin'
 import { resolveOrcadDeploymentTargetFacts } from './mantad-deployment-target'
-import { OrcadHostUnsupportedError } from './orcad-host-unavailable'
+import { OrcadHostUnsupportedError } from './mantad-host-unavailable'
 import type { SshConnection } from './ssh-connection'
 import { pinnedRuntimeTargetForHost } from './ssh-relay-runtime-ladder'
 import type { RemoteHostPlatform } from './ssh-remote-platform'

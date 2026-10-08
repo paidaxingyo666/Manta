@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SshRemotePtyLease } from '../../shared/ssh-types'
 import type { HostRelayEndpointCensus } from './ssh-host-relay-endpoint-census'
-import type { ListRelayPtyIds } from './orcad-migration-terminal-gate'
+import type { ListRelayPtyIds } from './mantad-migration-terminal-gate'
 import { relayTerminalsOnConnect } from './ssh-host-relay-terminals-on-connect'
 
 function store(leases: Pick<SshRemotePtyLease, 'ptyId' | 'state'>[] = []) {

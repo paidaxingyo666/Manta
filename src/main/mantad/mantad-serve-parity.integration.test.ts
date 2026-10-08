@@ -15,7 +15,7 @@ import {
 } from '../../shared/mantad-native-preflight-report'
 import { MANTAD_LOCK_FILE_NAME } from './mantad-instance-lock'
 import { resolveBundledOrcadRuntime } from './mantad-bundled-runtime'
-import { skipForMissingInputs } from './orcad-node-slot-fixture'
+import { skipForMissingInputs } from './mantad-node-slot-fixture'
 import { buildDaemonSessionClient } from './mantad-daemon-session-client-fixture'
 import {
   killAndAwaitExit,

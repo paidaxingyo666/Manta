@@ -8,15 +8,15 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('electron', () => ({ ipcMain: { handle: mocks.handle } }))
-vi.mock('../ssh/orcad-runtime-lifecycle', () => ({
+vi.mock('../ssh/mantad-runtime-lifecycle', () => ({
   createManagedOrcadEnvironment: mocks.deploy,
   getManagedOrcadRuntimeStatus: mocks.status
 }))
-vi.mock('./orcad-ssh-provisioning-handlers', () => ({
+vi.mock('./mantad-ssh-provisioning-handlers', () => ({
   registerOrcadSshProvisioningHandlers: mocks.registerProvisioning
 }))
 
-const { registerOrcadRuntimeLifecycleHandlers } = await import('./orcad-runtime-lifecycle-handlers')
+const { registerOrcadRuntimeLifecycleHandlers } = await import('./mantad-runtime-lifecycle-handlers')
 
 function handler(channel: string): (_event: unknown, args: unknown) => unknown {
   const registration = mocks.handle.mock.calls.find(([name]) => name === channel)

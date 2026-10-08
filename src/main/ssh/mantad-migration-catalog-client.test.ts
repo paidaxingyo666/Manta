@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import { computeOrcadMigrationManifestSha256 } from '../mantad/mantad-migration-manifest-digest'
 import { encodePairingOffer, PAIRING_OFFER_VERSION } from '../../shared/pairing'
 
@@ -35,7 +35,7 @@ const {
   readRemoteOrcadMigrationCatalogState,
   stageRemoteOrcadMigrationCatalog,
   stageRemoteOrcadMigrationSnapshotChunk
-} = await import('./orcad-migration-catalog-client')
+} = await import('./mantad-migration-catalog-client')
 
 function manifest(): OrcadMigrationManifest {
   const unsigned = {

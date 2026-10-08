@@ -14,7 +14,7 @@ vi.mock('../daemon/daemon-process-start-time', async (importOriginal) => ({
 import {
   orcadProcessStartTimeMatches,
   readOrcadProcessStartedAtMs
-} from './orcad-process-start-time'
+} from './mantad-process-start-time'
 
 const platform = process.platform
 function onPlatform(value: NodeJS.Platform): void {

@@ -2,7 +2,7 @@ import { ipcMain } from 'electron'
 import type { Store } from '../persistence'
 import type { MantaRuntimeService } from '../runtime/manta-runtime'
 import { parseTerminalSurfaceCloseTarget } from '../../shared/terminal-surface-close-target'
-import { isFrozenOrcadSourceSessionPartition } from '../ssh/orcad-retained-source'
+import { isFrozenOrcadSourceSessionPartition } from '../ssh/mantad-retained-source'
 import { markAgentLaunchesClosedByUser } from '../agent-launch/agent-launch-pane-attachment'
 import type {
   WorkspaceSessionPatch,

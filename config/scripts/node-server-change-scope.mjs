@@ -6,13 +6,13 @@ import { nodeServerQualification } from './node-server-qualification.mjs'
 
 const ROOT = resolve(import.meta.dirname, '../..')
 const BUILD_SCRIPTS = [
-  'config/scripts/build-orcad-node.mjs',
+  'config/scripts/build-mantad-node.mjs',
   'config/scripts/server-build-target.mjs',
   'config/scripts/pinned-node-downloads.mjs',
   'config/scripts/build-mantad.mjs',
   'config/scripts/build-mantad-prebuilds.mjs',
   'config/scripts/mantad-windows-prebuild-cache.mjs',
-  'config/scripts/orcad-prebuild-smoke-child.cjs',
+  'config/scripts/mantad-prebuild-smoke-child.cjs',
   'config/scripts/build-windows-process-tree-relay-addon.mjs',
   'config/scripts/run-node-server-tests.mjs',
   'config/vitest.config.ts',

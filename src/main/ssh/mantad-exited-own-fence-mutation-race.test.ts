@@ -23,9 +23,9 @@ vi.mock('./ssh-relay-deploy-helpers', async (importOriginal) => {
   }
 })
 
-const { exitedOwnLockProof } = await import('./orcad-exited-own-lock')
+const { exitedOwnLockProof } = await import('./mantad-exited-own-lock')
 const { initOrcadHeldFenceTokenFile, ORCAD_HELD_FENCE_TOKENS_FILE_NAME } =
-  await import('./orcad-held-fence-tokens')
+  await import('./mantad-held-fence-tokens')
 const { tryStealInstallLockCommand } = await import('./ssh-relay-install-lock-commands')
 const { serializedStateMutationCommand } = await import('./mantad-state-snapshot')
 const { ORCAD_FENCE_LOST_EXIT, ORCAD_FENCE_LOST_MARKER } =

@@ -5,7 +5,7 @@ import {
   SshConnectionStore
 } from './ssh-connection-store'
 import { createMockStore } from './ssh-connection-store-test-fixture'
-import { emptyDependentStateStore } from './ssh-target-orcad-dependents-fixture'
+import { emptyDependentStateStore } from './ssh-target-mantad-dependents-fixture'
 
 const { loadUserSshConfigMock, sshConfigHostsToTargetsMock } = vi.hoisted(() => ({
   loadUserSshConfigMock: vi.fn(),

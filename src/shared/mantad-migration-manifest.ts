@@ -1,6 +1,6 @@
 import type { FolderWorkspace } from './folder-workspace-types'
 import type { Automation, AutomationRun } from './automations-types'
-import type { OrcadMigrationManifestVersion } from './orcad-migration-manifest-validation'
+import type { OrcadMigrationManifestVersion } from './mantad-migration-manifest-validation'
 import type { ProjectGroup } from './project-group-types'
 import type { Repo } from './repo-types'
 import type { SparsePreset } from './worktree/create-types'
@@ -8,11 +8,11 @@ import type { WorkspaceLineage, WorktreeLineage } from './worktree/lineage-types
 import type { WorktreeMeta } from './worktree/meta-types'
 import type { RetiredNameRegistry } from './worktree/retired-name-registry'
 import type { WorkspaceSessionState } from './workspace-session-state-types'
-import type { OrcadMigrationClientStatePayload } from './orcad-migration-client-state'
+import type { OrcadMigrationClientStatePayload } from './mantad-migration-client-state'
 import type {
   OrcadMigrationSnapshotUploadState,
   OrcadMigrationTerminalScrollbackSnapshot
-} from './orcad-migration-scrollback'
+} from './mantad-migration-scrollback'
 
 export {
   MAX_ORCAD_MIGRATION_FOLDER_WORKSPACES,
@@ -23,17 +23,17 @@ export {
   normalizeOrcadMigrationImportReceipts,
   ORCAD_MIGRATION_MANIFEST_VERSION,
   parseOrcadMigrationManifest
-} from './orcad-migration-manifest-validation'
+} from './mantad-migration-manifest-validation'
 export {
   MAX_ORCAD_MIGRATION_DORMANT_NAMESPACES,
   MAX_ORCAD_MIGRATION_DORMANT_ROWS,
   ORCAD_MIGRATION_DORMANT_STATE_VERSION
-} from './orcad-migration-dormant-state-validation'
+} from './mantad-migration-dormant-state-validation'
 export {
   MAX_ORCAD_MIGRATION_STAGED_CATALOGS,
   normalizeOrcadMigrationStagedCatalogs
-} from './orcad-migration-staged-catalog-validation'
-import { isRecord } from './orcad-migration-manifest-fields'
+} from './mantad-migration-staged-catalog-validation'
+import { isRecord } from './mantad-migration-manifest-fields'
 
 export type OrcadMigrationManifestSource = {
   sshTargetId: string

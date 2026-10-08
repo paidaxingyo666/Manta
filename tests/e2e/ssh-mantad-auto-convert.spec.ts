@@ -34,18 +34,18 @@ import {
   reconnect,
   serverCall,
   targetLeases
-} from './helpers/orcad-convert-flow'
+} from './helpers/mantad-convert-flow'
 import {
   isOrcadFullVersion,
   makeOrcadTemplateVariant,
   readHostOrcadActivation
 } from './helpers/mantad-template-variant'
-import { seedRelayEraProfile } from './helpers/orcad-upgrade-profile'
+import { seedRelayEraProfile } from './helpers/mantad-upgrade-profile'
 import {
   ORCAD_CONVERT_HOST_ENV,
   startOrcadConvertHost,
   type OrcadConvertHost
-} from './helpers/orcad-convert-host'
+} from './helpers/mantad-convert-host'
 import { toSshExecutionHostId } from '../../src/shared/execution-host'
 
 const HOST = process.env[ORCAD_CONVERT_HOST_ENV]

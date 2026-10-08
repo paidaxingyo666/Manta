@@ -1,4 +1,4 @@
-import { serializeOrcadMigrationValue } from '../../../shared/orcad-migration-manifest'
+import { serializeOrcadMigrationValue } from '../../../shared/mantad-migration-manifest'
 import type { WorkspaceSessionState } from '../../../shared/workspace-session-state-types'
 import { mergeWorkspaceSessions } from '../../manta-profiles/profile-project-session-state'
 import { SESSION_FIELDS_PRUNED_BY_OWNER_KEY } from '../../manta-profiles/profile-project-session-field-disposition'

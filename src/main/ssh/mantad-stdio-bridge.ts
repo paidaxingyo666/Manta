@@ -3,14 +3,14 @@ import type { ClientChannel } from 'ssh2'
 import {
   OrcadHostUnsupportedError,
   OrcadStdioBridgeUnavailableError
-} from './orcad-host-unavailable'
+} from './mantad-host-unavailable'
 import { resolveOrcadRemoteContext } from './mantad-remote-context'
 import { orcadRemoteBaseDir, orcadWindowsHostOpCommand } from './mantad-remote-windows-node'
 import {
   orcadPosixStdioBridgeCommand,
   type OrcadStdioBridgeMode
-} from './orcad-stdio-bridge-script'
-import { OrcadStdioBridgeDecoder, type OrcadStdioBridgeSignal } from './orcad-stdio-bridge-stream'
+} from './mantad-stdio-bridge-script'
+import { OrcadStdioBridgeDecoder, type OrcadStdioBridgeSignal } from './mantad-stdio-bridge-stream'
 import type { SshConnection } from './ssh-connection'
 import { isWindowsRemoteHost } from './ssh-remote-platform'
 import { detectRemoteHostPlatform } from './ssh-remote-platform-detection'

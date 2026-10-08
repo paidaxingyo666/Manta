@@ -23,10 +23,10 @@ const mocks = vi.hoisted(() => ({
   preflight: vi.fn(),
   hasDirectAuthority: vi.fn()
 }))
-vi.mock('./orcad-managed-runtime-context', () => ({
+vi.mock('./mantad-managed-runtime-context', () => ({
   requireManagedOrcadInfrastructure: mocks.infrastructure
 }))
-vi.mock('./orcad-managed-tunnel', () => ({
+vi.mock('./mantad-managed-tunnel', () => ({
   startOrcadManagedTunnel: mocks.start,
   closeOrcadManagedTunnel: mocks.close,
   ensureOrcadManagedTunnel: mocks.ensure

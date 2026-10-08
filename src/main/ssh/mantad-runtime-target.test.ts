@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { resolveOrcadRuntimeTarget } from './orcad-runtime-target'
+import { resolveOrcadRuntimeTarget } from './mantad-runtime-target'
 import { SshConnection } from './ssh-connection'
 import { createCallbacks, createTarget } from './ssh-connection-test-fixtures'
 import { execCommand } from './ssh-relay-deploy-helpers'

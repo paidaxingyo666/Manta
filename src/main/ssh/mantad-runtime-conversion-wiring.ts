@@ -5,17 +5,17 @@ import {
   type KnownRuntimeEnvironment
 } from '../../shared/runtime-environments'
 import { disconnectRegisteredSshTarget } from '../ipc/ssh-session-teardown'
-import type { OrcadMigrationDestinationCatalog } from './orcad-migration-cutover-coordinator'
+import type { OrcadMigrationDestinationCatalog } from './mantad-migration-cutover-coordinator'
 import {
   abortRemoteOrcadMigrationCatalog,
   commitRemoteOrcadMigrationCatalog,
   readRemoteOrcadMigrationCatalogState,
   stageRemoteOrcadMigrationCatalog,
   stageRemoteOrcadMigrationSnapshotChunk
-} from './orcad-migration-catalog-client'
-import { orcadMigrationRelayPtyLister } from './orcad-migration-relay-pty-lister'
+} from './mantad-migration-catalog-client'
+import { orcadMigrationRelayPtyLister } from './mantad-migration-relay-pty-lister'
 import { censusHostRelayTerminalsFor } from './ssh-host-relay-census-for-target'
-import type { OrcadManagedConversionArgs } from './orcad-runtime-conversion'
+import type { OrcadManagedConversionArgs } from './mantad-runtime-conversion'
 
 /** The T6-9 client against this server, pinned to the runtime it paired with. */
 export function orcadMigrationDestinationFor(

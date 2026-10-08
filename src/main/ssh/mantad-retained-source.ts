@@ -12,11 +12,11 @@ import { getAppEnvironment } from '../../shared/app-environment'
 import { parseExecutionHostId } from '../../shared/execution-host'
 import type { FolderWorkspace } from '../../shared/folder-workspace-types'
 import type { ProjectGroup } from '../../shared/project-group-types'
-import type { OrcadMigrationCatalogPayload } from '../../shared/orcad-migration-manifest'
+import type { OrcadMigrationCatalogPayload } from '../../shared/mantad-migration-manifest'
 import {
   isRetainedOrcadMigrationSourceCutover,
   type OrcadMigrationSourceCutover
-} from '../../shared/orcad-migration-source-cutover'
+} from '../../shared/mantad-migration-source-cutover'
 import type { Repo } from '../../shared/repo-types'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import type { SshTarget } from '../../shared/ssh-types'
@@ -27,7 +27,7 @@ import {
   projectGroupBelongsToOrcadSource,
   repoBelongsToOrcadSource
 } from '../persistence/migrating-orcad-catalog/orcad-source-ownership'
-import { findOrcadMigrationSourceCutoverForTarget } from './orcad-migration-cutover-journal'
+import { findOrcadMigrationSourceCutoverForTarget } from './mantad-migration-cutover-journal'
 
 const appUserDataPath = (): string => getAppEnvironment().getPath('userData')
 

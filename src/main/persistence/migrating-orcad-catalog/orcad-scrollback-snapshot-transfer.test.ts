@@ -7,11 +7,11 @@ import { getDefaultWorkspaceSession } from '../../../shared/constants'
 import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationManifest
-} from '../../../shared/orcad-migration-manifest'
+} from '../../../shared/mantad-migration-manifest'
 import type {
   OrcadMigrationSnapshotChunkRequest,
   OrcadMigrationTerminalScrollbackSnapshot
-} from '../../../shared/orcad-migration-scrollback'
+} from '../../../shared/mantad-migration-scrollback'
 import {
   getTerminalScrollbackSnapshotPath,
   type TerminalScrollbackSnapshotStorage

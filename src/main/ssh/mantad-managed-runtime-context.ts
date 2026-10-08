@@ -3,7 +3,7 @@ import type {
   KnownRuntimeEnvironment,
   OrcadDeploymentLink
 } from '../../shared/runtime-environments'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type { ServeReadiness } from '../server/serve-readiness'
 import { computeLocalOrcadBuildHash } from './mantad-local-build-hash'
 import { probeActiveOrcadReadiness } from './mantad-active-readiness'

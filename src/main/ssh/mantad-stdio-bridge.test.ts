@@ -6,14 +6,14 @@ import type { EventEmitter } from 'node:events'
 import { PassThrough } from 'node:stream'
 import type { ClientChannel } from 'ssh2'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { OrcadStdioBridgeUnavailableError } from './orcad-host-unavailable'
-import { checkOrcadStdioBridge, type OrcadStdioBridge } from './orcad-stdio-bridge'
+import { OrcadStdioBridgeUnavailableError } from './mantad-host-unavailable'
+import { checkOrcadStdioBridge, type OrcadStdioBridge } from './mantad-stdio-bridge'
 import {
   orcadPosixStdioBridgeCommand,
   type OrcadStdioBridgeMode
-} from './orcad-stdio-bridge-script'
-import { OrcadStdioBridgeBase64Encoder, OrcadStdioBridgeDecoder } from './orcad-stdio-bridge-stream'
-import { spawnLocalBridgeChannel, startEchoServer } from './orcad-stdio-bridge-test-channel'
+} from './mantad-stdio-bridge-script'
+import { OrcadStdioBridgeBase64Encoder, OrcadStdioBridgeDecoder } from './mantad-stdio-bridge-stream'
+import { spawnLocalBridgeChannel, startEchoServer } from './mantad-stdio-bridge-test-channel'
 import { ORCAD_WINDOWS_HOST_SCRIPT } from './mantad-windows-host-script'
 import type { SshConnection } from './ssh-connection'
 

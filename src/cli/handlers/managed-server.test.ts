@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/orcad-managed-runtime'
+import { ORCAD_RECOVERY_CHANGED_STATE_CODE } from '../../shared/mantad-managed-runtime'
 import { MANAGED_SERVER_RUNTIME_CAPABILITY } from '../../shared/protocol-version'
 import { RuntimeClientError } from '../runtime-client'
 import { MANAGED_SERVER_ACTION_TIMEOUT_MS, MANAGED_SERVER_HANDLERS } from './managed-server'

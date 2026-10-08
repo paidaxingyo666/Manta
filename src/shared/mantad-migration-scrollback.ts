@@ -6,7 +6,7 @@ import {
   boundedArray,
   requiredRecord,
   requiredString
-} from './orcad-migration-dormant-value-validation'
+} from './mantad-migration-dormant-value-validation'
 
 export const MAX_ORCAD_MIGRATION_SCROLLBACK_SNAPSHOTS = 512
 export const MAX_ORCAD_MIGRATION_SCROLLBACK_TOTAL_BYTES = 256 * 1024 * 1024

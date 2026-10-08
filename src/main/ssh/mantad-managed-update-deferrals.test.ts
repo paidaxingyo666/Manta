@@ -3,7 +3,7 @@ import {
   clearManagedOrcadUpdateDeferral,
   currentManagedOrcadUpdateDeferral,
   recordManagedOrcadUpdateDeferral
-} from './orcad-managed-update-deferrals'
+} from './mantad-managed-update-deferrals'
 
 function defer(candidateVersion: string): void {
   recordManagedOrcadUpdateDeferral('env-1', {

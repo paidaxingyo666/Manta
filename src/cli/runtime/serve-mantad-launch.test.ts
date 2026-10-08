@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { formatServeRuntimeSelection } from '../../shared/mantad-local-serve-selection'
 import type { runProcess } from '../../shared/child-process/run-process'
-import { orcadServeArgs, resolveLocalServeRuntime } from './serve-orcad-launch'
+import { orcadServeArgs, resolveLocalServeRuntime } from './serve-mantad-launch'
 
 type RunProcess = typeof runProcess
 

@@ -8,18 +8,18 @@
  */
 import { createServer, type Socket } from 'node:net'
 import type { ClientChannel } from 'ssh2'
-import { OrcadStdioBridgeUnavailableError } from './orcad-host-unavailable'
+import { OrcadStdioBridgeUnavailableError } from './mantad-host-unavailable'
 import {
   checkOrcadStdioBridge,
   openOrcadStdioBridgeChannel,
   resolveOrcadStdioBridge,
   type OrcadStdioBridge
-} from './orcad-stdio-bridge'
+} from './mantad-stdio-bridge'
 import {
   OrcadStdioBridgeBase64Encoder,
   OrcadStdioBridgeDecoder,
   type OrcadStdioBridgeSignal
-} from './orcad-stdio-bridge-stream'
+} from './mantad-stdio-bridge-stream'
 import type { SshConnection } from './ssh-connection'
 import type {
   PortForwardStartOptions,

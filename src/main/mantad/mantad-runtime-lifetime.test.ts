@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest'
-import { OrcadRuntimeLifetime } from './orcad-runtime-lifetime'
+import { OrcadRuntimeLifetime } from './mantad-runtime-lifetime'
 
 it('stops in reverse acquisition order and releases the instance lock last', async () => {
   const events: string[] = []

@@ -1,20 +1,20 @@
 import {
   parseOrcadMigrationCatalogAbortResult,
   parseOrcadMigrationCatalogState
-} from '../../shared/orcad-migration-catalog-state'
+} from '../../shared/mantad-migration-catalog-state'
 import type {
   OrcadMigrationCatalogAbortResult,
   OrcadMigrationCatalogState,
   OrcadMigrationManifest
-} from '../../shared/orcad-migration-manifest'
+} from '../../shared/mantad-migration-manifest'
 import {
   parseOrcadMigrationSnapshotChunkResult,
   type OrcadMigrationSnapshotChunkRequest,
   type OrcadMigrationSnapshotChunkResult
-} from '../../shared/orcad-migration-scrollback'
+} from '../../shared/mantad-migration-scrollback'
 import { parsePairingCode } from '../../shared/pairing'
 import { ELECTRON_REMOTE_RUNTIME_CLIENT_CAPABILITIES } from '../../shared/electron-remote-runtime-client-capabilities'
-import { ORCAD_MIGRATION_CATALOG_RUNTIME_CAPABILITY } from '../../shared/orcad-runtime-capabilities'
+import { ORCAD_MIGRATION_CATALOG_RUNTIME_CAPABILITY } from '../../shared/mantad-runtime-capabilities'
 import { sendRemoteRuntimeRequestWithStatusPreflight } from '../../shared/remote-runtime-client'
 import type { RuntimeRpcResponse } from '../../shared/runtime-rpc-envelope'
 

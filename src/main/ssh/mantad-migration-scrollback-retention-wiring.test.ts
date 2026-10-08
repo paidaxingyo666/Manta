@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { OrcadMigrationManifest } from '../../shared/orcad-migration-manifest'
-import type { OrcadMigrationSourceCutover } from '../../shared/orcad-migration-source-cutover'
+import type { OrcadMigrationManifest } from '../../shared/mantad-migration-manifest'
+import type { OrcadMigrationSourceCutover } from '../../shared/mantad-migration-source-cutover'
 
 const journal = vi.hoisted(() => {
   const state: {
@@ -9,7 +9,7 @@ const journal = vi.hoisted(() => {
   } = { cutovers: [], listener: null }
   return state
 })
-vi.mock('./orcad-migration-cutover-journal', () => ({
+vi.mock('./mantad-migration-cutover-journal', () => ({
   listOrcadMigrationSourceCutovers: () => journal.cutovers,
   setOrcadMigrationJournalChangeListener: (listener: (path: string) => void) => {
     journal.listener = listener
@@ -17,7 +17,7 @@ vi.mock('./orcad-migration-cutover-journal', () => ({
 }))
 
 const { installOrcadMigrationScrollbackRetention } =
-  await import('./orcad-migration-scrollback-retention-wiring')
+  await import('./mantad-migration-scrollback-retention-wiring')
 
 function manifest(migrationId: string): OrcadMigrationManifest {
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: the wiring only forwards manifests; the store fake reads the id.

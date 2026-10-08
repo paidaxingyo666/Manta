@@ -23,7 +23,7 @@ import { acquireInstallLock } from './ssh-relay-install-lock'
 import {
   initOrcadHeldFenceTokenFile,
   ORCAD_HELD_FENCE_TOKENS_FILE_NAME
-} from './orcad-held-fence-tokens'
+} from './mantad-held-fence-tokens'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'

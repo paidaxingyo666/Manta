@@ -18,7 +18,7 @@ import {
   FolderWorkspaceUpdateArgs,
   parseProjectGroupIpcArgs
 } from './repo-ipc-arg-schemas'
-import { visibleFolderWorkspaces } from '../../ssh/orcad-retained-source'
+import { visibleFolderWorkspaces } from '../../ssh/mantad-retained-source'
 
 export function registerFolderWorkspaceHandlers(
   mainWindow: BrowserWindow,

@@ -1,6 +1,6 @@
 /** When a managed server last took in migrated state; a rollback to an older snapshot loses it. */
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
-import { listOrcadMigrationSourceCutovers } from './orcad-migration-cutover-journal'
+import { listOrcadMigrationSourceCutovers } from './mantad-migration-cutover-journal'
 
 /**
  * The latest migration into this server: its durable mark, or a journal's start for a delta

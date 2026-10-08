@@ -3,14 +3,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { encodePairingOffer, PAIRING_OFFER_VERSION } from '../../shared/pairing'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
-import { writeOrcadMigrationSourceCutover } from './orcad-migration-cutover-journal'
-import { orcadMigrationCutoverFixture } from './orcad-migration-cutover-fixture'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
+import { writeOrcadMigrationSourceCutover } from './mantad-migration-cutover-journal'
+import { orcadMigrationCutoverFixture } from './mantad-migration-cutover-fixture'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import type { SshTarget } from '../../shared/ssh-types'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
-import { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
-import { emptyDependentStateStore } from './ssh-target-orcad-dependents-fixture'
+import { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
+import { emptyDependentStateStore } from './ssh-target-mantad-dependents-fixture'
 
 const mocks = vi.hoisted(() => {
   const state: { store: unknown } = { store: null }
@@ -55,14 +55,14 @@ vi.mock('./mantad-terminal-census-client', () => ({
     daemonProtocolVersion: 39
   })
 }))
-vi.mock('./orcad-managed-tunnel', () => ({
+vi.mock('./mantad-managed-tunnel', () => ({
   startOrcadManagedTunnel: mocks.startTunnel,
   ensureOrcadManagedTunnel: mocks.ensureTunnel,
   closeOrcadManagedTunnel: mocks.closeTunnel
 }))
 
 const { createManagedOrcadEnvironment, getManagedOrcadRuntimeStatus } =
-  await import('./orcad-runtime-lifecycle')
+  await import('./mantad-runtime-lifecycle')
 
 const VERSION = '0.1.0+abc123'
 const emptyRecord = { active: null, previous: null, activatedAt: null, snapshot: null }

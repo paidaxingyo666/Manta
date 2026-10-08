@@ -7,12 +7,12 @@ const mocks = vi.hoisted(() => ({
   list: vi.fn()
 }))
 vi.mock('electron', () => ({ ipcMain: { handle: mocks.handle } }))
-vi.mock('../ssh/orcad-ssh-provisioning', () => ({
+vi.mock('../ssh/mantad-ssh-provisioning', () => ({
   createOrcadSshHost: mocks.create,
   resumeOrcadSshHost: mocks.resume,
   listPendingOrcadSshProvisioning: mocks.list
 }))
-import { registerOrcadSshProvisioningHandlers } from './orcad-ssh-provisioning-handlers'
+import { registerOrcadSshProvisioningHandlers } from './mantad-ssh-provisioning-handlers'
 
 describe('managed SSH provisioning IPC', () => {
   beforeEach(() => vi.clearAllMocks())

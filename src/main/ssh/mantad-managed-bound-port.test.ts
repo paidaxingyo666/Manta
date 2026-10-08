@@ -11,7 +11,7 @@ import {
   orcadBoundPort,
   readManagedOrcadBoundPort,
   resolveManagedOrcadTunnelPort
-} from './orcad-managed-bound-port'
+} from './mantad-managed-bound-port'
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
 import type { SshTarget } from '../../shared/ssh-types'
 

@@ -1,7 +1,7 @@
 import type { z } from 'zod'
-import { OrcadMigrationCatalogParams } from '../../../../shared/rpc-contract/orcad-migration-params'
-import { parseOrcadMigrationManifest } from '../../../../shared/orcad-migration-manifest'
-import { OrcadMigrationSnapshotChunkRequestSchema } from '../../../../shared/orcad-migration-scrollback'
+import { OrcadMigrationCatalogParams } from '../../../../shared/rpc-contract/mantad-migration-params'
+import { parseOrcadMigrationManifest } from '../../../../shared/mantad-migration-manifest'
+import { OrcadMigrationSnapshotChunkRequestSchema } from '../../../../shared/mantad-migration-scrollback'
 import { assertOrcadMigrationManifestDigest } from '../../../mantad/mantad-migration-manifest-digest'
 import { defineMethod, type RpcContext } from '../core'
 

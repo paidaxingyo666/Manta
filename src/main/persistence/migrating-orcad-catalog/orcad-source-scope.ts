@@ -2,7 +2,7 @@ import { LOCAL_EXECUTION_HOST_ID, toSshExecutionHostId } from '../../../shared/e
 import type {
   OrcadMigrationCatalogPayload,
   OrcadMigrationManifestSource
-} from '../../../shared/orcad-migration-manifest'
+} from '../../../shared/mantad-migration-manifest'
 import { parseWorkspaceKey } from '../../../shared/workspace-scope'
 import {
   getExecutionHostIdFromWorktreeHostIdentity,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { orcadMigrationRefusalReason } from './orcad-migration-refusal-reason'
+import { orcadMigrationRefusalReason } from './mantad-migration-refusal-reason'
 
 describe('orcadMigrationRefusalReason', () => {
   it('names each blocking kind once, in plain words', () => {

@@ -6,7 +6,7 @@ import {
 import {
   ORCAD_CANCEL_MANAGED_STOP_FLAG,
   ORCAD_COMPLETE_MANAGED_STOP_FLAG
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 
 /**
  * The precondition is only worth anything if it runs first. A loader failure is not
@@ -42,7 +42,7 @@ vi.mock('./mantad-native-preflight', () => ({
   }
 }))
 
-vi.mock('./orcad-managed-stop-command', () => ({
+vi.mock('./mantad-managed-stop-command', () => ({
   runOrcadManagedStopCommandAndExit: async (argv: string[]) => {
     order.push(`managed-stop:${argv.join(' ')}`)
   }

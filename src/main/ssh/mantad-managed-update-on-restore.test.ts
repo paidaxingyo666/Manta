@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SshTarget } from '../../shared/ssh-types'
-import type { ManagedOrcadAutoUpdateOutcome } from './orcad-managed-auto-update'
+import type { ManagedOrcadAutoUpdateOutcome } from './mantad-managed-auto-update'
 import {
   resetManagedOrcadRestoreUpdatesForTests,
   updateManagedOrcadOnRestore,
   type ManagedOrcadRestoreUpdateDeps
-} from './orcad-managed-update-on-restore'
+} from './mantad-managed-update-on-restore'
 
 const target: SshTarget = { id: 'ssh-1', label: 'Box', host: 'box', port: 22, username: 'me' }
 

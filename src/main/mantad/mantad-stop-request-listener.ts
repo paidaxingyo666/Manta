@@ -11,13 +11,13 @@ import {
   ORCAD_STOP_REQUEST_FILENAME,
   type OrcadManagedStopContext,
   type OrcadManagedStopRequest
-} from '../../shared/orcad-stop-request'
+} from '../../shared/mantad-stop-request'
 import {
   orcadManagedStopRequestPath,
   validateOrcadManagedStopRequest
-} from './orcad-managed-stop-request'
-import { claimOrcadManagedStopDecision } from './orcad-managed-stop-decision'
-import { withdrawOrcadManagedStopRequest } from './orcad-managed-stop-cancellation'
+} from './mantad-managed-stop-request'
+import { claimOrcadManagedStopDecision } from './mantad-managed-stop-decision'
+import { withdrawOrcadManagedStopRequest } from './mantad-managed-stop-cancellation'
 import { hasErrorCode } from '../daemon/daemon-process-inspection'
 
 export type OrcadStopRequestListener = { close(): void }

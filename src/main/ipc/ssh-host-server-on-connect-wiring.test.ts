@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SshTarget } from '../../shared/ssh-types'
 import { closeTestStores, createSqliteTestStore } from '../persistence-test-harness'
 import { Store } from '../persistence/loading-store/store'
-import { OrcadHostUnsupportedError } from '../ssh/orcad-host-unavailable'
+import { OrcadHostUnsupportedError } from '../ssh/mantad-host-unavailable'
 import { allowsDirectSshRelay, SshConnectionStore } from '../ssh/ssh-connection-store'
 import { resolveHostServerOnConnect } from '../ssh/ssh-host-server-on-connect'
 
@@ -26,11 +26,11 @@ vi.mock('../ssh/ssh-target-registry', () => ({
   getSshTargetRegistryStore: () => mocks.registry.current,
   hasRegisteredDirectSshAuthority: () => false
 }))
-vi.mock('../ssh/orcad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
-vi.mock('../ssh/orcad-runtime-conversion', () => ({
+vi.mock('../ssh/mantad-runtime-deployment', () => ({ createManagedOrcadEnvironment: mocks.deploy }))
+vi.mock('../ssh/mantad-runtime-conversion', () => ({
   convertSshTargetToManagedOrcad: mocks.convert
 }))
-vi.mock('../ssh/orcad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.tunnel }))
+vi.mock('../ssh/mantad-managed-tunnel', () => ({ ensureOrcadManagedTunnel: mocks.tunnel }))
 vi.mock('../ssh/mantad-artifact-materializer', () => ({ hasOrcadTemplate: () => true }))
 vi.mock('./ssh-renderer-broadcast', () => ({ broadcastSshState: mocks.broadcast }))
 vi.mock('./ssh-ipc-context', () => ({ getCurrentMainWindow: () => null }))

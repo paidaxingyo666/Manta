@@ -6,12 +6,12 @@ import {
 import {
   resolveManagedOrcadTunnelPort,
   type OrcadTunnelPortInput
-} from './orcad-managed-bound-port'
+} from './mantad-managed-bound-port'
 import {
   OrcadManagedIdentityError,
   verifyManagedOrcadTunnelIdentity,
   type OrcadTunnelIdentity
-} from './orcad-managed-tunnel-identity'
+} from './mantad-managed-tunnel-identity'
 import type { SshConnection } from './ssh-connection'
 import type { PortForwardEntry, SshPortForwardManager } from './ssh-port-forward'
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as RecordFile from './mantad-remote-record-file'
 import type * as InstallLock from './ssh-relay-install-lock'
-import type * as TerminalBarrier from './orcad-rollback-terminal-barrier'
+import type * as TerminalBarrier from './mantad-rollback-terminal-barrier'
 
 vi.mock('./ssh-relay-deploy-helpers', () => ({
   execCommand: vi.fn(),
@@ -29,7 +29,7 @@ const barrier = vi.hoisted(() => {
   return state
 })
 // The managed stop and its terminal barrier are proven in mantad-activation-crash-recovery.test.ts.
-vi.mock('./orcad-rollback-terminal-barrier', async (importOriginal) => ({
+vi.mock('./mantad-rollback-terminal-barrier', async (importOriginal) => ({
   ...(await importOriginal<typeof TerminalBarrier>()),
   readOrcadRollbackBarrierTarget: async (_options: unknown, version: string) => ({
     state: 'ready',
@@ -57,7 +57,7 @@ import { rollbackOrcad, type OrcadRollbackOptions } from './mantad-remote-rollba
 import { emptyOrcadActivationRecord, type OrcadActivationRecord } from './mantad-activation-record'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import { isReadinessRead } from './mantad-activation-host-test-harness'
-import { isSnapshotCaptureCommand } from './orcad-snapshot-capture-command'
+import { isSnapshotCaptureCommand } from './mantad-snapshot-capture-command'
 import type { SshConnection } from './ssh-connection'
 
 const mockExec = vi.mocked(execCommand)

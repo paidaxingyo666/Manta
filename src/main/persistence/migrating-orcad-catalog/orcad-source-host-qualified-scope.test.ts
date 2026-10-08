@@ -3,7 +3,7 @@ import { getDefaultPersistedState } from '../../../shared/constants'
 import {
   ORCAD_MIGRATION_MANIFEST_VERSION,
   type OrcadMigrationManifest
-} from '../../../shared/orcad-migration-manifest'
+} from '../../../shared/mantad-migration-manifest'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import type { Repo } from '../../../shared/repo-types'
 import type { Tab } from '../../../shared/tab-types'

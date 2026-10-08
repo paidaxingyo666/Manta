@@ -1,4 +1,4 @@
-import type { ManagedOrcadPreloadApi } from './managed-orcad-api'
+import type { ManagedOrcadPreloadApi } from './managed-mantad-api'
 import type { RuntimeHostStatusSnapshot } from '../../shared/runtime-host-status'
 import type {
   RuntimeBrowserDriverState,

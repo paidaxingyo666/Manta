@@ -19,7 +19,7 @@ import {
   resolveLocalServeRuntime,
   serveWithOrcad,
   type ServeOrcaAppArgs
-} from './serve-orcad-launch'
+} from './serve-mantad-launch'
 import { waitForRecipeJson } from './serve-recipe-json'
 
 const USER_NAMESPACE_PROBE_TIMEOUT_MS = 2_000

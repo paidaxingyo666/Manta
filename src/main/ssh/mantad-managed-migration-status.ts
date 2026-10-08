@@ -2,9 +2,9 @@
 import {
   isRetainedOrcadMigrationSourceCutover,
   type OrcadMigrationSourceCutover
-} from '../../shared/orcad-migration-source-cutover'
+} from '../../shared/mantad-migration-source-cutover'
 import type { KnownRuntimeEnvironment } from '../../shared/runtime-environments'
-import { listOrcadMigrationSourceCutovers } from './orcad-migration-cutover-journal'
+import { listOrcadMigrationSourceCutovers } from './mantad-migration-cutover-journal'
 
 export type OrcadManagedPendingMigration = {
   migrationId: string

@@ -13,7 +13,7 @@ import {
 import { readOrcadActivationTransaction } from './mantad-activation-transaction-store'
 import { isRelayInstallLockStale, RELAY_INSTALL_LOCK_NAME } from './ssh-relay-install-lock'
 import { joinRemotePath } from './ssh-remote-platform'
-import { findExitedOwnLockToken } from './orcad-exited-own-lock'
+import { findExitedOwnLockToken } from './mantad-exited-own-lock'
 import { orcadRemoteBaseDir } from './mantad-remote-windows-node'
 
 export const ORCAD_ACTIVATION_FENCE_BUSY_CODE = 'orcad_activation_fence_busy'

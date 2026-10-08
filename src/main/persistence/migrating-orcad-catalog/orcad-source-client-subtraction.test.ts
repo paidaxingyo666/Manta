@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getDefaultPersistedState } from '../../../shared/constants'
-import type { OrcadMigrationManifest } from '../../../shared/orcad-migration-manifest'
-import { orcadMigrationCutoverFixture } from '../../ssh/orcad-migration-cutover-fixture'
+import type { OrcadMigrationManifest } from '../../../shared/mantad-migration-manifest'
+import { orcadMigrationCutoverFixture } from '../../ssh/mantad-migration-cutover-fixture'
 import { subtractOrcadMigrationClientState } from './orcad-source-client-subtraction'
 
 const worktreeId = 'repo-1::/srv/worktree'

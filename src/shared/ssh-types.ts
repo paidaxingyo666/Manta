@@ -1,5 +1,5 @@
 import type { SshPendingPtyKill } from './ssh-pending-pty-kill'
-import type { OrcadSshProvisioningIntent } from './orcad-ssh-provisioning'
+import type { OrcadSshProvisioningIntent } from './mantad-ssh-provisioning'
 
 // ─── SSH Connection Types ───────────────────────────────────────────
 

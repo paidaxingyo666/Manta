@@ -14,7 +14,7 @@ import {
   readOrcadActivationRecord,
   writeOrcadActivationRecord
 } from './mantad-activation-record-store'
-import { launchAndJudgeOrcadSlot } from './orcad-candidate-launch-verdict'
+import { launchAndJudgeOrcadSlot } from './mantad-candidate-launch-verdict'
 import { planOrcadUpdate } from './mantad-update-plan'
 import { CURRENT_ORCAD_DAEMON_PROTOCOL } from './mantad-daemon-protocol-crossing'
 import { MANTAD_LOG_FILENAME } from './mantad-remote-launch'
@@ -40,20 +40,20 @@ import { execOrcadStateMutationOr } from './mantad-state-mutation-exec'
 import {
   initialOrcadActivationAdmissionCommand,
   parseInitialOrcadActivationAdmission
-} from './orcad-initial-activation-admission'
+} from './mantad-initial-activation-admission'
 import {
   orcadSlotDir,
   resolveOrcadSlotIdentity,
   type OrcadSlotIdentity
-} from './orcad-recovery-slot'
-import { orcadSnapshotPath } from './orcad-incumbent-recovery'
+} from './mantad-recovery-slot'
+import { orcadSnapshotPath } from './mantad-incumbent-recovery'
 import {
   restartAfterSnapshotFailure,
   restoreAfterRejectedCandidate,
   stopTransactionIncumbent
-} from './orcad-transaction-incumbent'
+} from './mantad-transaction-incumbent'
 import { withOrcadLogTail } from './mantad-remote-log-tail'
-import { orcadCandidateLaunchFailureCode } from './orcad-host-unavailable'
+import { orcadCandidateLaunchFailureCode } from './mantad-host-unavailable'
 import { errorMessage } from '../../shared/error-message'
 
 type Outcome = Extract<OrcadDeployResult, { outcome: 'installed-not-activated' }>

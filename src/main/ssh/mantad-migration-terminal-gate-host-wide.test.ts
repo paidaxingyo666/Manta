@@ -46,7 +46,7 @@ vi.mock('./ssh-relay-windows-launch-command', () => ({
 import {
   assessOrcadMigrationTerminals,
   type ListRelayPtyIds
-} from './orcad-migration-terminal-gate'
+} from './mantad-migration-terminal-gate'
 import { censusHostRelayEndpoints } from './ssh-host-relay-endpoint-census'
 import { censusWindowsHostRelays } from './ssh-host-relay-windows-census'
 import { hostTerminalProofFromCensus } from './ssh-host-relay-terminals-on-connect'

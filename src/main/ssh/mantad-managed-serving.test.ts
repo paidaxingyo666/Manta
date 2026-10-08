@@ -8,15 +8,15 @@ vi.mock('./mantad-remote-context', () => ({
     userDataDir: '/home/u/.manta'
   }))
 }))
-vi.mock('./orcad-managed-wake', () => ({ wakeStoppedManagedOrcad: vi.fn() }))
+vi.mock('./mantad-managed-wake', () => ({ wakeStoppedManagedOrcad: vi.fn() }))
 
-import { wakeStoppedManagedOrcad } from './orcad-managed-wake'
+import { wakeStoppedManagedOrcad } from './mantad-managed-wake'
 import {
   ensureManagedOrcadServing,
   resetManagedOrcadServingForTests,
   setManagedOrcadStartListener,
   type OrcadManagedServingInput
-} from './orcad-managed-serving'
+} from './mantad-managed-serving'
 
 const listener = { starting: vi.fn(), settled: vi.fn() }
 let generation = 1

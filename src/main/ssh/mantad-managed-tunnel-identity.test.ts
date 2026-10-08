@@ -11,7 +11,7 @@ vi.mock('../runtime/runtime-environment-identity-verification', () => ({
 }))
 
 const { classifyOrcadTunnelIdentityFailure, deployedOrcadTunnelChecks } =
-  await import('./orcad-managed-tunnel-identity')
+  await import('./mantad-managed-tunnel-identity')
 
 function readiness(runtimeId: string, port: number): ServeReadiness {
   const endpoint = `ws://127.0.0.1:${port}`
@@ -103,7 +103,7 @@ describe('verifyManagedOrcadTunnelIdentity', () => {
   })
 
   it('proves the server by its pinned key and token, not a per-process runtime id or a stale device id', async () => {
-    const { verifyManagedOrcadTunnelIdentity } = await import('./orcad-managed-tunnel-identity')
+    const { verifyManagedOrcadTunnelIdentity } = await import('./mantad-managed-tunnel-identity')
     verifyRuntimePairingIdentity.mockResolvedValue({})
     const environment = {
       runtimeId: 'runtime-1',

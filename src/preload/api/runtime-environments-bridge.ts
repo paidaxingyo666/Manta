@@ -14,7 +14,7 @@ import {
   type RuntimeEnvironmentSubscriptionHandle
 } from '../runtime-environment-subscriptions'
 import type { PreloadApi } from '../api-types'
-import { managedOrcadApi } from './managed-orcad-api'
+import { managedOrcadApi } from './managed-mantad-api'
 
 export const runtimeEnvironmentsApi = {
   getStatusSnapshots: (): Promise<RuntimeHostStatusSnapshot[]> =>

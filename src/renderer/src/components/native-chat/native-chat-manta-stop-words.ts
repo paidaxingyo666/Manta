@@ -2,7 +2,7 @@
 // row wording can change in one place.
 
 import { translate } from '@/i18n/i18n'
-import type { AgentSessionOrcaStopCause } from '../../../../shared/agent-session-orca-stop'
+import type { AgentSessionOrcaStopCause } from '../../../../shared/agent-session-manta-stop'
 import { joinSentences } from '../../../../shared/sentence-joining'
 
 const STOPPED: Record<AgentSessionOrcaStopCause, (machine: string) => string> = {

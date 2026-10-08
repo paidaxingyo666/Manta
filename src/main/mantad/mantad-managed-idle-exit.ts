@@ -14,13 +14,13 @@ import {
   ORCAD_MANAGED_ACTIVATION_ROOT_ENV,
   ORCAD_IDLE_EXIT_TIMEOUT_MS,
   readOrcadE2EIdleTimeoutMs
-} from '../../shared/orcad-idle-exit'
+} from '../../shared/mantad-idle-exit'
 import {
   OrcadIdleExitMonitor,
   type OrcadIdleExitEvidence,
   type OrcadIdleProbe,
   type OrcadIdleVerdict
-} from './orcad-idle-exit-monitor'
+} from './mantad-idle-exit-monitor'
 
 export type OrcadManagedIdleExitConfig = { timeoutMs: number; activationRoot: string }
 

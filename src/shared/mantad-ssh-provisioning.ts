@@ -1,4 +1,4 @@
-import type { OrcadManagedDeployResult } from './orcad-managed-runtime'
+import type { OrcadManagedDeployResult } from './mantad-managed-runtime'
 import type { SshRepoReadoption, SshTargetCreateInput } from './ssh-types'
 
 export type OrcadSshProvisioningIntent = Readonly<{

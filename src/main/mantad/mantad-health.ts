@@ -19,8 +19,8 @@ import {
   readDaemonPidRecord
 } from '../daemon/daemon-init'
 import type { OrcadProfileStateAuthoritySelection } from './mantad-profile-state-telemetry'
-import { ORCAD_STOP_REQUESTS_CAPABILITY } from '../../shared/orcad-stop-request'
-import type { OrcadIdleStopRecord } from '../../shared/orcad-idle-exit'
+import { ORCAD_STOP_REQUESTS_CAPABILITY } from '../../shared/mantad-stop-request'
+import type { OrcadIdleStopRecord } from '../../shared/mantad-idle-exit'
 
 /**
  * How much a green self-test actually proves.

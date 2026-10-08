@@ -8,8 +8,8 @@ import type { Repo } from '../../shared/repo-types'
 import type { SshTarget } from '../../shared/ssh-types'
 import { isAdmissibleDirectSshAuthority } from '../../shared/ssh-retained-payload-admission'
 import type { Store } from '../persistence'
-import { orcadMigrationCutoverFixture } from './orcad-migration-cutover-fixture'
-import { writeOrcadMigrationSourceCutover } from './orcad-migration-cutover-journal'
+import { orcadMigrationCutoverFixture } from './mantad-migration-cutover-fixture'
+import { writeOrcadMigrationSourceCutover } from './mantad-migration-cutover-journal'
 
 const userData = vi.hoisted(() => ({ dir: '' }))
 vi.mock('../../shared/app-environment', () => ({
@@ -20,7 +20,7 @@ const provider = {}
 vi.mock('../providers/ssh-git-dispatch', () => ({ getSshGitProvider: () => provider }))
 
 const { isFrozenOrcadSourceSessionPartition, visibleProjectGroups } =
-  await import('./orcad-retained-source')
+  await import('./mantad-retained-source')
 const { listReposForExecutionHost } = await import('../ipc/repos/host-repo-catalog-snapshot')
 
 const FENCED: SshTarget = {

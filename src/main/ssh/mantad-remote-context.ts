@@ -3,7 +3,7 @@ import type { NodeRuntimeTarget } from '../../shared/node-runtime-pin'
 import type { SshTarget } from '../../shared/ssh-types'
 import type { OrcadActivationRecord } from './mantad-activation-record'
 import { readOrcadActivationRecord } from './mantad-activation-record-store'
-import { resolveOrcadRuntimeTarget } from './orcad-runtime-target'
+import { resolveOrcadRuntimeTarget } from './mantad-runtime-target'
 import { prepareWindowsOrcadHost } from './mantad-windows-host-preparation'
 import { execOrcadRemote } from './mantad-remote-runtime-control'
 import type { SshConnection } from './ssh-connection'
@@ -16,7 +16,7 @@ import {
   type RemoteHostPlatform
 } from './ssh-remote-platform'
 import { detectRemoteHostPlatform } from './ssh-remote-platform-detection'
-import { OrcadHostUnsupportedError } from './orcad-host-unavailable'
+import { OrcadHostUnsupportedError } from './mantad-host-unavailable'
 import { rememberSshHostPlatform } from './ssh-host-platform-memo'
 
 export type OrcadRemoteContext = {

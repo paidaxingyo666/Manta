@@ -2,20 +2,20 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import type { SshTarget } from '../../shared/ssh-types'
 import { closeTestStores, createSqliteTestStore } from '../persistence-test-harness'
 import { Store } from '../persistence/loading-store/store'
 import {
   listOrcadMigrationSourceCutovers,
   orcadMigrationCutoverJournalDirectory
-} from './orcad-migration-cutover-journal'
+} from './mantad-migration-cutover-journal'
 import {
   fenceOrcadMigrationSource,
   resolveOrcadMigrationFence
-} from './orcad-migration-source-fence'
-import type { OrcadMigrationTerminalVerdict } from './orcad-migration-terminal-gate'
-import { SshTargetOrcadClaims } from './ssh-target-orcad-claims'
+} from './mantad-migration-source-fence'
+import type { OrcadMigrationTerminalVerdict } from './mantad-migration-terminal-gate'
+import { SshTargetOrcadClaims } from './ssh-target-mantad-claims'
 
 const TARGET: SshTarget = {
   id: 'ssh-prod',

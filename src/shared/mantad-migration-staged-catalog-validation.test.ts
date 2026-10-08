@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { normalizeOrcadMigrationStagedCatalogs } from './orcad-migration-staged-catalog-validation'
-import { ORCAD_MIGRATION_MANIFEST_VERSION } from './orcad-migration-manifest-validation'
+import { normalizeOrcadMigrationStagedCatalogs } from './mantad-migration-staged-catalog-validation'
+import { ORCAD_MIGRATION_MANIFEST_VERSION } from './mantad-migration-manifest-validation'
 
 function staged(migrationId: string) {
   return {

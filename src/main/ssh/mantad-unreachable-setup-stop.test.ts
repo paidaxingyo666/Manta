@@ -6,19 +6,19 @@ const mocks = vi.hoisted(() => {
   return { stop: vi.fn(), write: vi.fn(), release: vi.fn(), record }
 })
 vi.mock('../../shared/runtime-environment-store', () => ({ listEnvironments: () => [] }))
-vi.mock('../../shared/runtime-environment-managed-orcad-store', () => ({
+vi.mock('../../shared/runtime-environment-managed-mantad-store', () => ({
   removeManagedOrcadEnvironment: vi.fn()
 }))
-vi.mock('./orcad-migration-cutover-journal', () => ({
+vi.mock('./mantad-migration-cutover-journal', () => ({
   findOrcadMigrationSourceCutoverForTarget: () => ({
     phase: 'source-fenced',
     destinationEnvironmentId: 'env-1'
   })
 }))
-vi.mock('./orcad-migration-source-fence', () => ({
+vi.mock('./mantad-migration-source-fence', () => ({
   releaseUndeployedMigrationFence: mocks.release
 }))
-vi.mock('./orcad-managed-tunnel', () => ({ closeOrcadManagedTunnel: async () => undefined }))
+vi.mock('./mantad-managed-tunnel', () => ({ closeOrcadManagedTunnel: async () => undefined }))
 vi.mock('./ssh-target-registry', () => ({
   getSshTargetRegistryStore: () => ({ getTarget: () => ({ id: 'ssh-1' }) }),
   getSshConnectionManager: () => ({ connect: async () => ({}) })
@@ -42,12 +42,12 @@ vi.mock('./mantad-activation-record-store', () => ({
   }),
   writeOrcadActivationRecord: mocks.write
 }))
-vi.mock('./orcad-recovery-slot', () => ({
+vi.mock('./mantad-recovery-slot', () => ({
   orcadSlotDir: (_slot: unknown, version: string) => `/slots/${version}`,
   stopOrcadSlot: mocks.stop
 }))
 
-const { releaseUnreachableOrcadSetup } = await import('./orcad-unreachable-setup-release')
+const { releaseUnreachableOrcadSetup } = await import('./mantad-unreachable-setup-release')
 const release = () =>
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: claims pass through to the mocked fence release only.
   releaseUnreachableOrcadSetup({ userDataPath: '/u', claims: {} as never, targetId: 'ssh-1' })

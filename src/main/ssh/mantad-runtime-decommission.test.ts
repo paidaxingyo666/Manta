@@ -1,17 +1,17 @@
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-orcad-ssh-owner'
+import { getManagedOrcadFenceEnvironmentId } from '../../shared/managed-mantad-ssh-owner'
 import { getRuntimeEnvironmentSidecarPath } from '../../shared/runtime-environment-sidecar'
 import { listEnvironments } from '../../shared/runtime-environment-store'
 import {
   listOrcadMigrationSourceCutovers,
   writeOrcadMigrationSourceCutover
-} from './orcad-migration-cutover-journal'
-import { orcadMigrationCutoverFixture } from './orcad-migration-cutover-fixture'
+} from './mantad-migration-cutover-journal'
+import { orcadMigrationCutoverFixture } from './mantad-migration-cutover-fixture'
 import {
   createManagedLifecycleHarness,
   MANAGED_VERSION
-} from './orcad-managed-lifecycle-test-fixture'
+} from './mantad-managed-lifecycle-test-fixture'
 
 const mocks = vi.hoisted(() => {
   const state: { store: unknown; transaction: unknown } = { store: null, transaction: null }
@@ -46,15 +46,15 @@ vi.mock('./mantad-activation-lock', () => ({
     run: (lock: { retain: () => void }) => Promise<unknown>
   ) => run({ retain: () => {} })
 }))
-vi.mock('./orcad-managed-remote-stop', () => ({ cancelRemoteOrcadManagedStop: mocks.cancel }))
-vi.mock('./orcad-decommission-recovery', () => ({ reconcileOrcadDecommission: mocks.keepServing }))
-vi.mock('./orcad-managed-tunnel', () => ({
+vi.mock('./mantad-managed-remote-stop', () => ({ cancelRemoteOrcadManagedStop: mocks.cancel }))
+vi.mock('./mantad-decommission-recovery', () => ({ reconcileOrcadDecommission: mocks.keepServing }))
+vi.mock('./mantad-managed-tunnel', () => ({
   closeOrcadManagedTunnel: mocks.closeTunnel,
   ensureOrcadManagedTunnel: mocks.ensureTunnel
 }))
 
 const { cancelManagedOrcadStop, stopManagedOrcadEnvironment } =
-  await import('./orcad-runtime-lifecycle')
+  await import('./mantad-runtime-lifecycle')
 
 const idle = { liveSessions: 0, startedSinceActivation: 0, daemonProtocolVersion: 7 }
 let harness: ReturnType<typeof createManagedLifecycleHarness>

@@ -1,19 +1,19 @@
 /** Binds managed idle exit to this mantad's RPC server, PTY provider and terminal daemon. */
 import type { RuntimeRpcClientActivity } from '../runtime/runtime-rpc/runtime-rpc-shutdown'
-import type { OrcadIdleExitEvidence } from './orcad-idle-exit-monitor'
+import type { OrcadIdleExitEvidence } from './mantad-idle-exit-monitor'
 import {
   activationFenceExists,
   installOrcadManagedIdleExit,
   resolveOrcadManagedIdleExit,
   type OrcadManagedIdleExitConfig
-} from './orcad-managed-idle-exit'
+} from './mantad-managed-idle-exit'
 import {
   consumeOrcadIdleStopRecord,
   discardOrcadIdleStopRecord,
   writeOrcadIdleStopRecord
-} from './orcad-idle-stop-record'
+} from './mantad-idle-stop-record'
 import type { OrcadShutdownTrigger } from './mantad-lifecycle'
-import type { OrcadIdleStopRecord } from '../../shared/orcad-idle-exit'
+import type { OrcadIdleStopRecord } from '../../shared/mantad-idle-exit'
 
 let requestIdleShutdown: OrcadShutdownTrigger | null = null
 

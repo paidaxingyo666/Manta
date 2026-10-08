@@ -1,5 +1,5 @@
 /** Merging migrated rows by id: a new id is added, a known id must carry the identical row. */
-import { serializeOrcadMigrationValue } from '../../../shared/orcad-migration-manifest'
+import { serializeOrcadMigrationValue } from '../../../shared/mantad-migration-manifest'
 
 export function selectNewRows<T extends { id: string }>(
   incoming: T[],

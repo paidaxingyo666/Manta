@@ -1,5 +1,5 @@
-import { ORCAD_MIGRATION_MANIFEST_VERSION } from '../../shared/orcad-migration-manifest'
-import type { OrcadMigrationSourceCutover } from '../../shared/orcad-migration-source-cutover'
+import { ORCAD_MIGRATION_MANIFEST_VERSION } from '../../shared/mantad-migration-manifest'
+import type { OrcadMigrationSourceCutover } from '../../shared/mantad-migration-source-cutover'
 import { computeOrcadMigrationManifestSha256 } from '../mantad/mantad-migration-manifest-digest'
 
 /** A valid journal entry whose manifest is bound to its target, generation and destination. */
