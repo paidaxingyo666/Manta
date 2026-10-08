@@ -16,7 +16,6 @@ import {
 import { RpcClientTerminalStreamRouter } from './rpc-client-terminal-stream-router'
 import * as sessionTabsStream from './rpc-client-session-tabs-stream'
 import type { ConnectionState, RpcResponse, RpcSuccess } from './types'
-import { translate } from '../i18n/i18n'
 
 export type RpcStreamingListener = (result: unknown) => void
 
@@ -71,10 +70,8 @@ export class RpcClientStreamRegistry {
       if (this.send(id, stream)) {
         stream.sent = true
       } else {
-        this.finish(id, stream, {
-          type: 'error',
-          message: translate('m.rpc.client.stream.registry.022acb1d2e', 'Connection interrupted')
-        })
+        // i18n-exempt: transport failure reason, passed through to callers as-is
+        this.finish(id, stream, { type: 'error', message: 'Connection interrupted' })
       }
     } else {
       console.log('[net] subscribe queued — waiting for connected', {
@@ -143,10 +140,8 @@ export class RpcClientStreamRegistry {
     this.finish(response.id, stream, {
       type: 'error',
       message: response.ok
-        ? translate(
-            'm.rpc.client.stream.registry.12510e6f03',
-            'Streaming request ended before it was ready.'
-          )
+        ? // i18n-exempt: transport failure reason, passed through to callers as-is
+          'Streaming request ended before it was ready.'
         : response.error.message,
       error: response.ok ? undefined : response.error
     })

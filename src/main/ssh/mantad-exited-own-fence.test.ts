@@ -122,7 +122,12 @@ describe.skipIf(process.platform === 'win32')('a fence this desktop’s exited p
 
   it('hands a fence over a journal to Recover and keeps the journal', async () => {
     const { home, fence, options } = hostWithFence('t-exited', [entry('t-exited', EXITED_PID)])
-    const journal = join(home, '.manta-remote', '.mantad-activation-transaction', 'transaction.json')
+    const journal = join(
+      home,
+      '.manta-remote',
+      '.mantad-activation-transaction',
+      'transaction.json'
+    )
     writeFileSync(journal, '{"schemaVersion":1}')
     await expect(orcadActivationFenceRefusal(options, 'update')).resolves.toMatchObject({
       code: 'orcad_activation_recovery_required'

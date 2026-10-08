@@ -12,7 +12,10 @@ import {
   orcadPosixStdioBridgeCommand,
   type OrcadStdioBridgeMode
 } from './mantad-stdio-bridge-script'
-import { OrcadStdioBridgeBase64Encoder, OrcadStdioBridgeDecoder } from './mantad-stdio-bridge-stream'
+import {
+  OrcadStdioBridgeBase64Encoder,
+  OrcadStdioBridgeDecoder
+} from './mantad-stdio-bridge-stream'
 import { spawnLocalBridgeChannel, startEchoServer } from './mantad-stdio-bridge-test-channel'
 import { ORCAD_WINDOWS_HOST_SCRIPT } from './mantad-windows-host-script'
 import type { SshConnection } from './ssh-connection'

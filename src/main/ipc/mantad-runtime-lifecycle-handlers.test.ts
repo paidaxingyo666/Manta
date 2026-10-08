@@ -16,7 +16,8 @@ vi.mock('./mantad-ssh-provisioning-handlers', () => ({
   registerOrcadSshProvisioningHandlers: mocks.registerProvisioning
 }))
 
-const { registerOrcadRuntimeLifecycleHandlers } = await import('./mantad-runtime-lifecycle-handlers')
+const { registerOrcadRuntimeLifecycleHandlers } =
+  await import('./mantad-runtime-lifecycle-handlers')
 
 function handler(channel: string): (_event: unknown, args: unknown) => unknown {
   const registration = mocks.handle.mock.calls.find(([name]) => name === channel)

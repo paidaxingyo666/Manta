@@ -35,7 +35,9 @@ vi.mock('./mantad-remote-context', () => ({ resolveOrcadRemoteContext: mocks.res
 vi.mock('./mantad-terminal-census-client', () => ({ collectManagedTerminalCensus: mocks.census }))
 vi.mock('./mantad-remote-deploy', () => ({ deployOrcad: mocks.deploy }))
 vi.mock('./mantad-remote-rollback', () => ({ rollbackOrcad: mocks.rollback }))
-vi.mock('./mantad-activation-recovery', () => ({ recoverInterruptedOrcadActivation: mocks.recover }))
+vi.mock('./mantad-activation-recovery', () => ({
+  recoverInterruptedOrcadActivation: mocks.recover
+}))
 vi.mock('./mantad-active-readiness', () => ({ probeActiveOrcadReadiness: mocks.probe }))
 vi.mock('./mantad-remote-build-hash', () => ({ readRemoteOrcadBuildHash: mocks.buildHash }))
 vi.mock('./mantad-artifact-materializer', () => ({

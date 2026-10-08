@@ -8,7 +8,10 @@
 import { compareAppVersions } from '../../shared/app-version'
 import type { OrcadActivationRecord } from './mantad-activation-record'
 import { materializeOrcadArtifact } from './mantad-artifact-materializer'
-import { OrcadArtifactsUnavailableError, OrcadHostUnsupportedError } from './mantad-host-unavailable'
+import {
+  OrcadArtifactsUnavailableError,
+  OrcadHostUnsupportedError
+} from './mantad-host-unavailable'
 import { findIncompleteManagedOrcadMigration } from './mantad-managed-migration-status'
 import { ORCAD_ACTIVATION_FENCE_BUSY_CODE } from './mantad-activation-fence-hold'
 import { resolveLinkedOrcadContext } from './mantad-managed-runtime-context'

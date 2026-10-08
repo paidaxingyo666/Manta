@@ -217,7 +217,9 @@ export class OrcadManagedTunnelManager {
     const targetStore = this.dependencies.getTargetStore()
     const connectionManager = this.dependencies.getConnectionManager()
     if (!targetStore || !connectionManager) {
-      throw new Error('SSH is unavailable on this client; the managed Manta server is unverifiable.')
+      throw new Error(
+        'SSH is unavailable on this client; the managed Manta server is unverifiable.'
+      )
     }
     const target = targetStore.getTarget(deployment.sshTargetId)
     if (!target || target.generation !== deployment.sshTargetGeneration) {

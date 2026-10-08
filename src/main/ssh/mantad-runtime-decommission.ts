@@ -182,7 +182,8 @@ export function cancelManagedOrcadStop(
               outcome: 'refused',
               verdict: 'live',
               code: 'orcad_stop_already_dispatched',
-              reason: 'mantad already acted on the stop and is shutting down; it cannot be canceled.'
+              reason:
+                'mantad already acted on the stop and is shutting down; it cannot be canceled.'
             }
           }
         }

@@ -197,7 +197,11 @@ test.describe('browser split grab shortcut', () => {
       second: server.pageUrl('b', 1, 'localhost')
     })
     await waitForGuestUrl(mantaPage, fixture.firstBrowserTabId, server.pageUrl('a', 1))
-    await waitForGuestUrl(mantaPage, fixture.secondBrowserTabId, server.pageUrl('b', 1, 'localhost'))
+    await waitForGuestUrl(
+      mantaPage,
+      fixture.secondBrowserTabId,
+      server.pageUrl('b', 1, 'localhost')
+    )
 
     await pressKeyInBrowserGuest(
       mantaPage,

@@ -38,7 +38,9 @@ export async function resolveOrcadRemoteContext(
 ): Promise<OrcadRemoteContext> {
   const host = detectedHost ?? (await detectRemoteHostPlatform(connection, { signal }))
   if (!host) {
-    throw new OrcadHostUnsupportedError('This SSH host platform is not supported by managed mantad.')
+    throw new OrcadHostUnsupportedError(
+      'This SSH host platform is not supported by managed mantad.'
+    )
   }
   const remote = { conn: connection, host, signal }
   const remoteHome = normalizeRemoteHome(

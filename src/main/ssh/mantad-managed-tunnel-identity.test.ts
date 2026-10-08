@@ -57,7 +57,10 @@ describe('classifyOrcadTunnelIdentityFailure', () => {
       'remote_runtime_unavailable',
       'Could not connect to the remote Manta runtime: ECONNREFUSED'
     ),
-    new RemoteRuntimeClientError('runtime_timeout', 'Timed out waiting for the remote Manta runtime')
+    new RemoteRuntimeClientError(
+      'runtime_timeout',
+      'Timed out waiting for the remote Manta runtime'
+    )
   ])('never reads silence as another server: %s', (error) => {
     expect(classifyOrcadTunnelIdentityFailure(error).verdict).toBe('unreachable')
   })

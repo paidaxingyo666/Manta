@@ -2331,12 +2331,7 @@
     },
     "rpc": {
       "client": {
-        "stream": {
-          "registry": {
-            "12510e6f03": "Streaming request ended before it was ready.",
-            "022acb1d2e": "Connection interrupted"
-          }
-        }
+        "stream": {}
       }
     },
     "app": {

@@ -37,7 +37,9 @@ vi.mock('./ssh-target-registry', () => ({
   hasRegisteredDirectSshAuthority: mocks.hasDirectAuthority
 }))
 vi.mock('./mantad-remote-context', () => ({ resolveOrcadRemoteContext: mocks.resolveContext }))
-vi.mock('./mantad-activation-recovery', () => ({ recoverInterruptedOrcadActivation: mocks.recover }))
+vi.mock('./mantad-activation-recovery', () => ({
+  recoverInterruptedOrcadActivation: mocks.recover
+}))
 vi.mock('./mantad-activation-record-store', () => ({ readOrcadActivationRecord: mocks.readRecord }))
 vi.mock('./mantad-activation-transaction-store', () => ({
   readOrcadActivationTransaction: mocks.readTransaction

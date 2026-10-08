@@ -32,7 +32,9 @@ export async function resolveOrcadStdioBridge(
 ): Promise<OrcadStdioBridge> {
   const host = await detectRemoteHostPlatform(conn)
   if (!host) {
-    throw new OrcadHostUnsupportedError('This SSH host platform is not supported by managed mantad.')
+    throw new OrcadHostUnsupportedError(
+      'This SSH host platform is not supported by managed mantad.'
+    )
   }
   if (!isWindowsRemoteHost(host)) {
     return { command: orcadPosixStdioBridgeCommand(port), mode: 'raw', wrapCommand: true }

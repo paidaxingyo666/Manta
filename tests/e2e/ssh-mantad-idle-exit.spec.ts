@@ -96,7 +96,10 @@ test('a managed mantad stops after idling and starts again on the next connect',
       .catch((error: unknown) => {
         // The server logs what kept it up; without it a timeout explains nothing.
         console.error(
-          execDockerSshRelayTargetCommand(target, 'tail -n 40 /root/.manta-remote/mantad-*/mantad.log')
+          execDockerSshRelayTargetCommand(
+            target,
+            'tail -n 40 /root/.manta-remote/mantad-*/mantad.log'
+          )
         )
         throw error
       })

@@ -36,7 +36,9 @@ vi.mock('./ssh-target-registry', () => ({
 vi.mock('./mantad-remote-context', () => ({ resolveOrcadRemoteContext: mocks.resolveContext }))
 vi.mock('./mantad-terminal-census-client', () => ({ collectManagedTerminalCensus: mocks.census }))
 vi.mock('./mantad-remote-stop', () => ({ decommissionRemoteOrcad: mocks.decommission }))
-vi.mock('./mantad-activation-recovery', () => ({ recoverInterruptedOrcadActivation: mocks.recover }))
+vi.mock('./mantad-activation-recovery', () => ({
+  recoverInterruptedOrcadActivation: mocks.recover
+}))
 vi.mock('./mantad-activation-transaction-store', () => ({
   readOrcadActivationTransaction: async () => mocks.state.transaction
 }))

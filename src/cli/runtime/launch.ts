@@ -14,7 +14,10 @@ import {
   superviseForegroundServe
 } from './serve-update-supervisor'
 import { RuntimeClientError } from './types'
-import { SERVE_RUNTIME_ELECTRON, SERVE_RUNTIME_ENV } from '../../shared/mantad-local-serve-selection'
+import {
+  SERVE_RUNTIME_ELECTRON,
+  SERVE_RUNTIME_ENV
+} from '../../shared/mantad-local-serve-selection'
 import {
   resolveLocalServeRuntime,
   serveWithOrcad,
