@@ -30,7 +30,7 @@ export async function buildDaemonSessionClient(outfile: string): Promise<void> {
             ? { sessionId, cols: 80, rows: 24, cwd, shellOverride: win32 ? 'cmd.exe' : '/bin/sh' }
             : { sessionId, cols: 80, rows: 24 })
           // Both shells echo what is typed, so the typed form must not already read as the marker.
-          const typed = win32 ? 'echo MANTA_^SERVE_' + marker : "printf 'ORCA_SERVE_%s\\\\n' " + marker
+          const typed = win32 ? 'echo ORCA_^SERVE_' + marker : "printf 'ORCA_SERVE_%s\\\\n' " + marker
           adapter.write(spawned.id, typed + "\\r")
           while (!output.includes('ORCA_SERVE_' + marker)) await new Promise(r => setTimeout(r, 50))
           clearTimeout(deadline)

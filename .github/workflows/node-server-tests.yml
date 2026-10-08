@@ -173,14 +173,15 @@ jobs:
         id: bun-orcad
         background: true
         shell: bash
+        # Why: the fork's own last Bun release; upstream's pin builds an orca-branded daemon this fork never shipped.
         env:
-          BUN_ORCAD_COMMIT: f4092c06d639ee13ad446261dcabc78b27a21fbc
+          BUN_ORCAD_COMMIT: 5da6b014f8f3c09de3a17d1c98e27da536efe4e8
         run: |
           if [ "$RUNNER_OS" != Linux ]; then exit 0; fi
           git fetch --no-tags --depth=1 origin "$BUN_ORCAD_COMMIT"
           git worktree add --detach "$RUNNER_TEMP/bun-orcad-source" "$BUN_ORCAD_COMMIT"
           pnpm --dir "$RUNNER_TEMP/bun-orcad-source" install --frozen-lockfile --ignore-scripts
-          node "$RUNNER_TEMP/bun-orcad-source/config/scripts/build-orcad-bun.mjs" --out-dir "$RUNNER_TEMP/bun-orcad"
+          node "$RUNNER_TEMP/bun-orcad-source/config/scripts/build-mantad-bun.mjs" --out-dir "$RUNNER_TEMP/bun-orcad"
           echo "slot=$RUNNER_TEMP/bun-orcad" >> "$GITHUB_OUTPUT"
           echo "executable=$(command -v bun)" >> "$GITHUB_OUTPUT"
       # Linux release slots come from the floor and Alpine lanes; this slot serves local tests.

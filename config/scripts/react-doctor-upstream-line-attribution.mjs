@@ -110,6 +110,14 @@ export function isUpstreamAuthored(sourceLines, index, upstream) {
   return false
 }
 
+/** `max-lines` judges the whole file and points at its closing brace, too short to identify. */
+export function isUpstreamFinding(diagnostic, sourceLines, upstream) {
+  if (diagnostic.rule === 'max-lines') {
+    return upstream.lines.length >= sourceLines.length
+  }
+  return isUpstreamAuthored(sourceLines, diagnostic.line - 1, upstream)
+}
+
 function sourceLines(filePath, cache) {
   if (!cache.has(filePath)) {
     try {
@@ -141,7 +149,7 @@ export function partitionByAuthor(diagnostics, upstreamRef) {
     const filePath = diagnostic.filePath
     const known = upstreamFileLines(upstreamRef, filePath, upstreamCache)
     const lines = sourceLines(filePath, sourceCache)
-    if (known && lines && isUpstreamAuthored(lines, diagnostic.line - 1, known)) {
+    if (known && lines && isUpstreamFinding(diagnostic, lines, known)) {
       upstream.push(diagnostic)
     } else {
       ours.push(diagnostic)

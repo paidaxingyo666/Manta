@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isUpstreamAuthored } from './react-doctor-upstream-line-attribution.mjs'
+import { isUpstreamAuthored, isUpstreamFinding } from './react-doctor-upstream-line-attribution.mjs'
 
 function upstreamOf(text) {
   // upstreamFileLines stores lines brand-normalized; mirror that here.
@@ -32,5 +32,19 @@ describe('isUpstreamAuthored', () => {
 
   it('keeps a generic line with nothing identifying after it', () => {
     expect(isUpstreamAuthored(['  return {', '  }'], 0, UPSTREAM)).toBe(false)
+  })
+})
+
+describe('isUpstreamFinding', () => {
+  const maxLines = { rule: 'max-lines', line: 6 }
+
+  it('attributes max-lines to upstream when its copy is at least as long', () => {
+    const source = UPSTREAM.lines.map((line) => line.split('Orca').join('Manta'))
+    expect(isUpstreamFinding(maxLines, source, UPSTREAM)).toBe(true)
+  })
+
+  it('keeps max-lines when this fork made the file longer', () => {
+    const source = [...UPSTREAM.lines, '  forkOnly()']
+    expect(isUpstreamFinding({ ...maxLines, line: 7 }, source, UPSTREAM)).toBe(false)
   })
 })
