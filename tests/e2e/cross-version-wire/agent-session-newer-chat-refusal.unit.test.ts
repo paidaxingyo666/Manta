@@ -24,6 +24,7 @@ import {
   materializeReleaseCheckout,
   resolveBaselineReleaseRef
 } from './release-checkout'
+import { compareReleaseTags } from '../../../config/scripts/stable-release-tags.mjs'
 
 /**
  * A chat a newer Manta saved now fails its load here with the newer-Orca reason, where this host used
@@ -188,11 +189,17 @@ describe('a chat a newer Manta saved, across versions', () => {
 
   it(
     'old client against new host: the newest release words it as its own, never as damage',
-    async () => {
+    async (context) => {
+      const baselineRef = resolveBaselineReleaseRef()
+      // This fork's newest release can predate the reason; the case above covers that client.
+      const base = (tag: string) => tag.replace(/-rc\.\d+$/, '')
+      if (compareReleaseTags(base(baselineRef), BEFORE_NEWER_REASON_REF) <= 0) {
+        context.skip(`${baselineRef} predates the newer-Manta reason`)
+      }
       rmSync(directory, { recursive: true, force: true })
       directory = mkdtempSync(join(tmpdir(), 'orca-newer-chat-xv-'))
       const refusal = await newerChatRefusal()
-      const released = await releasedReader(resolveBaselineReleaseRef())
+      const released = await releasedReader(baselineRef)
       const damage = { code: refusal.code, details: { reason: 'journalCorrupt' } }
       expect(released.words(refusal)).not.toBe('')
       expect(released.words(refusal)).not.toBe(released.words(damage))

@@ -4,6 +4,7 @@
 // operation conflict, loses the user's message.
 
 import { beforeAll, describe, expect, it } from 'vitest'
+import { AGENT_SESSION_QUEUED_MESSAGES_RUNTIME_CAPABILITY } from '../../../src/shared/protocol-version'
 import { resolveBaselineReleaseRef } from './release-checkout'
 import { installableHost, structuredHostStub } from './structured-agent-session-host-fixture'
 import {
@@ -57,6 +58,13 @@ describe('a current client sending a message', () => {
     // Anti-vacuous: the release must have the method, or there is no older host to send to.
     expect(baseline.methodNames).toContain('agentSession.send')
     for (const build of [current, baseline]) {
+      // Clients send `delivery` only to a host that advertises queued messages.
+      if (
+        delivery &&
+        !build.capabilities.includes(AGENT_SESSION_QUEUED_MESSAGES_RUNTIME_CAPABILITY)
+      ) {
+        continue
+      }
       resetOperationIds()
       const hostCalls = structuredHostStub(SESSION, WORKSPACE)
       await build.installStructuredHost(installableHost(hostCalls))

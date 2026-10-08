@@ -24,7 +24,8 @@ export type ReleasedRelayInstall = {
 }
 
 /** The release whose relay an upgraded host still runs. */
-export const PREVIOUS_RELAY_REF = 'v1.4.218'
+// Why this fork's own: an upstream relay announces itself as ORCA-RELAY, which no Manta client reads.
+export const PREVIOUS_RELAY_REF = 'v1.4.215-rc.0'
 
 const SENTINEL = Buffer.from(RELAY_SENTINEL, 'utf-8')
 const DROPPED_DEPENDENCY_NAMESPACE = 'dropped-release-dependency'
