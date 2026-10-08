@@ -336,7 +336,7 @@
     "573943fdb37d": {
       "assets": {
         "assets/app.js": "orca.boot()",
-        "index.html": "<!doctype html><p>manta</p>"
+        "index.html": "<!doctype html><p>orca</p>"
       },
       "outcome": {
         "assetCount": 2,

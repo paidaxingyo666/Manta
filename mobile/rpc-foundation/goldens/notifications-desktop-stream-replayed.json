@@ -4,58 +4,7 @@
   "family": "notifications.desktop-stream",
   "namedDeltas": [],
   "values": {
-    "0493957d4faf": {
-      "name": "notifications.getMissedSince#1",
-      "ordinal": 2,
-      "args": [
-        {
-          "name": "method",
-          "value": "notifications.getMissedSince"
-        },
-        {
-          "name": "params",
-          "value": {
-            "deliveredPushes": [
-              {
-                "notificationEpoch": "epoch-1",
-                "notificationId": "note-1",
-                "notificationSeq": 7
-              },
-              {
-                "notificationEpoch": "epoch-1",
-                "notificationId": "note-2",
-                "notificationSeq": 8
-              }
-            ],
-            "lastSeenSeq": 9007199254740991
-          }
-        },
-        {
-          "name": "options",
-          "value": {
-            "$rpc": "absent"
-          }
-        }
-      ],
-      "settlement": {
-        "status": "fulfilled",
-        "startedAt": 0,
-        "settledAt": 0,
-        "value": {
-          "id": "frame-2",
-          "ok": true,
-          "result": {
-            "dismissedPushes": []
-          }
-        }
-      }
-    },
-    "18432013281e": {
-      "name": "notifications.getMissedSince#2",
-      "ordinal": 7,
-      "json": "{\"id\":\"frame-5\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":9007199254740991,\"deliveredPushes\":[{\"notificationId\":\"note-1\",\"notificationEpoch\":\"epoch-1\",\"notificationSeq\":7},{\"notificationId\":\"note-2\",\"notificationEpoch\":\"epoch-1\",\"notificationSeq\":8}]}}"
-    },
-    "255bc308b04a": {
+    "01199b72ef35": {
       "name": "notifications.getMissedSince#2",
       "ordinal": 6,
       "args": [
@@ -66,19 +15,8 @@
         {
           "name": "params",
           "value": {
-            "deliveredPushes": [
-              {
-                "notificationEpoch": "epoch-1",
-                "notificationId": "note-1",
-                "notificationSeq": 7
-              },
-              {
-                "notificationEpoch": "epoch-1",
-                "notificationId": "note-2",
-                "notificationSeq": 8
-              }
-            ],
-            "lastSeenSeq": 9007199254740991
+            "epoch": "epoch-1",
+            "lastSeenSeq": 6
           }
         },
         {
@@ -96,57 +34,98 @@
           "id": "frame-5",
           "ok": true,
           "result": {
-            "dismissedPushes": [
+            "epoch": "epoch-1",
+            "notifications": [
               {
                 "notificationEpoch": "epoch-1",
                 "notificationId": "note-2",
-                "notificationSeq": 8
+                "notificationSeq": 8,
+                "type": "dismiss"
               }
             ]
           }
         }
       }
     },
+    "1381f7673721": {
+      "name": "notifications.getMissedSince#1",
+      "ordinal": 3,
+      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":6,\"epoch\":\"epoch-1\"}}"
+    },
+    "267b83bdee0f": {
+      "name": "notifications.getMissedSince#2",
+      "ordinal": 7,
+      "json": "{\"id\":\"frame-5\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":6,\"epoch\":\"epoch-1\"}}"
+    },
     "28e98ef5b5dc": {
       "name": "notifications.unsubscribe#1",
       "ordinal": 5,
       "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.unsubscribe\",\"params\":{\"subscriptionId\":\"sub-1\"}}"
     },
-    "4a6b45030823": {
-      "name": "notifications.subscribe#2",
-      "ordinal": 4,
-      "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{\"includeDesktopSuppressed\":true}}"
+    "2b284399b28b": {
+      "name": "device-store.setItem",
+      "ordinal": 8,
+      "value": {
+        "key": "manta:mobileNotificationsWatermark:host-1",
+        "value": "{\"seq\":8,\"epoch\":\"epoch-1\"}"
+      }
+    },
+    "4c8cb72d6fab": {
+      "name": "notifications.subscribe#1",
+      "ordinal": 1,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{}}"
     },
     "5359579cc62d": {
       "running": true
     },
-    "7956587756c3": {
-      "name": "device-store.setItem",
-      "ordinal": 8,
-      "value": {
-        "key": "manta:pushDismissalWatermarks:v1",
-        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-2\\\"]\",\"seq\":8,\"expiresAt\":1767312000000}]"
-      }
-    },
-    "865d199fe5a5": {
-      "name": "notification-tray.dismiss",
-      "ordinal": 9,
-      "value": {
-        "identifier": "tray-2"
-      }
-    },
-    "8be5078e2020": {
+    "5672eda33e29": {
       "name": "notifications.unsubscribe#2",
-      "ordinal": 10,
+      "ordinal": 9,
       "json": "{\"id\":\"frame-6\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.unsubscribe\",\"params\":{\"subscriptionId\":\"sub-2\"}}"
+    },
+    "8073a149e53a": {
+      "name": "notifications.subscribe#2",
+      "ordinal": 4,
+      "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{}}"
     },
     "a0b2bcfcde77": {
       "running": false
     },
-    "e074c0b6fa0a": {
+    "b87d8f0b3a78": {
       "name": "notifications.getMissedSince#1",
-      "ordinal": 3,
-      "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.getMissedSince\",\"params\":{\"lastSeenSeq\":9007199254740991,\"deliveredPushes\":[{\"notificationId\":\"note-1\",\"notificationEpoch\":\"epoch-1\",\"notificationSeq\":7},{\"notificationId\":\"note-2\",\"notificationEpoch\":\"epoch-1\",\"notificationSeq\":8}]}}"
+      "ordinal": 2,
+      "args": [
+        {
+          "name": "method",
+          "value": "notifications.getMissedSince"
+        },
+        {
+          "name": "params",
+          "value": {
+            "epoch": "epoch-1",
+            "lastSeenSeq": 6
+          }
+        },
+        {
+          "name": "options",
+          "value": {
+            "$rpc": "absent"
+          }
+        }
+      ],
+      "settlement": {
+        "status": "fulfilled",
+        "startedAt": 0,
+        "settledAt": 0,
+        "value": {
+          "id": "frame-2",
+          "ok": true,
+          "result": {
+            "epoch": "epoch-1",
+            "notifications": []
+          }
+        }
+      }
     },
     "eb79a9b3682a": {
       "status": "fulfilled",
@@ -155,11 +134,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "f552b5040ec7": {
-      "name": "notifications.subscribe#1",
-      "ordinal": 1,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"notifications.subscribe\",\"params\":{\"includeDesktopSuppressed\":true}}"
     }
   },
   "recording": {
@@ -168,8 +142,8 @@
       {
         "id": "ready",
         "observation": {
-          "sender": ["0493957d4faf"],
-          "payloads": ["f552b5040ec7", "e074c0b6fa0a"],
+          "sender": ["b87d8f0b3a78"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721"],
           "settlements": {
             "start": "eb79a9b3682a"
           },
@@ -180,8 +154,8 @@
       {
         "id": "re-subscribed",
         "observation": {
-          "sender": ["0493957d4faf"],
-          "payloads": ["f552b5040ec7", "e074c0b6fa0a", "4a6b45030823", "28e98ef5b5dc"],
+          "sender": ["b87d8f0b3a78"],
+          "payloads": ["4c8cb72d6fab", "1381f7673721", "8073a149e53a", "28e98ef5b5dc"],
           "settlements": {
             "start": "eb79a9b3682a",
             "cutover": "eb79a9b3682a"
@@ -193,33 +167,33 @@
       {
         "id": "replayed",
         "observation": {
-          "sender": ["0493957d4faf", "255bc308b04a"],
+          "sender": ["b87d8f0b3a78", "01199b72ef35"],
           "payloads": [
-            "f552b5040ec7",
-            "e074c0b6fa0a",
-            "4a6b45030823",
+            "4c8cb72d6fab",
+            "1381f7673721",
+            "8073a149e53a",
             "28e98ef5b5dc",
-            "18432013281e"
+            "267b83bdee0f"
           ],
           "settlements": {
             "start": "eb79a9b3682a",
             "cutover": "eb79a9b3682a"
           },
           "state": "5359579cc62d",
-          "effects": ["7956587756c3", "865d199fe5a5"]
+          "effects": ["2b284399b28b"]
         }
       },
       {
         "id": "stopped",
         "observation": {
-          "sender": ["0493957d4faf", "255bc308b04a"],
+          "sender": ["b87d8f0b3a78", "01199b72ef35"],
           "payloads": [
-            "f552b5040ec7",
-            "e074c0b6fa0a",
-            "4a6b45030823",
+            "4c8cb72d6fab",
+            "1381f7673721",
+            "8073a149e53a",
             "28e98ef5b5dc",
-            "18432013281e",
-            "8be5078e2020"
+            "267b83bdee0f",
+            "5672eda33e29"
           ],
           "settlements": {
             "start": "eb79a9b3682a",
@@ -227,7 +201,7 @@
             "stop": "eb79a9b3682a"
           },
           "state": "a0b2bcfcde77",
-          "effects": ["7956587756c3", "865d199fe5a5"]
+          "effects": ["2b284399b28b"]
         }
       }
     ]

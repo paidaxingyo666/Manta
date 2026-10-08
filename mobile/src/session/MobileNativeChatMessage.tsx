@@ -172,7 +172,10 @@ function MobileNativeChatMessageImpl({
   onToggleSubagentGroup?: (groupId: string) => void
 }): React.JSX.Element {
   // Another agent's message is set apart from the person's bubble, left-aligned and named.
-  const attribution = agentMessageAttribution(translate("m.MobileNativeChatMessage.645191d29c", "Message from"), message.from)
+  const attribution = agentMessageAttribution(
+    translate('m.MobileNativeChatMessage.645191d29c', 'Message from'),
+    message.from
+  )
   const isUser = message.role === 'user' && attribution === null
   const isReasoning = message.role === 'reasoning'
   // Separate the agent's words from its tool activity: prose renders first, the

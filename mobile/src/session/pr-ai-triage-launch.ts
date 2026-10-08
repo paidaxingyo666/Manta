@@ -61,8 +61,10 @@ export async function launchAgentWithPrompt(args: {
   if (!text) {
     return {
       kind: 'not-started',
-      message:
-        translate("m.pr.ai.triage.launch.9a71429876", "This action's saved prompt is empty. Update Source Control AI settings on your computer.")
+      message: translate(
+        'm.pr.ai.triage.launch.9a71429876',
+        "This action's saved prompt is empty. Update Source Control AI settings on your computer."
+      )
     }
   }
   const launched = await launchAgentInExistingWorkspace({

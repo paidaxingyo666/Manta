@@ -81,7 +81,10 @@ export function useMobilePrAiTriage(input: Input) {
         return false
       }
       if (!client || connState !== 'connected') {
-        setNotice(key, { ...NO_LAUNCH_NOTICE, error: translate("m.use.mobile.pr.ai.triage.597bfe99c4", "Waiting for desktop…") })
+        setNotice(key, {
+          ...NO_LAUNCH_NOTICE,
+          error: translate('m.use.mobile.pr.ai.triage.597bfe99c4', 'Waiting for desktop…')
+        })
         triggerError()
         return false
       }
@@ -114,7 +117,10 @@ export function useMobilePrAiTriage(input: Input) {
         triggerError()
         setNotice(key, {
           ...NO_LAUNCH_NOTICE,
-          error: err instanceof Error ? err.message : translate("m.use.mobile.pr.ai.triage.eb65aabdc8", "Failed to launch agent")
+          error:
+            err instanceof Error
+              ? err.message
+              : translate('m.use.mobile.pr.ai.triage.eb65aabdc8', 'Failed to launch agent')
         })
         return false
       } finally {

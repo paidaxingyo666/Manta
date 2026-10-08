@@ -4,15 +4,6 @@
   "family": "session.diff-review",
   "namedDeltas": [],
   "values": {
-    "14804a5e414f": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "kind": "unavailable",
-        "message": "Update Manta desktop to review changes on mobile."
-      }
-    },
     "168d1f64ca9b": {
       "name": "git.status#1",
       "ordinal": 2,
@@ -53,10 +44,19 @@
         }
       }
     },
-    "55c07df45014": {
+    "737571f189e0": {
       "branchCompare": "unloaded",
       "diff": "unloaded",
       "snapshot": {
+        "kind": "unavailable",
+        "message": "Update Manta desktop to review changes on mobile."
+      }
+    },
+    "f48d56804b27": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
         "kind": "unavailable",
         "message": "Update Manta desktop to review changes on mobile."
       }
@@ -71,9 +71,9 @@
           "sender": ["45d1ea7c0b42"],
           "payloads": ["168d1f64ca9b"],
           "settlements": {
-            "unavailable": "14804a5e414f"
+            "unavailable": "f48d56804b27"
           },
-          "state": "55c07df45014",
+          "state": "737571f189e0",
           "effects": []
         }
       }

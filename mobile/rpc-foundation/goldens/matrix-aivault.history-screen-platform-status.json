@@ -515,22 +515,6 @@
       "ordinal": 6,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
     },
-    "d22bb2f62cea": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "ActivityIndicator": 1,
-        "ChevronLeft": 1,
-        "Pressable": 2,
-        "RefreshCw": 1,
-        "SafeAreaView": 1,
-        "Text": 2,
-        "View": 4
-      },
-      "labels": ["Back", "Refresh agent sessions"],
-      "text": ["Agent Session History", "manta-history"]
-    },
     "d302f4eada82": {
       "name": "status.get#1",
       "ordinal": 2,
@@ -580,6 +564,22 @@
       "value": {
         "$rpc": "undefined"
       }
+    },
+    "f0fcd4baacac": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "ActivityIndicator": 1,
+        "ChevronLeft": 1,
+        "Pressable": 2,
+        "RefreshCw": 1,
+        "SafeAreaView": 1,
+        "Text": 2,
+        "View": 4
+      },
+      "labels": ["Back", "Refresh agent sessions"],
+      "text": ["Agent Session History", "manta-history"]
     }
   },
   "recording": {
@@ -593,7 +593,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -605,7 +605,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -617,7 +617,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -629,7 +629,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -641,7 +641,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -653,7 +653,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -665,7 +665,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -677,7 +677,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -689,7 +689,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -701,7 +701,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -713,7 +713,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -725,7 +725,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       }

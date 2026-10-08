@@ -9,7 +9,7 @@
         "$rpc": "null"
       }
     },
-    "3ec97892842e": {
+    "2b0f8099c4ea": {
       "name": "device-store.setItem",
       "ordinal": 1,
       "value": {
@@ -262,7 +262,7 @@
             "confirm": "9270aeb7d9c6"
           },
           "state": "0a07efb53f1e",
-          "effects": ["3ec97892842e"]
+          "effects": ["2b0f8099c4ea"]
         }
       },
       {
@@ -274,7 +274,7 @@
             "confirm": "fed9e1669a83"
           },
           "state": "60304d1e19bb",
-          "effects": ["3ec97892842e"]
+          "effects": ["2b0f8099c4ea"]
         }
       }
     ]

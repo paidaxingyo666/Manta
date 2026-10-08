@@ -2,7 +2,7 @@ import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from '
 import { StyleSheet, View } from 'react-native'
 import { Navigator } from 'expo-router'
 import { colors } from '../theme/mobile-theme'
-import { HOST_STACK_SCREENS, type HostStackAnimation } from './host-stack-screens'
+import { hostStackScreens, type HostStackAnimation } from './host-stack-screens'
 
 /**
  * Web sibling: the page's host stack, with the push and pop slide the native stack has.
@@ -14,7 +14,7 @@ import { HOST_STACK_SCREENS, type HostStackAnimation } from './host-stack-screen
 export function HostStack({ animation }: { animation: HostStackAnimation }) {
   return (
     <Navigator>
-      {HOST_STACK_SCREENS.map(({ name, title }) => (
+      {hostStackScreens().map(({ name, title }) => (
         <Navigator.Screen key={name} name={name} options={{ title }} />
       ))}
       <HostStackView animation={animation} />

@@ -4,16 +4,6 @@
   "family": "speech.setup-sheet",
   "namedDeltas": [],
   "values": {
-    "100447f8b483": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "Error",
-        "message": "Update the paired desktop Manta app to use mobile voice settings.",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "103ab24b6298": {
       "name": "speech.models.list#1",
       "ordinal": 1,
@@ -54,6 +44,16 @@
       "name": "speech.models.list#1",
       "ordinal": 2,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"speech.models.list\",\"params\":null}"
+    },
+    "544268f0e0b3": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "Update the paired desktop Manta app to use mobile voice settings.",
+        "isRpcDeliveryUnknown": false
+      }
     }
   },
   "recording": {
@@ -65,7 +65,7 @@
           "sender": ["103ab24b6298"],
           "payloads": ["4f793e38be31"],
           "settlements": {
-            "list": "100447f8b483"
+            "list": "544268f0e0b3"
           },
           "state": "44136fa355b3",
           "effects": []

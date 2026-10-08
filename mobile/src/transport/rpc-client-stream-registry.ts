@@ -71,7 +71,10 @@ export class RpcClientStreamRegistry {
       if (this.send(id, stream)) {
         stream.sent = true
       } else {
-        this.finish(id, stream, { type: 'error', message: translate("m.rpc.client.stream.registry.022acb1d2e", "Connection interrupted") })
+        this.finish(id, stream, {
+          type: 'error',
+          message: translate('m.rpc.client.stream.registry.022acb1d2e', 'Connection interrupted')
+        })
       }
     } else {
       console.log('[net] subscribe queued — waiting for connected', {
@@ -140,7 +143,10 @@ export class RpcClientStreamRegistry {
     this.finish(response.id, stream, {
       type: 'error',
       message: response.ok
-        ? translate("m.rpc.client.stream.registry.12510e6f03", "Streaming request ended before it was ready.")
+        ? translate(
+            'm.rpc.client.stream.registry.12510e6f03',
+            'Streaming request ended before it was ready.'
+          )
         : response.error.message,
       error: response.ok ? undefined : response.error
     })

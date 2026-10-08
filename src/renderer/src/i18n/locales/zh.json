@@ -3808,7 +3808,9 @@
             "codexSignInError": "Codex 登录失败，请重试。",
             "cursorUsageMenu": "Cursor 使用情况",
             "hiddenUsageProviders": "另有：{{value0}}",
-            "zcodeUsageMenu": "ZCode 用量"
+            "zcodeUsageMenu": "ZCode 用量",
+            "4025a6f62f": "无限",
+            "a95969101f": "{{value0}} 积分"
           },
           "StatusBarUsageEmptyCta": {
             "828c764a79": "连接账户",
@@ -3996,7 +3998,15 @@
             },
             "zcode": {
               "mcp": "MCP"
-            }
+            },
+            "fbc80d8be2": "Zen 余额",
+            "c03c61f53f": "余额",
+            "f6a27a3c0a": "可用 {{value0}}",
+            "7404abbece": "用量积分",
+            "473d45cd0f": "余额 {{value0}}",
+            "f21b2ba897": "积分",
+            "56c0d70577": "无限",
+            "87b5bda4d3": "{{value0}} 积分可用"
           },
           "SshTargetStatusRow": {
             "sshHost": "SSH 主机"
@@ -4115,7 +4125,8 @@
             "extra": {
               "usage": {
                 "section": {
-                  "135d51c19f": "限额 {{value0}}"
+                  "135d51c19f": "限额 {{value0}}",
+                  "apiKeyBalanceUnavailable": "此用量响应中不包含余额。"
                 }
               }
             }

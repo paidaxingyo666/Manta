@@ -85,7 +85,12 @@ export function ProtocolBlockScreen({ verdict }: Props) {
           storeName: 'GitHub Releases'
         }
   const mobileAction = mobileUpdate
-    ? { label: translate("m.ProtocolBlockScreen.386e624668", "Get Manta {{value0}}", { value0: mobileUpdate.version }), url: mobileUpdate.url }
+    ? {
+        label: translate('m.ProtocolBlockScreen.386e624668', 'Get Manta {{value0}}', {
+          value0: mobileUpdate.version
+        }),
+        url: mobileUpdate.url
+      }
     : { label: mobileUpdateTarget.label, url: mobileUpdateTarget.url }
   // No download to offer when the fix is a refetch: reconnecting is what this screen leaves you to do.
   const primaryAction =

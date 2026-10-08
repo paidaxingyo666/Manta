@@ -257,6 +257,14 @@
         "identifier": "tray-1"
       }
     },
+    "72cac49e6acc": {
+      "name": "device-store.setItem",
+      "ordinal": 3,
+      "value": {
+        "key": "manta:pushDismissalWatermarks:v1",
+        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-1\\\"]\",\"seq\":7,\"expiresAt\":1767312000000}]"
+      }
+    },
     "9270aeb7d9c6": {
       "status": "pending",
       "startedAt": 0
@@ -540,14 +548,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "fa03fdca3d1d": {
-      "name": "device-store.setItem",
-      "ordinal": 3,
-      "value": {
-        "key": "manta:pushDismissalWatermarks:v1",
-        "value": "[{\"key\":\"[\\\"Yw3NKWbEM2aRElRI\\\",\\\"epoch-1\\\",\\\"note-1\\\"]\",\"seq\":7,\"expiresAt\":1767312000000}]"
-      }
     }
   },
   "recording": {
@@ -574,7 +574,7 @@
             "catchup": "eb79a9b3682a"
           },
           "state": "cf9c28129225",
-          "effects": ["fa03fdca3d1d", "6cfa895b17c4"]
+          "effects": ["72cac49e6acc", "6cfa895b17c4"]
         }
       },
       {

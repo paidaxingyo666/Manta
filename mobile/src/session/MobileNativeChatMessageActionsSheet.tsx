@@ -41,7 +41,7 @@ export function MobileNativeChatMessageActionsSheet({
           onClose={closeSheet}
           actions={[
             {
-              label: translate("m.MobileNativeChatMessageActionsSheet.b3d84e5299", "Copy message"),
+              label: translate('m.MobileNativeChatMessageActionsSheet.b3d84e5299', 'Copy message'),
               icon: Copy,
               disabled: text.length === 0,
               onPress: () => {
@@ -54,7 +54,7 @@ export function MobileNativeChatMessageActionsSheet({
               }
             },
             {
-              label: translate("m.MobileNativeChatMessageActionsSheet.367ed28fee", "Select text"),
+              label: translate('m.MobileNativeChatMessageActionsSheet.367ed28fee', 'Select text'),
               icon: TextSelect,
               disabled: text.length === 0,
               onPress: () => {
@@ -81,7 +81,9 @@ function SelectTextScreen({
     <Modal visible animationType="slide" onRequestClose={onClose}>
       <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.header}>
-          <Text style={styles.title}>{translate("m.MobileNativeChatMessageActionsSheet.367ed28fee", "Select text")}</Text>
+          <Text style={styles.title}>
+            {translate('m.MobileNativeChatMessageActionsSheet.367ed28fee', 'Select text')}
+          </Text>
           <Pressable
             onPress={onClose}
             hitSlop={12}

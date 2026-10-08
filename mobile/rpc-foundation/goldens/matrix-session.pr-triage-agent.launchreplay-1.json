@@ -46,6 +46,12 @@
       "ordinal": 4,
       "json": "{\"id\":\"frame-2\",\"deviceToken\":\"recording-device\",\"method\":\"settings.get\"}"
     },
+    "1ee033cfeaed": {
+      "launched": {
+        "kind": "not-started",
+        "message": "Update Manta on your computer to start an agent from your phone."
+      }
+    },
     "28339abecf78": {
       "name": "agent.launchReplay#1",
       "ordinal": 8,
@@ -682,12 +688,6 @@
         }
       }
     },
-    "c2a44248892e": {
-      "launched": {
-        "kind": "not-started",
-        "message": "Update Manta on your computer to start an agent from your phone."
-      }
-    },
     "c39600966772": {
       "name": "agent.launchReplay#1",
       "ordinal": 7,
@@ -886,7 +886,7 @@
           "settlements": {
             "launch": "eb79a9b3682a"
           },
-          "state": "c2a44248892e",
+          "state": "1ee033cfeaed",
           "effects": []
         }
       },

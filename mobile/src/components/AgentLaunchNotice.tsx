@@ -45,7 +45,9 @@ export function AgentLaunchNotice({
     return null
   }
   const copyLabel =
-    copyState && copyState.prompt === undeliveredPrompt ? copyState.label : translate("m.AgentLaunchNotice.cff1e8bebf", "Copy prompt")
+    copyState && copyState.prompt === undeliveredPrompt
+      ? copyState.label
+      : translate('m.AgentLaunchNotice.cff1e8bebf', 'Copy prompt')
   return (
     <View style={styles.notice}>
       {confirmation ? <Text style={styles.successText}>{confirmation}</Text> : null}
@@ -55,8 +57,16 @@ export function AgentLaunchNotice({
         <Pressable
           onPress={() => {
             clipboard.writeText(undeliveredPrompt).then(
-              () => setCopyState({ prompt: undeliveredPrompt, label: translate("m.AgentLaunchNotice.7860758a15", "Copied") }),
-              () => setCopyState({ prompt: undeliveredPrompt, label: translate("m.AgentLaunchNotice.83e0b4512d", "Couldn't copy") })
+              () =>
+                setCopyState({
+                  prompt: undeliveredPrompt,
+                  label: translate('m.AgentLaunchNotice.7860758a15', 'Copied')
+                }),
+              () =>
+                setCopyState({
+                  prompt: undeliveredPrompt,
+                  label: translate('m.AgentLaunchNotice.83e0b4512d', "Couldn't copy")
+                })
             )
           }}
           accessibilityRole="button"

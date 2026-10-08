@@ -9,7 +9,7 @@ const UNNAMED_SENDER = 'an agent'
 
 /** Null for the person's own message. */
 export function agentMessageAttribution(
-  lead: 'From' | 'Message from',
+  lead: string,
   source: AgentMessageSource | undefined
 ): string | null {
   if (!source) {

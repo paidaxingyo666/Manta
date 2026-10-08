@@ -201,16 +201,6 @@
       "status": "pending",
       "startedAt": 0
     },
-    "9ce0c7923c41": {
-      "status": "rejected",
-      "startedAt": 0,
-      "settledAt": 0,
-      "error": {
-        "category": "Error",
-        "message": "Remote file changes require a newer Manta server. Update the HUB and try again.",
-        "isRpcDeliveryUnknown": false
-      }
-    },
     "a947768bc0ed": {
       "status": "rejected",
       "startedAt": 0,
@@ -517,6 +507,16 @@
         }
       }
     },
+    "e9cd7b0efed0": {
+      "status": "rejected",
+      "startedAt": 0,
+      "settledAt": 0,
+      "error": {
+        "category": "Error",
+        "message": "Remote file changes require a newer Manta server. Update the HUB and try again.",
+        "isRpcDeliveryUnknown": false
+      }
+    },
     "f3b516f62081": {
       "status": "rejected",
       "startedAt": 0,
@@ -650,7 +650,7 @@
           "sender": ["0fbf6809f292"],
           "payloads": ["d08f74d65ee6"],
           "settlements": {
-            "capture": "9ce0c7923c41"
+            "capture": "e9cd7b0efed0"
           },
           "state": "518ec57c381a",
           "effects": []
@@ -662,7 +662,7 @@
           "sender": ["b5476ba1aabe"],
           "payloads": ["d08f74d65ee6"],
           "settlements": {
-            "capture": "9ce0c7923c41"
+            "capture": "e9cd7b0efed0"
           },
           "state": "518ec57c381a",
           "effects": []
@@ -674,7 +674,7 @@
           "sender": ["7f0419402be8"],
           "payloads": ["d08f74d65ee6"],
           "settlements": {
-            "capture": "9ce0c7923c41"
+            "capture": "e9cd7b0efed0"
           },
           "state": "518ec57c381a",
           "effects": []

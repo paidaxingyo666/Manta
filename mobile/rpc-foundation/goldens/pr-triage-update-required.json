@@ -4,7 +4,7 @@
   "family": "session.pr-triage",
   "namedDeltas": [],
   "values": {
-    "c2a44248892e": {
+    "1ee033cfeaed": {
       "launched": {
         "kind": "not-started",
         "message": "Update Manta on your computer to start an agent from your phone."
@@ -30,7 +30,7 @@
           "settlements": {
             "launch": "eb79a9b3682a"
           },
-          "state": "c2a44248892e",
+          "state": "1ee033cfeaed",
           "effects": []
         }
       }

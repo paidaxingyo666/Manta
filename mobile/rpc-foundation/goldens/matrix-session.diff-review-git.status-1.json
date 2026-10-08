@@ -70,15 +70,6 @@
         "startedAt": 0
       }
     },
-    "14804a5e414f": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "kind": "unavailable",
-        "message": "Update Manta desktop to review changes on mobile."
-      }
-    },
     "15f193a5a1c7": {
       "name": "git.branchCompare#1",
       "ordinal": 9,
@@ -481,14 +472,6 @@
       "ordinal": 7,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"repo.list\"}"
     },
-    "55c07df45014": {
-      "branchCompare": "unloaded",
-      "diff": "unloaded",
-      "snapshot": {
-        "kind": "unavailable",
-        "message": "Update Manta desktop to review changes on mobile."
-      }
-    },
     "5a46fcc976ac": {
       "name": "git.status#1",
       "ordinal": 1,
@@ -522,6 +505,14 @@
             "ok": false
           }
         }
+      }
+    },
+    "737571f189e0": {
+      "branchCompare": "unloaded",
+      "diff": "unloaded",
+      "snapshot": {
+        "kind": "unavailable",
+        "message": "Update Manta desktop to review changes on mobile."
       }
     },
     "80f12d7d71e7": {
@@ -874,6 +865,15 @@
         }
       }
     },
+    "f48d56804b27": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "kind": "unavailable",
+        "message": "Update Manta desktop to review changes on mobile."
+      }
+    },
     "fa4ee3a35705": {
       "name": "git.status#1",
       "ordinal": 1,
@@ -1073,9 +1073,9 @@
           "sender": ["45d1ea7c0b42"],
           "payloads": ["168d1f64ca9b"],
           "settlements": {
-            "snapshot": "14804a5e414f"
+            "snapshot": "f48d56804b27"
           },
-          "state": "55c07df45014",
+          "state": "737571f189e0",
           "effects": []
         }
       },

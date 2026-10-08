@@ -4,6 +4,25 @@
   "family": "notifications.display-test-screen",
   "namedDeltas": [],
   "values": {
+    "05cd3b068789": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 6,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting",
+        "Could not send through Manta’s push service. Try again."
+      ]
+    },
     "0bfc5a373e4d": {
       "name": "notifications.testPush#1",
       "ordinal": 1,
@@ -78,7 +97,25 @@
         }
       }
     },
-    "6967f95147f9": {
+    "9d718fa0bcec": {
+      "crash": {
+        "$rpc": "null"
+      },
+      "elements": {
+        "Pressable": 2,
+        "Text": 5,
+        "View": 3
+      },
+      "labels": ["Send test notification"],
+      "text": [
+        "Having trouble receiving alerts?",
+        "Send a test through Manta’s push service.",
+        "Send test notification",
+        "Send test notification",
+        "Troubleshooting"
+      ]
+    },
+    "d7493d813b59": {
       "crash": {
         "$rpc": "null"
       },
@@ -96,24 +133,6 @@
         "Troubleshooting"
       ]
     },
-    "d86c08a509c4": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 5,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting"
-      ]
-    },
     "eb79a9b3682a": {
       "status": "fulfilled",
       "startedAt": 0,
@@ -121,25 +140,6 @@
       "value": {
         "$rpc": "undefined"
       }
-    },
-    "f3e2e816b496": {
-      "crash": {
-        "$rpc": "null"
-      },
-      "elements": {
-        "Pressable": 2,
-        "Text": 6,
-        "View": 3
-      },
-      "labels": ["Send test notification"],
-      "text": [
-        "Having trouble receiving alerts?",
-        "Send a test through Manta’s push service.",
-        "Send test notification",
-        "Send test notification",
-        "Troubleshooting",
-        "Could not send through Manta’s push service. Try again."
-      ]
     },
     "f68b017d64bd": {
       "name": "notifications.testPush#1",
@@ -158,7 +158,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d86c08a509c4",
+          "state": "9d718fa0bcec",
           "effects": []
         }
       },
@@ -171,7 +171,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "6967f95147f9",
+          "state": "d7493d813b59",
           "effects": []
         }
       },
@@ -184,7 +184,7 @@
             "mount": "eb79a9b3682a",
             "press": "eb79a9b3682a"
           },
-          "state": "f3e2e816b496",
+          "state": "05cd3b068789",
           "effects": ["14bb4c669631"]
         }
       }

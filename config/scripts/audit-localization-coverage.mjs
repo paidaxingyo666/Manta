@@ -21,6 +21,7 @@ import { isTestOnlySourcePath } from './test-only-source-path.mjs'
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'])
 const SKIP_PATH_PARTS = new Set([
   '.git',
+  '.tmp',
   'dist',
   'node_modules',
   'out',

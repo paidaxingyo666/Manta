@@ -9,7 +9,9 @@ export function AppUpdateCard(props: {
   onPress: () => void
   onDismiss: () => void
 }) {
-  const title = translate("m.AppUpdateCard.327ba90dbd", "Manta {{value0}} is available", { value0: props.version })
+  const title = translate('m.AppUpdateCard.327ba90dbd', 'Manta {{value0}} is available', {
+    value0: props.version
+  })
   return (
     <View style={styles.card}>
       <Pressable
@@ -26,7 +28,7 @@ export function AppUpdateCard(props: {
             {title}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
-            {translate("m.AppUpdateCard.e15bb2777e", "Tap to update")}
+            {translate('m.AppUpdateCard.e15bb2777e', 'Tap to update')}
           </Text>
         </View>
       </Pressable>

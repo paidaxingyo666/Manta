@@ -43,6 +43,8 @@ function isSkippedFile(root, filePath) {
   const relative = normalizePath(root, filePath)
   if (
     relative.endsWith('.d.ts') ||
+    // Why: `*.generated.*` are build outputs (bundled mermaid, terminal engine), not source copy.
+    relative.includes('.generated.') ||
     relative.includes('.test.') ||
     relative.includes('.spec.') ||
     relative.includes('/__tests__/')

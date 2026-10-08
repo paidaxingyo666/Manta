@@ -107,6 +107,21 @@
         }
       }
     },
+    "3d7bb913821e": {
+      "file": {},
+      "markdown": {
+        "tab-md": {
+          "baseVersion": "",
+          "content": "# disk",
+          "editable": false,
+          "isDirty": false,
+          "localContent": "# disk",
+          "readOnlyReason": "Editing needs Manta desktop running.",
+          "stale": false,
+          "status": "ready"
+        }
+      }
+    },
     "411d336833d5": {
       "name": "files.read#1",
       "ordinal": 3,
@@ -299,21 +314,6 @@
         }
       }
     },
-    "c6cea5310098": {
-      "file": {},
-      "markdown": {
-        "tab-md": {
-          "baseVersion": "",
-          "content": "# disk",
-          "editable": false,
-          "isDirty": false,
-          "localContent": "# disk",
-          "readOnlyReason": "Editing needs Manta desktop running.",
-          "stale": false,
-          "status": "ready"
-        }
-      }
-    },
     "d4be01606497": {
       "name": "files.read#1",
       "ordinal": 4,
@@ -481,7 +481,7 @@
           "settlements": {
             "markdown": "eb79a9b3682a"
           },
-          "state": "c6cea5310098",
+          "state": "3d7bb913821e",
           "effects": []
         }
       },

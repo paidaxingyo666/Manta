@@ -886,8 +886,12 @@ jobs:
     # which is exactly why they belong here, where both trees are installed,
     # and why the release workflow can only run the standalone subset.
     name: relay tests
-    needs: [code_paths]
-    if: needs.code_paths.outputs.relay == 'true'
+    needs: [code_paths, preflight]
+    if: >-
+      !cancelled() &&
+      needs.code_paths.result == 'success' &&
+      needs.code_paths.outputs.relay == 'true' &&
+      needs.preflight.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -1063,7 +1067,6 @@ jobs:
             git fetch --no-tags --depth=1 baseline "$ref:refs/manta-cross-version/$ref"
             git rev-parse -q --verify "$ref^{commit}" >/dev/null
           done
-
 
       # R1: an upgrade from the newest release must adopt its live terminal daemon.
       - name: Daemon protocol crossing against newest release

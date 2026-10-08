@@ -4,12 +4,7 @@
   "family": "session.tab-documents",
   "namedDeltas": [],
   "values": {
-    "44abbe2af7aa": {
-      "name": "markdown.readTab#1",
-      "ordinal": 2,
-      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"markdown.readTab\",\"params\":{\"worktree\":\"id:workspace-1\",\"tabId\":\"tab-md\"}}"
-    },
-    "c6cea5310098": {
+    "3d7bb913821e": {
       "file": {},
       "markdown": {
         "tab-md": {
@@ -23,6 +18,11 @@
           "status": "ready"
         }
       }
+    },
+    "44abbe2af7aa": {
+      "name": "markdown.readTab#1",
+      "ordinal": 2,
+      "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"markdown.readTab\",\"params\":{\"worktree\":\"id:workspace-1\",\"tabId\":\"tab-md\"}}"
     },
     "d4be01606497": {
       "name": "files.read#1",
@@ -122,7 +122,7 @@
           "settlements": {
             "markdown": "eb79a9b3682a"
           },
-          "state": "c6cea5310098",
+          "state": "3d7bb913821e",
           "effects": []
         }
       }

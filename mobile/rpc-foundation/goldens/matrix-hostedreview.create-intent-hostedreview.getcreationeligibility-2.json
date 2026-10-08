@@ -479,33 +479,6 @@
         }
       }
     },
-    "5a0d2dca259b": {
-      "outcome": {
-        "committed": true,
-        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
-          }
-        }
-      }
-    },
     "682fbd1f6b74": {
       "name": "progress",
       "ordinal": 11,
@@ -1065,6 +1038,33 @@
       "ordinal": 7,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"git.status\",\"params\":{\"worktree\":\"id:repo42::/p\"}}"
     },
+    "ad37637777dd": {
+      "outcome": {
+        "committed": true,
+        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
+        "ok": false,
+        "status": {
+          "branch": "feature",
+          "conflictOperation": "unknown",
+          "entries": [],
+          "head": "def5678",
+          "upstreamStatus": {
+            "ahead": 0,
+            "behind": 0,
+            "behindCommitsArePatchEquivalent": {
+              "$rpc": "undefined"
+            },
+            "hasConfiguredPushTarget": {
+              "$rpc": "undefined"
+            },
+            "hasUpstream": true,
+            "upstreamName": {
+              "$rpc": "undefined"
+            }
+          }
+        }
+      }
+    },
     "b2ae4b8e30b7": {
       "name": "progress",
       "ordinal": 8,
@@ -1116,36 +1116,6 @@
           "result": {
             "error": "inner refused",
             "ok": false
-          }
-        }
-      }
-    },
-    "bf0e050653a2": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "committed": true,
-        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
-        "ok": false,
-        "status": {
-          "branch": "feature",
-          "conflictOperation": "unknown",
-          "entries": [],
-          "head": "def5678",
-          "upstreamStatus": {
-            "ahead": 0,
-            "behind": 0,
-            "behindCommitsArePatchEquivalent": {
-              "$rpc": "undefined"
-            },
-            "hasConfiguredPushTarget": {
-              "$rpc": "undefined"
-            },
-            "hasUpstream": true,
-            "upstreamName": {
-              "$rpc": "undefined"
-            }
           }
         }
       }
@@ -1452,6 +1422,36 @@
       "ordinal": 18,
       "value": "pushing"
     },
+    "fe368f2cba0f": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "committed": true,
+        "error": "Manta could not confirm whether this branch already has a pull request. Try again in a moment.",
+        "ok": false,
+        "status": {
+          "branch": "feature",
+          "conflictOperation": "unknown",
+          "entries": [],
+          "head": "def5678",
+          "upstreamStatus": {
+            "ahead": 0,
+            "behind": 0,
+            "behindCommitsArePatchEquivalent": {
+              "$rpc": "undefined"
+            },
+            "hasConfiguredPushTarget": {
+              "$rpc": "undefined"
+            },
+            "hasUpstream": true,
+            "upstreamName": {
+              "$rpc": "undefined"
+            }
+          }
+        }
+      }
+    },
     "ffef2a178ce4": {
       "name": "worktree.set#1",
       "ordinal": 29,
@@ -1693,9 +1693,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1727,9 +1727,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1761,9 +1761,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1795,9 +1795,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1829,9 +1829,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1863,9 +1863,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1897,9 +1897,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1931,9 +1931,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1965,9 +1965,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -1999,9 +1999,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2033,9 +2033,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2067,9 +2067,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2101,9 +2101,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2135,9 +2135,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2169,9 +2169,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2203,9 +2203,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2237,9 +2237,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2271,9 +2271,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2305,9 +2305,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       },
@@ -2339,9 +2339,9 @@
             "e6dbcef99c41"
           ],
           "settlements": {
-            "run": "bf0e050653a2"
+            "run": "fe368f2cba0f"
           },
-          "state": "5a0d2dca259b",
+          "state": "ad37637777dd",
           "effects": ["e83dca631c9c", "b2ae4b8e30b7", "682fbd1f6b74", "fccf28a4e541"]
         }
       }

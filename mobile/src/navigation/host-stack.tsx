@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router'
 import { colors } from '../theme/mobile-theme'
-import { HOST_STACK_SCREENS, type HostStackAnimation } from './host-stack-screens'
+import { hostStackScreens, type HostStackAnimation } from './host-stack-screens'
 
 export function HostStack({ animation }: { animation: HostStackAnimation }) {
   return (
@@ -14,7 +14,7 @@ export function HostStack({ animation }: { animation: HostStackAnimation }) {
         animation
       }}
     >
-      {HOST_STACK_SCREENS.map(({ name, title }) => (
+      {hostStackScreens().map(({ name, title }) => (
         <Stack.Screen key={name} name={name} options={{ title }} />
       ))}
     </Stack>

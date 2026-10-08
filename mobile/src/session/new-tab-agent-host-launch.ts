@@ -137,7 +137,9 @@ export async function launchNewTabAgentThroughHost(args: {
     showToast(options?.initialPrompt ? NOTES_NOT_SENT_MESSAGE : AGENT_PROMPT_NOT_SENT_MESSAGE, 2400)
   } else if (launched.promptDelivered && options?.initialPrompt) {
     triggerSuccess()
-    showToast(options.successToast ?? translate("m.new.tab.agent.host.launch.35ffae1326", "Notes sent"))
+    showToast(
+      options.successToast ?? translate('m.new.tab.agent.host.launch.35ffae1326', 'Notes sent')
+    )
     options.onPromptSent?.()
   } else if (warning?.trim()) {
     showToast(warning.trim(), 2400)

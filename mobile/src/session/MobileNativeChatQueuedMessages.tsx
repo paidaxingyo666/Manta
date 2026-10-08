@@ -102,7 +102,9 @@ export function MobileNativeChatQueuedMessages({
               onPress={() => void run(RESUME_KEY, onResume && (() => onResume()))}
             >
               <Play size={12} color={colors.textPrimary} strokeWidth={2} />
-              <Text style={styles.actionLabel}>{translate("m.MobileNativeChatQueuedMessages.c5d7275d9c", "Resume")}</Text>
+              <Text style={styles.actionLabel}>
+                {translate('m.MobileNativeChatQueuedMessages.c5d7275d9c', 'Resume')}
+              </Text>
             </Pressable>
           </View>
         ) : null}
@@ -166,7 +168,11 @@ export function MobileNativeChatQueuedMessages({
                 ) : (
                   <Send size={12} color={colors.textPrimary} strokeWidth={2} />
                 )}
-                <Text style={styles.actionLabel}>{steers ? translate("m.MobileNativeChatQueuedMessages.bed85b35fa", "Steer") : translate("m.MobileNativeChatQueuedMessages.2ed7e2e6b4", "Send")}</Text>
+                <Text style={styles.actionLabel}>
+                  {steers
+                    ? translate('m.MobileNativeChatQueuedMessages.bed85b35fa', 'Steer')
+                    : translate('m.MobileNativeChatQueuedMessages.2ed7e2e6b4', 'Send')}
+                </Text>
               </Pressable>
               <Pressable
                 accessibilityRole="button"
@@ -205,7 +211,7 @@ export function MobileNativeChatQueuedMessages({
         title={menuCard?.text}
         actions={[
           {
-            label: translate("m.MobileNativeChatQueuedMessages.39824a97f6", "Edit message"),
+            label: translate('m.MobileNativeChatQueuedMessages.39824a97f6', 'Edit message'),
             icon: Pencil,
             // Runs once the sheet's Modal is gone, so the composer Edit fills can take focus.
             closeBeforePress: true,

@@ -13,7 +13,9 @@ export function MobileNativeChatStopButton({
   onStop?: () => void
   held: boolean
 }): React.JSX.Element {
-  const label = held ? NATIVE_CHAT_TURN_STATUS_COPY.stopping : translate("m.MobileNativeChatStopButton.48d37a247d", "Stop")
+  const label = held
+    ? NATIVE_CHAT_TURN_STATUS_COPY.stopping
+    : translate('m.MobileNativeChatStopButton.48d37a247d', 'Stop')
   return (
     <Pressable
       style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}

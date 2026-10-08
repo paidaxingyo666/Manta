@@ -127,7 +127,9 @@ function MobileNativeChatPermissionContext({
       ) : null}
       {neededPath ? (
         <Text style={styles.detail}>
-          <Text style={styles.contextLabel}>{translate("m.MobileNativeChatPermission.e4ca744e2a", "Needs access to:")} </Text>
+          <Text style={styles.contextLabel}>
+            {translate('m.MobileNativeChatPermission.e4ca744e2a', 'Needs access to:')}{' '}
+          </Text>
           {neededPath}
         </Text>
       ) : null}
@@ -146,7 +148,10 @@ function MobileNativeChatPermissionContext({
       ) : null}
       {newerSubject ? (
         <Text testID="native-chat-approval-needs-newer-orca" style={styles.detail}>
-          {translate("m.MobileNativeChatPermission.cfbf09def2", "This request needs a newer version of Manta.")}
+          {translate(
+            'm.MobileNativeChatPermission.cfbf09def2',
+            'This request needs a newer version of Manta.'
+          )}
         </Text>
       ) : null}
     </ScrollView>

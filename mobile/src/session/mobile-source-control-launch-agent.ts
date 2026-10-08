@@ -47,7 +47,10 @@ export function resolveMobileSourceControlLaunchAgent(
   ) {
     return {
       kind: 'unavailable',
-      message: translate("m.mobile.source.control.launch.agent.c028e45eff", "The saved agent for this action is not available on this workspace host.")
+      message: translate(
+        'm.mobile.source.control.launch.agent.c028e45eff',
+        'The saved agent for this action is not available on this workspace host.'
+      )
     }
   }
   const agent = pickSourceControlLaunchAgent({
@@ -58,7 +61,13 @@ export function resolveMobileSourceControlLaunchAgent(
   })
   return agent
     ? { kind: 'agent', agent, recipe }
-    : { kind: 'unavailable', message: translate("m.mobile.source.control.launch.agent.38424199f0", "No enabled AI agent was detected on this workspace host.") }
+    : {
+        kind: 'unavailable',
+        message: translate(
+          'm.mobile.source.control.launch.agent.38424199f0',
+          'No enabled AI agent was detected on this workspace host.'
+        )
+      }
 }
 
 function readLaunchAgentSettings(settings: unknown): LaunchAgentSettings | null {

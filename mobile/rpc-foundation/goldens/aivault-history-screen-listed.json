@@ -30,7 +30,7 @@
         "startedAt": 0
       }
     },
-    "035edfd9a1b9": {
+    "14527a3ea00c": {
       "crash": {
         "$rpc": "null"
       },
@@ -293,7 +293,20 @@
       "ordinal": 6,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"status.get\"}"
     },
-    "d22bb2f62cea": {
+    "d3c3ce66625d": {
+      "name": "aiVault.listSessions#1",
+      "ordinal": 8,
+      "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"aiVault.listSessions\",\"params\":{\"limit\":500,\"force\":false,\"scopePaths\":[\"/repo/feature\"]}}"
+    },
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "f0fcd4baacac": {
       "crash": {
         "$rpc": "null"
       },
@@ -308,19 +321,6 @@
       },
       "labels": ["Back", "Refresh agent sessions"],
       "text": ["Agent Session History", "manta-history"]
-    },
-    "d3c3ce66625d": {
-      "name": "aiVault.listSessions#1",
-      "ordinal": 8,
-      "json": "{\"id\":\"frame-4\",\"deviceToken\":\"recording-device\",\"method\":\"aiVault.listSessions\",\"params\":{\"limit\":500,\"force\":false,\"scopePaths\":[\"/repo/feature\"]}}"
-    },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "$rpc": "undefined"
-      }
     }
   },
   "recording": {
@@ -334,7 +334,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -346,7 +346,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "d22bb2f62cea",
+          "state": "f0fcd4baacac",
           "effects": []
         }
       },
@@ -358,7 +358,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "035edfd9a1b9",
+          "state": "14527a3ea00c",
           "effects": []
         }
       }

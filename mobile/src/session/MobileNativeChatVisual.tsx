@@ -70,7 +70,9 @@ export const MobileNativeChatVisual = memo(function MobileNativeChatVisual({
         accessibilityHint="Tries to load it again"
         style={styles.unavailable}
       >
-        <Text style={styles.unavailableText}>{translate("m.MobileNativeChatVisual.a5704a890c", "Visualization unavailable")}</Text>
+        <Text style={styles.unavailableText}>
+          {translate('m.MobileNativeChatVisual.a5704a890c', 'Visualization unavailable')}
+        </Text>
       </Pressable>
     )
   }

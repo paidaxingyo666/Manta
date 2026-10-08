@@ -42,12 +42,18 @@ export function AppUpdateSettingsRows(props: {
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       onPress={() => onUpdate(available.url)}
     >
-      <Text style={styles.rowLabel}>{translate("m.app.update.settings.rows.031ac9e67e", "Update to Manta")} {available.version}</Text>
-      <Text style={styles.actionValue}>{translate("m.app.update.settings.rows.c4e6a1e8fe", "Update")}</Text>
+      <Text style={styles.rowLabel}>
+        {translate('m.app.update.settings.rows.031ac9e67e', 'Update to Manta')} {available.version}
+      </Text>
+      <Text style={styles.actionValue}>
+        {translate('m.app.update.settings.rows.c4e6a1e8fe', 'Update')}
+      </Text>
     </Pressable>
   ) : installedVersion ? (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{translate("m.app.update.settings.rows.fdbb13e309", "Version")} {installedVersion}</Text>
+      <Text style={styles.rowLabel}>
+        {translate('m.app.update.settings.rows.fdbb13e309', 'Version')} {installedVersion}
+      </Text>
     </View>
   ) : null
   return (
@@ -62,7 +68,9 @@ export function AppUpdateSettingsRows(props: {
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
         onPress={props.onCheck}
       >
-        <Text style={styles.rowLabel}>{translate("m.app.update.settings.rows.7044099667", "Check for updates")}</Text>
+        <Text style={styles.rowLabel}>
+          {translate('m.app.update.settings.rows.7044099667', 'Check for updates')}
+        </Text>
         <Text style={styles.rowValue}>{checkValue}</Text>
       </Pressable>
     </View>

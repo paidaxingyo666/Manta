@@ -4,6 +4,12 @@
   "family": "worktree.retired-names",
   "namedDeltas": [],
   "values": {
+    "14a70c2074ec": {
+      "registry": {
+        "exhaustedTiers": 2,
+        "names": ["marlin", "manta"]
+      }
+    },
     "3a6762b141aa": {
       "name": "worktree.listRetiredNames#1",
       "ordinal": 2,
@@ -35,13 +41,21 @@
         "startedAt": 0
       }
     },
-    "85d826c606ff": {
+    "cb76d0017b96": {
       "registry": {
-        "exhaustedTiers": 2,
-        "names": ["marlin", "manta"]
+        "exhaustedTiers": 0,
+        "names": []
       }
     },
-    "97b3650e7890": {
+    "eb79a9b3682a": {
+      "status": "fulfilled",
+      "startedAt": 0,
+      "settledAt": 0,
+      "value": {
+        "$rpc": "undefined"
+      }
+    },
+    "f24fb1fae715": {
       "name": "worktree.listRetiredNames#1",
       "ordinal": 1,
       "args": [
@@ -79,20 +93,6 @@
           }
         }
       }
-    },
-    "cb76d0017b96": {
-      "registry": {
-        "exhaustedTiers": 0,
-        "names": []
-      }
-    },
-    "eb79a9b3682a": {
-      "status": "fulfilled",
-      "startedAt": 0,
-      "settledAt": 0,
-      "value": {
-        "$rpc": "undefined"
-      }
     }
   },
   "recording": {
@@ -113,12 +113,12 @@
       {
         "id": "settled",
         "observation": {
-          "sender": ["97b3650e7890"],
+          "sender": ["f24fb1fae715"],
           "payloads": ["3a6762b141aa"],
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "85d826c606ff",
+          "state": "14a70c2074ec",
           "effects": []
         }
       }
